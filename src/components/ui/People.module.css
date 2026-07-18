@@ -1,0 +1,9 @@
+.personRow { display: flex; align-items: center; gap: 11px; }
+.personAvatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--grad-teal);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 12px; color: #fff;
+  box-shadow: 0 3px 8px rgba(15,207,174,.3); flex: none;
+}
+.stars { color: #fb8c00; letter-spacing: 2px; font-size: 13px; }

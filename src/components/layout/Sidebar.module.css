@@ -1,0 +1,132 @@
+.sidebar {
+  position: sticky;
+  top: 12px;
+  margin: 12px 0 12px 12px;
+  height: calc(100vh - 24px);
+  width: var(--sidebar-inner);
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 22px 14px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  z-index: 40;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Marca */
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 6px 18px; margin-bottom: 6px; flex-shrink: 0;
+}
+.brandMark {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--grad-teal);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 16px;
+  box-shadow: 0 4px 12px rgba(15,207,174,.4);
+  flex: none;
+}
+.brandText { font-weight: 800; font-size: 15px; color: var(--navy-900); line-height: 1.1; }
+.brandText span { color: var(--teal-600); font-weight: 500; font-size: 11.5px; display: block; }
+:global([data-theme="dark"]) .brandText span { color: #0fcfae; }
+
+.roleWrap { padding: 0 8px 16px; }
+
+/* Navegación */
+.navGroup {
+  display: flex; flex-direction: column; gap: 2px;
+  padding-bottom: 2px;
+}
+.navItem {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 10px; border-radius: var(--r-md);
+  color: var(--slate-500); font-size: 13.5px; font-weight: 600;
+  transition: all .16s ease; cursor: pointer;
+  white-space: nowrap;
+}
+.navIcon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--hover-surface); flex: none;
+  transition: all .16s ease;
+}
+.navIcon svg { width: 16px; height: 16px; color: var(--slate-500); transition: all .16s ease; }
+.navItem:hover { color: var(--navy-900); }
+.navItem:hover .navIcon { background: var(--teal-50); }
+.navItem:hover .navIcon svg { color: var(--teal-600); }
+.navItemActive { color: var(--navy-900); }
+.navItemActive .navIcon {
+  background: var(--grad-teal);
+  box-shadow: 0 5px 12px rgba(15,207,174,.38);
+}
+.navItemActive .navIcon svg { color: #fff; }
+
+:global([data-theme="dark"]) .navItem { color: #4a5670; }
+:global([data-theme="dark"]) .navItem:hover { color: #e8edf5; background: rgba(255,255,255,.04); }
+:global([data-theme="dark"]) .navItem:hover .navIcon { background: rgba(15,207,174,.12); }
+:global([data-theme="dark"]) .navItem:hover .navIcon svg { color: #0fcfae; }
+:global([data-theme="dark"]) .navItemActive { color: #e8edf5; background: rgba(255,255,255,.06); }
+
+@media (hover: none) { .navItem { min-height: 44px; } }
+
+/* Tarjeta de ayuda */
+.help {
+  flex-shrink: 0;
+  background: var(--grad-navy);
+  border-radius: var(--r-lg);
+  padding: 18px 14px 16px;
+  margin-top: auto;
+  color: #fff; text-align: center;
+}
+.navGroup { margin-bottom: 16px; }
+.helpIcon {
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,.18);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px;
+  box-shadow: 0 0 0 5px rgba(255,255,255,.08);
+}
+.helpIcon svg { width: 18px; height: 18px; color: #fff; }
+.help h4 { font-size: 13px; margin-bottom: 4px; font-weight: 700; }
+.help p { font-size: 11.5px; opacity: .8; margin-bottom: 12px; line-height: 1.5; }
+.helpBtn {
+  display: block; width: 100%; padding: 8px;
+  background: #fff; color: var(--navy-900);
+  border-radius: 8px; font-size: 11.5px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+  border: none;
+}
+:global([data-theme="dark"]) .helpBtn { color: #1b2559; }
+.helpBtn:hover { background: var(--teal-50); }
+
+/* Responsive: sidebar flotante en móvil */
+@media (max-width: 860px) {
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    margin: 0;
+    width: 260px;
+    height: 100vh;
+    border-radius: 0 var(--r-xl) var(--r-xl) 0;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+  }
+  .open { transform: translateX(0); }
+}
+
+.backdrop {
+  position: fixed; inset: 0; background: rgba(27,37,89,.4);
+  backdrop-filter: blur(2px); z-index: 39; display: none;
+}
+@media (max-width: 860px) {
+  .backdropShow { display: block; }
+}

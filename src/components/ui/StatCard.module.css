@@ -1,0 +1,64 @@
+/* Grid de tarjetas de estadísticas — ícono flotante Purity */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding-top: 22px;
+  margin-bottom: 28px;
+  margin-top: 32px;
+  overflow: visible;
+}
+.statCard {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  padding: 14px 20px 18px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+.statCard:hover {
+  box-shadow: 0 24px 40px rgba(27,37,89,.10);
+  transition: box-shadow .2s ease;
+}
+.iconWrap {
+  position: absolute;
+  top: -20px; left: 20px;
+  width: 58px; height: 58px;
+  border-radius: var(--r-lg);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-icon);
+  z-index: 1;
+}
+.iconWrap svg { width: 24px; height: 24px; color: #fff; }
+.teal   { background: var(--grad-teal); }
+.amber  { background: var(--grad-amber); }
+.red    { background: var(--grad-red); }
+.blue   { background: var(--grad-blue); }
+.purple { background: var(--grad-purple); }
+.green  { background: var(--grad-green); }
+.navy   { background: var(--grad-navy); }
+.coral  { background: var(--grad-coral); }
+
+.top { display: flex; justify-content: flex-end; min-height: 46px; }
+.body { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.label { font-size: 13px; color: var(--slate-500); font-weight: 600; text-align: right; }
+.value { font-size: 30px; font-weight: 800; color: var(--navy-900); line-height: 1.1; }
+
+.footer {
+  border-top: 1px solid var(--border);
+  margin-top: 14px; padding-top: 12px;
+  font-size: 12px; color: var(--slate-500);
+  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+}
+.deltaPos { color: var(--green); font-weight: 700; }
+.deltaNeg { color: var(--red); font-weight: 700; }
+
+@media (max-width: 1280px) { .statGrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1024px) { .statGrid { gap: 16px; } }
+@media (max-width: 860px)  { .statGrid { grid-template-columns: 1fr 1fr; gap: 14px; } }
+@media (max-width: 600px) {
+  .statGrid { grid-template-columns: 1fr; padding-top: 20px; gap: 12px; }
+  .value { font-size: 26px; }
+  .iconWrap { width: 50px; height: 50px; top: -16px; left: 16px; border-radius: 12px; }
+  .iconWrap svg { width: 20px; height: 20px; }
+  .statCard { padding: 12px 16px 14px; }
+}

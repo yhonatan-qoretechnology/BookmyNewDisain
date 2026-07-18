@@ -1,0 +1,232 @@
+/* ============================================================
+   Wizard de reservas — estilos (100% responsive)
+============================================================ */
+
+/* ── Contexto empresa/sede ── */
+.contextBar {
+  display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+  padding: 10px 14px; border: 1px solid var(--border);
+  border-radius: var(--r-md); background: var(--hover-surface);
+  margin-bottom: 18px; font-size: 13px; color: var(--slate-500);
+}
+.contextBar b { color: var(--navy-900); }
+[data-theme="dark"] .contextBar b { color: inherit; }
+
+/* ── Stepper ── */
+.stepper {
+  display: flex; align-items: flex-start; gap: 0;
+  margin: 4px 0 26px; overflow-x: auto; padding-bottom: 4px;
+}
+.step {
+  flex: 1; min-width: 84px; display: flex; flex-direction: column;
+  align-items: center; gap: 6px; position: relative;
+  background: none; border: none; cursor: pointer; padding: 0;
+  color: var(--slate-500); font: inherit;
+}
+.step:disabled { cursor: not-allowed; opacity: .55; }
+.step::before {
+  content: ""; position: absolute; top: 16px; left: -50%;
+  width: 100%; height: 2px; background: var(--border); z-index: 0;
+}
+.step:first-child::before { display: none; }
+.step.done::before, .step.active::before { background: var(--teal-500); }
+.stepDot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 700; font-size: 13px;
+  background: var(--surface); border: 2px solid var(--border);
+  position: relative; z-index: 1; transition: all .18s ease;
+}
+.step.active .stepDot {
+  border-color: var(--teal-500); color: #fff;
+  background: var(--grad-teal); box-shadow: var(--shadow-icon);
+}
+.step.done .stepDot { border-color: var(--teal-500); color: var(--teal-600); }
+.stepLabel { font-size: 11.5px; font-weight: 600; text-align: center; line-height: 1.2; }
+.step.active .stepLabel { color: var(--teal-700); }
+@media (max-width: 640px) {
+  .stepLabel { display: none; }
+  .step { min-width: 48px; }
+}
+
+/* ── Búsqueda de cliente ── */
+.clientList {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 380px; overflow-y: auto; margin-top: 12px;
+}
+.clientRow {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  padding: 10px 14px; border: 1.5px solid var(--border);
+  border-radius: var(--r-md); background: var(--surface);
+  cursor: pointer; font: inherit; transition: all .15s ease;
+}
+.clientRow:hover { border-color: var(--teal-400); }
+.clientRow.selected {
+  border-color: var(--teal-500); background: var(--teal-50);
+  box-shadow: var(--shadow-sm);
+}
+.clientMeta { display: flex; flex-direction: column; min-width: 0; }
+.clientName { font-weight: 700; font-size: 14px; }
+.clientSub { font-size: 12px; color: var(--slate-500); overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Carrusel de profesionales ── */
+.carouselWrap { position: relative; }
+.carousel {
+  display: flex; gap: 14px; overflow-x: auto;
+  scroll-snap-type: x mandatory; padding: 6px 2px 14px;
+  scrollbar-width: thin;
+}
+.carousel::-webkit-scrollbar { height: 6px; }
+.carousel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.proCard {
+  scroll-snap-align: start; flex: 0 0 210px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 18px 14px; border: 1.5px solid var(--border);
+  border-radius: var(--r-lg); background: var(--surface);
+  cursor: pointer; font: inherit; text-align: center;
+  transition: all .16s ease;
+}
+.proCard:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.proCard.selected { border-color: var(--teal-500); background: var(--teal-50); box-shadow: var(--shadow-md); }
+.proCard:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.proAvatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--grad-navy); color: #fff;
+  display: grid; place-items: center; font-weight: 800; font-size: 20px;
+  overflow: hidden;
+}
+.proAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.proName { font-weight: 700; font-size: 14.5px; }
+.proSpec {
+  font-size: 12px; color: var(--slate-500); line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.proBadge {
+  font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+  background: var(--teal-50); color: var(--teal-700);
+}
+.proBadge.off { background: var(--hover-surface); color: var(--slate-500); }
+.carouselNav {
+  position: absolute; top: 42%; transform: translateY(-50%);
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border);
+  box-shadow: var(--shadow-md); display: grid; place-items: center;
+  cursor: pointer; z-index: 2; color: var(--navy-900);
+}
+[data-theme="dark"] .carouselNav { color: inherit; }
+.carouselNav.prev { left: -10px; }
+.carouselNav.next { right: -10px; }
+@media (max-width: 640px) {
+  .proCard { flex-basis: 74%; }
+  .carouselNav { display: none; }
+}
+
+/* ── Tarjetas de servicio ── */
+.serviceGrid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px; margin-top: 6px;
+}
+.serviceCard {
+  display: flex; flex-direction: column; gap: 8px; text-align: left;
+  padding: 16px; border: 1.5px solid var(--border);
+  border-radius: var(--r-lg); background: var(--surface);
+  cursor: pointer; font: inherit; transition: all .16s ease;
+}
+.serviceCard:hover { border-color: var(--teal-400); }
+.serviceCard.selected { border-color: var(--teal-500); background: var(--teal-50); box-shadow: var(--shadow-sm); }
+.serviceName { font-weight: 700; font-size: 14.5px; }
+.serviceDesc { font-size: 12px; color: var(--slate-500); line-height: 1.4; }
+.serviceMeta { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+.serviceDur {
+  font-size: 12px; color: var(--slate-500);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.servicePrice { font-weight: 800; font-size: 15px; color: var(--teal-700); }
+
+/* ── Calendario de disponibilidad ── */
+.calWrap { max-width: 460px; margin: 0 auto; }
+.calHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.calTitle { font-weight: 800; font-size: 15px; text-transform: capitalize; }
+.calNav {
+  width: 32px; height: 32px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  display: grid; place-items: center; cursor: pointer; color: inherit;
+}
+.calNav:disabled { opacity: .35; cursor: not-allowed; }
+.calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.calDow { text-align: center; font-size: 11px; font-weight: 700; color: var(--slate-500); padding: 4px 0; }
+.calDay {
+  aspect-ratio: 1; border-radius: var(--r-sm); border: 1px solid transparent;
+  background: var(--surface); font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: grid; place-items: center; transition: all .13s ease;
+  color: inherit;
+}
+.calDay:hover:not(:disabled) { border-color: var(--teal-400); }
+.calDay:disabled {
+  color: var(--slate-300); cursor: not-allowed;
+  background: var(--muted-cell); text-decoration: line-through;
+}
+.calDay.selected { background: var(--grad-teal); color: #fff; box-shadow: var(--shadow-icon); }
+.calDay.today { border-color: var(--teal-500); }
+.calEmpty { aspect-ratio: 1; }
+
+/* ── Franjas horarias ── */
+.slotGrid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px; margin-top: 8px;
+}
+.slot {
+  padding: 10px 6px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); font: inherit; font-weight: 700; font-size: 13.5px;
+  cursor: pointer; text-align: center; transition: all .13s ease; color: inherit;
+}
+.slot:hover { border-color: var(--teal-400); }
+.slot.selected { background: var(--grad-teal); border-color: var(--teal-500); color: #fff; }
+
+/* ── Resumen ── */
+.summaryGrid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px; margin-top: 6px;
+}
+.summaryBlock {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 14px 16px; background: var(--surface);
+}
+.summaryBlock h4 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--teal-700); margin: 0 0 10px;
+}
+.summaryRow {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: 13px; padding: 3px 0;
+}
+.summaryRow label { color: var(--slate-500); }
+.summaryRow span { font-weight: 600; text-align: right; word-break: break-word; }
+.payRow { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.payOption {
+  flex: 1; min-width: 130px; display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface); cursor: pointer; font: inherit; font-weight: 700;
+  transition: all .14s ease; color: inherit;
+}
+.payOption.selected { border-color: var(--teal-500); background: var(--teal-50); }
+
+/* ── Navegación / estados ── */
+.navRow {
+  display: flex; justify-content: space-between; gap: 12px;
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.loading {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 40px 0; color: var(--slate-500); font-size: 13.5px;
+}
+.spinner {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2.5px solid var(--border); border-top-color: var(--teal-500);
+  animation: bmSpin .8s linear infinite;
+}
+@keyframes bmSpin { to { transform: rotate(360deg); } }
+.errorBox {
+  padding: 12px 16px; border-radius: var(--r-md);
+  background: rgba(245, 54, 92, .08); color: var(--red);
+  font-size: 13px; font-weight: 600; margin: 10px 0;
+}

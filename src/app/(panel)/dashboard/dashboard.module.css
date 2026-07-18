@@ -1,0 +1,68 @@
+.bottomGrid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: start;
+}
+.calHeaderPill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--teal-50); color: var(--teal-600);
+  font-size: 12px; font-weight: 800;
+  padding: 6px 12px; border-radius: 999px;
+  margin-bottom: 14px;
+}
+:global([data-theme="dark"]) .calHeaderPill { background: rgba(15,207,174,.12); color: #0fcfae; }
+
+.dayList { display: flex; flex-direction: column; gap: 10px; }
+.dayItem {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color .15s, transform .12s;
+}
+.dayItem:hover { border-color: var(--teal-500); transform: translateX(2px); }
+:global([data-theme="dark"]) .dayItem { border-color: #1e2640; background: rgba(255,255,255,.03); }
+
+.dayHour {
+  min-width: 52px;
+  font-size: 12px; font-weight: 800;
+  color: var(--teal-600);
+  background: var(--teal-50);
+  padding: 7px 0; border-radius: 8px;
+  text-align: center; flex: none;
+}
+:global([data-theme="dark"]) .dayHour { background: rgba(15,207,174,.12); color: #0fcfae; }
+.dayBody b { font-size: 13px; display: block; color: var(--navy-900); }
+.dayBody span { font-size: 12px; color: var(--slate-500); }
+:global([data-theme="dark"]) .dayBody b { color: #e8edf5; }
+
+@media (max-width: 1280px) { .bottomGrid { grid-template-columns: 260px 1fr; } }
+@media (max-width: 1024px) { .bottomGrid { grid-template-columns: 1fr; } }
+
+/* Barra de contexto de empresa (solo superadmin) */
+.empresaBar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-size: 13px; font-weight: 700; color: var(--navy-900);
+  flex-wrap: wrap;
+}
+:global([data-theme="dark"]) .empresaBar { color: #e8edf5; }
+.empresaSelect {
+  padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg); color: var(--navy-900);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; outline: none; min-width: 190px;
+}
+.empresaSelect:focus { border-color: var(--teal-500); }
+:global([data-theme="dark"]) .empresaSelect {
+  background: rgba(255,255,255,.05); border-color: #1e2640; color: #e8edf5;
+}

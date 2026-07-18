@@ -1,0 +1,36 @@
+.panel {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  /* FIX PADDING: el panel define el respiro interno una sola vez;
+     todo su contenido (toolbars, tablas, tabs, cards) hereda margen
+     al borde sin necesidad de compensarlo componente a componente. */
+  padding: 22px 24px 24px;
+}
+.panelHead {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 0 0 16px; gap: 8px;
+}
+.panelHead > div { display: flex; flex-direction: column; }
+.panelTitle { font-size: 18px; font-weight: 800; color: var(--navy-900); }
+.panelSub { font-size: 13px; color: var(--teal-600); font-weight: 600; margin-top: 2px; }
+:global([data-theme="dark"]) .panelSub { color: #0fcfae; }
+
+.selectPill {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); background: var(--surface);
+  border-radius: var(--r-md); padding: 9px 14px;
+  font-size: 13px; font-weight: 600; color: var(--slate-500); cursor: pointer;
+}
+.selectPill:hover { background: var(--hover-surface); }
+:global([data-theme="dark"]) .selectPill {
+  background: rgba(255,255,255,.05);
+  border-color: #1e2640;
+  color: #8392ab;
+}
+
+@media (max-width: 600px) {
+  .panel { padding: 16px 16px 18px; }
+  .panelHead { padding: 0 0 12px; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .panelTitle { font-size: 16px; }
+}

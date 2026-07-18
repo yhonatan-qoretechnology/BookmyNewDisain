@@ -1,0 +1,12 @@
+.planTag {
+  font-size: 10.5px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 4px 9px; border-radius: 999px;
+  background: rgba(139,92,246,.12); color: #7c3aed;
+}
+:global([data-theme="dark"]) .planTag { background: rgba(139,92,246,.18); color: #b79cff; }
+.current {
+  border: 1.5px solid var(--teal-500);
+  box-shadow: 0 0 0 3px var(--teal-50);
+  border-radius: var(--r-xl);
+}

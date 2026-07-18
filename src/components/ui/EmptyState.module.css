@@ -1,0 +1,6 @@
+.emptyState { text-align: center; padding: 60px 20px; color: var(--slate-500); }
+.emptyState svg { width: 48px; height: 48px; color: var(--slate-300); margin: 0 auto 12px; display: block; }
+.emptyState h3 { color: var(--navy-900); margin-bottom: 5px; font-weight: 800; }
+:global([data-theme="dark"]) .emptyState h3 { color: #e8edf5; }
+:global([data-theme="dark"]) .emptyState p { color: #4a5670; }
+:global([data-theme="dark"]) .emptyState svg { color: #2d3a6e; }

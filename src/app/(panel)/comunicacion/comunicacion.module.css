@@ -1,0 +1,120 @@
+.comWrap {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  min-height: 520px;
+  background: var(--surface);
+}
+:global([data-theme="dark"]) .comWrap { border-color: #1e2640; background: #141824; }
+
+/* Lista de canales */
+.channels {
+  border-right: 1px solid var(--border);
+  padding: 12px 10px;
+  display: flex; flex-direction: column; gap: 4px;
+  overflow-y: auto;
+}
+:global([data-theme="dark"]) .channels { border-color: #1e2640; }
+.comItem {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px; border-radius: var(--r-md);
+  cursor: pointer; border: none; background: none;
+  text-align: left; width: 100%;
+  transition: background .14s;
+}
+.comItem:hover { background: var(--hover-surface); }
+.comItemActive { background: var(--teal-50); }
+.comItemActive:hover { background: var(--teal-50); }
+:global([data-theme="dark"]) .comItem:hover { background: rgba(255,255,255,.05); }
+:global([data-theme="dark"]) .comItemActive,
+:global([data-theme="dark"]) .comItemActive:hover { background: rgba(15,207,174,.12); }
+
+.comAv {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--grad-teal); color: #fff;
+  font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; flex: none;
+}
+.online::after {
+  content: ""; position: absolute; bottom: 0; right: 0;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--green); border: 2px solid var(--surface);
+}
+:global([data-theme="dark"]) .online::after { border-color: #141824; }
+.comBody { min-width: 0; flex: 1; }
+.comName { font-size: 13px; font-weight: 700; color: var(--navy-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.comSub  { font-size: 11.5px; color: var(--slate-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:global([data-theme="dark"]) .comName { color: #e8edf5; }
+.unread {
+  min-width: 18px; height: 18px; padding: 0 5px;
+  background: var(--red); color: #fff;
+  font-size: 10px; font-weight: 800;
+  border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+
+/* Zona de chat */
+.chat { display: flex; flex-direction: column; min-width: 0; }
+.chatHead {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+:global([data-theme="dark"]) .chatHead { border-color: #1e2640; }
+.chatMsgs {
+  flex: 1; padding: 18px;
+  display: flex; flex-direction: column; gap: 12px;
+  overflow-y: auto; max-height: 420px;
+}
+.msgRow { display: flex; gap: 9px; align-items: flex-end; max-width: 78%; }
+.msgOut { align-self: flex-end; flex-direction: row-reverse; }
+.msgAv {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--grad-blue); color: #fff;
+  font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.bubble {
+  padding: 9px 13px; font-size: 13.5px; line-height: 1.5;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--hover-surface); color: var(--navy-900);
+}
+.msgOut .bubble {
+  border-radius: 14px 14px 4px 14px;
+  background: var(--grad-teal); color: #fff;
+}
+:global([data-theme="dark"]) .bubble { background: rgba(255,255,255,.07); color: #e8edf5; }
+:global([data-theme="dark"]) .msgOut .bubble { background: var(--grad-teal); color: #fff; }
+.msgHora { font-size: 10.5px; color: var(--slate-300); display: block; margin-top: 4px; }
+.msgOut .msgHora { color: rgba(255,255,255,.75); }
+
+.chatInput {
+  display: flex; gap: 10px; padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+:global([data-theme="dark"]) .chatInput { border-color: #1e2640; }
+.chatInput input {
+  flex: 1; padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 13.5px; outline: none;
+  background: var(--input-bg); color: var(--navy-900);
+}
+.chatInput input:focus { border-color: var(--teal-500); }
+:global([data-theme="dark"]) .chatInput input { background: rgba(255,255,255,.05); border-color: #1e2640; color: #e8edf5; }
+
+@media (max-width: 860px) {
+  .comWrap { grid-template-columns: 1fr; }
+  .channels {
+    flex-direction: row; overflow-x: auto;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .comItem { min-width: 200px; }
+  :global([data-theme="dark"]) .channels { border-color: #1e2640; }
+}

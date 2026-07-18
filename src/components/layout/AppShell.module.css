@@ -1,0 +1,25 @@
+.appShell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+  align-items: start;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.content { flex: 1; padding: 16px 24px 52px; }
+
+@media (max-width: 1024px) {
+  .appShell { --sidebar-w: 230px; --sidebar-inner: 210px; }
+  .content { padding: 12px 18px 40px; }
+}
+@media (max-width: 860px) {
+  .appShell { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  /* FIX PADDING: mínimo 14px de respiro lateral en móvil */
+  .content { padding: 10px 14px 32px; }
+}

@@ -1,0 +1,19 @@
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+}
+.simpleCard {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+}
+.simpleCard h3 { font-size: 15px; font-weight: 800; margin-bottom: 5px; color: var(--navy-900); }
+.muted { color: var(--slate-500); font-size: 13px; line-height: 1.6; }
+.tagRow { display: flex; gap: 7px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
+
+:global([data-theme="dark"]) .simpleCard h3 { color: #e8edf5; }
+:global([data-theme="dark"]) .muted { color: #4a5670; }
+
+@media (max-width: 600px) { .cardGrid { grid-template-columns: 1fr; } }

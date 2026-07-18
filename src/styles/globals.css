@@ -1,0 +1,132 @@
+/* ============ BookMy — Design System · Purity UI ============ */
+/* Variables globales, reset y tema claro/oscuro.
+   Los estilos de componentes viven en CSS Modules. */
+
+:root {
+  --teal-50:   #e0faf5;
+  --teal-100:  #b3f2e6;
+  --teal-400:  #2de6c2;
+  --teal-500:  #0fcfae;
+  --teal-600:  #05b89a;
+  --teal-700:  #038a75;
+  --navy-900:  #1b2559;
+  --navy-700:  #2d3a6e;
+  --slate-500: #8392ab;
+  --slate-300: #b8c4d9;
+  --page-bg:   #f0f2f5;
+  --surface:   #ffffff;
+  --surface-2: #ffffff;
+  --border:    #e8edf5;
+  --amber:     #fb8c00;
+  --red:       #f5365c;
+  --blue:      #2152ff;
+  --green:     #17c964;
+
+  --grad-teal:   linear-gradient(195deg, #2de6c2, #0fcfae);
+  --grad-amber:  linear-gradient(195deg, #ffa726, #fb8c00);
+  --grad-red:    linear-gradient(195deg, #ef5350, #e53935);
+  --grad-blue:   linear-gradient(195deg, #42a5f5, #1565c0);
+  --grad-purple: linear-gradient(195deg, #ab47bc, #7b1fa2);
+  --grad-green:  linear-gradient(195deg, #66bb6a, #388e3c);
+  --grad-navy:   linear-gradient(195deg, #3a5bf0, #1b2559);
+  --grad-coral:  linear-gradient(195deg, #ff6b6b, #ee5a24);
+
+  --shadow-sm:   0 2px 6px rgba(27, 37, 89, .06);
+  --shadow-md:   0 20px 27px rgba(27, 37, 89, .07);
+  --shadow-lg:   0 30px 50px rgba(27, 37, 89, .14);
+  --shadow-icon: 0 6px 16px rgba(27, 37, 89, .28);
+
+  --r-xl: 20px;
+  --r-lg: 16px;
+  --r-md: 12px;
+  --r-sm:  8px;
+
+  /* Sidebar vive dentro del margen de la página */
+  --sidebar-w:     260px;
+  --sidebar-inner: 236px;
+  --topbar-h:      80px;
+
+  /* Superficies auxiliares (equivalen a los hardcodes del dark) */
+  --hover-surface: var(--page-bg);
+  --input-bg:      var(--surface);
+  --muted-cell:    #f7f9fc;
+}
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE — variables base (sobreescriben :root)
+══════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --page-bg:   #0f1117;
+  --surface:   #161929;
+  --surface-2: #1a2035;
+  --border:    #1e2640;
+  --navy-900:  #e8edf5;
+  --navy-700:  #c4cede;
+  --slate-500: #8392ab;
+  --slate-300: #4a5670;
+  --teal-50:   rgba(15, 207, 174, .12);
+  --teal-100:  rgba(15, 207, 174, .20);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, .3);
+  --shadow-md: 0 20px 27px rgba(0, 0, 0, .35);
+  --shadow-lg: 0 30px 50px rgba(0, 0, 0, .5);
+
+  --hover-surface: rgba(255, 255, 255, .05);
+  --input-bg:      rgba(255, 255, 255, .05);
+  --muted-cell:    rgba(255, 255, 255, .025);
+}
+
+/* ── Reset ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-jakarta), "Plus Jakarta Sans", "Google Sans", system-ui, sans-serif;
+  background: var(--page-bg);
+  color: var(--navy-900);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; }
+input, select, textarea { font-family: inherit; }
+ul, ol { list-style: none; }
+h1, h2, h3, h4, h5 { font-weight: 700; line-height: 1.2; }
+img { max-width: 100%; }
+::selection { background: var(--teal-100); }
+
+a:focus-visible, button:focus-visible,
+input:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--teal-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ── Animaciones ─────────────────────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ══════════════════════════════════════════════════════
+   IMPRESIÓN — ficha de reserva
+══════════════════════════════════════════════════════ */
+#bmPrintArea { display: none; }
+
+@media print {
+  body > *:not(#bmPrintArea) { display: none !important; }
+  #bmPrintArea {
+    display: block !important;
+    position: fixed; inset: 0; z-index: 99999;
+    background: #fff; padding: 32px; color: #000;
+  }
+  .print-logo { font-size: 22px; font-weight: 800; margin-bottom: 24px; color: #0fcfae; }
+  .print-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 16px; }
+  .print-field label { font-size: 10px; text-transform: uppercase; color: #8392ab; display: block; margin-bottom: 2px; }
+  .print-field span { font-size: 14px; font-weight: 600; }
+  .print-notes { background: #f0f2f5; padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 16px; }
+  .print-footer { margin-top: 32px; font-size: 11px; color: #8392ab; border-top: 1px solid #e8edf5; padding-top: 12px; }
+}

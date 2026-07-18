@@ -1,0 +1,28 @@
+/* Stat cards compactas del panel de especialista */
+.empStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.empCard {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 18px 20px;
+}
+.empIcon {
+  width: 46px; height: 46px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; flex: none;
+}
+.empIcon svg { width: 20px; height: 20px; }
+.teal  { background: var(--grad-teal);  box-shadow: 0 6px 14px rgba(15,207,174,.35); }
+.blue  { background: var(--grad-blue);  box-shadow: 0 6px 14px rgba(58,91,240,.3); }
+.amber { background: var(--grad-amber); box-shadow: 0 6px 14px rgba(255,167,38,.35); }
+.empBody span { display: block; font-size: 12px; color: var(--slate-500); font-weight: 600; }
+.empBody b { font-size: 22px; color: var(--navy-900); font-weight: 800; }
+:global([data-theme="dark"]) .empBody b { color: #e8edf5; }
+
+@media (max-width: 860px) { .empStats { grid-template-columns: 1fr; } }

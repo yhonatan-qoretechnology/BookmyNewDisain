@@ -1,0 +1,37 @@
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 4px 12px; border-radius: 999px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: .02em; white-space: nowrap;
+}
+.pendiente { background: #fff3e0; color: #e65100; }
+.confirmada, .atendida  { background: var(--teal-50); color: var(--teal-700); }
+.noShow, .cancelado { background: #fdecea; color: var(--red); }
+.activo    { background: var(--teal-50); color: var(--teal-700); }
+.inactivo  { background: var(--page-bg); color: var(--slate-500); }
+.pagado    { background: #e8f5e9; color: #2e7d32; }
+
+:global([data-theme="dark"]) .pendiente { background: rgba(251,140,0,.15); color: #ffb347; }
+:global([data-theme="dark"]) .atendida  { background: rgba(15,207,174,.15); color: #0fcfae; }
+:global([data-theme="dark"]) .cancelado { background: rgba(245,54,92,.15); color: #ff6b8a; }
+:global([data-theme="dark"]) .activo    { background: rgba(15,207,174,.15); color: #0fcfae; }
+:global([data-theme="dark"]) .inactivo  { background: rgba(255,255,255,.07); color: #4a5670; }
+:global([data-theme="dark"]) .pagado    { background: rgba(23,201,100,.15); color: #4ade80; }
+
+/* Badge de rol en la sidebar */
+.roleBadge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 800; letter-spacing: .04em;
+}
+.superadmin { background: linear-gradient(135deg,#8b5cf6,#4c1d95); color: #fff; }
+.owner      { background: linear-gradient(135deg,#3a5bf0,#1b2559); color: #fff; }
+.admin      { background: var(--grad-teal); color: #fff; }
+.employee   { background: var(--grad-amber); color: #fff; }
+
+/* Tag pequeño */
+.tag {
+  font-size: 11.5px; font-weight: 700; padding: 4px 10px;
+  border-radius: 999px; background: var(--teal-50); color: var(--teal-700);
+}
+:global([data-theme="dark"]) .tag { background: rgba(15,207,174,.12); color: #0fcfae; }

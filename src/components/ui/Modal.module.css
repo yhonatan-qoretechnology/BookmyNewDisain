@@ -1,0 +1,51 @@
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(27,37,89,.45); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50; padding: 20px;
+}
+:global([data-theme="dark"]) .overlay { background: rgba(0,0,0,.6); }
+
+.box {
+  background: var(--surface-2); border-radius: var(--r-xl);
+  width: 100%; max-width: 440px; padding: 28px; box-shadow: var(--shadow-lg);
+  animation: fadeUp .2s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.box h3 { font-size: 19px; font-weight: 800; margin-bottom: 5px; color: var(--navy-900); }
+.muted { color: var(--slate-500); font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
+.actions { display: flex; gap: 10px; margin-top: 20px; }
+
+@media (max-width: 600px) {
+  .overlay { padding: 0; align-items: flex-end; }
+  /* FIX PADDING: en móvil el modal conserva respiro interno */
+  .box { border-radius: var(--r-xl) var(--r-xl) 0 0; max-height: 88vh; overflow-y: auto; padding: 22px 18px 24px; }
+  .actions { flex-direction: column; }
+}
+
+/* Campos de formulario */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block; font-size: 12.5px; font-weight: 700;
+  margin-bottom: 6px; color: var(--navy-900);
+}
+.field input, .field textarea, .field select {
+  width: 100%; padding: 11px 13px; border-radius: var(--r-sm);
+  border: 1.5px solid var(--border); font-size: 13.5px;
+  background: var(--input-bg); color: var(--navy-900);
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  border-color: var(--teal-500);
+  box-shadow: 0 0 0 3px var(--teal-50);
+  outline: none;
+}
+:global([data-theme="dark"]) .field label { color: #8392ab; }
+:global([data-theme="dark"]) .field input,
+:global([data-theme="dark"]) .field textarea {
+  border-color: #1e2640; color: #e8edf5;
+}
+:global([data-theme="dark"]) .field input::placeholder { color: #4a5670; }
