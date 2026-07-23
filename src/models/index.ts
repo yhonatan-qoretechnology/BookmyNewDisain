@@ -226,6 +226,7 @@ export interface Canal {
   unread: number;
   /** Email del contacto (requerido por SendMessageDto del backend) */
   email?: string;
+  fotoPerfil?: string | null;
 }
 
 export interface Mensaje {
@@ -233,6 +234,8 @@ export interface Mensaje {
   ini?: string;
   texto: string;
   hora: string;
+  messageType?: "TEXT" | "IMAGE" | "FILE";
+  fileUrl?: string | null;
 }
 
 /* ── Estadísticas ────────────────────────────────────────── */
