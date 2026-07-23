@@ -19,6 +19,15 @@ interface CalendarGridProps {
   /** Máximo de eventos visibles por celda (el resto se resume como "+N más") */
   maxPerCell?: number;
   onViewChange?: (view: string) => void;
+  /* ── Modo selección de fecha (opcional, aditivo) ─────────
+     Permite reutilizar este mismo calendario para elegir un día
+     (flujo de reservas) sin alterar el comportamiento del módulo
+     Calendario (OCP: extensión sin modificación del uso previo). */
+  selectable?: boolean;
+  selectedDate?: string | null;
+  onSelectDate?: (fecha: string) => void;
+  /** Fechas YYYY-MM-DD que no se pueden elegir (pasado, sin cupo…) */
+  isDateDisabled?: (fecha: string) => boolean;
 }
 
 export default function CalendarGrid({
@@ -26,6 +35,10 @@ export default function CalendarGrid({
   onEventClick,
   maxPerCell = Infinity,
   onViewChange,
+  selectable = false,
+  selectedDate = null,
+  onSelectDate,
+  isDateDisabled,
 }: CalendarGridProps) {
   const { t, tList } = useI18n();
   const MESES = tList("calendar.months");
@@ -70,13 +83,40 @@ export default function CalendarGrid({
     );
   }
 
+  const hoy = new Date();
+  const todayKey = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+
   for (let day = 1; day <= daysInMonth; day++) {
     const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const evts = events[key] || [];
     const visible = evts.slice(0, maxPerCell === Infinity ? evts.length : maxPerCell);
     const hidden = evts.length - visible.length;
+    const disabled = selectable ? (isDateDisabled?.(key) ?? false) : false;
+    const clickable = selectable && !disabled;
+    const cellCls = [
+      styles.calCell,
+      selectable ? styles.cellSelectable : "",
+      disabled ? styles.cellDisabled : "",
+      selectable && selectedDate === key ? styles.cellSelected : "",
+      selectable && todayKey === key ? styles.cellToday : "",
+    ].filter(Boolean).join(" ");
     cells.push(
-      <div key={key} className={styles.calCell}>
+      <div
+        key={key}
+        className={cellCls}
+        role={clickable ? "button" : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        aria-pressed={clickable ? selectedDate === key : undefined}
+        aria-disabled={selectable && disabled ? true : undefined}
+        onClick={clickable ? () => onSelectDate?.(key) : undefined}
+        onKeyDown={
+          clickable
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectDate?.(key); }
+              }
+            : undefined
+        }
+      >
         <span className={styles.dayNum}>{day}</span>
         {visible.map((e, i) => (
           <div

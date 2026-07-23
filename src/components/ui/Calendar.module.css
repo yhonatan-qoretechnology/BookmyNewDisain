@@ -75,3 +75,20 @@
   .viewToggle button { padding: 5px 9px; font-size: 11px; }
 }
 @media (hover: none) { .calEvent { min-height: 26px; } }
+
+/* ── Modo selección de fecha (flujo de reservas) ─────────── */
+.cellSelectable { cursor: pointer; transition: background .12s ease, box-shadow .12s ease; }
+.cellSelectable:not(.cellDisabled):hover { background: var(--teal-50); }
+.cellSelectable:focus-visible {
+  outline: none; box-shadow: inset 0 0 0 2px var(--teal-400);
+}
+.cellDisabled { cursor: not-allowed; background: var(--muted-cell); }
+.cellDisabled .dayNum { color: var(--slate-300); text-decoration: line-through; }
+.cellSelected { background: var(--teal-50); box-shadow: inset 0 0 0 2px var(--teal-500); }
+.cellSelected .dayNum { color: var(--teal-700); }
+:global([data-theme="dark"]) .cellSelected .dayNum { color: #0fcfae; }
+.cellToday .dayNum::after {
+  content: ""; display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--teal-500);
+  margin-left: 5px; vertical-align: middle;
+}

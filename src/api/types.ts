@@ -69,6 +69,12 @@ export interface ApiSede {
   imagenes?: string[];
   empresaId: number;
   profesionales?: ApiProfesional[];
+  /* Geolocalización y horario (mapa de sedes del flujo de reservas) */
+  latitud?: number | null;
+  longitud?: number | null;
+  /** Horario semanal { lunes: "10:00-19:00", domingo: "Cerrado", … } */
+  horario?: Record<string, string> | null;
+  diasCerrado?: string[];
 }
 
 export interface ApiProfesional {
@@ -87,6 +93,28 @@ export interface ApiPrice {
   amount: number;
   duration: number;
   currency: string;
+}
+
+/** Servicio dentro de GET /profesionales/:id/detalle (ya traducido) */
+export interface ApiServicioProfesional {
+  id: number;
+  nombre: string;
+  descripcion?: string | null;
+  categoria?: string | null;
+  precios: ApiPrice[];
+}
+
+/** GET /profesionales/:id/detalle?lang= → profesional + sede + servicios */
+export interface ApiProfesionalDetalle {
+  id: number;
+  nombre: string;
+  biografia?: string | null;
+  imagen?: string | null;
+  telefono?: string | null;
+  state?: string;
+  sedeId: number;
+  sede?: ApiSede;
+  servicios?: ApiServicioProfesional[];
 }
 
 /** GET /services devuelve el shape mapeado por service.service.ts */

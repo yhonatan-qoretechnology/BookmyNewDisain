@@ -1,9 +1,9 @@
 "use client";
 /* ============================================================
    Reservas — listado de citas (AppointmentModule)
-   La creación vive en el asistente /reservas/nueva (wizard
-   secuencial: cliente → profesional → servicio → fecha → hora
-   → confirmación). "?nueva=1" redirige al asistente.
+   La creación vive en el flujo /reservas/nueva (sede → cliente
+   → profesional → servicio → fecha → hora → confirmación).
+   "?nueva=1" redirige a ese flujo.
 ============================================================ */
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";

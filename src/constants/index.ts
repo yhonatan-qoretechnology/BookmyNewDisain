@@ -109,3 +109,44 @@ export function fmtFechaLarga(fecha: string): string {
   const [y, m, d] = fecha.split("-");
   return `${d} ${MESES_CORTOS[+m - 1]} ${y}`;
 }
+
+/** Importe con símbolo de moneda según el código ISO (EUR → 25,00 €) */
+export function fmtMoneda(valor: number, moneda: string): string {
+  try {
+    return new Intl.NumberFormat("es-ES", { style: "currency", currency: moneda }).format(valor);
+  } catch {
+    return `${valor.toFixed(2)} ${moneda}`;
+  }
+}
+
+/* ── Horario semanal de sedes ────────────────────────────── */
+const DIAS_SEMANA: ReadonlyArray<{ key: string; label: string }> = [
+  { key: "lunes", label: "Lun" },
+  { key: "martes", label: "Mar" },
+  { key: "miércoles", label: "Mié" },
+  { key: "jueves", label: "Jue" },
+  { key: "viernes", label: "Vie" },
+  { key: "sábado", label: "Sáb" },
+  { key: "domingo", label: "Dom" },
+];
+
+/**
+ * Resume el horario semanal agrupando días consecutivos iguales.
+ * { lunes:"10:00-19:00", …, domingo:"Cerrado" } →
+ * ["Lun–Sáb: 10:00-19:00", "Dom: Cerrado"]
+ */
+export function resumenHorario(horario: Record<string, string> | null | undefined): string[] {
+  if (!horario) return [];
+  const dias = DIAS_SEMANA
+    .map((d) => ({ ...d, valor: (horario[d.key] || "").trim() }))
+    .filter((d) => d.valor);
+  const grupos: Array<{ desde: string; hasta: string; valor: string }> = [];
+  for (const d of dias) {
+    const ultimo = grupos[grupos.length - 1];
+    if (ultimo && ultimo.valor === d.valor) ultimo.hasta = d.label;
+    else grupos.push({ desde: d.label, hasta: d.label, valor: d.valor });
+  }
+  return grupos.map((g) =>
+    `${g.desde === g.hasta ? g.desde : `${g.desde}–${g.hasta}`}: ${g.valor}`
+  );
+}

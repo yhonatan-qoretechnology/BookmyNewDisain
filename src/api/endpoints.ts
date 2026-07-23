@@ -33,6 +33,8 @@ export const EP = {
   profesionales: "/profesionales",
   profesionalById: (id: number) => `/profesionales/${id}`,
   profesionalesBySede: (sedeId: number) => `/profesionales/by-sede/${sedeId}`,
+  /** GET /profesionales/:id/detalle?lang= — profesional + sede + servicios */
+  profesionalDetalle: (id: number) => `/profesionales/${id}/detalle`,
 
   /* @Controller('services') */
   services: "/services",

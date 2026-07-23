@@ -54,6 +54,7 @@ const ICONS: Record<string, React.ReactNode> = {
   barChart: (<>{P("M12 20V10")}{P("M18 20V4")}{P("M6 20v-6")}</>),
   star: (<>{P("M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z")}</>),
   mapPin: (<>{P("M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z")}<circle cx="12" cy="10" r="3" /></>),
+  phone: P("M5 3.8h3.4l1.6 4.2-2.1 1.8a13.4 13.4 0 0 0 6.3 6.3l1.8-2.1 4.2 1.6V19a1.9 1.9 0 0 1-2.1 1.9C10.6 20 4 13.4 3.1 5.9A1.9 1.9 0 0 1 5 3.8z"),
 };
 
 export type IconName = keyof typeof ICONS | (string & {});
