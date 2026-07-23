@@ -47,14 +47,14 @@ const SedeCard = memo(function SedeCard({
   const [imgError, setImgError] = useState(false);
   
   // Debug: log image construction
-  console.log('=== Sede Image Debug ===');
+  /*console.log('=== Sede Image Debug ===');
   console.log('Sede:', sede.nombre);
   console.log('IMG_BASE_URL:', IMG_BASE_URL);
   console.log('sede.imagen:', sede.imagen);
   console.log('sede.imagenes:', sede.imagenes);
   console.log('imageSource:', imageSource);
   console.log('imageUrl:', imageUrl);
-  console.log('======================');
+  console.log('======================');*/
   
   return (
     <article className={`${styles.sedeCard} ${selected ? styles.selected : ""}`}>
@@ -64,7 +64,7 @@ const SedeCard = memo(function SedeCard({
             src={imageUrl} 
             alt={sede.nombre} 
             loading="lazy" 
-            onLoad={() => console.log('Image loaded successfully:', imageUrl)}
+            
             onError={() => {
               console.error('Error loading image:', imageUrl);
               console.error('Image source:', imageSource);

@@ -15,7 +15,7 @@
 [data-theme="dark"] .contextBar b { color: inherit; }
 
 /* ── Encabezado de progreso (sin stepper numerado) ── */
-.progressWrap { margin: 2px 0 18px; }
+.progressWrap { padding-top: 5px; margin-bottom: 18px; }
 .progressTrack {
   height: 4px; border-radius: 4px; background: var(--border);
   overflow: hidden; margin-bottom: 12px;
@@ -25,27 +25,52 @@
   background: var(--grad-teal); transition: width .3s ease;
 }
 .trail {
-  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+  display: flex; align-items: center; gap: 0;
+  overflow-x: auto; padding-bottom: 4px;
   scrollbar-width: thin;
 }
 .trailStep {
-  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 12px; border: 1.5px solid var(--border);
-  border-radius: 999px; background: var(--surface);
-  font: inherit; font-size: 12.5px; font-weight: 700;
-  color: var(--slate-500); cursor: pointer; transition: all .15s ease;
-  max-width: 240px;
+  flex: 1; min-width: 80px; display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  padding-top: 2px; border: none; background: none;
+  font: inherit; font-size: 13px; font-weight: 700;
+  color: var(--slate-400); cursor: pointer; transition: all .2s ease;
+  position: relative;
 }
-.trailStep:disabled { cursor: not-allowed; opacity: .5; }
-.trailStep.done { border-color: var(--teal-100); color: var(--teal-700); background: var(--teal-50); }
-.trailStep.active {
+.trailStep::before {
+  content: attr(data-step);
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface); border: 3px solid var(--border);
+  font-weight: 800; font-size: 14px;
+  transition: all .25s ease;
+  position: relative; z-index: 1;
+}
+.trailStep::after {
+  content: "";
+  position: absolute; top: 18px; left: -50%;
+  width: 100%; height: 2px; background: var(--border); z-index: 0;
+}
+.trailStep:first-child::after { display: none; }
+.trailStep:disabled { cursor: not-allowed; opacity: .4; }
+.trailStep.done::after { background: var(--teal-500); }
+.trailStep.done::before {
+  border-color: var(--teal-500); 
+  background: var(--teal-500);
+  color: #fff;
+}
+.trailStep.active::before {
   border-color: var(--teal-500); color: #fff;
-  background: var(--grad-teal); box-shadow: var(--shadow-icon);
+  background: var(--teal-500); 
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(15, 207, 174, 0.4);
 }
-.trailCheck { display: inline-flex; }
+.trailStep.active::after { background: var(--teal-500); }
+.trailStep.done { color: var(--teal-600); }
+.trailStep.active { color: var(--teal-700); }
+.trailCheck { display: none; }
 .trailValue {
-  font-weight: 600; opacity: .8; max-width: 130px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight: 700; color: inherit;
 }
 .stepTitle {
   font-size: 16px; font-weight: 800; color: var(--navy-900);

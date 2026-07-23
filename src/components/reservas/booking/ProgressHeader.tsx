@@ -48,6 +48,7 @@ export const ProgressHeader = memo(function ProgressHeader({
               key={s.id}
               type="button"
               className={cls}
+              data-step={i + 1}
               disabled={i > maxReachable}
               onClick={() => onSelect(i)}
               aria-current={i === activeIndex ? "step" : undefined}
