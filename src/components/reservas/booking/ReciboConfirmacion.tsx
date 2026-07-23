@@ -7,7 +7,7 @@
    servicio, datos de la reserva (fecha, hora, zona horaria),
    resumen económico y método de pago.
 ============================================================ */
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import type {
   ClienteOpcion, MetodoPago, ProfesionalCard, SedeOpcion, ServicioOpcion,
 } from "@/models";
@@ -16,6 +16,8 @@ import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import { Field } from "@/components/ui/Modal";
 import styles from "./booking.module.css";
+
+const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
 
 export interface CardDraft { number: string; expiry: string; cvv: string }
 
@@ -40,6 +42,8 @@ function ReciboConfirmacionBase({
 }: ReciboProps) {
   const { t } = useI18n();
   const needsCard = metodoPago === "tarjeta";
+  const [sedeImgError, setSedeImgError] = useState(false);
+  const [proImgError, setProImgError] = useState(false);
 
   /* Zona horaria del navegador (informativa en el comprobante) */
   const zonaHoraria = useMemo(
@@ -50,13 +54,21 @@ function ReciboConfirmacionBase({
   const subtotal = servicio.precio;
   const total = servicio.precio;
 
+  // Build image URLs with base URL
+  const sedeImageUrl = sede?.imagen 
+    ? (sede.imagen.startsWith('http') ? sede.imagen : `${IMG_BASE_URL}${sede.imagen}`)
+    : null;
+  const proImageUrl = profesional.foto
+    ? (profesional.foto.startsWith('http') ? profesional.foto : `${IMG_BASE_URL}${profesional.foto}`)
+    : null;
+
   return (
     <div className={styles.recibo}>
       {/* Cabecera del comprobante */}
       <header className={styles.reciboHead}>
         <span className={styles.reciboLogo} aria-hidden>
-          {sede?.imagen
-            ? <img src={sede.imagen} alt="" />
+          {sedeImageUrl && !sedeImgError
+            ? <img src={sedeImageUrl} alt="" onError={() => setSedeImgError(true)} />
             : <Icon name="mapPin" width={22} height={22} strokeWidth={1.8} />}
         </span>
         <div className={styles.reciboHeadTxt}>
@@ -92,7 +104,9 @@ function ReciboConfirmacionBase({
             <h4>{t("booking.proInfo")}</h4>
             <div className={styles.reciboPersona}>
               <span className={styles.reciboAvatar} aria-hidden>
-                {profesional.foto ? <img src={profesional.foto} alt="" /> : initials(profesional.nombre)}
+                {proImageUrl && !proImgError 
+                  ? <img src={proImageUrl} alt="" onError={() => setProImgError(true)} />
+                  : initials(profesional.nombre)}
               </span>
               <div>
                 <div className={styles.reciboRow} style={{ padding: 0 }}>

@@ -16,7 +16,7 @@ import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
 import styles from "./booking.module.css";
 
-const IMG_BASE_URL = process.env.VITE_API_BASE_URL_IMG || "https://bookmy.es/";
+const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
 
 /* Lazy Loading del mapa: el SDK de Maps solo existe en cliente */
 const SedeMap = dynamic(() => import("./SedeMap"), {
