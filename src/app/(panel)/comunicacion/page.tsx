@@ -17,12 +17,6 @@ import styles from "./comunicacion.module.css";
     Socket.IO; esta vista usa la vía REST del ChatMessageModule). */
 const POLL_MS = 5000;
 
-const formatTime = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
-
 export default function ComunicacionPage() {
   const { t } = useI18n();
   const { session } = useSession();
@@ -32,21 +26,8 @@ export default function ComunicacionPage() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [modalSearchTerm, setModalSearchTerm] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [recordingDuration, setRecordingDuration] = useState(0);
-  const [audioLevel, setAudioLevel] = useState(0);
   const msgsRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const micButtonRef = useRef<HTMLButtonElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationRef = useRef<number | null>(null);
 
   /* Contactos — GET /ChatMessage/contacts/:userId */
   const { data: canales } = useData(
@@ -113,116 +94,6 @@ export default function ComunicacionPage() {
       await reload();
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-      setRecordingDuration(0);
-      setIsPaused(false);
-
-      // Setup audio visualization
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      audioContextRef.current = audioContext;
-      const analyser = audioContext.createAnalyser();
-      analyserRef.current = analyser;
-      const source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyser);
-      analyser.fftSize = 256;
-
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      
-      const updateAudioLevel = () => {
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        setAudioLevel(average / 255);
-        animationRef.current = requestAnimationFrame(updateAudioLevel);
-      };
-      
-      updateAudioLevel();
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        setAudioBlob(audioBlob);
-        setAudioUrl(URL.createObjectURL(audioBlob));
-        
-        // Enviar audio al servidor
-        if (canal) {
-          await ComunicacionController.enviarMensaje(session, canal, "", audioBlob);
-          await reload();
-        }
-        
-        stream.getTracks().forEach(track => track.stop());
-        if (recordingTimerRef.current) {
-          clearInterval(recordingTimerRef.current);
-        }
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-        if (audioContextRef.current) {
-          audioContextRef.current.close();
-        }
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      
-      // Timer para duración
-      recordingTimerRef.current = setInterval(() => {
-        if (!isPaused) {
-          setRecordingDuration(prev => prev + 1);
-        }
-      }, 1000);
-    } catch (error) {
-      console.error("Error al acceder al micrófono:", error);
-    }
-  };
-
-  const pauseRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-      mediaRecorderRef.current.pause();
-      setIsPaused(true);
-    }
-  };
-
-  const resumeRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "paused") {
-      mediaRecorderRef.current.resume();
-      setIsPaused(false);
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    setIsRecording(false);
-    if (recordingTimerRef.current) {
-      clearInterval(recordingTimerRef.current);
-    }
-  };
-
-  const handleMicClick = () => {
-    if (!texto.trim()) {
-      if (isRecording) {
-        if (isPaused) {
-          resumeRecording();
-        } else {
-          pauseRecording();
-        }
-      } else {
-        startRecording();
       }
     }
   };
@@ -320,87 +191,38 @@ export default function ComunicacionPage() {
             className={styles.fileInput}
             aria-label="Adjuntar archivo"
           />
-          {!isRecording && (
-            <>
-              <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={handleEmojiClick}
-                aria-label="Emoji"
-                title="Emoji"
-              >
-                <Icon name="smile" width={20} height={20} />
-              </button>
-              <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={handleAttachmentClick}
-                aria-label="Adjuntar"
-                title="Adjuntar archivo"
-              >
-                <Icon name="paperclip" width={20} height={20} />
-              </button>
-              <input
-                value={texto}
-                onChange={(e) => setTexto(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") enviar(); }}
-                placeholder={canal ? t("comunicacion.writeTo", { canal: canal.nombre }) : "…"}
-                aria-label={t("comunicacion.message")}
-              />
-              <Button onClick={enviar} aria-label={t("common.send")}>
-                <Icon name="send" /> {t("common.send")}
-              </Button>
-            </>
-          )}
-          {isRecording && (
-            <div className={styles.recordingInterface}>
-              <div className={styles.audioWaveform}>
-                <div className={styles.waveBar} style={{ height: `${20 + audioLevel * 80}%` }} />
-                <div className={styles.waveBar} style={{ height: `${20 + audioLevel * 60}%` }} />
-                <div className={styles.waveBar} style={{ height: `${20 + audioLevel * 90}%` }} />
-                <div className={styles.waveBar} style={{ height: `${20 + audioLevel * 70}%` }} />
-                <div className={styles.waveBar} style={{ height: `${20 + audioLevel * 85}%` }} />
-              </div>
-              <span className={styles.recordingTime}>{formatTime(recordingDuration)}</span>
-              <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={handleMicClick}
-                aria-label={isPaused ? "Reanudar" : "Pausar"}
-              >
-                <Icon name={isPaused ? "play" : "pause"} width={20} height={20} />
-              </button>
-              <button
-                type="button"
-                className={`${styles.iconBtn} ${styles.stopBtn}`}
-                onClick={stopRecording}
-                aria-label="Detener y enviar"
-              >
-                <Icon name="send" width={20} height={20} />
-              </button>
-            </div>
-          )}
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={handleEmojiClick}
+            aria-label="Emoji"
+            title="Emoji"
+          >
+            <Icon name="smile" width={20} height={20} />
+          </button>
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={handleAttachmentClick}
+            aria-label="Adjuntar"
+            title="Adjuntar archivo"
+          >
+            <Icon name="paperclip" width={20} height={20} />
+          </button>
+          <input
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") enviar(); }}
+            placeholder={canal ? t("comunicacion.writeTo", { canal: canal.nombre }) : "…"}
+            aria-label={t("comunicacion.message")}
+          />
+          <Button onClick={enviar} aria-label={t("common.send")}>
+            <Icon name="send" /> {t("common.send")}
+          </Button>
         </div>
         {showEmoji && (
           <div className={styles.emojiPicker}>
             <EmojiPicker onEmojiClick={handleEmojiSelect} />
-          </div>
-        )}
-        {audioUrl && (
-          <div className={styles.audioPreview}>
-            <Icon name="mic" width={20} height={20} />
-            <audio controls src={audioUrl} className={styles.audioPlayer} />
-            <button
-              type="button"
-              className={styles.removeBtn}
-              onClick={() => {
-                setAudioUrl(null);
-                setAudioBlob(null);
-              }}
-              aria-label="Eliminar audio"
-            >
-              <Icon name="x" width={16} height={16} />
-            </button>
           </div>
         )}
         {showAddContact && (
