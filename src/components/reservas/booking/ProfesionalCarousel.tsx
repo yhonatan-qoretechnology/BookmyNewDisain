@@ -76,11 +76,6 @@ const ProCard = memo(function ProCard({
 
 function ProfesionalCarouselBase({ profesionales, selectedId, onSelect }: ProfesionalCarouselProps) {
   const { t } = useI18n();
-  const ref = useRef<HTMLDivElement>(null);
-
-  const scroll = useCallback((dir: 1 | -1) => {
-    ref.current?.scrollBy({ left: dir * (ref.current.clientWidth * 0.8), behavior: "smooth" });
-  }, []);
 
   const labels = {
     select: t("booking.select"),
@@ -90,36 +85,16 @@ function ProfesionalCarouselBase({ profesionales, selectedId, onSelect }: Profes
   };
 
   return (
-    <div className={styles.carouselWrap}>
-      <button
-        type="button"
-        className={`${styles.carouselNav} ${styles.prev}`}
-        onClick={() => scroll(-1)}
-        aria-label={t("booking.back")}
-      >
-        <Icon name="chevron-left" width={16} height={16} strokeWidth={2.4} />
-      </button>
-
-      <div className={styles.carousel} ref={ref}>
-        {profesionales.map((p) => (
-          <ProCard
-            key={p.id}
-            pro={p}
-            selected={p.id === selectedId}
-            onSelect={onSelect}
-            labels={labels}
-          />
-        ))}
-      </div>
-
-      <button
-        type="button"
-        className={`${styles.carouselNav} ${styles.next}`}
-        onClick={() => scroll(1)}
-        aria-label={t("booking.next")}
-      >
-        <Icon name="chevron-right" width={16} height={16} strokeWidth={2.4} />
-      </button>
+    <div className={styles.profesionalesGrid}>
+      {profesionales.map((p) => (
+        <ProCard
+          key={p.id}
+          pro={p}
+          selected={p.id === selectedId}
+          onSelect={onSelect}
+          labels={labels}
+        />
+      ))}
     </div>
   );
 }

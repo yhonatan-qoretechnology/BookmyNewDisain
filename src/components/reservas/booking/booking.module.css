@@ -177,6 +177,10 @@
   color: var(--teal-600);
   transition: all 0.25s ease;
 }
+.sedeCarouselNav svg {
+  stroke: currentColor;
+  stroke-width: 2.5;
+}
 .sedeCarouselNav:hover {
   background: var(--grad-teal);
   color: #fff;
@@ -316,10 +320,30 @@
   font-size: 12.5px; color: var(--slate-500);
 }
 .clienteTelefono svg { color: var(--teal-600); }
+.clienteEmail {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--slate-500);
+}
+.clienteEmail svg { color: var(--teal-600); }
 .clienteFoot { margin-top: 4px; width: 100%; }
 
 /* ══════════════════════════════════════════════════════
-   Carrusel de profesionales
+   Grid de profesionales (sin carrusel)
+══════════════════════════════════════════════════════ */
+.profesionalesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 4px 0;
+}
+@media (max-width: 640px) {
+  .profesionalesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   Carrusel de profesionales (deprecated)
 ══════════════════════════════════════════════════════ */
 .carouselWrap { position: relative; }
 .carousel {

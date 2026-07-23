@@ -6,7 +6,7 @@
    tarjeta muestra únicamente nombre y teléfono (más avatar y
    botón "Seleccionar"), como un catálogo moderno de usuarios.
 ============================================================ */
-import { memo } from "react";
+import { memo, useState } from "react";
 import type { ClienteOpcion } from "@/models";
 import { initials } from "@/constants";
 import { useI18n } from "@/i18n";
@@ -29,15 +29,27 @@ const ClienteCard = memo(function ClienteCard({
   selectLabel: string;
   selectedLabel: string;
 }) {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <article className={`${styles.clienteCard} ${selected ? styles.selected : ""}`}>
       <span className={styles.clienteAvatar} aria-hidden>
-        {cliente.foto ? <img src={cliente.foto} alt="" /> : initials(cliente.nombre)}
+        {cliente.foto && !imageError ? (
+          <img 
+            src={`${process.env.NEXT_PUBLIC_API_BASE_URL_IMG || 'https://bookmy.es/'}${cliente.foto}`} 
+            alt=""
+            onError={() => setImageError(true)}
+          />
+        ) : initials(cliente.nombre)}
       </span>
       <span className={styles.clienteNombre} title={cliente.nombre}>{cliente.nombre}</span>
       <span className={styles.clienteTelefono}>
         <Icon name="phone" width={13} height={13} />
         {cliente.telefono || "—"}
+      </span>
+      <span className={styles.clienteEmail}>
+        <Icon name="mail" width={13} height={13} />
+        {cliente.email || "—"}
       </span>
       <div className={styles.clienteFoot}>
         {selected ? (

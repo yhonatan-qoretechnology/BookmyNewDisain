@@ -147,7 +147,7 @@ function SedeSelectorBase({ sedes, selectedId, onSelect }: SedeSelectorProps) {
         onClick={() => scrollCarousel('left')}
         aria-label="Previous"
       >
-        <Icon name="chevronLeft" width={20} height={20} strokeWidth={2.5} />
+        <Icon name="chevron-left" width={20} height={20} strokeWidth={2.5} />
       </button>
       
       <button
@@ -155,7 +155,7 @@ function SedeSelectorBase({ sedes, selectedId, onSelect }: SedeSelectorProps) {
         onClick={() => scrollCarousel('right')}
         aria-label="Next"
       >
-        <Icon name="chevronRight" width={20} height={20} strokeWidth={2.5} />
+        <Icon name="chevron-right" width={20} height={20} strokeWidth={2.5} />
       </button>
       
       <div className={styles.sedeCarouselOverlay}>
