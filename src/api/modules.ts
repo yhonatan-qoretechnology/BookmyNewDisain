@@ -98,6 +98,9 @@ export const AppointmentsApi = {
   /** POST /appointments — CreateAppointmentDto exacto del backend */
   create: (dto: CreateAppointmentDto) => http.post<ApiAppointment>(EP.appointments, dto),
   cancel: (id: number) => http.patch<ApiAppointment>(EP.appointmentCancel(id)),
+  /** PATCH /appointments/:id/reschedule — nueva franja horaria */
+  reschedule: (id: number, dto: { fecha: string; horaInicio: string; horaFin: string }) =>
+    http.patch<ApiAppointment>(EP.appointmentReschedule(id), dto),
   remove: (id: number) => http.delete(EP.appointmentById(id)),
 };
 

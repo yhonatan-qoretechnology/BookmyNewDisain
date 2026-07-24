@@ -43,8 +43,8 @@ export interface ServiciosProvider {
   getServiciosPorCategoria(profesionalId: string, lang: string): Promise<CategoriaServicios[]>;
 }
 export interface AgendaProvider {
-  getDiasNoDisponibles(profesionalId: string, sedeId: string, duracionMin: number): Promise<Set<string>>;
-  getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number): Promise<SlotHora[]>;
+  getDiasNoDisponibles(profesionalId: string, sedeId: string, duracionMin: number, excludeAppointmentId?: number): Promise<Set<string>>;
+  getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number, excludeAppointmentId?: number): Promise<SlotHora[]>;
 }
 export interface ReservaCreator {
   crear(draft: BookingDraft): Promise<{ id: number }>;
@@ -252,9 +252,11 @@ export const BookingController:
    * completo ocupado). El calendario los bloquea junto con los
    * días pasados.
    */
-  async getDiasNoDisponibles(profesionalId: string, sedeId: string, duracionMin: number): Promise<Set<string>> {
+  async getDiasNoDisponibles(profesionalId: string, sedeId: string, duracionMin: number, excludeAppointmentId?: number): Promise<Set<string>> {
     const citas = await fetchAgenda(profesionalId, sedeId);
-    const ocupacion = buildOcupacion(citas);
+    const ocupacion = buildOcupacion(
+      excludeAppointmentId ? citas.filter((c) => c.id !== excludeAppointmentId) : citas
+    );
     const bloqueados = new Set<string>();
     const hoy = new Date();
     for (let i = 0; i <= DIAS_AGENDABLES; i++) {
@@ -266,9 +268,11 @@ export const BookingController:
   },
 
   /** Franjas reales libres del profesional en una fecha. */
-  async getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number): Promise<SlotHora[]> {
+  async getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number, excludeAppointmentId?: number): Promise<SlotHora[]> {
     const citas = await fetchAgenda(profesionalId, sedeId);
-    const ocupacion = buildOcupacion(citas);
+    const ocupacion = buildOcupacion(
+      excludeAppointmentId ? citas.filter((c) => c.id !== excludeAppointmentId) : citas
+    );
     return buildSlots(fecha, duracionMin, ocupacion.get(fecha) || []);
   },
 

@@ -7,10 +7,11 @@
    Los nombres de servicio se resuelven con GET /services?language=
    porque el include de citas no trae traducciones.
 ============================================================ */
-import type { MetodoPago, Reserva, Session } from "@/models";
+import type { MetodoPago, Reserva, Session, SlotHora } from "@/models";
 import { AppointmentsApi, AuthApi, ProfesionalesApi, SedesApi, ServicesApi } from "@/api/modules";
-import { mapAppointment } from "@/api/mappers";
+import { APPT_ESTADO_MAP, mapAppointment } from "@/api/mappers";
 import type { ApiPaymentMethod } from "@/api/types";
+import { BookingController } from "./BookingController";
 
 /** Opción unificada para los selects del flujo de agendado */
 export interface Opcion {
@@ -46,15 +47,17 @@ async function getServiceNames(language: string): Promise<Map<number, string>> {
 
 export const ReservasController = {
   /**
-   * Citas visibles según el rol (aislamiento multi-tenant):
-   * usuario sede → su sede; dueño/superadmin → sedes de su empresa.
+   * Citas visibles según la sesión (aislamiento multi-tenant):
+   * con sedeId explícito (usuario de sede, o superadmin/dueño con una
+   * sede elegida en el dashboard) → esa sede; si no, todas las sedes
+   * de la empresa.
    * @param session Sesión activa del panel.
    * @param language Idioma para resolver nombres de servicio.
    */
   async getForSession(session: Session | null, language = "es"): Promise<Reserva[]> {
     if (!session) return [];
     const names = await getServiceNames(language);
-    if (session.role === "admin" && session.sedeId) {
+    if (session.sedeId) {
       const page = await AppointmentsApi.findAll({ sedeId: Number(session.sedeId) });
       return remember((page.items || []).map((a) => mapAppointment(a, names)));
     }
@@ -194,6 +197,44 @@ export const ReservasController = {
     const mapped = mapAppointment(created);
     mapped.servicio = input.servicio.label;
     cache.set(mapped.id, mapped);
+    return mapped;
+  },
+
+  /* ── Reagendado de una cita existente ──────────────────── */
+
+  /** Días sin franjas libres para el profesional de la reserva (calendario del modal). */
+  async getDiasNoDisponiblesReagendar(reserva: Reserva): Promise<Set<string>> {
+    return BookingController.getDiasNoDisponibles(
+      reserva.empleadoId, reserva.sedeId, reserva.duracion, reserva.apiId
+    );
+  },
+
+  /** Franjas libres del profesional de la reserva en la fecha elegida. */
+  async getSlotsParaReagendar(reserva: Reserva, fecha: string): Promise<SlotHora[]> {
+    return BookingController.getSlotsDisponibles(
+      reserva.empleadoId, reserva.sedeId, fecha, reserva.duracion, reserva.apiId
+    );
+  },
+
+  /**
+   * Reagenda la cita a una nueva franja — PATCH /appointments/:id/reschedule.
+   * Conserva cliente, servicio y profesional; solo cambia fecha/hora.
+   * @throws ApiError si el backend rechaza la nueva franja.
+   */
+  async reagendar(reserva: Reserva, slot: SlotHora): Promise<Reserva> {
+    const updated = await AppointmentsApi.reschedule(reserva.apiId!, {
+      fecha: slot.inicioISO,
+      horaInicio: slot.inicioISO,
+      horaFin: slot.finISO,
+    });
+    const mapped: Reserva = {
+      ...reserva,
+      fecha: slot.inicioISO.slice(0, 10),
+      hora: slot.hora,
+      estado: APPT_ESTADO_MAP[updated.estado] ?? reserva.estado,
+    };
+    cache.set(mapped.id, mapped);
+    BookingController.invalidateAll();
     return mapped;
   },
 };

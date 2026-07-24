@@ -36,6 +36,7 @@ const en: Dictionary = {
     results: "{n} record(s)",
     requiredName: "Name is required",
     comingSoon: "The {view} view is coming soon",
+    actions: "Actions",
   },
 
   roles: {
@@ -250,6 +251,8 @@ const en: Dictionary = {
     loadingBranches: "Loading branches…",
     noBranches: "This company has no registered branches.",
     branchSet: "Now working on branch {sede}",
+    sedeSelectorLabel: "Branch:",
+    allSedes: "All branches",
   },
 
   dashboard: {
@@ -267,6 +270,8 @@ const en: Dictionary = {
     calTitle: "Booking calendar",
     calSub: "Monthly view",
     fromApi: "API data",
+    latestSearchPlaceholder: "Search by service or client…",
+    latestEmpty: "No bookings match your search.",
   },
 
   reservas: {
@@ -299,6 +304,14 @@ const en: Dictionary = {
     cardNumber: "Card number",
     cardExpiry: "Expiry (MM/YY)",
     cardCvv: "CVV",
+    /* Rescheduling from the dashboard */
+    reagendarAria: "Reschedule {servicio} for {cliente}",
+    reagendarTitle: "Reschedule booking",
+    reagendarSub: "{servicio} · {cliente}",
+    reagendarConfirm: "Confirm new time",
+    reagendarSuccess: "Booking rescheduled successfully",
+    reagendarError: "Couldn't reschedule the booking. Please try again.",
+    reagendarLoadError: "Couldn't load availability. Please try again.",
   },
 
   clientes: {

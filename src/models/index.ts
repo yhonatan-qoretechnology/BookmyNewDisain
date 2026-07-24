@@ -80,6 +80,8 @@ export interface Reserva {
   estado: EstadoReserva;
   sedeId: string;
   empleadoId: string;
+  /** Duración del servicio en minutos (para calcular franjas al reagendar) */
+  duracion: number;
   /** Nombres resueltos por el API (includes de Prisma) */
   sedeName?: string;
   empleadoName?: string;

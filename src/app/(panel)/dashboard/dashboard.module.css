@@ -66,3 +66,7 @@
 :global([data-theme="dark"]) .empresaSelect {
   background: rgba(255,255,255,.05); border-color: #1e2640; color: #e8edf5;
 }
+.selectorGroup { display: flex; align-items: center; gap: 10px; }
+
+/* Buscador de "Últimas reservas" */
+.latestToolbar { margin-bottom: 14px; }

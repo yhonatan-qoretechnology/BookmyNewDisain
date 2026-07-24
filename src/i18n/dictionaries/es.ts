@@ -37,6 +37,7 @@ const es = {
     results: "{n} registro(s)",
     requiredName: "El nombre es obligatorio",
     comingSoon: "La vista {view} estará disponible próximamente",
+    actions: "Acciones",
   },
 
   roles: {
@@ -249,6 +250,8 @@ const es = {
     loadingBranches: "Cargando sedes…",
     noBranches: "Esta empresa no tiene sedes registradas.",
     branchSet: "Trabajando sobre la sede {sede}",
+    sedeSelectorLabel: "Sede:",
+    allSedes: "Todas las sedes",
   },
 
   dashboard: {
@@ -266,6 +269,8 @@ const es = {
     calTitle: "Calendario de reservas",
     calSub: "Vista mensual",
     fromApi: "datos del API",
+    latestSearchPlaceholder: "Buscar por servicio o cliente…",
+    latestEmpty: "No hay reservas que coincidan con la búsqueda.",
   },
 
   reservas: {
@@ -298,6 +303,14 @@ const es = {
     cardNumber: "Número de tarjeta",
     cardExpiry: "Vencimiento (MM/AA)",
     cardCvv: "CVV",
+    /* Reagendado desde el dashboard */
+    reagendarAria: "Reagendar {servicio} de {cliente}",
+    reagendarTitle: "Reagendar reserva",
+    reagendarSub: "{servicio} · {cliente}",
+    reagendarConfirm: "Confirmar nuevo horario",
+    reagendarSuccess: "Reserva reagendada correctamente",
+    reagendarError: "No se pudo reagendar la reserva. Intenta de nuevo.",
+    reagendarLoadError: "No se pudo cargar la disponibilidad. Intenta de nuevo.",
   },
 
   clientes: {

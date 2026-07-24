@@ -1,0 +1,7 @@
+/* Cuerpo con scroll propio para no desbordar el modal en pantallas bajas */
+.scrollBody {
+  max-height: 56vh;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin: 4px 0 6px;
+}
