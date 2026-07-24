@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "preview": "HOSTNAME=0.0.0.0 PORT=80 next start",
+    "preview": "HOSTNAME=0.0.0.0 PORT=3000 next start",
     "lint": "next lint"
   },
   "dependencies": {
