@@ -7,9 +7,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "preview": "sh -c 'HOSTNAME=0.0.0.0 PORT=3000 next start'",
     "lint": "next lint"
   },
   "dependencies": {
+    "emoji-picker-react": "^4.19.1",
     "next": "^14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

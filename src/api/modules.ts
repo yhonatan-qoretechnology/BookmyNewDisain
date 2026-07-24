@@ -7,6 +7,7 @@ import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
   ApiAppointment, ApiCategory, ApiChatContact, ApiChatMessage, ApiEmpresa,
+  ApiProfesionalDetalle,
   ApiPayment, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
   CreateAppointmentDto, CreateServiceDto, LoginResponse, Paginated,
   SendMessageDto,
@@ -58,6 +59,10 @@ export const ProfesionalesApi = {
   findAll: () => http.get<ApiProfesional[]>(EP.profesionales),
   /** GET /profesionales/by-sede/:sedeId — para el flujo de agendado */
   findBySede: (sedeId: number) => http.get<ApiProfesional[]>(EP.profesionalesBySede(sedeId)),
+  /** GET /profesionales/:id/detalle?lang= — profesional + sede + servicios
+      (fuente única del paso de selección de servicio en reservas) */
+  detalle: (id: number, lang: string) =>
+    http.get<ApiProfesionalDetalle>(EP.profesionalDetalle(id) + qs({ lang })),
   create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string }) =>
     http.post<ApiProfesional>(EP.profesionales, data),
   remove: (id: number) => http.delete(EP.profesionalById(id)),

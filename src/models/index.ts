@@ -133,34 +133,60 @@ export interface Empleado {
   activo: boolean;
 }
 
-/* ── Asistente de creación de reservas (wizard) ──────────── */
-/** Cliente final seleccionable en el paso 1 del asistente */
+/* ── Flujo de creación de reservas ───────────────────────── */
+/** Sede seleccionable en el primer paso del flujo (con datos de
+    contacto, horario y geolocalización para el mapa) */
+export interface SedeOpcion {
+  id: string;
+  nombre: string;
+  direccion: string;
+  provincia: string;
+  telefono: string;
+  imagen: string | null;
+  imagenes: string[];
+  /** Horario semanal { lunes: "10:00-19:00", domingo: "Cerrado", … } */
+  horario: Record<string, string> | null;
+  latitud: number | null;
+  longitud: number | null;
+}
+
+/** Cliente final seleccionable en el flujo de reservas */
 export interface ClienteOpcion {
   id: string;
   nombre: string;
   email: string;
   telefono: string;
+  foto: string | null;
   /** Documento u otro identificador si el backend lo expone */
   documento?: string;
 }
 
-/** Tarjeta de profesional para el carrusel del paso 2 */
+/** Tarjeta de profesional para el carrusel */
 export interface ProfesionalCard {
   id: string;
   nombre: string;
   especialidad: string;
+  biografia: string;
+  telefono: string;
   foto?: string | null;
   disponible: boolean;
 }
 
-/** Servicio seleccionable en el paso 3 (precio/duración de la BD) */
+/** Servicio seleccionable (precio/duración reales de la BD) */
 export interface ServicioOpcion {
   id: string;
   nombre: string;
   descripcion?: string;
+  categoria: string;
   duracion: number; // minutos
   precio: number;
   moneda: string;
+}
+
+/** Servicios de un profesional agrupados por categoría */
+export interface CategoriaServicios {
+  categoria: string;
+  servicios: ServicioOpcion[];
 }
 
 /** Franja horaria disponible en el paso 5 */
@@ -180,6 +206,8 @@ export interface BookingDraft {
   empresaNombre: string | null;
   sedeId: string | null;
   sedeNombre: string | null;
+  /** Sede completa (dirección, teléfono, imagen…) para el comprobante */
+  sede: SedeOpcion | null;
   cliente: ClienteOpcion | null;
   profesional: ProfesionalCard | null;
   servicio: ServicioOpcion | null;
@@ -198,6 +226,7 @@ export interface Canal {
   unread: number;
   /** Email del contacto (requerido por SendMessageDto del backend) */
   email?: string;
+  fotoPerfil?: string | null;
 }
 
 export interface Mensaje {
@@ -205,6 +234,8 @@ export interface Mensaje {
   ini?: string;
   texto: string;
   hora: string;
+  messageType?: "TEXT" | "IMAGE" | "FILE";
+  fileUrl?: string | null;
 }
 
 /* ── Estadísticas ────────────────────────────────────────── */

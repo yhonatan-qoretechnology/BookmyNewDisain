@@ -1,17 +1,17 @@
 "use client";
 /* ============================================================
-   BookingContext — estado global del asistente de reservas
+   BookingContext — estado global del flujo de creación de reservas
    ------------------------------------------------------------
    Guarda empresa, sede, cliente, profesional, servicio, fecha,
-   hora y método de pago durante TODO el flujo (requisito de
-   "Gestión del estado"). Persistido en sessionStorage para que
-   la selección sobreviva a navegaciones/recargas del wizard.
+   hora y método de pago durante TODO el flujo. Persistido en
+   sessionStorage para que la selección sobreviva a navegaciones
+   y recargas.
 
    SRP: este archivo solo gestiona estado; ninguna llamada HTTP.
    DIP: las vistas dependen de esta abstracción, no de storage.
 ============================================================ */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { BookingDraft } from "@/models";
+import type { BookingDraft, SedeOpcion } from "@/models";
 
 const STORAGE_KEY = "bookmy-booking-draft";
 
@@ -20,6 +20,7 @@ const EMPTY: BookingDraft = {
   empresaNombre: null,
   sedeId: null,
   sedeNombre: null,
+  sede: null,
   cliente: null,
   profesional: null,
   servicio: null,
@@ -28,14 +29,20 @@ const EMPTY: BookingDraft = {
   metodoPago: null,
 };
 
-/** Pasos del asistente en orden secuencial */
-export type WizardStep = "cliente" | "profesional" | "servicio" | "fecha" | "hora" | "confirmar";
-export const WIZARD_STEPS: WizardStep[] = ["cliente", "profesional", "servicio", "fecha", "hora", "confirmar"];
+/** Pasos del flujo en orden secuencial (la navegación se valida
+    contra este orden: no se puede saltar a un paso incompleto) */
+export type BookingStep =
+  | "sede" | "cliente" | "profesional" | "servicio" | "fecha" | "hora" | "confirmar";
+export const BOOKING_STEPS: BookingStep[] = [
+  "sede", "cliente", "profesional", "servicio", "fecha", "hora", "confirmar",
+];
 
 interface BookingContextValue {
   draft: BookingDraft;
   /** Selección de contexto empresa+sede (módulo Empresas) */
   setEmpresaSede: (e: { empresaId: string; empresaNombre: string; sedeId: string; sedeNombre: string }) => void;
+  /** Selección de sede completa dentro del flujo de reservas */
+  setSede: (e: { empresaId: string; empresaNombre: string; sede: SedeOpcion }) => void;
   /** Patch parcial; los pasos posteriores dependientes se invalidan aparte */
   patch: (p: Partial<BookingDraft>) => void;
   /** Selecciones en cascada: cambiar un paso limpia los siguientes */
@@ -44,11 +51,12 @@ interface BookingContextValue {
   setServicio: (s: BookingDraft["servicio"]) => void;
   setFecha: (f: string | null) => void;
   setSlot: (s: BookingDraft["slot"]) => void;
+  /** Limpia el estado de la reserva (conserva solo la empresa activa) */
   reset: () => void;
   /** Validación secuencial: primer paso incompleto del flujo */
-  firstIncompleteStep: () => WizardStep;
+  firstIncompleteStep: () => BookingStep;
   /** ¿Se puede entrar al paso dado? (todo lo anterior completo) */
-  canEnter: (step: WizardStep) => boolean;
+  canEnter: (step: BookingStep) => boolean;
 }
 
 const BookingContext = createContext<BookingContextValue | null>(null);
@@ -89,6 +97,23 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         ...d,
         ...e,
         ...(sedeCambio
+          ? { sede: null, cliente: d.cliente, profesional: null, servicio: null, fecha: null, slot: null }
+          : {}),
+      };
+    });
+  }, []);
+
+  const setSede = useCallback((e: { empresaId: string; empresaNombre: string; sede: SedeOpcion }) => {
+    setDraft((d) => {
+      const sedeCambio = d.sedeId !== e.sede.id;
+      return {
+        ...d,
+        empresaId: e.empresaId,
+        empresaNombre: e.empresaNombre,
+        sedeId: e.sede.id,
+        sedeNombre: e.sede.nombre,
+        sede: e.sede,
+        ...(sedeCambio
           ? { profesional: null, servicio: null, fecha: null, slot: null }
           : {}),
       };
@@ -126,16 +151,15 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
   const reset = useCallback(() => {
     setDraft((d) => ({
       ...EMPTY,
-      /* El contexto empresa/sede se conserva: pertenece al módulo
-         de Administración de Empresas, no al borrador puntual */
+      /* La empresa activa pertenece a Administración de Empresas;
+         la sede vuelve a elegirse en el primer paso del flujo */
       empresaId: d.empresaId,
       empresaNombre: d.empresaNombre,
-      sedeId: d.sedeId,
-      sedeNombre: d.sedeNombre,
     }));
   }, []);
 
-  const firstIncompleteStep = useCallback((): WizardStep => {
+  const firstIncompleteStep = useCallback((): BookingStep => {
+    if (!draft.sedeId) return "sede";
     if (!draft.cliente) return "cliente";
     if (!draft.profesional) return "profesional";
     if (!draft.servicio) return "servicio";
@@ -145,14 +169,14 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
   }, [draft]);
 
   const canEnter = useCallback(
-    (step: WizardStep) =>
-      WIZARD_STEPS.indexOf(step) <= WIZARD_STEPS.indexOf(firstIncompleteStep()),
+    (step: BookingStep) =>
+      BOOKING_STEPS.indexOf(step) <= BOOKING_STEPS.indexOf(firstIncompleteStep()),
     [firstIncompleteStep]
   );
 
   const value = useMemo(
-    () => ({ draft, setEmpresaSede, patch, setCliente, setProfesional, setServicio, setFecha, setSlot, reset, firstIncompleteStep, canEnter }),
-    [draft, setEmpresaSede, patch, setCliente, setProfesional, setServicio, setFecha, setSlot, reset, firstIncompleteStep, canEnter]
+    () => ({ draft, setEmpresaSede, setSede, patch, setCliente, setProfesional, setServicio, setFecha, setSlot, reset, firstIncompleteStep, canEnter }),
+    [draft, setEmpresaSede, setSede, patch, setCliente, setProfesional, setServicio, setFecha, setSlot, reset, firstIncompleteStep, canEnter]
   );
 
   return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>;

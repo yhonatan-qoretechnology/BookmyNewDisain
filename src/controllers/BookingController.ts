@@ -1,30 +1,38 @@
 /* ============================================================
-   BookingWizardController — asistente de creación de reservas
+   BookingController — flujo de creación de reservas
    ------------------------------------------------------------
-   Casos de uso del flujo (Clean Architecture: esta capa orquesta
-   el API y expone modelos del dominio; la UI no conoce el HTTP):
+   Casos de uso (Clean Architecture: esta capa orquesta el API y
+   expone modelos del dominio; la UI no conoce el HTTP):
 
-     Paso 1 · searchClientes        GET /auth/users (role CLIENT)
-     Paso 2 · getProfesionales      GET /profesionales/by-sede/:id
-     Paso 3 · getServicios          GET /services/by-sede/:id?language=
-     Paso 4/5 · getAgendaProfesional
-                GET /appointments/professionals/:id/reservations
-                (fallback: GET /appointments/calendar?sedeId)
-     Paso 6 · crear                 POST /appointments (revalida)
+     Sede         · getSedes                 GET /sedes/empresa/:id
+     Cliente      · searchClientes           GET /auth/users (role CLIENT)
+     Profesional  · getProfesionales         GET /profesionales/by-sede/:id
+     Servicio     · getServiciosPorCategoria GET /profesionales/:id/detalle?lang=
+     Fecha/Hora   · getDiasNoDisponibles / getSlotsDisponibles
+                    GET /appointments/professionals/:id/reservations
+                    (fallback: GET /appointments/calendar?sedeId)
+     Confirmación · crear                    POST /appointments (revalida)
 
    Caché en memoria con invalidación tras crear: evita solicitudes
-   duplicadas al backend durante el asistente (requisito de
-   rendimiento). ISP/DIP: la UI consume interfaces pequeñas
-   (ClientesProvider, AgendaProvider…) y no este objeto completo.
+   duplicadas durante el flujo. ISP/DIP: la UI consume interfaces
+   pequeñas (SedesProvider, AgendaProvider…), no este objeto completo.
 ============================================================ */
-import type { ClienteOpcion, ProfesionalCard, ServicioOpcion, SlotHora, BookingDraft } from "@/models";
+import type {
+  BookingDraft, CategoriaServicios, ClienteOpcion, ProfesionalCard,
+  SedeOpcion, ServicioOpcion, SlotHora,
+} from "@/models";
 import { DIAS_AGENDABLES, HORARIO_DEFECTO } from "@/constants";
-import { AppointmentsApi, AuthApi, ProfesionalesApi, ServicesApi } from "@/api/modules";
+import { AppointmentsApi, AuthApi, ProfesionalesApi, SedesApi } from "@/api/modules";
 import { http } from "@/api/http";
 import { EP } from "@/api/endpoints";
-import type { ApiAppointment, ApiPaymentMethod, ApiUser } from "@/api/types";
+import type {
+  ApiAppointment, ApiPaymentMethod, ApiSede, ApiServicioProfesional, ApiUser,
+} from "@/api/types";
 
 /* ── Interfaces por caso de uso (ISP) ────────────────────── */
+export interface SedesProvider {
+  getSedes(empresaId: string): Promise<SedeOpcion[]>;
+}
 export interface ClientesProvider {
   searchClientes(query: string): Promise<ClienteOpcion[]>;
 }
@@ -32,14 +40,17 @@ export interface ProfesionalesProvider {
   getProfesionales(sedeId: string): Promise<ProfesionalCard[]>;
 }
 export interface ServiciosProvider {
-  getServicios(sedeId: string, profesionalId: string, language: string): Promise<ServicioOpcion[]>;
+  getServiciosPorCategoria(profesionalId: string, lang: string): Promise<CategoriaServicios[]>;
 }
 export interface AgendaProvider {
   getDiasNoDisponibles(profesionalId: string, sedeId: string, duracionMin: number): Promise<Set<string>>;
   getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number): Promise<SlotHora[]>;
 }
+export interface ReservaCreator {
+  crear(draft: BookingDraft): Promise<{ id: number }>;
+}
 
-/* ── Caché simple con TTL (evita duplicados en el wizard) ── */
+/* ── Caché simple con TTL (evita duplicados en el flujo) ─── */
 const TTL_MS = 60_000;
 const cache = new Map<string, { at: number; value: unknown }>();
 
@@ -51,23 +62,64 @@ async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
   return value;
 }
 
-/** Invalida las entradas de agenda tras registrar una reserva */
-function invalidateAgenda(profesionalId: string) {
+/** Invalida las entradas cuyo key comience por alguno de los prefijos */
+function invalidate(prefixes: string[]) {
   for (const k of Array.from(cache.keys())) {
-    if (k.startsWith(`agenda:${profesionalId}:`)) cache.delete(k);
+    if (prefixes.some((p) => k.startsWith(p))) cache.delete(k);
   }
 }
 
 /* ── Mapeadores API → dominio ────────────────────────────── */
+function mapSede(s: ApiSede): SedeOpcion {
+  const imagenes = s.imagenes ?? [];
+  return {
+    id: String(s.id),
+    nombre: s.nombre,
+    direccion: s.direccion || "",
+    provincia: s.provincia || "",
+    telefono: s.telefono || "",
+    imagen: imagenes[0] ?? null,
+    imagenes,
+    horario: s.horario ?? null,
+    latitud: typeof s.latitud === "number" ? s.latitud : null,
+    longitud: typeof s.longitud === "number" ? s.longitud : null,
+  };
+}
+
 function mapCliente(u: ApiUser): ClienteOpcion {
   return {
     id: String(u.id),
     nombre: u.UserData?.name || u.email,
     email: u.email,
     telefono: u.UserData?.phone || "",
-    foto: u.fotoPerfil || u.AdminProfile?.photoUrl || null,
+    foto: u.fotoPerfil ?? null,
     documento: undefined, // el API no expone documento; hook de extensión
   };
+}
+
+const SIN_CATEGORIA = "Otros servicios";
+
+function mapServicio(sv: ApiServicioProfesional): ServicioOpcion {
+  return {
+    id: String(sv.id),
+    nombre: sv.nombre,
+    descripcion: sv.descripcion || undefined,
+    categoria: sv.categoria || SIN_CATEGORIA,
+    duracion: sv.precios?.[0]?.duration ?? 30,
+    precio: sv.precios?.[0]?.amount ?? 0,
+    moneda: sv.precios?.[0]?.currency ?? "EUR",
+  };
+}
+
+/** Agrupa por `categoria` conservando el orden de aparición */
+function agruparPorCategoria(servicios: ServicioOpcion[]): CategoriaServicios[] {
+  const grupos = new Map<string, ServicioOpcion[]>();
+  for (const s of servicios) {
+    const lista = grupos.get(s.categoria);
+    if (lista) lista.push(s);
+    else grupos.set(s.categoria, [s]);
+  }
+  return Array.from(grupos, ([categoria, lista]) => ({ categoria, servicios: lista }));
 }
 
 /* ── Utilidades de tiempo ────────────────────────────────── */
@@ -139,16 +191,25 @@ async function fetchAgenda(profesionalId: string, sedeId: string): Promise<ApiAp
 }
 
 /* ── Controlador (implementa todas las interfaces) ───────── */
-export const BookingWizardController: ClientesProvider & ProfesionalesProvider & ServiciosProvider & AgendaProvider & {
-  crear(draft: BookingDraft): Promise<{ id: number }>;
-} = {
+export const BookingController:
+  SedesProvider & ClientesProvider & ProfesionalesProvider & ServiciosProvider &
+  AgendaProvider & ReservaCreator & { invalidateAll(): void } = {
+
+  /** Sedes de la empresa con datos completos para tarjetas y mapa. */
+  async getSedes(empresaId: string): Promise<SedeOpcion[]> {
+    const list = await cached(`sedes:${empresaId}`, () =>
+      SedesApi.findByEmpresa(Number(empresaId)).catch(() => [] as ApiSede[])
+    );
+    return (list || []).map(mapSede);
+  },
+
   /**
-   * Paso 1 — clientes finales filtrados por nombre, documento,
-   * teléfono o correo. El backend no expone búsqueda, así que la
-   * lista (cacheada) se filtra en cliente.
+   * Clientes finales filtrados por nombre, documento, teléfono o
+   * correo. El backend no expone búsqueda, así que la lista
+   * (cacheada) se filtra en cliente.
    */
   async searchClientes(query: string): Promise<ClienteOpcion[]> {
-    const users = await cached("clientes", () => AuthApi.findAllUsers().catch(() => [] as ApiUser[])); 
+    const users = await cached("clientes", () => AuthApi.findAllUsers().catch(() => [] as ApiUser[]));
     const clientes = (users || []).filter((u) => u.role === "CLIENT").map(mapCliente);
     const q = query.trim().toLowerCase();
     if (!q) return clientes;
@@ -157,7 +218,7 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
     );
   },
 
-  /** Paso 2 — profesionales de la sede para el carrusel. */
+  /** Profesionales de la sede para el carrusel. */
   async getProfesionales(sedeId: string): Promise<ProfesionalCard[]> {
     const list = await cached(`prof:${sedeId}`, () =>
       ProfesionalesApi.findBySede(Number(sedeId)).catch(() => [])
@@ -165,7 +226,7 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
     return (list || []).map((p) => ({
       id: String(p.id),
       nombre: p.nombre,
-      especialidad: "", // el API no expone especialidad específica
+      especialidad: p.biografia || "",
       biografia: p.biografia || "",
       telefono: p.phone || "",
       foto: p.imagen || null,
@@ -174,29 +235,21 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
   },
 
   /**
-   * Paso 3 — servicios asociados al profesional seleccionado.
-   * El API expone GET /services/by-sede (tabla service_sede_profesional);
-   * si el backend añade /services/by-profesional bastará con cambiar
-   * esta implementación sin tocar la UI (OCP/DIP).
+   * Servicios del profesional agrupados por categoría.
+   * Fuente única: GET /profesionales/:id/detalle?lang= — devuelve el
+   * profesional, su sede y la lista `servicios` con `categoria`.
    */
-  async getServicios(sedeId: string, profesionalId: string, language: string): Promise<ServicioOpcion[]> {
-    const list = await cached(`serv:${sedeId}:${profesionalId}:${language}`, () =>
-      ServicesApi.findBySede(Number(sedeId), language).catch(() => ServicesApi.findAll(language))
+  async getServiciosPorCategoria(profesionalId: string, lang: string): Promise<CategoriaServicios[]> {
+    const detalle = await cached(`detalle:${profesionalId}:${lang}`, () =>
+      ProfesionalesApi.detalle(Number(profesionalId), lang)
     );
-    return (list || []).map((sv) => ({
-      id: String(sv.id),
-      nombre: sv.name,
-      descripcion: sv.description,
-      categoria: sv.category ? String(sv.category) : "General",
-      duracion: sv.prices?.[0]?.duration ?? 30,
-      precio: sv.prices?.[0]?.amount ?? 0,
-      moneda: sv.prices?.[0]?.currency ?? "EUR",
-    }));
+    const servicios = (detalle?.servicios ?? []).map(mapServicio);
+    return agruparPorCategoria(servicios);
   },
 
   /**
-   * Paso 4 — días SIN disponibilidad dentro de la ventana agendable
-   * (día completo ocupado). El calendario los bloquea junto con los
+   * Días SIN disponibilidad dentro de la ventana agendable (día
+   * completo ocupado). El calendario los bloquea junto con los
    * días pasados.
    */
   async getDiasNoDisponibles(profesionalId: string, sedeId: string, duracionMin: number): Promise<Set<string>> {
@@ -212,7 +265,7 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
     return bloqueados;
   },
 
-  /** Paso 5 — franjas reales libres del profesional en una fecha. */
+  /** Franjas reales libres del profesional en una fecha. */
   async getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number): Promise<SlotHora[]> {
     const citas = await fetchAgenda(profesionalId, sedeId);
     const ocupacion = buildOcupacion(citas);
@@ -220,8 +273,9 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
   },
 
   /**
-   * Paso 6 — confirma: revalida la disponibilidad contra el backend
+   * Confirmación: revalida la disponibilidad contra el backend
    * (sin caché) y registra la cita con el CreateAppointmentDto.
+   * Al finalizar invalida las consultas afectadas.
    * @throws Error si la franja fue tomada o falta información.
    */
   async crear(draft: BookingDraft): Promise<{ id: number }> {
@@ -231,7 +285,7 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
     }
 
     /* Revalidación en vivo de la franja elegida */
-    invalidateAgenda(profesional.id);
+    invalidate([`agenda:${profesional.id}:`]);
     const libres = await this.getSlotsDisponibles(profesional.id, sedeId, fecha, servicio.duracion);
     if (!libres.some((s) => s.hora === slot.hora)) throw new Error("SLOT_TAKEN");
 
@@ -252,8 +306,13 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
         : {}),
     });
 
-    /* La agenda del profesional cambió: invalidar caché */
-    invalidateAgenda(profesional.id);
+    /* La agenda del profesional y su detalle cambiaron: invalidar */
+    invalidate([`agenda:${profesional.id}:`, `detalle:${profesional.id}:`]);
     return { id: created.id };
+  },
+
+  /** Limpieza total de caché tras finalizar el flujo. */
+  invalidateAll(): void {
+    cache.clear();
   },
 };
