@@ -79,9 +79,9 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
               ...apiReserva.user, 
               UserData: { 
                 ...apiReserva.user.UserData, 
-                phone: fullUser.UserData.phone || apiReserva.user.UserData?.phone,
-                name: fullUser.UserData.name || apiReserva.user.UserData?.name
-              } 
+                phone: fullUser.UserData.phone || apiReserva.user.UserData?.phone || "",
+                name: fullUser.UserData.name || apiReserva.user.UserData?.name || ""
+              } as any
             };
             console.log('[ReservaPopup] Fetched user data separately:', fullUser.UserData);
           }
