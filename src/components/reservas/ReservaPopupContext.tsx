@@ -177,35 +177,94 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
     window.location.href = url;
   };
 
-  const onPrint = () => {
-    console.log('[ReservaPopup] Print button clicked');
-    if (!reserva) return;
-    let area = document.getElementById("bmPrintArea");
-    if (!area) {
-      area = document.createElement("div");
-      area.id = "bmPrintArea";
-      document.body.appendChild(area);
+  const onPrint = async () => {
+    console.log('[ReservaPopup] Print button clicked - START');
+    console.log('[ReservaPopup] Reserva data:', reserva);
+    if (!reserva) {
+      console.log('[ReservaPopup] No reserva data, returning');
+      return;
     }
-    area.innerHTML = `
-      <div class="print-logo">BookMy · ${session?.negocioName || ""}</div>
-      <div class="print-title">${t("popup.sheetTitle", { id: reserva.id })}</div>
-      <div class="print-grid">
-        <div class="print-field"><label>${t("common.service")}</label><span>${reserva.servicio}</span></div>
-        <div class="print-field"><label>${t("common.state")}</label><span>${t(`estados.${reserva.estado}`)}</span></div>
-        <div class="print-field"><label>${t("common.client")}</label><span>${reserva.cliente}</span></div>
-        <div class="print-field"><label>${t("common.phone")}</label><span>${reserva.telefono}</span></div>
-        <div class="print-field"><label>${t("common.email")}</label><span>${reserva.email}</span></div>
-        <div class="print-field"><label>${t("common.price")}</label><span>${reserva.precio.toFixed(2)}€</span></div>
-        <div class="print-field"><label>${t("common.date")}</label><span>${fmtFechaLarga(reserva.fecha)}</span></div>
-        <div class="print-field"><label>${t("common.time")}</label><span>${reserva.hora}</span></div>
-        <div class="print-field"><label>${t("common.duration")}</label><span>${reserva.duracion} min</span></div>
-        <div class="print-field"><label>${t("common.branch")}</label><span>${sedeNombre || "—"}</span></div>
-        <div class="print-field"><label>${t("common.specialist")}</label><span>${espNombre}</span></div>
-      </div>
-      ${reserva.notas ? `<div class="print-notes"><strong>${t("common.notes")}:</strong> ${reserva.notas}</div>` : ""}
-      <div class="print-footer">${t("popup.printedAt", { fecha: new Date().toLocaleString() })} · BookMy</div>`;
-    close();
-    setTimeout(() => window.print(), 120);
+
+    try {
+      console.log('[ReservaPopup] Importing jsPDF...');
+      const jsPDF = (await import("jspdf")).default;
+      console.log('[ReservaPopup] jsPDF imported successfully');
+      const doc = new jsPDF();
+      console.log('[ReservaPopup] jsPDF document created');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = 20;
+
+      // Header
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(`BookMy · ${session?.negocioName || ""}`, 20, y);
+      y += 12;
+
+      // Title
+      doc.setFontSize(22);
+      doc.text(t("popup.sheetTitle", { id: reserva.id }), 20, y);
+      y += 20;
+
+      // Grid layout
+      const fields = [
+        { label: t("common.service"), value: reserva.servicio },
+        { label: t("common.state"), value: t(`estados.${reserva.estado}`) },
+        { label: t("common.client"), value: reserva.cliente },
+        { label: t("common.phone"), value: reserva.telefono || "—" },
+        { label: t("common.email"), value: reserva.email || "—" },
+        { label: t("common.price"), value: `${reserva.precio.toFixed(2)}€` },
+        { label: t("common.date"), value: fmtFechaLarga(reserva.fecha) },
+        { label: t("common.time"), value: reserva.hora || "—" },
+        { label: t("common.duration"), value: `${reserva.duracion} min` },
+        { label: t("common.branch"), value: sedeNombre || "—" },
+        { label: t("common.specialist"), value: espNombre },
+      ];
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      
+      fields.forEach((field, index) => {
+        const col = index % 2 === 0 ? 20 : pageWidth / 2 + 10;
+        const rowY = y + Math.floor(index / 2) * 12;
+        
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(100);
+        doc.text(field.label, col, rowY);
+        
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0);
+        doc.text(field.value, col + 50, rowY);
+      });
+
+      y += Math.ceil(fields.length / 2) * 12 + 15;
+
+      // Notes
+      if (reserva.notas) {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0);
+        doc.text(`${t("common.notes")}:`, 20, y);
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(60);
+        const splitNotes = doc.splitTextToSize(reserva.notas, pageWidth - 40);
+        doc.text(splitNotes, 20, y);
+        y += splitNotes.length * 6 + 15;
+      }
+
+      // Footer
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(t("popup.printedAt", { fecha: new Date().toLocaleString() }) + " · BookMy", 20, pageHeight - 15);
+
+      // Save PDF
+      const fileName = `reserva-${reserva.id}.pdf`;
+      console.log('[ReservaPopup] Saving PDF as:', fileName);
+      doc.save(fileName);
+      console.log('[ReservaPopup] PDF saved successfully:', fileName);
+    } catch (error) {
+      console.error('[ReservaPopup] Error generating PDF:', error);
+    }
   };
 
   return (
@@ -224,7 +283,8 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 alignItems: 'center', 
                 justifyContent: 'center',
                 borderRadius: 'inherit',
-                zIndex: 10 
+                zIndex: 10,
+                pointerEvents: 'none'
               }}>
                 <span style={{ color: 'var(--teal-500)', fontWeight: 600 }}>Cargando...</span>
               </div>
