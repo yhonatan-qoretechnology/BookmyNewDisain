@@ -121,7 +121,8 @@ export default function DashboardPage() {
   );
 
   const hoyISO = new Date().toISOString().slice(0, 10);
-  const hoy = todas.filter((r) => r.fecha === hoyISO);
+  const [selectedDate, setSelectedDate] = useState<string | null>(hoyISO);
+  const fechaReservas = selectedDate ? todas.filter((r) => r.fecha === selectedDate) : [];
 
   /* Buscador en tiempo real de "Últimas reservas" (servicio o cliente) */
   const [buscarUltimas, setBuscarUltimas] = useState("");
@@ -196,11 +197,11 @@ export default function DashboardPage() {
       <div className={styles.bottomGrid}>
         <Panel>
           <div className={styles.calHeaderPill}>
-            <Icon name="calendar" /> {t("common.today")} · {new Date().toLocaleDateString()}
+            <Icon name="calendar" /> {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString() : t("common.today")}
           </div>
           <div className={styles.dayList}>
-            {hoy.length === 0 && <span>{t("dashboard.noToday")}</span>}
-            {hoy.map((r) => (
+            {fechaReservas.length === 0 && <span>{t("dashboard.noToday")}</span>}
+            {fechaReservas.map((r) => (
               <div key={r.id} className={styles.dayItem} onClick={() => popup.open(r.id)}>
                 <span className={styles.dayHour}>{r.hora}</span>
                 <span className={styles.dayBody}>
@@ -214,7 +215,14 @@ export default function DashboardPage() {
 
         <Panel>
           <PanelHead title={t("dashboard.calTitle")} sub={t("dashboard.calSub")} />
-          <CalendarGrid events={calEvents} maxPerCell={2} onEventClick={(id) => popup.open(id)} />
+          <CalendarGrid 
+            events={calEvents} 
+            maxPerCell={2} 
+            onEventClick={(id) => popup.open(id)} 
+            selectable={true}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+          />
         </Panel>
       </div>
 
