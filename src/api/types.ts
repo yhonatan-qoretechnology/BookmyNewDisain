@@ -139,10 +139,10 @@ export interface ApiAppointment {
   serviceId: number;
   profesionalId: number;
   userId: number;
-  sede?: { id: number; nombre: string };
+  sede?: Partial<ApiSede>;
   service?: { id: number; translations?: Array<{ name: string }> } & Partial<ApiService>;
   profesional?: { id: number; nombre: string };
-  user?: { id: number; email: string; UserData?: { name?: string; phone?: string } | null };
+  user?: Partial<ApiUser>;
   Payment?: ApiPayment | null;
 }
 

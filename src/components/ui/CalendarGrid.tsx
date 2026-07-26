@@ -10,12 +10,13 @@ import styles from "./Calendar.module.css";
 export interface CalendarEvent {
   id: string;
   label: string;
+  data?: any; // Additional data (e.g., full reservation object)
 }
 
 interface CalendarGridProps {
   /** Mapa fecha (YYYY-MM-DD) → eventos */
   events: Record<string, CalendarEvent[]>;
-  onEventClick?: (id: string) => void;
+  onEventClick?: (id: string, data?: any) => void;
   /** Máximo de eventos visibles por celda (el resto se resume como "+N más") */
   maxPerCell?: number;
   onViewChange?: (view: string) => void;
@@ -122,7 +123,7 @@ export default function CalendarGrid({
           <div
             key={`${e.id}-${i}`}
             className={styles.calEvent}
-            onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e.id); }}
+            onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e.id, e.data); }}
             role={onEventClick ? "button" : undefined}
           >
             {e.label}

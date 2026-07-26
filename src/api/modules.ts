@@ -101,6 +101,8 @@ export const AppointmentsApi = {
   /** PATCH /appointments/:id/reschedule — nueva franja horaria */
   reschedule: (id: number, dto: { fecha: string; horaInicio: string; horaFin: string }) =>
     http.patch<ApiAppointment>(EP.appointmentReschedule(id), dto),
+  /** GET /appointments/:id — obtiene una cita con todos los detalles */
+  findOne: (id: number) => http.get<ApiAppointment>(EP.appointmentById(id)),
   remove: (id: number) => http.delete(EP.appointmentById(id)),
 };
 

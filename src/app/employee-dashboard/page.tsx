@@ -53,7 +53,7 @@ export default function EmployeeDashboardPage() {
   const events = Object.fromEntries(
     Object.entries(calMap).map(([fecha, rs]) => [
       fecha,
-      rs.map((r) => ({ id: r.id, label: `${r.hora} ${r.cliente.split(" ")[0]}` })),
+      rs.map((r) => ({ id: r.id, label: `${r.hora} ${r.cliente.split(" ")[0]}`, data: r })),
     ])
   );
 
@@ -93,7 +93,7 @@ export default function EmployeeDashboardPage() {
         ) : (
           <DataTable headers={[t("common.id"), t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state")]}>
             {lista.map((r) => (
-              <tr key={r.id} onClick={() => popup.open(r.id)} style={{ cursor: "pointer" }}>
+              <tr key={r.id} onClick={() => popup.open(r)} style={{ cursor: "pointer" }}>
                 <td><b>{r.id}</b></td>
                 <td>{r.servicio}</td>
                 <td><PersonRow name={r.cliente} /></td>
@@ -109,7 +109,7 @@ export default function EmployeeDashboardPage() {
 
       <Panel style={{ marginTop: 20 }}>
         <PanelHead title={t("employee.myCalendar")} sub={t("employee.myCalendarSub")} />
-        <CalendarGrid events={events} maxPerCell={3} onEventClick={(id) => popup.open(id)} />
+        <CalendarGrid events={events} maxPerCell={3} onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)} />
       </Panel>
     </>
   );
