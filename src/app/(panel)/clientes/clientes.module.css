@@ -1,0 +1,11 @@
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reservasScroll {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+

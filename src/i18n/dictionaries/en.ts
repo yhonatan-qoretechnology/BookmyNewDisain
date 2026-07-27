@@ -330,6 +330,15 @@ const en: Dictionary = {
     deleted: "Client deleted",
     deleteAria: "Delete {nombre}",
     apiRegister: "In API mode, clients register from the client app (POST /auth/register).",
+    active: "Active",
+    inactive: "Inactive",
+    editTitle: "Edit client",
+    editAria: "Edit {nombre}",
+    updated: "Client updated",
+    reservasBtn: "Bookings",
+    reservasTitle: "Active bookings for {nombre}",
+    reservasEmptyTitle: "No active bookings",
+    reservasEmptyMsg: "This client has no pending or confirmed bookings.",
   },
 
   facturacion: {

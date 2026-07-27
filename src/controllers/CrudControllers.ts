@@ -2,11 +2,12 @@
    Controladores de dominio — consumo exclusivo del API oficial.
    Cada bloque es el espejo de un módulo NestJS del backend.
 ============================================================ */
-import type { Cliente, Empleado, Factura, Resena, SedeDetalle, Servicio } from "@/models";
+import type { Cliente, Empleado, Factura, Reserva, Resena, SedeDetalle, Servicio, Session } from "@/models";
 import {
   AuthApi, CategoriesApi, PaymentsApi, ProfesionalesApi, ResenasApi,
   SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
+import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (AuthModule: Users con role CLIENT) ────────── */
 export const ClientesController = {
@@ -26,8 +27,29 @@ export const ClientesController = {
         telefono: u.UserData?.phone || "—",
         visitas: 0,
         ultima: "—",
+        activo: u.state !== "disabled" && u.state !== "blocked",
       }))
       .filter((c) => (c.nombre + c.correo).toLowerCase().includes(q));
+  },
+
+  /**
+   * Edita los datos básicos del cliente — PATCH /auth/users/:id.
+   * (UpdateUserDto acepta name/phone igual que en Configuración.)
+   */
+  async update(id: number, input: { nombre: string; telefono: string }): Promise<void> {
+    await AuthApi.updateUser(id, { name: input.nombre.trim(), phone: input.telefono.trim() });
+  },
+
+  /**
+   * Reservas activas (pendiente/confirmada) del cliente, dentro del
+   * alcance de la sesión (empresa/sede) — filtra las citas visibles
+   * por el id numérico del usuario.
+   */
+  async getReservasActivas(clienteId: number, session: Session | null, language = "es"): Promise<Reserva[]> {
+    const todas = await ReservasController.getForSession(session, language).catch(() => [] as Reserva[]);
+    return todas.filter(
+      (r) => r.clienteId === String(clienteId) && (r.estado === "pendiente" || r.estado === "confirmada")
+    );
   },
 };
 

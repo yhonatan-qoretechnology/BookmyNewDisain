@@ -329,6 +329,15 @@ const es = {
     deleted: "Cliente eliminado",
     deleteAria: "Eliminar {nombre}",
     apiRegister: "En modo API los clientes se registran desde la app de clientes (POST /auth/register).",
+    active: "Activo",
+    inactive: "Inactivo",
+    editTitle: "Editar cliente",
+    editAria: "Editar a {nombre}",
+    updated: "Cliente actualizado",
+    reservasBtn: "Reservas",
+    reservasTitle: "Reservas activas de {nombre}",
+    reservasEmptyTitle: "Sin reservas activas",
+    reservasEmptyMsg: "Este cliente no tiene reservas pendientes o confirmadas.",
   },
 
   facturacion: {
