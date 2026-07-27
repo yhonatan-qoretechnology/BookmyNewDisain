@@ -74,6 +74,7 @@ export interface Reserva {
   cliente: string;
   telefono: string;
   email: string;
+  clienteFoto?: string | null;
   fecha: string; // YYYY-MM-DD
   hora: string;  // HH:mm
   precio: number;
@@ -86,6 +87,7 @@ export interface Reserva {
   duracion: number;
   /** Nombres resueltos por el API (includes de Prisma) */
   sedeName?: string;
+  sedeImagenes?: string[];
   empleadoName?: string;
   notas: string;
   /** Método de pago elegido al agendar */

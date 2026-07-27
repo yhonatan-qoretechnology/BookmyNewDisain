@@ -29,7 +29,7 @@ export default function CalendarioPage() {
   const events = Object.fromEntries(
     Object.entries(map).map(([fecha, rs]) => [
       fecha,
-      rs.map((r) => ({ id: r.id, label: `${r.hora} ${r.servicio}` })),
+      rs.map((r) => ({ id: r.id, label: `${r.hora} ${r.servicio}`, data: r })),
     ])
   );
 
@@ -50,7 +50,7 @@ export default function CalendarioPage() {
       />
       <CalendarGrid
         events={events}
-        onEventClick={(id) => popup.open(id)}
+        onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)}
         onViewChange={(v) => toast(t("common.comingSoon", { view: v }), "default")}
       />
     </Panel>

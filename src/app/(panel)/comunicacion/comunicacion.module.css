@@ -241,6 +241,7 @@
   cursor: pointer; border: none; background: none;
   text-align: left; width: 100%;
   transition: background .14s;
+  position: relative;
 }
 .comItem:hover { background: var(--hover-surface); }
 .comItemActive { background: var(--teal-50); }
@@ -280,12 +281,21 @@
 :global([data-theme="dark"]) .comName { color: #e8edf5; }
 
 .unread {
-  min-width: 18px; height: 18px; padding: 0 5px;
-  background: var(--teal-500, var(--red)); color: #fff;
-  font-size: 10px; font-weight: 800;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  background: var(--teal-500); color: #fff;
+  font-size: 11px; font-weight: 800;
   border-radius: 999px;
   display: flex; align-items: center; justify-content: center;
   flex: none;
+  box-shadow: 0 2px 4px rgba(15, 207, 174, 0.3);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+}
+:global([data-theme="dark"]) .unread {
+  background: var(--teal-500);
+  box-shadow: 0 2px 4px rgba(15, 207, 174, 0.4);
 }
 
 /* Zona de chat */
