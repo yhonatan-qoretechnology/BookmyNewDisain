@@ -38,6 +38,8 @@ const es = {
     requiredName: "El nombre es obligatorio",
     comingSoon: "La vista {view} estará disponible próximamente",
     actions: "Acciones",
+    view: "Ver",
+    download: "Descargar",
   },
 
   roles: {
@@ -332,15 +334,32 @@ const es = {
   },
 
   facturacion: {
-    panelTitle: "Facturas emitidas",
-    panelSub: "Histórico de facturación",
-    searchPlaceholder: "Buscar por cliente o nº de factura…",
-    new: "+ Nueva factura",
-    number: "Nº factura",
-    total: "Total",
+    panelTitle: "Facturación",
+    panelSub: "Cada reserva queda registrada como una factura",
+    idFactura: "ID Factura",
+    servicio: "Servicio",
+    filterId: "Buscar por ID…",
+    filterCliente: "Buscar por cliente…",
+    filterServicio: "Buscar por servicio…",
+    gastosLink: "Gastos",
     emptyTitle: "Sin facturas",
-    emptyMsg: "No hay resultados para esa búsqueda.",
-    draftCreated: "Borrador {id} creado",
+    emptyMsg: "Cuando se creen reservas, sus facturas aparecerán aquí.",
+  },
+
+  gastos: {
+    panelTitle: "Gastos",
+    panelSub: "Registro de gastos con tickete adjunto",
+    gasto: "Gasto",
+    categoria: "Categoría",
+    tickete: "Tickete",
+    total: "Total",
+    agregar: "Agregar gasto",
+    todasCategorias: "Todas las categorías",
+    filterGasto: "Buscar por gasto…",
+    verTickete: "Ver tickete",
+    totalPeriodo: "Total del período",
+    emptyTitle: "Sin gastos",
+    emptyMsg: "Agrega tu primer gasto con el botón «Agregar gasto».",
   },
 
   estadisticas: {

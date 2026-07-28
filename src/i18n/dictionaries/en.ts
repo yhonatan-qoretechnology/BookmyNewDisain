@@ -37,6 +37,8 @@ const en: Dictionary = {
     requiredName: "Name is required",
     comingSoon: "The {view} view is coming soon",
     actions: "Actions",
+    view: "View",
+    download: "Download",
   },
 
   roles: {
@@ -333,15 +335,32 @@ const en: Dictionary = {
   },
 
   facturacion: {
-    panelTitle: "Issued invoices",
-    panelSub: "Billing history",
-    searchPlaceholder: "Search by client or invoice no.…",
-    new: "+ New invoice",
-    number: "Invoice no.",
-    total: "Total",
+    panelTitle: "Billing",
+    panelSub: "Each reservation is registered as an invoice",
+    idFactura: "Invoice ID",
+    servicio: "Service",
+    filterId: "Search by ID…",
+    filterCliente: "Search by client…",
+    filterServicio: "Search by service…",
+    gastosLink: "Expenses",
     emptyTitle: "No invoices",
-    emptyMsg: "No results for that search.",
-    draftCreated: "Draft {id} created",
+    emptyMsg: "When reservations are created, their invoices will appear here.",
+  },
+
+  gastos: {
+    panelTitle: "Expenses",
+    panelSub: "Expense record with attached receipt",
+    gasto: "Expense",
+    categoria: "Category",
+    tickete: "Receipt",
+    total: "Total",
+    agregar: "Add expense",
+    todasCategorias: "All categories",
+    filterGasto: "Search by expense…",
+    verTickete: "View receipt",
+    totalPeriodo: "Period total",
+    emptyTitle: "No expenses",
+    emptyMsg: "Add your first expense with the «Add expense» button.",
   },
 
   estadisticas: {
