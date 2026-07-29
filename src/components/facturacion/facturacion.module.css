@@ -1,0 +1,319 @@
+/* ============================================================
+   Facturación & Gastos — estilos del módulo (design system)
+============================================================ */
+
+/* ── Modal genérico ──────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(27,37,89,.45); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+:global([data-theme="dark"]) .overlay { background: rgba(0,0,0,.6); }
+
+.box {
+  background: var(--surface-2);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-height: calc(100vh - 48px);
+  display: flex; flex-direction: column;
+  animation: fadeUp .2s ease;
+  margin: auto;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; padding: 22px 26px 16px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+.headText { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.title { font-size: 18px; font-weight: 800; color: var(--navy-900); }
+.subtitle { font-size: 13px; color: var(--slate-500); font-weight: 500; line-height: 1.5; }
+
+.close {
+  width: 34px; height: 34px; flex: none;
+  border-radius: var(--r-sm); border: 1px solid var(--border);
+  background: var(--surface);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .14s ease;
+}
+.close svg { width: 14px; height: 14px; color: var(--slate-500); }
+.close:hover { background: var(--hover-surface); border-color: var(--slate-300); }
+.close:hover svg { color: var(--red); }
+:global([data-theme="dark"]) .close { background: rgba(255,255,255,.05); border-color: #1e2640; }
+
+/* El cuerpo solo hace scroll si el contenido supera la pantalla */
+.body { padding: 22px 26px; overflow-y: auto; flex: 1 1 auto; }
+.body::-webkit-scrollbar { width: 6px; }
+.body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Pie fijo: las acciones siempre visibles, sin buscar el scroll */
+.footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 26px 20px;
+  border-top: 1px solid var(--border);
+  flex: none;
+  background: var(--surface-2);
+  border-radius: 0 0 var(--r-xl) var(--r-xl);
+}
+
+@media (max-width: 700px) {
+  .overlay { padding: 0; align-items: flex-end; }
+  .box { max-height: 94vh; border-radius: var(--r-xl) var(--r-xl) 0 0; }
+  .head { padding: 18px 18px 14px; }
+  .body { padding: 18px; }
+  .footer { padding: 14px 18px 18px; flex-direction: column-reverse; }
+  .footer > * { width: 100%; }
+}
+
+/* ── Formulario de gasto ─────────────────────────────────── */
+/* 2 columnas + adjunto a la derecha: todo cabe sin scroll interno */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+  align-items: start;
+}
+.full { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.label {
+  font-size: 12.5px; font-weight: 700; color: var(--navy-900);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.hint { font-size: 11.5px; color: var(--slate-500); font-weight: 500; }
+
+.input {
+  width: 100%; padding: 11px 13px;
+  border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  font: inherit; font-size: 13.5px; font-weight: 500;
+  background: var(--input-bg); color: var(--navy-900);
+  transition: border-color .15s, box-shadow .15s;
+}
+.input::placeholder { color: var(--slate-300); }
+.input:focus {
+  outline: none; border-color: var(--teal-500);
+  box-shadow: 0 0 0 3px var(--teal-50);
+}
+select.input { appearance: none; cursor: pointer; padding-right: 34px; }
+
+.selectWrap { position: relative; }
+.selectWrap .caret {
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; color: var(--slate-300); pointer-events: none;
+}
+
+/* Fila categoría + botón "nueva" */
+.categoriaRow { display: flex; gap: 8px; align-items: stretch; }
+.categoriaRow .selectWrap { flex: 1 1 auto; min-width: 0; }
+.nuevaCatBtn {
+  flex: none; width: 42px;
+  border: 1.5px dashed var(--border); border-radius: var(--r-sm);
+  background: var(--input-bg); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all .15s ease;
+}
+.nuevaCatBtn svg { width: 16px; height: 16px; color: var(--slate-500); }
+.nuevaCatBtn:hover { border-color: var(--teal-500); background: var(--teal-50); }
+.nuevaCatBtn:hover svg { color: var(--teal-600); }
+
+/* ── Adjunto del tickete ─────────────────────────────────── */
+.dropzone {
+  border: 1.5px dashed var(--border); border-radius: var(--r-md);
+  background: var(--muted-cell);
+  padding: 18px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  text-align: center; cursor: pointer;
+  transition: all .16s ease;
+  min-height: 132px; justify-content: center;
+}
+.dropzone:hover, .dropzoneActive { border-color: var(--teal-500); background: var(--teal-50); }
+.dropzone svg { width: 26px; height: 26px; color: var(--slate-300); }
+.dropzone:hover svg, .dropzoneActive svg { color: var(--teal-600); }
+.dropzoneText { font-size: 12.5px; font-weight: 600; color: var(--slate-500); line-height: 1.5; }
+.fileInput { display: none; }
+
+.preview { position: relative; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border); }
+.preview img {
+  display: block; width: 100%; height: 132px;
+  object-fit: cover; background: var(--muted-cell);
+}
+.previewBar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 10px; background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.previewName {
+  font-size: 11.5px; color: var(--slate-500); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.previewQuitar {
+  flex: none; border: none; background: none; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; color: var(--red);
+  padding: 3px 7px; border-radius: 6px;
+}
+.previewQuitar:hover { background: #fdecea; }
+:global([data-theme="dark"]) .previewQuitar:hover { background: rgba(245,54,92,.15); }
+
+/* ── Mensaje de error del formulario ─────────────────────── */
+.error {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px; padding: 10px 13px;
+  background: #fdecea; border-radius: var(--r-sm);
+  color: var(--red); font-size: 12.5px; font-weight: 600;
+}
+.error svg { width: 15px; height: 15px; flex: none; }
+:global([data-theme="dark"]) .error { background: rgba(245,54,92,.14); color: #ff6b8a; }
+
+/* ── Categorías propias (chips) ──────────────────────────── */
+.catSection { margin-top: 20px; }
+.catSectionTitle {
+  font-size: 11.5px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--slate-500); margin-bottom: 10px;
+}
+.chipRow { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 8px 6px 12px; border-radius: 999px;
+  background: var(--teal-50); color: var(--teal-700);
+  font-size: 12px; font-weight: 700;
+}
+.chipBase { background: var(--hover-surface); color: var(--slate-500); }
+.chipDel {
+  width: 17px; height: 17px; border: none; border-radius: 50%;
+  background: rgba(255,255,255,.7); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.chipDel svg { width: 9px; height: 9px; color: var(--teal-700); }
+.chipDel:hover { background: var(--red); }
+.chipDel:hover svg { color: #fff; }
+.chipEmpty { font-size: 12.5px; color: var(--slate-500); }
+:global([data-theme="dark"]) .chip { background: rgba(15,207,174,.12); color: #0fcfae; }
+:global([data-theme="dark"]) .chipBase { background: rgba(255,255,255,.06); color: #8392ab; }
+:global([data-theme="dark"]) .chipDel { background: rgba(0,0,0,.3); }
+:global([data-theme="dark"]) .chipDel svg { color: #0fcfae; }
+
+/* ── Vista de factura (popup) ────────────────────────────── */
+.emisor {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding-bottom: 18px; margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  width: 56px; height: 56px; flex: none;
+  border-radius: var(--r-md); object-fit: contain;
+  background: var(--surface); border: 1px solid var(--border); padding: 5px;
+}
+.logoFallback {
+  width: 56px; height: 56px; flex: none;
+  border-radius: var(--r-md); background: var(--grad-teal);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 22px;
+  box-shadow: 0 5px 14px rgba(15,207,174,.35);
+}
+.emisorInfo { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.emisorNombre { font-size: 16px; font-weight: 800; color: var(--navy-900); }
+.emisorLinea {
+  font-size: 12.5px; color: var(--slate-500); font-weight: 500;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.emisorLinea svg { width: 12px; height: 12px; flex: none; color: var(--slate-300); }
+.emisorDoc { text-align: right; flex: none; display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+.facturaId { font-size: 15px; font-weight: 800; color: var(--navy-900); }
+.facturaFecha { font-size: 12px; color: var(--slate-500); font-weight: 600; }
+
+.metaGrid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 14px 22px; margin-bottom: 20px;
+}
+.metaItem { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.metaLabel {
+  font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--slate-500);
+}
+.metaValue {
+  font-size: 13.5px; font-weight: 700; color: var(--navy-900);
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+.tabla { width: 100%; border-collapse: collapse; }
+.tabla thead th {
+  background: var(--hover-surface);
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--slate-500); font-weight: 800;
+  padding: 10px 12px; text-align: left;
+}
+.tabla thead th:first-child { border-radius: 8px 0 0 8px; }
+.tabla thead th:last-child { border-radius: 0 8px 8px 0; }
+.tabla tbody td {
+  padding: 12px; font-size: 13.5px; font-weight: 500;
+  color: var(--navy-900); border-bottom: 1px solid var(--border);
+}
+.tabla tbody tr:last-child td { border-bottom: none; }
+.c { text-align: center; }
+.r { text-align: right; }
+
+.totales { margin-top: 6px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.totalRow {
+  display: flex; align-items: baseline; gap: 22px;
+  font-size: 13px; color: var(--slate-500); font-weight: 600;
+}
+.totalGrande {
+  display: flex; align-items: baseline; gap: 22px;
+  padding-top: 10px; margin-top: 4px;
+  border-top: 2px solid var(--navy-900);
+  font-size: 13px; font-weight: 800; color: var(--navy-900);
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.totalGrande span:last-child { font-size: 21px; letter-spacing: 0; color: var(--teal-600); }
+:global([data-theme="dark"]) .totalGrande { border-top-color: #2d3a6e; }
+:global([data-theme="dark"]) .totalGrande span:last-child { color: #0fcfae; }
+
+.aviso {
+  display: flex; align-items: flex-start; gap: 9px;
+  margin-top: 18px; padding: 11px 13px;
+  background: #fff3e0; border-radius: var(--r-sm);
+  color: #e65100; font-size: 12px; font-weight: 600; line-height: 1.5;
+}
+.aviso svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
+:global([data-theme="dark"]) .aviso { background: rgba(251,140,0,.14); color: #ffb347; }
+
+@media (max-width: 700px) {
+  .formGrid { grid-template-columns: 1fr; }
+  .metaGrid { grid-template-columns: 1fr; }
+  .emisor { flex-wrap: wrap; }
+  .emisorDoc { text-align: left; align-items: flex-start; width: 100%; }
+}
+
+/* ── Tickete en la tabla de gastos ───────────────────────── */
+.ticketThumb {
+  width: 44px; height: 44px; padding: 0;
+  border-radius: var(--r-sm); overflow: hidden;
+  border: 1px solid var(--border); background: var(--muted-cell);
+  cursor: pointer; display: inline-flex;
+  transition: all .15s ease;
+}
+.ticketThumb img { width: 100%; height: 100%; object-fit: cover; }
+.ticketThumb:hover { border-color: var(--teal-500); transform: scale(1.06); }
+.sinTicket {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: var(--r-sm);
+  background: var(--muted-cell); border: 1px dashed var(--border);
+}
+.sinTicket svg { width: 15px; height: 15px; color: var(--slate-300); }
+
+.ticketFull {
+  width: 100%; border-radius: var(--r-md);
+  border: 1px solid var(--border); background: var(--muted-cell);
+  display: block;
+}
+
+/* Acciones de fila */
+.rowActions { display: inline-flex; gap: 7px; justify-content: flex-end; }

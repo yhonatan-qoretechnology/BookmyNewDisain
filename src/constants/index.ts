@@ -10,6 +10,8 @@ export const ROUTES = {
   reservaNueva: "/reservas/nueva",
   clientes: "/clientes",
   facturacion: "/facturacion",
+  facturas: "/facturacion",
+  gastos: "/facturacion/gastos",
   estadisticas: "/estadisticas",
   servicios: "/servicios",
   calendario: "/calendario",
@@ -55,7 +57,17 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { id: "empresas", label: "Empresas", href: ROUTES.empresas, icon: "building" },
     { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
     { id: "clientes", label: "Clientes", href: ROUTES.clientes, icon: "users" },
-    { id: "facturacion", label: "Facturación", href: ROUTES.facturacion, icon: "dollar" },
+    {
+      id: "facturacion",
+      label: "Facturación",
+      href: ROUTES.facturacion,
+      icon: "dollar",
+      /* Submenú: Facturación se despliega en Facturas y Gastos */
+      children: [
+        { id: "facturas", label: "Facturas", href: ROUTES.facturas, icon: "invoice" },
+        { id: "gastos", label: "Gastos", href: ROUTES.gastos, icon: "receipt" },
+      ],
+    },
     { id: "estadisticas", label: "Estadísticas", href: ROUTES.estadisticas, icon: "barChart" },
     { id: "servicios", label: "Servicios", href: ROUTES.servicios, icon: "scissors" },
     { id: "calendario", label: "Calendario", href: ROUTES.calendario, icon: "calendar" },

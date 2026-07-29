@@ -83,7 +83,6 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
     estado: APPT_ESTADO_MAP[a.estado] ?? "pendiente",
     sedeId: String(a.sedeId),
     empleadoId: String(a.profesionalId),
-    clienteId: String(a.userId),
     duracion: a.duracion ?? 30,
     sedeName: a.sede?.nombre,
     sedeImagenes: a.sede?.imagenes,

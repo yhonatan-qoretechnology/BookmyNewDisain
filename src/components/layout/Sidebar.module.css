@@ -77,6 +77,83 @@
 
 @media (hover: none) { .navItem { min-height: 44px; } }
 
+/* ── Submenú desplegable (Facturación → Facturas · Gastos) ── */
+.group { display: flex; flex-direction: column; }
+
+.groupToggle {
+  width: 100%;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+}
+.navLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.caret {
+  width: 14px; height: 14px; flex: none;
+  color: var(--slate-300);
+  transition: transform .22s cubic-bezier(.4,0,.2,1), color .16s ease;
+}
+.caretOpen { transform: rotate(180deg); color: var(--teal-600); }
+.groupToggle:hover .caret { color: var(--teal-600); }
+
+/* Animación de despliegue sin salto de layout */
+.submenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .24s cubic-bezier(.4,0,.2,1);
+}
+.submenuOpen { grid-template-rows: 1fr; }
+.submenuInner {
+  overflow: hidden;
+  display: flex; flex-direction: column; gap: 2px;
+  padding-left: 26px;
+  position: relative;
+}
+.submenuOpen .submenuInner { padding-top: 4px; padding-bottom: 2px; }
+
+/* Guía vertical del grupo */
+.submenuInner::before {
+  content: "";
+  position: absolute;
+  left: 15px; top: 6px; bottom: 6px;
+  width: 1.5px;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.subItem {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px 8px 12px;
+  border-radius: var(--r-md);
+  color: var(--slate-500);
+  font-size: 13px; font-weight: 600;
+  transition: all .16s ease;
+  white-space: nowrap;
+}
+.subDot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--slate-300);
+  flex: none;
+  transition: all .16s ease;
+}
+.subItem:hover { color: var(--navy-900); background: var(--hover-surface); }
+.subItem:hover .subDot { background: var(--teal-500); }
+
+.subItemActive { color: var(--navy-900); background: var(--teal-50); font-weight: 700; }
+.subItemActive .subDot {
+  background: var(--grad-teal);
+  box-shadow: 0 0 0 3px rgba(15,207,174,.18);
+}
+
+:global([data-theme="dark"]) .caret { color: #4a5670; }
+:global([data-theme="dark"]) .subItem { color: #4a5670; }
+:global([data-theme="dark"]) .subItem:hover { color: #e8edf5; background: rgba(255,255,255,.04); }
+:global([data-theme="dark"]) .subItemActive { color: #e8edf5; background: rgba(15,207,174,.10); }
+:global([data-theme="dark"]) .submenuInner::before { background: #1e2640; }
+
+@media (hover: none) { .subItem { min-height: 40px; } }
+
 /* Tarjeta de ayuda */
 .help {
   flex-shrink: 0;

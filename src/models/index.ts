@@ -81,8 +81,6 @@ export interface Reserva {
   estado: EstadoReserva;
   sedeId: string;
   empleadoId: string;
-  /** id numérico del usuario cliente (para filtrar por cliente) */
-  clienteId: string;
   /** Duración del servicio en minutos (para calcular franjas al reagendar) */
   duracion: number;
   /** Nombres resueltos por el API (includes de Prisma) */
@@ -102,8 +100,6 @@ export interface Cliente {
   telefono: string;
   visitas: number;
   ultima: string;
-  /** Cuenta habilitada (state !== "disabled"/"blocked" en el backend) */
-  activo: boolean;
 }
 
 export interface Servicio {
@@ -264,6 +260,8 @@ export interface NavItem {
   label: string;
   href: string;
   icon: string;
+  /** Submenú desplegable (p. ej. Facturación → Facturas · Gastos) */
+  children?: NavItem[];
 }
 
 /* ── Cuentas demo del login ──────────────────────────────── */

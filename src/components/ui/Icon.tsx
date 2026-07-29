@@ -60,6 +60,12 @@ const ICONS: Record<string, React.ReactNode> = {
   mic: (<><path d="M12 1a3 3 0 0 0-3 3v,8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></>),
   image: (<><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></>),
   x: P("M18 6 6 18M6 6l12 12"),
+  /* Facturación · gastos · categorías */
+  receipt: (<>{P("M6 3h12v18l-2.5-1.6L13 21l-2.5-1.6L8 21l-2-1.4z")}{P("M9 8h6M9 12h6M9 16h3")}</>),
+  download: (<>{P("M12 3v12")}{P("m7.5 10.5 4.5 4.5 4.5-4.5")}{P("M4 20h16")}</>),
+  tag: (<>{P("M3.5 11.2V4.5a1 1 0 0 1 1-1h6.7a1 1 0 0 1 .7.3l8 8a1 1 0 0 1 0 1.4l-6.7 6.7a1 1 0 0 1-1.4 0l-8-8a1 1 0 0 1-.3-.7z")}<circle cx="8" cy="8" r="1.3" /></>),
+  wallet: (<><rect x="3" y="6" width="18" height="13" rx="2.5" />{P("M3 10h18M16.5 14.5h.01")}</>),
+  trendDown: (<>{P("M3 8l5.5 6 4-3L21 19")}{P("M16 19h5v-5")}</>),
   play: P("M5 3l14 9-14 9V3z"),
   pause: P("M6 4h4v16H6zM14 4h4v16h-4z"),
 };
