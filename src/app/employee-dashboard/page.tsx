@@ -96,7 +96,7 @@ export default function EmployeeDashboardPage() {
               <tr key={r.id} onClick={() => popup.open(r)} style={{ cursor: "pointer" }}>
                 <td><b>{r.id}</b></td>
                 <td>{r.servicio}</td>
-                <td><PersonRow name={r.cliente} /></td>
+                <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
                 <td>{fmtFechaCorta(r.fecha)}</td>
                 <td>{r.hora}</td>
                 <PriceCell value={r.precio} />

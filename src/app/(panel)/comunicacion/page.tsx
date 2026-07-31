@@ -10,13 +10,44 @@ import { useData } from "@/hooks/useData";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
-import { initials } from "@/constants";
+import { fotoUrl, initials } from "@/constants";
 import EmojiPicker from "emoji-picker-react";
 import styles from "./comunicacion.module.css";
 
 /** Sondeo de la conversación activa (el backend también ofrece
     Socket.IO; esta vista usa la vía REST del ChatMessageModule). */
 const POLL_MS = 5000;
+
+/**
+ * Avatar de un contacto del chat: muestra su foto de perfil y cae a
+ * las iniciales si no tiene o si la imagen falla al cargar.
+ */
+function ChatAvatar({
+  nombre,
+  foto,
+  online = false,
+  className = "",
+}: {
+  nombre: string;
+  foto?: string | null;
+  online?: boolean;
+  className?: string;
+}) {
+  const [error, setError] = useState(false);
+  const src = error ? null : fotoUrl(foto);
+  const base = `${styles.comAv} ${online ? styles.online : ""} ${className}`.trim();
+  return src ? (
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      className={`${base} ${styles.comAvImg}`}
+      onError={() => setError(true)}
+    />
+  ) : (
+    <span className={base}>{initials(nombre)}</span>
+  );
+}
 
 export default function ComunicacionPage() {
   const { t } = useI18n();
@@ -151,15 +182,7 @@ export default function ComunicacionPage() {
             className={`${styles.comItem} ${c.id === canalId ? styles.comItemActive : ""}`}
             onClick={() => abrirCanal(c.id)}
           >
-            {c.fotoPerfil ? (
-              <img
-                src={`${process.env.NEXT_PUBLIC_API_BASE_URL_IMG || 'https://bookmy.es/'}${c.fotoPerfil}`}
-                alt={c.nombre}
-                className={`${styles.comAv} ${styles.comAvImg} ${c.online ? styles.online : ""}`}
-              />
-            ) : (
-              <span className={`${styles.comAv} ${c.online ? styles.online : ""}`}>{initials(c.nombre)}</span>
-            )}
+            <ChatAvatar nombre={c.nombre} foto={c.fotoPerfil} online={c.online} />
             <span className={styles.comBody}>
               <span className={styles.comName}>{c.nombre}</span>
               <span className={styles.comSub}>{c.sub}</span>
@@ -172,7 +195,7 @@ export default function ComunicacionPage() {
       <div className={styles.chat}>
         {canal && (
           <div className={styles.chatHead}>
-            <span className={`${styles.comAv} ${canal.online ? styles.online : ""}`}>{initials(canal.nombre)}</span>
+            <ChatAvatar nombre={canal.nombre} foto={canal.fotoPerfil} online={canal.online} />
             <span className={styles.comBody}>
               <span className={styles.comName}>{canal.nombre}</span>
               <span className={styles.comSub}>{canal.sub}</span>
@@ -208,7 +231,19 @@ export default function ComunicacionPage() {
         <div className={styles.chatMsgs} ref={msgsRef}>
           {mensajes.map((m, i) => (
             <div key={i} className={`${styles.msgRow} ${m.dir === "out" ? styles.msgOut : ""}`}>
-              {m.dir === "in" && <span className={styles.msgAv}>{m.ini}</span>}
+              {/* Los mensajes entrantes son del contacto: se usa su foto */}
+              {m.dir === "in" && (
+                fotoUrl(canal?.fotoPerfil) ? (
+                  <img
+                    src={fotoUrl(canal?.fotoPerfil)!}
+                    alt=""
+                    loading="lazy"
+                    className={`${styles.msgAv} ${styles.msgAvImg}`}
+                  />
+                ) : (
+                  <span className={styles.msgAv}>{m.ini}</span>
+                )
+              )}
               <span className={styles.bubble}>
                 {(m.messageType === "FILE" && m.fileUrl) || (m.texto && m.texto.startsWith("[Archivo:")) ? (
                   <div className={styles.messageAudio}>
@@ -306,15 +341,7 @@ export default function ComunicacionPage() {
                         setModalSearchTerm("");
                       }}
                     >
-                      {u.fotoPerfil ? (
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_API_BASE_URL_IMG || 'https://bookmy.es/'}${u.fotoPerfil}`}
-                          alt={u.nombre}
-                          className={`${styles.comAv} ${styles.comAvImg}`}
-                        />
-                      ) : (
-                        <span className={styles.comAv}>{initials(u.nombre)}</span>
-                      )}
+                      <ChatAvatar nombre={u.nombre} foto={u.fotoPerfil} />
                       <div className={styles.userInfo}>
                         <span className={styles.userName}>{u.nombre}</span>
                         <span className={styles.userEmail}>{u.sub}</span>

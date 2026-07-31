@@ -62,6 +62,8 @@ export interface Session {
   sedeId: string | null;
   sedeName: string | null;
   especialidad: string | null;
+  /** Foto de perfil del usuario conectado (fotoPerfil / AdminProfile.photoUrl) */
+  foto: string | null;
   /** Parámetro de idioma tal como viene de la BD (tabla usuarios) */
   idioma: string;
 }
@@ -124,6 +126,8 @@ export interface CategoriaCatalogo {
 export interface Factura {
   id: string;
   cliente: string;
+  /** Foto de perfil del cliente facturado */
+  foto: string | null;
   fecha: string;
   total: number;
   estado: EstadoFactura;
@@ -137,6 +141,8 @@ export interface Resena {
   cliente: string;
   /** Correo del autor — destino al responder la reseña */
   email: string;
+  /** Foto de perfil del autor de la reseña */
+  foto: string | null;
   estrellas: number;
   texto: string;
   fecha: string;

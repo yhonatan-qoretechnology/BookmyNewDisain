@@ -163,7 +163,7 @@ export default function FacturacionPage() {
             {lista.map((f) => (
               <tr key={f.id}>
                 <td><b>{f.id}</b></td>
-                <td><PersonRow name={f.cliente} /></td>
+                <td><PersonRow name={f.cliente} photo={f.clienteFoto} /></td>
                 <td>{f.servicio}</td>
                 <td>{fmtFechaLarga(f.fecha)}</td>
                 <td><Badge kind={badgeKind(f)}>{t(`factura.${f.estado}`)}</Badge></td>

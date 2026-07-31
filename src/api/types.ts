@@ -175,7 +175,7 @@ export interface ApiPayment {
   status: ApiPaymentStatus;
   totalAmount: number;
   createdAt?: string;
-  user?: { id: number; email: string; UserData?: { name?: string } | null };
+  user?: { id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string } | null };
 }
 
 export interface ApiResena {
@@ -187,7 +187,7 @@ export interface ApiResena {
   sedeId?: number | null;
   usuarioId: number;
   createdAt: string;
-  usuario?: { id: number; email: string; UserData?: { name?: string } | null };
+  usuario?: { id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string } | null };
 }
 
 /** DTO exacto de POST /appointments (create-appointment.dto.ts) */

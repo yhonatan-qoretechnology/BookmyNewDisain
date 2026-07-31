@@ -96,7 +96,7 @@ export default function ResenasPage() {
           <CardGrid>
             {lista.map((r) => (
               <SimpleCard key={r.id}>
-                <PersonRow name={r.cliente} bold />
+                <PersonRow name={r.cliente} photo={r.foto} bold />
                 <TagRow>
                   <Stars n={r.estrellas} />
                   <Badge kind={BADGE[r.estado]}>{t(`resenas.estado.${r.estado}`)}</Badge>

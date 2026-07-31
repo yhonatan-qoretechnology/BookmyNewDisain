@@ -153,6 +153,7 @@ export const FacturasController = {
       .map((p) => ({
         id: `PAY-${p.id}`,
         cliente: p.user?.UserData?.name || p.user?.email || `#${p.appointmentId}`,
+        foto: p.user?.fotoPerfil || null,
         fecha: (p.createdAt || "").slice(0, 10) || "—",
         total: p.totalAmount,
         estado: (p.status === "PAID"
@@ -184,6 +185,7 @@ export const ResenasController = {
           id: r.id,
           cliente: r.usuario?.UserData?.name || r.usuario?.email || `#${r.usuarioId}`,
           email: r.usuario?.email || "",
+          foto: r.usuario?.fotoPerfil || null,
           estrellas: Math.round(r.calificacion),
           texto: r.comentario || "",
           fecha: (r.createdAt || "").slice(0, 10),

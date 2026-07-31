@@ -8,7 +8,7 @@
 ============================================================ */
 import { memo, useCallback, useRef } from "react";
 import type { ProfesionalCard } from "@/models";
-import { initials } from "@/constants";
+import { fotoUrl, initials } from "@/constants";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
@@ -37,8 +37,9 @@ const ProCard = memo(function ProCard({
   return (
     <article className={cls}>
       <div className={styles.proMedia}>
-        {pro.foto ? (
-          <img src={pro.foto} alt={pro.nombre} loading="lazy" />
+        {/* La ruta llega relativa desde el backend: se resuelve con la base de imágenes */}
+        {fotoUrl(pro.foto) ? (
+          <img src={fotoUrl(pro.foto)!} alt={pro.nombre} loading="lazy" />
         ) : (
           <span className={styles.proInitials} aria-hidden>{initials(pro.nombre)}</span>
         )}

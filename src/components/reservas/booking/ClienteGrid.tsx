@@ -8,7 +8,7 @@
 ============================================================ */
 import { memo, useState } from "react";
 import type { ClienteOpcion } from "@/models";
-import { initials } from "@/constants";
+import { fotoUrl, initials } from "@/constants";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
@@ -34,10 +34,11 @@ const ClienteCard = memo(function ClienteCard({
   return (
     <article className={`${styles.clienteCard} ${selected ? styles.selected : ""}`}>
       <span className={styles.clienteAvatar} aria-hidden>
-        {cliente.foto && !imageError ? (
-          <img 
-            src={`${process.env.NEXT_PUBLIC_API_BASE_URL_IMG || 'https://bookmy.es/'}${cliente.foto}`} 
+        {fotoUrl(cliente.foto) && !imageError ? (
+          <img
+            src={fotoUrl(cliente.foto)!}
             alt=""
+            loading="lazy"
             onError={() => setImageError(true)}
           />
         ) : initials(cliente.nombre)}

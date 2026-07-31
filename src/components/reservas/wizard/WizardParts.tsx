@@ -8,7 +8,7 @@
 ============================================================ */
 import { useRef } from "react";
 import type { ClienteOpcion, ProfesionalCard, ServicioOpcion, SlotHora } from "@/models";
-import { initials } from "@/constants";
+import { fotoUrl, initials } from "@/constants";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import styles from "./wizard.module.css";
@@ -87,7 +87,7 @@ export function ClienteList({
           onClick={() => onSelect(c)}
         >
           <span className={styles.proAvatar} style={{ width: 40, height: 40, fontSize: 14 }}>
-            {initials(c.nombre)}
+            {fotoUrl(c.foto) ? <img src={fotoUrl(c.foto)!} alt="" /> : initials(c.nombre)}
           </span>
           <span className={styles.clientMeta}>
             <span className={styles.clientName}>{c.nombre}</span>
@@ -133,7 +133,7 @@ export function ProfesionalCarousel({
             onClick={() => onSelect(p)}
           >
             <span className={styles.proAvatar}>
-              {p.foto ? <img src={p.foto} alt="" /> : initials(p.nombre)}
+              {fotoUrl(p.foto) ? <img src={fotoUrl(p.foto)!} alt="" /> : initials(p.nombre)}
             </span>
             <span className={styles.proName}>{p.nombre}</span>
             {p.especialidad && <span className={styles.proSpec}>{p.especialidad}</span>}

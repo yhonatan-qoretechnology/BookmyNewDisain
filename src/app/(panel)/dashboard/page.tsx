@@ -175,7 +175,7 @@ export default function DashboardPage() {
             {ultimasFiltradas.map((r) => (
               <tr key={r.id} onClick={() => popup.open(r)} style={{ cursor: "pointer" }}>
                 <td><b>{r.servicio}</b></td>
-                <td><PersonRow name={r.cliente} /></td>
+                <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
                 <td>{fmtFechaCorta(r.fecha)}</td>
                 <td>{r.hora}</td>
                 <PriceCell value={r.precio} />
