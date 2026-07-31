@@ -40,7 +40,15 @@ function nombreArchivo(url: string): string {
  * Contenido de una burbuja: imagen en miniatura, ícono de archivo/PDF,
  * reproductor de audio (mensajes antiguos) o texto simple.
  */
-function ContenidoMensaje({ m, onImageClick }: { m: Mensaje; onImageClick: (url: string) => void }) {
+function ContenidoMensaje({
+  m,
+  onImageClick,
+  onFileClick,
+}: {
+  m: Mensaje;
+  onImageClick: (url: string) => void;
+  onFileClick: (url: string, nombre: string) => void;
+}) {
   const esImagen = m.messageType === "IMAGE" && !!m.fileUrl;
   const esAudio = !!m.fileUrl && AUDIO_EXT.test(m.fileUrl);
   const esArchivo = m.messageType === "FILE" && !!m.fileUrl && !esAudio;
@@ -65,10 +73,15 @@ function ContenidoMensaje({ m, onImageClick }: { m: Mensaje; onImageClick: (url:
         </div>
       )}
       {esArchivo && (
-        <a href={m.fileUrl!} target="_blank" rel="noopener noreferrer" className={styles.messageFile}>
+        <button
+          type="button"
+          onClick={() => onFileClick(m.fileUrl!, nombreArchivo(m.fileUrl!))}
+          className={styles.messageFile}
+          aria-label="Ver archivo"
+        >
           <Icon name="fileText" width={26} height={26} className={styles.messageFileIcon} />
           <span className={styles.messageFileName}>{nombreArchivo(m.fileUrl!)}</span>
-        </a>
+        </button>
       )}
       {esAudioLegado && (
         <div className={styles.messageAudio}>
@@ -126,6 +139,8 @@ export default function ComunicacionPage() {
   const [subiendo, setSubiendo] = useState<{ previewUrl: string; esPdf: boolean; nombre: string } | null>(null);
   /** URL de la imagen ampliada en el visor modal (null = cerrado). */
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
+  /** Archivo (PDF) abierto en el visor modal (null = cerrado). */
+  const [archivoAmpliado, setArchivoAmpliado] = useState<{ url: string; nombre: string } | null>(null);
   const msgsRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -329,7 +344,11 @@ export default function ComunicacionPage() {
                 )
               )}
               <span className={styles.bubble}>
-                <ContenidoMensaje m={m} onImageClick={setImagenAmpliada} />
+                <ContenidoMensaje
+                  m={m}
+                  onImageClick={setImagenAmpliada}
+                  onFileClick={(url, nombre) => setArchivoAmpliado({ url, nombre })}
+                />
                 <span className={styles.msgHora}>{m.hora}</span>
               </span>
             </div>
@@ -468,6 +487,24 @@ export default function ComunicacionPage() {
         </div>
         {imagenAmpliada && (
           <img src={imagenAmpliada} alt="Imagen adjunta" className={styles.imageModalImg} />
+        )}
+      </Modal>
+
+      {/* Visor de PDF — embebido en un iframe, se queda dentro del proyecto */}
+      <Modal open={!!archivoAmpliado} onClose={() => setArchivoAmpliado(null)} maxWidth={880}>
+        <div className={styles.pdfModalHead}>
+          <span className={styles.pdfModalTitle}>{archivoAmpliado?.nombre}</span>
+          <button
+            type="button"
+            className={styles.modalCloseBtn}
+            onClick={() => setArchivoAmpliado(null)}
+            aria-label="Cerrar"
+          >
+            <Icon name="x" width={20} height={20} />
+          </button>
+        </div>
+        {archivoAmpliado && (
+          <iframe src={archivoAmpliado.url} title={archivoAmpliado.nombre} className={styles.pdfModalFrame} />
         )}
       </Modal>
     </div>
