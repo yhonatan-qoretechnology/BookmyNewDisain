@@ -6,7 +6,7 @@
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
-  ApiAppointment, ApiCategory, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiEmpresa,
+  ApiAppointment, ApiCategory, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse, ApiEmpresa,
   ApiProfesionalDetalle,
   ApiPayment, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
   CreateAppointmentDto, CreateServiceDto, LoginResponse, Paginated,
@@ -172,6 +172,15 @@ export const ChatApi = {
     const form = new FormData();
     form.append("file", file);
     return http.postForm<ApiChatUploadResponse>(EP.chatUpload, form);
+  },
+  /**
+   * POST /ChatMessage/upload-audio — sube una nota de voz (máx. 10MB).
+   * Endpoint distinto al de imágenes/PDF: solo acepta tipos de audio.
+   */
+  uploadAudio: (file: File | Blob) => {
+    const form = new FormData();
+    form.append("file", file, file instanceof File ? file.name : "nota-de-voz.webm");
+    return http.postForm<ApiChatUploadAudioResponse>(EP.chatUploadAudio, form);
   },
 };
 

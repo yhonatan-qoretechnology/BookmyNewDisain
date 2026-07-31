@@ -232,7 +232,7 @@ export interface ApiChatMessage {
   receiver_id: number;
   sender_email: string;
   receiver_email: string;
-  message_type: "TEXT" | "IMAGE" | "FILE";
+  message_type: "TEXT" | "IMAGE" | "FILE" | "AUDIO";
   message?: string | null;
   file_url?: string | null;
   is_read: boolean;
@@ -243,6 +243,15 @@ export interface ApiChatMessage {
 export interface ApiChatUploadResponse {
   fileUrl: string;
   messageType: "IMAGE" | "FILE";
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+/** Respuesta de POST /ChatMessage/upload-audio (multipart, campo "file") */
+export interface ApiChatUploadAudioResponse {
+  fileUrl: string;
+  messageType: "AUDIO";
   fileName: string;
   mimeType: string;
   sizeBytes: number;
@@ -274,7 +283,7 @@ export interface SendMessageDto {
   receiverId: number;
   senderEmail: string;
   receiverEmail: string;
-  messageType: "TEXT" | "IMAGE" | "FILE";
+  messageType: "TEXT" | "IMAGE" | "FILE" | "AUDIO";
   message?: string;
   fileUrl?: string;
 }

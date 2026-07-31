@@ -526,6 +526,36 @@
   background: #fff;
 }
 
+/* Barra de grabación de nota de voz — reemplaza el input mientras se graba */
+.recordingBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.recordingDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--red, #e11d48);
+  flex: none;
+  animation: comPulse 1.1s ease-in-out infinite;
+}
+@keyframes comPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+.recordingTime {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy-900);
+  flex: 1;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+:global([data-theme="dark"]) .recordingTime { color: #e8edf5; }
+
 .chatInput {
   display: flex; gap: 8px; padding: 14px 16px;
   border-top: 1px solid var(--border);

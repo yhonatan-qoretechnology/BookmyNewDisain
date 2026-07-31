@@ -53,6 +53,8 @@ export const EP = {
   chatRead: "/ChatMessage/messages/read",
   /** POST multipart/form-data (campo "file") — imagen o PDF, máx. 10MB */
   chatUpload: "/ChatMessage/upload",
+  /** POST multipart/form-data (campo "file") — nota de voz, máx. 10MB */
+  chatUploadAudio: "/ChatMessage/upload-audio",
 
   /* @Controller('appointments') */
   appointments: "/appointments",

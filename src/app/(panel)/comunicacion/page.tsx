@@ -25,6 +25,8 @@ const POLL_MS = 5000;
 const ADJUNTO_TIPOS = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
 const ADJUNTO_MAX_BYTES = 10 * 1024 * 1024;
 const AUDIO_EXT = /\.(webm|mp3|wav|ogg|m4a)(\?.*)?$/i;
+/** Límite de duración de una nota de voz — POST /ChatMessage/upload-audio. */
+const AUDIO_MAX_SEC = 180;
 
 /** Nombre de archivo a partir de una URL (última porción del path). */
 function nombreArchivo(url: string): string {
@@ -34,6 +36,13 @@ function nombreArchivo(url: string): string {
   } catch {
     return "archivo";
   }
+}
+
+/** Formatea segundos como m:ss (para el cronómetro de grabación). */
+function formatoTiempo(segundos: number): string {
+  const m = Math.floor(segundos / 60);
+  const s = segundos % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 /**
@@ -50,6 +59,7 @@ function ContenidoMensaje({
   onFileClick: (url: string, nombre: string) => void;
 }) {
   const esImagen = m.messageType === "IMAGE" && !!m.fileUrl;
+  const esNotaVoz = m.messageType === "AUDIO" && !!m.fileUrl;
   const esAudio = !!m.fileUrl && AUDIO_EXT.test(m.fileUrl);
   const esArchivo = m.messageType === "FILE" && !!m.fileUrl && !esAudio;
   const esAudioLegado = !m.fileUrl && !!m.texto && m.texto.startsWith("[Archivo:");
@@ -67,9 +77,9 @@ function ContenidoMensaje({
           <img src={m.fileUrl!} alt={caption || "Imagen adjunta"} loading="lazy" className={styles.messageImage} />
         </button>
       )}
-      {m.messageType === "FILE" && m.fileUrl && esAudio && (
+      {(esNotaVoz || (m.messageType === "FILE" && m.fileUrl && esAudio)) && (
         <div className={styles.messageAudio}>
-          <audio controls src={m.fileUrl} className={styles.messageAudioPlayer} />
+          <audio controls src={m.fileUrl!} className={styles.messageAudioPlayer} />
         </div>
       )}
       {esArchivo && (
@@ -134,15 +144,27 @@ export default function ComunicacionPage() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [modalSearchTerm, setModalSearchTerm] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
-  /** Adjunto en curso de subida (POST /ChatMessage/upload) para mostrar
-      una burbuja "enviando…" con miniatura/ícono hasta que termine. */
-  const [subiendo, setSubiendo] = useState<{ previewUrl: string; esPdf: boolean; nombre: string } | null>(null);
+  /** Adjunto en curso de subida (imagen/PDF/audio) para mostrar una
+      burbuja "enviando…" con miniatura/ícono hasta que termine. */
+  const [subiendo, setSubiendo] = useState<
+    | { tipo: "imagen"; previewUrl: string; nombre: string }
+    | { tipo: "pdf"; nombre: string }
+    | { tipo: "audio"; nombre: string }
+    | null
+  >(null);
   /** URL de la imagen ampliada en el visor modal (null = cerrado). */
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
   /** Archivo (PDF) abierto en el visor modal (null = cerrado). */
   const [archivoAmpliado, setArchivoAmpliado] = useState<{ url: string; nombre: string } | null>(null);
+  /** Grabación de nota de voz en curso. */
+  const [grabando, setGrabando] = useState(false);
+  const [tiempoGrabacion, setTiempoGrabacion] = useState(0);
   const msgsRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioStreamRef = useRef<MediaStream | null>(null);
+  const grabacionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* Contactos — GET /ChatMessage/contacts/:userId */
   const { data: canales } = useData(
@@ -217,7 +239,7 @@ export default function ComunicacionPage() {
 
     const esPdf = file.type === "application/pdf";
     const previewUrl = esPdf ? "" : URL.createObjectURL(file);
-    setSubiendo({ previewUrl, esPdf, nombre: file.name });
+    setSubiendo(esPdf ? { tipo: "pdf", nombre: file.name } : { tipo: "imagen", previewUrl, nombre: file.name });
     try {
       await ComunicacionController.enviarMensaje(session, canal, "", file);
       await reload();
@@ -228,6 +250,86 @@ export default function ComunicacionPage() {
       setSubiendo(null);
     }
   };
+
+  /** Detiene el stream del micrófono y limpia el temporizador de grabación. */
+  const liberarGrabacion = () => {
+    if (grabacionTimerRef.current) {
+      clearInterval(grabacionTimerRef.current);
+      grabacionTimerRef.current = null;
+    }
+    audioStreamRef.current?.getTracks().forEach((track) => track.stop());
+    audioStreamRef.current = null;
+  };
+
+  /** Pide permiso de micrófono y comienza a grabar una nota de voz. */
+  const iniciarGrabacion = async () => {
+    if (!canal || grabando || subiendo) return;
+    if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      toast("Tu navegador no soporta grabación de audio.", "error");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setTiempoGrabacion(0);
+      setGrabando(true);
+      grabacionTimerRef.current = setInterval(() => {
+        setTiempoGrabacion((prev) => prev + 1);
+      }, 1000);
+    } catch {
+      toast("No se pudo acceder al micrófono. Revisa los permisos del navegador.", "error");
+    }
+  };
+
+  /** Detiene la grabación; si `enviar` es true, sube y envía la nota de voz. */
+  const finalizarGrabacion = (enviarNota: boolean) => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) return;
+    liberarGrabacion();
+    setGrabando(false);
+    recorder.onstop = async () => {
+      const chunks = audioChunksRef.current;
+      audioChunksRef.current = [];
+      mediaRecorderRef.current = null;
+      if (!enviarNota || !canal || chunks.length === 0) return;
+
+      const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+      if (blob.size === 0) return;
+      setSubiendo({ tipo: "audio", nombre: "Nota de voz" });
+      try {
+        await ComunicacionController.enviarAudio(session, canal, blob);
+        await reload();
+      } catch {
+        toast("No se pudo enviar la nota de voz. Inténtalo de nuevo.", "error");
+      } finally {
+        setSubiendo(null);
+      }
+    };
+    recorder.stop();
+  };
+
+  const cancelarGrabacion = () => finalizarGrabacion(false);
+  const enviarGrabacion = () => finalizarGrabacion(true);
+
+  /** Corta la grabación automáticamente y la envía al llegar al límite. */
+  useEffect(() => {
+    if (grabando && tiempoGrabacion >= AUDIO_MAX_SEC) {
+      finalizarGrabacion(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grabando, tiempoGrabacion]);
+
+  /** Corta el micrófono si se abandona la página mientras se graba. */
+  useEffect(() => {
+    return () => liberarGrabacion();
+  }, []);
 
   /* ── Exportar la conversación (solo dueño / superadmin) ──── */
   const puedeExportar = puedeExportarChats(session);
@@ -357,13 +459,18 @@ export default function ComunicacionPage() {
             <div className={`${styles.msgRow} ${styles.msgOut}`}>
               <span className={`${styles.bubble} ${styles.bubblePending}`}>
                 <div className={styles.uploadingBox}>
-                  {subiendo.esPdf ? (
+                  {subiendo.tipo === "imagen" ? (
+                    <img src={subiendo.previewUrl} alt="" className={styles.messageImage} />
+                  ) : (
                     <div className={styles.messageFile}>
-                      <Icon name="fileText" width={26} height={26} className={styles.messageFileIcon} />
+                      <Icon
+                        name={subiendo.tipo === "audio" ? "mic" : "fileText"}
+                        width={26}
+                        height={26}
+                        className={styles.messageFileIcon}
+                      />
                       <span className={styles.messageFileName}>{subiendo.nombre}</span>
                     </div>
-                  ) : (
-                    <img src={subiendo.previewUrl} alt="" className={styles.messageImage} />
                   )}
                   <span className={styles.uploadingOverlay}>
                     <Icon name="loader" width={22} height={22} className={styles.spinner} />
@@ -383,35 +490,71 @@ export default function ComunicacionPage() {
             className={styles.fileInput}
             aria-label="Adjuntar archivo"
           />
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={handleEmojiClick}
-            aria-label="Emoji"
-            title="Emoji"
-          >
-            <Icon name="smile" width={20} height={20} />
-          </button>
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={handleAttachmentClick}
-            disabled={!!subiendo}
-            aria-label="Adjuntar"
-            title="Adjuntar archivo"
-          >
-            {subiendo ? <Icon name="loader" width={20} height={20} className={styles.spinner} /> : <Icon name="paperclip" width={20} height={20} />}
-          </button>
-          <input
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") enviar(); }}
-            placeholder={canal ? t("comunicacion.writeTo", { canal: canal.nombre }) : "…"}
-            aria-label={t("comunicacion.message")}
-          />
-          <Button onClick={enviar} aria-label={t("common.send")}>
-            <Icon name="send" /> {t("common.send")}
-          </Button>
+          {grabando ? (
+            <div className={styles.recordingBar}>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={cancelarGrabacion}
+                aria-label="Cancelar grabación"
+                title="Cancelar"
+              >
+                <Icon name="trash" width={20} height={20} />
+              </button>
+              <span className={styles.recordingDot} aria-hidden="true" />
+              <span className={styles.recordingTime}>
+                {formatoTiempo(tiempoGrabacion)} / {formatoTiempo(AUDIO_MAX_SEC)}
+              </span>
+              <Button onClick={enviarGrabacion} aria-label="Enviar nota de voz">
+                <Icon name="send" />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={handleEmojiClick}
+                aria-label="Emoji"
+                title="Emoji"
+              >
+                <Icon name="smile" width={20} height={20} />
+              </button>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={handleAttachmentClick}
+                disabled={!!subiendo}
+                aria-label="Adjuntar"
+                title="Adjuntar archivo"
+              >
+                {subiendo ? <Icon name="loader" width={20} height={20} className={styles.spinner} /> : <Icon name="paperclip" width={20} height={20} />}
+              </button>
+              <input
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") enviar(); }}
+                placeholder={canal ? t("comunicacion.writeTo", { canal: canal.nombre }) : "…"}
+                aria-label={t("comunicacion.message")}
+              />
+              {texto.trim() ? (
+                <Button onClick={enviar} aria-label={t("common.send")}>
+                  <Icon name="send" /> {t("common.send")}
+                </Button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={iniciarGrabacion}
+                  disabled={!!subiendo || !canal}
+                  aria-label="Grabar nota de voz"
+                  title="Grabar nota de voz"
+                >
+                  <Icon name="mic" width={20} height={20} />
+                </button>
+              )}
+            </>
+          )}
         </div>
         {showEmoji && (
           <div className={styles.emojiPicker}>

@@ -274,7 +274,7 @@ export interface Mensaje {
   ini?: string;
   texto: string;
   hora: string;
-  messageType?: "TEXT" | "IMAGE" | "FILE";
+  messageType?: "TEXT" | "IMAGE" | "FILE" | "AUDIO";
   fileUrl?: string | null;
 }
 
