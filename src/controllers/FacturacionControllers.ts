@@ -44,6 +44,8 @@ export interface Factura {
   cliente: string;
   clienteEmail?: string;
   clienteTelefono?: string;
+  /** Foto de perfil del cliente (heredada de la reserva de origen) */
+  clienteFoto?: string | null;
   servicio: string;
   fecha: string;         // ISO yyyy-mm-dd
   hora?: string;
@@ -117,6 +119,7 @@ function facturaDesdeReserva(r: Reserva, indice: number): Factura {
     cliente: r.cliente,
     clienteEmail: r.email,
     clienteTelefono: r.telefono,
+    clienteFoto: r.clienteFoto,
     servicio: r.servicio,
     fecha: r.fecha,
     hora: r.hora,

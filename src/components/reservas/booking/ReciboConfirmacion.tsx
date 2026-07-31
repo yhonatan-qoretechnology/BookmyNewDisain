@@ -44,6 +44,7 @@ function ReciboConfirmacionBase({
   const needsCard = metodoPago === "tarjeta";
   const [sedeImgError, setSedeImgError] = useState(false);
   const [proImgError, setProImgError] = useState(false);
+  const [clienteImgError, setClienteImgError] = useState(false);
 
   /* Zona horaria del navegador (informativa en el comprobante) */
   const zonaHoraria = useMemo(
@@ -60,6 +61,9 @@ function ReciboConfirmacionBase({
     : null;
   const proImageUrl = profesional.foto
     ? (profesional.foto.startsWith('http') ? profesional.foto : `${IMG_BASE_URL}${profesional.foto}`)
+    : null;
+  const clienteImageUrl = cliente.foto
+    ? (cliente.foto.startsWith('http') ? cliente.foto : `${IMG_BASE_URL}${cliente.foto}`)
     : null;
 
   return (
@@ -93,7 +97,18 @@ function ReciboConfirmacionBase({
           {/* Información del cliente */}
           <section className={styles.reciboBlock}>
             <h4>{t("booking.clientInfo")}</h4>
-            <div className={styles.reciboRow}><label>{t("booking.fullName")}</label><span>{cliente.nombre}</span></div>
+            <div className={styles.reciboPersona}>
+              <span className={styles.reciboAvatar} aria-hidden>
+                {clienteImageUrl && !clienteImgError
+                  ? <img src={clienteImageUrl} alt="" onError={() => setClienteImgError(true)} />
+                  : initials(cliente.nombre)}
+              </span>
+              <div>
+                <div className={styles.reciboRow} style={{ padding: 0 }}>
+                  <span>{cliente.nombre}</span>
+                </div>
+              </div>
+            </div>
             <div className={styles.reciboRow}><label>{t("booking.document")}</label><span>{cliente.documento || "—"}</span></div>
             <div className={styles.reciboRow}><label>{t("booking.email")}</label><span>{cliente.email}</span></div>
             <div className={styles.reciboRow}><label>{t("booking.phone")}</label><span>{cliente.telefono || "—"}</span></div>

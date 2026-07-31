@@ -4,7 +4,7 @@
 ============================================================ */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ROUTES, initials } from "@/constants";
+import { ROUTES, fotoUrl, initials } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useTheme } from "@/context/ThemeContext";
 import { LOCALES, useI18n, type LocaleCode } from "@/i18n";
@@ -143,7 +143,11 @@ export default function Topbar({
         </button>
 
         <div className={styles.userChip}>
-          <div className={styles.userAvatar}>{initials(name)}</div>
+          <div className={styles.userAvatar}>
+            {fotoUrl(session?.foto)
+              ? <img src={fotoUrl(session?.foto)!} alt="" />
+              : initials(name)}
+          </div>
           <div>
             <div className={styles.userName}>{name}</div>
             <div className={styles.userRole}>{roleLabel}</div>

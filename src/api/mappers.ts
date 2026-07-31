@@ -43,6 +43,7 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
     sedeId: u.AdminProfile?.sedeId != null ? String(u.AdminProfile.sedeId) : null,
     sedeName: opts.sedeName || null,
     especialidad: null,
+    foto: u.fotoPerfil || u.AdminProfile?.photoUrl || null,
     /* ⚙️ PARÁMETRO DE BD: user_data.idioma viaja del login a la
        sesión; el I18nProvider lo aplica automáticamente. */
     idioma: u.UserData?.idioma?.slice(0, 2).toLowerCase() || "es",
