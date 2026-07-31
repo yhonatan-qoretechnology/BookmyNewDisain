@@ -341,9 +341,9 @@ const es = {
     panelSub: "Cada reserva queda registrada como una factura",
     idFactura: "ID Factura",
     servicio: "Servicio",
-    filterId: "Buscar por ID…",
-    filterCliente: "Buscar por cliente…",
-    filterServicio: "Buscar por servicio…",
+    filterQuery: "Buscar por ID, cliente o servicio…",
+    filterEmpresa: "Todas las empresas",
+    filterSede: "Todas las sedes",
     gastosLink: "Gastos",
     emptyTitle: "Sin facturas",
     emptyMsg: "Cuando se creen reservas, sus facturas aparecerán aquí.",
@@ -370,7 +370,6 @@ const es = {
     generando: "Generando PDF…",
     pdfListo: "Factura descargada",
     pdfError: "No se pudo generar el PDF",
-    sinEmisor: "Completa los datos de la empresa para que aparezcan en la factura.",
   },
 
   gastos: {

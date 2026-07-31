@@ -1,17 +1,20 @@
 /* ============================================================
    Facturación — Controllers (Emisor + Facturas + Gastos)
    ------------------------------------------------------------
-   · FacturasController  → una factura por cada reserva del API
-                           (AppointmentModule) con aislamiento
-                           multi-tenant vía la sesión.
+   · FacturasController  → una factura por cada pago real del API
+                           (PaymentModule, GET /payments/filter) con
+                           alcance por rol resuelto en el front, ya
+                           que el endpoint no valida token/rol.
+   · FiltroFacturasController → opciones de empresa/sede para los
+                           selectores de Facturación, según el rol.
    · EmisorController    → datos de la empresa (logo, NIT, contacto)
                            y de la sede, para la cabecera de la factura.
    · CategoriasGastoController → categorías base + propias del usuario.
    · GastosController    → CRUD de gastos con respaldo local.
 ============================================================ */
-import type { Reserva, Session } from "@/models";
-import { EmpresasApi, SedesApi } from "@/api/modules";
-import { ReservasController } from "./ReservasController";
+import type { Session } from "@/models";
+import { EmpresasApi, PaymentsApi, SedesApi } from "@/api/modules";
+import type { ApiPaymentFiltered } from "@/api/types";
 
 /* ============================================================
    Tipos
@@ -82,10 +85,13 @@ export interface Gasto {
 }
 
 export interface FiltrosFactura {
-  id?: string;
-  cliente?: string;
-  servicio?: string;
+  /** Búsqueda libre: coincide con ID, cliente o servicio */
+  q?: string;
   fecha?: string;
+  /** Solo superadmin: acota a las sedes de una empresa (resuelve sus IDs). */
+  empresaId?: string;
+  /** Superadmin/owner: acota a una sede concreta. */
+  sedeId?: string;
 }
 
 export interface FiltrosGasto {
@@ -103,35 +109,81 @@ const norm = (s: string) =>
 const match = (value: string, filter?: string) =>
   !filter || norm(value).includes(norm(filter));
 
-/** Estado de pago del panel a partir del estado de la reserva */
-function estadoDesdeReserva(r: Reserva): EstadoFactura {
-  if (r.estado === "cancelado" || r.estado === "noShow") return "cancelado";
-  if (r.estado === "atendida") return "pagado";
+/** Estado de la factura a partir del PaymentStatus del backend */
+function estadoDesdePago(status?: string): EstadoFactura {
+  if (status === "PAID") return "pagado";
+  if (status === "FAILED" || status === "CANCELLED") return "cancelado";
   return "pendiente";
 }
 
-/** Reserva → Factura (una factura por cada reserva) */
-function facturaDesdeReserva(r: Reserva, indice: number): Factura {
-  const numero = r.apiId ?? indice + 1;
+/** Nombre del servicio de un pago, con traducciones (mismo criterio que ReservasController) */
+function nombreServicioPago(p: ApiPaymentFiltered, language: string): string {
+  const ref = p.service || p.appointment?.service;
+  if (!ref) return "—";
+  const trad = ref.translations?.find((t) => t.language === language) || ref.translations?.[0];
+  return trad?.name || ref.name || "—";
+}
+
+/** Método de pago legible: tarjeta saneada (marca + últimos 4) o efectivo */
+function metodoPagoDesdePago(p: ApiPaymentFiltered): string | undefined {
+  if (p.method === "CASH") return "Efectivo";
+  if (p.method === "CARD") {
+    const partes = [p.card?.brand?.toUpperCase(), p.card?.last4 ? `•••• ${p.card.last4}` : null].filter(Boolean);
+    return partes.length ? partes.join(" ") : "Tarjeta";
+  }
+  return undefined;
+}
+
+/** Pago (PaymentModule, GET /payments/filter) → Factura de la tabla */
+function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
+  const servicio = nombreServicioPago(p, language);
+  const total = Number(p.totalAmount || 0);
   return {
-    id: `F-${String(numero).padStart(4, "0")}`,
-    reservaId: r.id,
-    cliente: r.cliente,
-    clienteEmail: r.email,
-    clienteTelefono: r.telefono,
-    clienteFoto: r.clienteFoto,
-    servicio: r.servicio,
-    fecha: r.fecha,
-    hora: r.hora,
-    total: Number(r.precio || 0),
+    id: `PAY-${p.id}`,
+    reservaId: p.appointmentId != null ? String(p.appointmentId) : String(p.id),
+    cliente: p.user?.UserData?.name || p.user?.email || `#${p.userId}`,
+    clienteEmail: p.user?.email,
+    clienteTelefono: p.user?.UserData?.phone,
+    clienteFoto: p.user?.fotoPerfil || null,
+    servicio,
+    fecha: (p.createdAt || "").slice(0, 10) || "—",
+    hora: p.createdAt ? p.createdAt.slice(11, 16) : undefined,
+    total,
     moneda: "EUR",
-    estado: estadoDesdeReserva(r),
-    sedeId: r.sedeId,
-    sedeNombre: r.sedeName,
-    profesional: r.empleadoName,
-    metodoPago: r.metodoPago,
-    items: [{ concepto: r.servicio, cantidad: 1, precio: Number(r.precio || 0) }],
+    estado: estadoDesdePago(p.status),
+    sedeId: p.appointment?.sedeId != null ? String(p.appointment.sedeId) : undefined,
+    metodoPago: metodoPagoDesdePago(p),
+    items: [{ concepto: servicio, cantidad: 1, precio: total }],
   };
+}
+
+/**
+ * Resuelve qué sedes consultar en /payments/filter según el rol:
+ *  · admin (sede)   → siempre su propia sede, sin opción de cambiarla.
+ *  · owner (empresa) → la sede elegida, o todas las de su empresa.
+ *  · superadmin      → la sede elegida; si no, las de la empresa elegida;
+ *                      si tampoco, sin restricción (undefined = todo el sistema).
+ */
+async function resolverSedesConsulta(session: Session | null, f: FiltrosFactura): Promise<number[] | undefined> {
+  if (!session) return [];
+
+  if (session.role === "admin") {
+    return session.sedeId ? [Number(session.sedeId)] : [];
+  }
+
+  if (session.role === "owner") {
+    if (f.sedeId) return [Number(f.sedeId)];
+    const sedes = await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => []);
+    return (sedes || []).map((s) => s.id);
+  }
+
+  /* superadmin */
+  if (f.sedeId) return [Number(f.sedeId)];
+  if (f.empresaId) {
+    const sedes = await SedesApi.findByEmpresa(Number(f.empresaId)).catch(() => []);
+    return (sedes || []).map((s) => s.id);
+  }
+  return undefined;
 }
 
 /* ============================================================
@@ -195,35 +247,48 @@ export const EmisorController = {
 
 /* ============================================================
    FacturasController
-   Al entrar al módulo se leen TODAS las reservas visibles para la
-   sesión y cada una queda registrada como una factura.
+   Una factura por cada pago real — GET /payments/filter, con el
+   alcance (sede/empresa) resuelto según el rol de la sesión, ya que
+   el endpoint no valida token/rol por sí mismo.
 ============================================================ */
 export const FacturasController = {
   /**
-   * Facturas de la sesión — una por reserva, de la más reciente
-   * a la más antigua.
-   * @param session  Sesión activa (aislamiento multi-tenant).
+   * Facturas de la sesión — una por pago, de la más reciente a la
+   * más antigua. El alcance de sedes a consultar depende del rol:
+   * superadmin (todo o lo elegido), owner (su empresa) o admin (su sede).
+   * @param session  Sesión activa (decide qué userId/sedeId se piden).
+   * @param filtros  Incluye los selectores de empresa/sede, si aplican.
    * @param language Idioma para resolver nombres de servicio.
    */
-  async list(session: Session | null, language = "es"): Promise<Factura[]> {
-    const reservas = await ReservasController.getForSession(session, language).catch(() => []);
-    return reservas
-      .map(facturaDesdeReserva)
+  async list(session: Session | null, filtros: FiltrosFactura = {}, language = "es"): Promise<Factura[]> {
+    if (!session) return [];
+    const sedeIds = await resolverSedesConsulta(session, filtros);
+
+    let pagos: ApiPaymentFiltered[] = [];
+    if (sedeIds === undefined) {
+      pagos = await PaymentsApi.filter({}).catch(() => []);
+    } else if (sedeIds.length > 0) {
+      const lotes = await Promise.all(
+        sedeIds.map((sedeId) => PaymentsApi.filter({ sedeId }).catch(() => [] as ApiPaymentFiltered[]))
+      );
+      pagos = lotes.flat();
+    }
+
+    return pagos
+      .map((p) => facturaDesdePago(p, language))
       .sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id.localeCompare(a.id));
   },
 
-  /** Filtrado por columnas (ID, Cliente, Servicio, Fecha) */
+  /** Búsqueda libre (ID, Cliente o Servicio) + Fecha, sobre el listado ya acotado por sede/empresa */
   async search(
     session: Session | null,
     f: FiltrosFactura,
     language = "es"
   ): Promise<Factura[]> {
-    const all = await this.list(session, language);
+    const all = await this.list(session, f, language);
     return all.filter(
       (x) =>
-        match(x.id, f.id) &&
-        match(x.cliente, f.cliente) &&
-        match(x.servicio, f.servicio) &&
+        (!f.q || match(x.id, f.q) || match(x.cliente, f.q) || match(x.servicio, f.q)) &&
         (!f.fecha || x.fecha === f.fecha)
     );
   },
@@ -234,6 +299,45 @@ export const FacturasController = {
     const cobrado = lista.filter((f) => f.estado === "pagado").reduce((s, f) => s + f.total, 0);
     const pendiente = lista.filter((f) => f.estado === "pendiente").reduce((s, f) => s + f.total, 0);
     return { emitidas: lista.length, total, cobrado, pendiente };
+  },
+};
+
+/* ============================================================
+   FiltroFacturasController
+   Opciones de los selectores de empresa/sede del Toolbar, según
+   el rol de la sesión (ver resolverSedesConsulta arriba).
+============================================================ */
+export interface OpcionFiltro {
+  id: string;
+  nombre: string;
+}
+
+export const FiltroFacturasController = {
+  /** Empresas para el selector — solo tiene sentido para superadmin. */
+  async empresas(session: Session | null): Promise<OpcionFiltro[]> {
+    if (session?.role !== "superadmin") return [];
+    const list = await EmpresasApi.findAll().catch(() => []);
+    return (list || []).map((e) => ({ id: String(e.id), nombre: e.nombre }));
+  },
+
+  /**
+   * Sedes para el selector, según el rol:
+   *  · admin      → [] (su sede ya está fija, no hay nada que elegir).
+   *  · owner      → las sedes de su propia empresa.
+   *  · superadmin → las sedes de la empresa elegida, o todas si no eligió ninguna.
+   */
+  async sedes(session: Session | null, empresaId?: string): Promise<OpcionFiltro[]> {
+    if (!session || session.role === "admin") return [];
+
+    if (session.role === "owner") {
+      const list = await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => []);
+      return (list || []).map((s) => ({ id: String(s.id), nombre: s.nombre }));
+    }
+
+    const list = empresaId
+      ? await SedesApi.findByEmpresa(Number(empresaId)).catch(() => [])
+      : await SedesApi.findAll().catch(() => []);
+    return (list || []).map((s) => ({ id: String(s.id), nombre: s.nombre }));
   },
 };
 

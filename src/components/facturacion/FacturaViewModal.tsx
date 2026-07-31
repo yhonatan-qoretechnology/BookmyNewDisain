@@ -38,8 +38,6 @@ export default function FacturaViewModal({
     sedeNombre: f.sedeNombre ?? null, sedeDireccion: null, sedeTelefono: null,
   };
 
-  const datosIncompletos = !em.nit && !em.telefono && !em.email && !em.sedeDireccion;
-
   const descargar = async () => {
     setGenerando(true);
     try {
@@ -186,13 +184,6 @@ export default function FacturaViewModal({
           <span>{fmtMoneda(f.total, f.moneda)}</span>
         </div>
       </div>
-
-      {datosIncompletos && (
-        <div className={styles.aviso}>
-          <Icon name="help" />
-          {t("facturacion.sinEmisor")}
-        </div>
-      )}
     </Modal>
   );
 }

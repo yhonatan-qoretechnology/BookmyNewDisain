@@ -342,9 +342,9 @@ const en: Dictionary = {
     panelSub: "Each reservation is registered as an invoice",
     idFactura: "Invoice ID",
     servicio: "Service",
-    filterId: "Search by ID…",
-    filterCliente: "Search by client…",
-    filterServicio: "Search by service…",
+    filterQuery: "Search by ID, client or service…",
+    filterEmpresa: "All companies",
+    filterSede: "All branches",
     gastosLink: "Expenses",
     emptyTitle: "No invoices",
     emptyMsg: "When reservations are created, their invoices will appear here.",
@@ -369,7 +369,6 @@ const en: Dictionary = {
     generando: "Generating PDF…",
     pdfListo: "Invoice downloaded",
     pdfError: "The PDF could not be generated",
-    sinEmisor: "Fill in the company details so they appear on the invoice.",
   },
 
   gastos: {

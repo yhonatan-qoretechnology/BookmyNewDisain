@@ -178,6 +178,43 @@ export interface ApiPayment {
   user?: { id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string } | null };
 }
 
+/** Referencia a un servicio dentro de un pago (con o sin traducciones) */
+export interface ApiPaymentServiceRef {
+  id?: number;
+  name?: string;
+  translations?: Array<{ name: string; language?: string }>;
+}
+
+/**
+ * Fila de GET /payments/filter?userId=&sedeId= — más completa que
+ * ApiPayment: incluye la tarjeta saneada, el servicio de la cita y el
+ * rol del usuario. El backend no valida token/rol en este endpoint.
+ */
+export interface ApiPaymentFiltered {
+  id: number;
+  userId: number;
+  totalAmount: number;
+  paidAmount?: number;
+  status?: ApiPaymentStatus;
+  method?: ApiPaymentMethod;
+  createdAt?: string;
+  appointmentId?: number;
+  appointment?: {
+    id?: number;
+    sedeId?: number;
+    service?: ApiPaymentServiceRef | null;
+  } | null;
+  service?: ApiPaymentServiceRef | null;
+  card?: { brand?: string; last4?: string } | null;
+  user?: {
+    id: number;
+    email: string;
+    role?: ApiRole;
+    fotoPerfil?: string | null;
+    UserData?: { name?: string; phone?: string } | null;
+  } | null;
+}
+
 export interface ApiResena {
   id: number;
   calificacion: number;

@@ -1,24 +1,26 @@
 "use client";
 /* ============================================================
    Facturación — listado de facturas (View)
-   Al entrar se leen todas las reservas visibles para la sesión
-   y cada una queda registrada como una factura.
+   Cada pago real (GET /payments/filter) queda registrado como una
+   factura. El alcance de sedes consultadas depende del rol:
+   superadmin (todo o lo elegido), owner (su empresa) o admin (su sede).
    Columnas: ID Factura · Cliente · Servicio · Fecha · Estado · Total
    Acciones: Ver (popup) · Descargar PDF
 ============================================================ */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fmtFechaLarga, fmtMoneda } from "@/constants";
 import {
   EmisorController,
   Factura,
   FacturasController,
+  FiltroFacturasController,
 } from "@/controllers/FacturacionControllers";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
-import Toolbar, { SearchBox, FilterDate, FilterGroup } from "@/components/ui/Toolbar";
+import Toolbar, { SearchBox, FilterDate, FilterGroup, FilterSelect } from "@/components/ui/Toolbar";
 import DataTable from "@/components/ui/DataTable";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Badge from "@/components/ui/Badge";
@@ -36,25 +38,45 @@ export default function FacturacionPage() {
   const { session } = useSession();
   const { toast } = useUi();
 
-  /* --- filtros por columna --- */
-  const [fId, setFId] = useState("");
-  const [fCliente, setFCliente] = useState("");
-  const [fServicio, setFServicio] = useState("");
+  /* --- búsqueda libre (ID/Cliente/Servicio en una sola caja) + fecha --- */
+  const [fQuery, setFQuery] = useState("");
   const [fFecha, setFFecha] = useState("");
+  /* --- alcance por rol: empresa (solo superadmin) y sede (superadmin/owner) --- */
+  const [fEmpresaId, setFEmpresaId] = useState("");
+  const [fSedeId, setFSedeId] = useState("");
   const [ver, setVer] = useState<Factura | null>(null);
   const [bajando, setBajando] = useState<string | null>(null);
 
-  /* Una factura por cada reserva de la sesión (multi-tenant) */
+  /* Opciones de los selectores de empresa/sede, según el rol de la sesión */
+  const { data: empresasOpt } = useData(
+    () => FiltroFacturasController.empresas(session),
+    [session?.id, session?.role], []
+  );
+  const { data: sedesOpt } = useData(
+    () => FiltroFacturasController.sedes(session, fEmpresaId),
+    [session?.id, session?.role, session?.negocioId, fEmpresaId], []
+  );
+
+  /* Al cambiar de empresa (superadmin), la sede elegida deja de ser válida */
+  useEffect(() => {
+    setFSedeId("");
+  }, [fEmpresaId]);
+
+  /* Una factura por cada pago real (PaymentModule), acotado por rol */
   const { data: lista, loading } = useData(
     () =>
       FacturasController.search(
         session,
-        { id: fId, cliente: fCliente, servicio: fServicio, fecha: fFecha },
+        { q: fQuery, fecha: fFecha, empresaId: fEmpresaId, sedeId: fSedeId },
         locale
       ),
-    [session?.id, session?.negocioId, session?.sedeId, locale, fId, fCliente, fServicio, fFecha],
+    [session?.id, session?.negocioId, session?.sedeId, locale, fQuery, fFecha, fEmpresaId, fSedeId],
     []
   );
+
+  /* ¿Hay algo que mostrar en la fila de ámbito (empresa/sede)? */
+  const hayFiltroEmpresa = session?.role === "superadmin" && empresasOpt.length > 0;
+  const hayFiltroSede = (session?.role === "superadmin" || session?.role === "owner") && sedesOpt.length > 0;
 
   /* Datos de la empresa para la cabecera de la factura y del PDF */
   const { data: emisor } = useData(
@@ -133,13 +155,42 @@ export default function FacturacionPage() {
           sub={t("facturacion.panelSub")}
         />
 
+        {/* Fila 1 · Ámbito: a qué empresa/sede pertenecen los pagos (solo si el rol elige) */}
+        {(hayFiltroEmpresa || hayFiltroSede) && (
+          <Toolbar>
+            <FilterGroup>
+              {hayFiltroEmpresa && (
+                <FilterSelect
+                  value={fEmpresaId}
+                  onChange={setFEmpresaId}
+                  icon="building"
+                  label={t("facturacion.filterEmpresa")}
+                  options={[
+                    { value: "", label: t("facturacion.filterEmpresa") },
+                    ...empresasOpt.map((e) => ({ value: e.id, label: e.nombre })),
+                  ]}
+                />
+              )}
+              {hayFiltroSede && (
+                <FilterSelect
+                  value={fSedeId}
+                  onChange={setFSedeId}
+                  icon="mapPin"
+                  label={t("facturacion.filterSede")}
+                  options={[
+                    { value: "", label: t("facturacion.filterSede") },
+                    ...sedesOpt.map((s) => ({ value: s.id, label: s.nombre })),
+                  ]}
+                />
+              )}
+            </FilterGroup>
+          </Toolbar>
+        )}
+
+        {/* Fila 2 · Búsqueda: texto libre (ID, cliente o servicio) + fecha */}
         <Toolbar>
-          <FilterGroup>
-            <SearchBox value={fId} onChange={setFId} placeholder={t("facturacion.filterId")} compact />
-            <SearchBox value={fCliente} onChange={setFCliente} placeholder={t("facturacion.filterCliente")} compact />
-            <SearchBox value={fServicio} onChange={setFServicio} placeholder={t("facturacion.filterServicio")} compact />
-            <FilterDate value={fFecha} onChange={setFFecha} label={t("common.date")} />
-          </FilterGroup>
+          <SearchBox value={fQuery} onChange={setFQuery} placeholder={t("facturacion.filterQuery")} />
+          <FilterDate value={fFecha} onChange={setFFecha} label={t("common.date")} />
         </Toolbar>
 
         {lista.length === 0 ? (

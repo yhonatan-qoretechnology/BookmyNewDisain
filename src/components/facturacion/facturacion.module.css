@@ -276,15 +276,6 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
 :global([data-theme="dark"]) .totalGrande { border-top-color: #2d3a6e; }
 :global([data-theme="dark"]) .totalGrande span:last-child { color: #0fcfae; }
 
-.aviso {
-  display: flex; align-items: flex-start; gap: 9px;
-  margin-top: 18px; padding: 11px 13px;
-  background: #fff3e0; border-radius: var(--r-sm);
-  color: #e65100; font-size: 12px; font-weight: 600; line-height: 1.5;
-}
-.aviso svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
-:global([data-theme="dark"]) .aviso { background: rgba(251,140,0,.14); color: #ffb347; }
-
 @media (max-width: 700px) {
   .formGrid { grid-template-columns: 1fr; }
   .metaGrid { grid-template-columns: 1fr; }

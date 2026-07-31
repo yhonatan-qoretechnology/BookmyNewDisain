@@ -8,7 +8,7 @@ import { EP } from "./endpoints";
 import type {
   ApiAppointment, ApiCategory, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse, ApiEmpresa,
   ApiProfesionalDetalle,
-  ApiPayment, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
+  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
   CreateAppointmentDto, CreateServiceDto, LoginResponse, Paginated,
   RegisterUserDto, SendMessageDto,
 } from "./types";
@@ -187,6 +187,13 @@ export const ChatApi = {
 /* ── PaymentModule ──────────────────────────────────────── */
 export const PaymentsApi = {
   findAll: () => http.get<ApiPayment[]>(EP.payments),
+  /**
+   * GET /payments/filter?userId=&sedeId= — ambos opcionales e independientes.
+   * ⚠️ El backend no valida token/rol en este endpoint: quien llama es
+   * responsable de decidir qué userId/sedeId mandar según la sesión.
+   */
+  filter: (params: { userId?: number; sedeId?: number } = {}) =>
+    http.get<ApiPaymentFiltered[]>(EP.paymentsFilter + qs({ userId: params.userId, sedeId: params.sedeId })),
   confirm: (id: number) => http.patch<ApiPayment>(EP.paymentConfirm(id)),
   cancel: (id: number, data?: { reason?: string }) => http.patch<ApiPayment>(EP.paymentCancel(id), data),
 };

@@ -75,6 +75,9 @@ export const EP = {
 
   /* @Controller('payments') */
   payments: "/payments",
+  /** GET /payments/filter?userId=&sedeId= — ambos opcionales e independientes.
+      ⚠️ No valida token/rol: el front decide qué mandar según la sesión. */
+  paymentsFilter: "/payments/filter",
   paymentConfirm: (id: number) => `/payments/${id}/confirm`,
   paymentCancel: (id: number) => `/payments/${id}/cancel`,
 
