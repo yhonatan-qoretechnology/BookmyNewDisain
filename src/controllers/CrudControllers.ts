@@ -229,6 +229,8 @@ export const PersonalController = {
         id: p.id,
         nombre: p.nombre,
         rol: p.biografia || "Profesional",
+        /* Misma fuente que el carrusel de profesionales del agendado */
+        foto: p.imagen || null,
         sede: nombreSede.get(String(p.sedeId)) || "—",
         sedeId: String(p.sedeId),
         telefono: p.phone || "",

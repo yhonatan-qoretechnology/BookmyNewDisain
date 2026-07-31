@@ -149,6 +149,8 @@ export interface Empleado {
   id: number;
   nombre: string;
   rol: string;
+  /** Ruta de la foto del profesional (columna `imagen` del backend) */
+  foto: string | null;
   /** Nombre de la sede ya resuelto (o "—" si no se pudo resolver) */
   sede: string;
   sedeId: string;

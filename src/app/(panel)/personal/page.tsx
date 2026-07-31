@@ -179,7 +179,7 @@ export default function PersonalPage() {
           <DataTable headers={[t("common.name"), t("personal.role"), t("common.branch"), t("personal.monthBookings"), t("personal.access"), t("common.state"), t("common.actions")]}>
             {lista.map((p) => (
               <tr key={p.id}>
-                <td><PersonRow name={p.nombre} bold /></td>
+                <td><PersonRow name={p.nombre} photo={p.foto} bold /></td>
                 <td>{p.rol}</td>
                 <td>{p.sede}</td>
                 <td><b>{p.reservas}</b></td>
