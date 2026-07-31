@@ -2,8 +2,11 @@
    ComunicacionController — chat (ChatMessageModule, REST)
      GET  /ChatMessage/contacts/:userId
      GET  /ChatMessage/messages/:userA/:userB
-     POST /ChatMessage/messages   (SendMessageDto, messageType TEXT)
+     POST /ChatMessage/messages   (SendMessageDto, messageType TEXT/IMAGE/FILE)
      POST /ChatMessage/messages/read
+     POST /ChatMessage/upload     (multipart, adjunto imagen/PDF)
+   Todos estos endpoints requieren sesión (Authorization: Bearer);
+   http.ts ya adjunta el token a cada petición automáticamente.
    El backend también expone un gateway Socket.IO; este panel usa
    la vía REST con sondeo ligero desde la vista.
 ============================================================ */
@@ -93,43 +96,34 @@ export const ComunicacionController = {
   },
 
   /**
-   * Envía un mensaje de texto, imagen o audio — POST /ChatMessage/messages.
+   * Envía un mensaje de texto o un adjunto (imagen/PDF) — sube el
+   * archivo con POST /ChatMessage/upload y luego crea el mensaje con
+   * POST /ChatMessage/messages, usando el fileUrl devuelto por el upload.
    * @param session Remitente.
    * @param contacto Canal destino (id + email).
-   * @param texto Contenido del mensaje.
-   * @param archivo Archivo opcional (imagen o audio).
+   * @param texto Contenido del mensaje (o caption del adjunto).
+   * @param archivo Archivo opcional (imagen o PDF).
    */
   async enviarMensaje(session: Session | null, contacto: Canal, texto: string, archivo?: File | Blob | null): Promise<void> {
     if (!session) return;
-    
-    let message = texto;
+
     let messageType: "TEXT" | "IMAGE" | "FILE" = "TEXT";
-    
+    let fileUrl: string | undefined;
+
     if (archivo) {
-      // TODO: Cuando el backend tenga el endpoint de subida de archivos, usar FormData:
-      // const formData = new FormData();
-      // formData.append("file", archivo);
-      // formData.append("senderId", String(session.id));
-      // formData.append("receiverId", String(contacto.id));
-      // formData.append("senderEmail", session.email);
-      // formData.append("receiverEmail", contacto.email || contacto.sub);
-      // formData.append("messageType", archivo instanceof File && archivo.type.startsWith("image/") ? "IMAGE" : "FILE");
-      // formData.append("message", texto);
-      // await fetch(`${NEXT_PUBLIC_API_URL}/ChatMessage/upload`, { method: "POST", body: formData });
-      
-      // Por ahora enviar como mensaje de texto con información del archivo
-      const fileName = archivo instanceof File ? archivo.name : "audio.webm";
-      message = `[Archivo: ${fileName}] ${texto}`;
-      messageType = "FILE";
+      const subida = await ChatApi.upload(archivo);
+      messageType = subida.messageType;
+      fileUrl = subida.fileUrl;
     }
-    
+
     await ChatApi.send({
       senderId: Number(session.id),
       receiverId: Number(contacto.id),
       senderEmail: session.email,
       receiverEmail: contacto.email || contacto.sub,
       messageType,
-      message,
+      message: texto,
+      fileUrl,
     });
   },
 

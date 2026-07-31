@@ -6,7 +6,7 @@
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
-  ApiAppointment, ApiCategory, ApiChatContact, ApiChatMessage, ApiEmpresa,
+  ApiAppointment, ApiCategory, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiEmpresa,
   ApiProfesionalDetalle,
   ApiPayment, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
   CreateAppointmentDto, CreateServiceDto, LoginResponse, Paginated,
@@ -164,6 +164,15 @@ export const ChatApi = {
   send: (dto: SendMessageDto) => http.post<ApiChatMessage>(EP.chatSend, dto),
   /** POST /ChatMessage/messages/read — marca la conversación como leída. */
   markRead: (data: { userId: number; contactId: number }) => http.post(EP.chatRead, data),
+  /**
+   * POST /ChatMessage/upload — sube un adjunto (imagen o PDF, máx. 10MB).
+   * El servidor comprime las imágenes automáticamente.
+   */
+  upload: (file: File | Blob) => {
+    const form = new FormData();
+    form.append("file", file);
+    return http.postForm<ApiChatUploadResponse>(EP.chatUpload, form);
+  },
 };
 
 /* ── PaymentModule ──────────────────────────────────────── */

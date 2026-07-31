@@ -51,6 +51,8 @@ export const EP = {
   chatMessages: (userA: number, userB: number) => `/ChatMessage/messages/${userA}/${userB}`,
   chatSend: "/ChatMessage/messages",
   chatRead: "/ChatMessage/messages/read",
+  /** POST multipart/form-data (campo "file") — imagen o PDF, máx. 10MB */
+  chatUpload: "/ChatMessage/upload",
 
   /* @Controller('appointments') */
   appointments: "/appointments",

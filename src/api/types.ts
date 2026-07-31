@@ -239,6 +239,15 @@ export interface ApiChatMessage {
   created_at: string;
 }
 
+/** Respuesta de POST /ChatMessage/upload (multipart, campo "file") */
+export interface ApiChatUploadResponse {
+  fileUrl: string;
+  messageType: "IMAGE" | "FILE";
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
 /** GET /ChatMessage/contacts/:userId */
 export interface ApiChatContact {
   id: number;

@@ -68,6 +68,9 @@ const ICONS: Record<string, React.ReactNode> = {
   trendDown: (<>{P("M3 8l5.5 6 4-3L21 19")}{P("M16 19h5v-5")}</>),
   play: P("M5 3l14 9-14 9V3z"),
   pause: P("M6 4h4v16H6zM14 4h4v16h-4z"),
+  /* Chat · adjuntos */
+  fileText: (<>{P("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z")}{P("M14 2v6h6")}{P("M9 13h6M9 17h6M9 9h1")}</>),
+  loader: (<>{P("M12 2v4")}{P("m16.24 7.76 2.83-2.83")}{P("M18 12h4")}{P("m16.24 16.24 2.83 2.83")}{P("M12 18v4")}{P("m4.93 19.07 2.83-2.83")}{P("M2 12h4")}{P("m4.93 4.93 2.83 2.83")}</>),
 };
 
 export type IconName = keyof typeof ICONS | (string & {});

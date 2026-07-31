@@ -420,6 +420,81 @@
   color: #9ca3af;
 }
 
+/* Miniatura de imagen adjunta */
+.messageImageLink {
+  display: block;
+  margin-bottom: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+}
+.messageImage {
+  display: block;
+  max-width: 220px;
+  max-height: 220px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* Adjunto tipo archivo (PDF, etc.) */
+.messageFile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  margin-bottom: 2px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 6px;
+}
+.messageFile:hover { background: rgba(0, 0, 0, 0.05); }
+:global([data-theme="dark"]) .messageFile:hover { background: rgba(255, 255, 255, 0.08); }
+.messageFileIcon { flex: none; color: var(--red, #d64545); }
+.messageFileName {
+  font-size: 13px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* Texto/caption que acompaña a un adjunto */
+.messageCaption { display: block; margin-top: 2px; }
+
+/* Burbuja pendiente mientras se sube el adjunto */
+.bubblePending { opacity: 0.85; padding: 8px; }
+.uploadingBox { position: relative; display: inline-flex; }
+.uploadingBox .messageFile { padding: 6px 10px; background: rgba(0, 0, 0, 0.04); border-radius: 8px; }
+.uploadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 8px;
+  color: #fff;
+}
+.spinner { animation: comSpin 0.9s linear infinite; }
+@keyframes comSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Visor de imagen ampliada (modal interno) */
+.imageModalHead { display: flex; justify-content: flex-end; margin: -12px -12px 4px; }
+.imageModalImg {
+  display: block;
+  max-width: 100%;
+  max-height: 75vh;
+  margin: 0 auto;
+  border-radius: var(--r-sm, 8px);
+  object-fit: contain;
+}
+
 .chatInput {
   display: flex; gap: 8px; padding: 14px 16px;
   border-top: 1px solid var(--border);
@@ -438,6 +513,8 @@
   flex: 0 0 40px;
 }
 .iconBtn:hover { border-color: var(--teal-500); color: var(--teal-600); }
+.iconBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.iconBtn:disabled:hover { border-color: var(--border); color: var(--slate-500); }
 :global([data-theme="dark"]) .iconBtn { background: rgba(255,255,255,.05); border-color: #1e2640; color: #9ca3af; }
 .chatInput input {
   flex: 1; min-width: 0; padding: 12px 16px;
