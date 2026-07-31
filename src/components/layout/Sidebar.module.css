@@ -80,11 +80,18 @@
 /* ── Submenú desplegable (Facturación → Facturas · Gastos) ── */
 .group { display: flex; flex-direction: column; }
 
+/* Solo hereda la familia tipográfica: el tamaño/grosor los define
+   .navItem, así que el ítem de grupo (Facturación) se ve idéntico
+   al resto del menú. Un `font: inherit` aquí los sobrescribiría. */
 .groupToggle {
   width: 100%;
   background: none;
   border: none;
-  font: inherit;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: inherit;
+  letter-spacing: inherit;
   text-align: left;
 }
 .navLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }

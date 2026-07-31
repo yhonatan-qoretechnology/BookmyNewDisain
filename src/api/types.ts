@@ -48,6 +48,21 @@ export interface LoginResponse {
   error?: string;
 }
 
+/**
+ * DTO de POST /auth/register. Se usa para dar acceso al panel a un
+ * empleado (`role: "EMPLOYEE"`), además del alta de clientes finales.
+ * ⚠️ PUNTO DE AJUSTE: si el CreateUserDto del backend nombra los campos
+ * de otra forma (p. ej. `nombre`/`telefono`), cámbialos aquí.
+ */
+export interface RegisterUserDto {
+  email: string;
+  password: string;
+  name?: string;
+  phone?: string;
+  role?: ApiRole;
+  idioma?: string;
+}
+
 export interface ApiEmpresa {
   id: number;
   nombre: string;
@@ -124,7 +139,14 @@ export interface ApiService {
   description?: string;
   prices: ApiPrice[];
   sedes?: Array<{ id: number; nombre: string }>;
-  category?: unknown;
+  /** La categoría llega ya resuelta (`name`) o con sus traducciones,
+      según cómo el backend serialice la relación. Se leen ambas formas. */
+  category?: {
+    id?: number;
+    name?: string;
+    translations?: Array<{ name: string; language?: string }>;
+  } | null;
+  categoryId?: number;
 }
 
 export interface ApiAppointment {

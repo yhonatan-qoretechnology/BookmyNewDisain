@@ -129,4 +129,17 @@ input:focus-visible, [tabindex]:focus-visible {
   .print-field span { font-size: 14px; font-weight: 600; }
   .print-notes { background: #f0f2f5; padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 16px; }
   .print-footer { margin-top: 32px; font-size: 11px; color: #8392ab; border-top: 1px solid #e8edf5; padding-top: 12px; }
+
+  /* Transcripción de chat (Comunicación → Descargar PDF) */
+  .print-chat { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .print-msg {
+    padding: 9px 12px; border-radius: 10px; font-size: 12.5px;
+    background: #f0f2f5; max-width: 78%; break-inside: avoid;
+  }
+  .print-msg.out { background: #e6faf6; margin-left: auto; }
+  .print-msg .who {
+    display: block; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; color: #8392ab; margin-bottom: 3px;
+  }
+  .print-msg .when { display: block; font-size: 10px; color: #8392ab; margin-top: 4px; }
 }

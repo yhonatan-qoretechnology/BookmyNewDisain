@@ -474,6 +474,8 @@ const es = {
     description: "Descripción",
     descriptionPlaceholder: "Descripción del servicio (opcional)",
     categoryRequired: "Selecciona una categoría",
+    expandAll: "Desplegar todo",
+    collapseAll: "Comprimir todo",
     deleteTitle: "Eliminar servicio",
     deleteMsg: "¿Eliminar \u201c{nombre}\u201d? Se borrarán también sus precios y traducciones.",
     deleted: "Servicio eliminado",
@@ -504,6 +506,29 @@ const es = {
     deleted: "Integrante eliminada",
     deleteAria: "Eliminar {nombre}",
     fillApi: "El backend exige teléfono único y sede para crear un profesional.",
+    /* Edición */
+    editTitle: "Editar integrante",
+    editAria: "Editar a {nombre}",
+    updated: "Integrante actualizada",
+    /* Acceso al panel (usuario + contraseña) */
+    access: "Acceso",
+    hasAccess: "Con acceso",
+    noAccess: "Sin acceso",
+    createAccess: "Generar acceso",
+    resetAccess: "Nueva contraseña",
+    createAccessTitle: "Generar acceso al panel",
+    resetAccessTitle: "Restablecer contraseña",
+    createAccessSub: "Se creará un usuario para que {nombre} entre al panel y consulte su calendario.",
+    resetAccessSub: "Se generará una contraseña nueva para {nombre}. La anterior dejará de funcionar.",
+    loginEmail: "Correo de acceso",
+    accessHint: "La contraseña se genera automáticamente y solo se muestra una vez.",
+    generate: "Generar",
+    password: "Contraseña",
+    credWarning: "Guarda estos datos ahora: por seguridad, la contraseña no se puede volver a consultar.",
+    copyCred: "Copiar datos",
+    copied: "Datos copiados al portapapeles",
+    copyError: "No se pudieron copiar los datos",
+    accessCreated: "Acceso generado correctamente",
   },
 
 
@@ -517,6 +542,27 @@ const es = {
     unanswered: "Sin responder",
     reply: "Responder",
     markedAnswered: "Reseña marcada como respondida",
+    /* Estados de moderación */
+    estado: {
+      pendiente: "Pendiente",
+      aprobada: "Aprobada",
+      rechazada: "Rechazada",
+    },
+    /* Aprobar */
+    approve: "Aprobar",
+    approved: "Reseña aprobada y publicada",
+    /* Responder */
+    replyTitle: "Responder a {cliente}",
+    replyLabel: "Tu respuesta",
+    replyPlaceholder: "Gracias por tu valoración…",
+    replyRequired: "Escribe una respuesta antes de enviarla.",
+    sendReply: "Enviar respuesta",
+    replySent: "Se abrió tu gestor de correo con la respuesta",
+    noEmail: "Esta reseña no tiene un correo asociado.",
+    noText: "Sin comentario",
+    mailSubject: "Respuesta a tu reseña — {negocio}",
+    mailBody:
+      "Hola {cliente},\n\nGracias por compartir tu opinión con nosotros.\n\n{respuesta}\n\nUn saludo,\nEquipo {negocio}",
   },
 
   sedes: {
@@ -540,6 +586,13 @@ const es = {
   comunicacion: {
     writeTo: "Escribe a {canal}…",
     message: "Mensaje",
+    /* Descarga del histórico (dueño del negocio) */
+    exportPdf: "Descargar PDF",
+    exportTxt: "Descargar TXT",
+    exportTitle: "Transcripción de la conversación",
+    exportMe: "Yo",
+    exportFooter: "Descargado el {fecha}",
+    exportAttachment: "[archivo adjunto]",
   },
 
   configuracion: {

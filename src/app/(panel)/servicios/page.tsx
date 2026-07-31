@@ -1,8 +1,11 @@
 "use client";
 /* ============================================================
-   Servicios — catálogo con alta y activar/desactivar (View)
+   Servicios — catálogo agrupado por categoría (View)
+   Cada categoría es una sección desplegable (acordeón) con las
+   tarjetas de sus servicios. Al buscar, las categorías con
+   coincidencias se abren solas.
 ============================================================ */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ServiciosController } from "@/controllers/CrudControllers";
 import { useData } from "@/hooks/useData";
 import { useUi } from "@/context/UiContext";
@@ -10,10 +13,10 @@ import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import Button from "@/components/ui/Button";
-import Badge, { Tag } from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
+import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
-import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
+import styles from "./servicios.module.css";
 
 export default function ServiciosPage() {
   const { toast, confirm } = useUi();
@@ -30,6 +33,22 @@ export default function ServiciosPage() {
 
   /* En modo API: GET /services?language=<locale> (traducciones) */
   const { data: lista, reload } = useData(() => ServiciosController.search(search, locale), [search, locale], []);
+
+  /* Catálogo agrupado por categoría */
+  const grupos = useMemo(() => ServiciosController.agruparPorCategoria(lista), [lista]);
+
+  /* Categorías plegadas por el usuario. Por defecto todas abiertas,
+     y al buscar se reabren para no ocultar coincidencias. */
+  const [cerradas, setCerradas] = useState<Set<string>>(new Set());
+  const toggle = (categoria: string) =>
+    setCerradas((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoria)) next.delete(categoria);
+      else next.add(categoria);
+      return next;
+    });
+  const colapsarTodo = () => setCerradas(new Set(grupos.map((g) => g.categoria)));
+  const expandirTodo = () => setCerradas(new Set());
 
   /** Alta — POST /services (CreateServiceDto con traducción y precio). */
   const agregar = async () => {
@@ -79,21 +98,65 @@ export default function ServiciosPage() {
         {lista.length === 0 ? (
           <EmptyState icon="list" title={t("servicios.emptyTitle")} message={t("servicios.emptyMsg")} />
         ) : (
-          <CardGrid>
-            {lista.map((s) => (
-              <SimpleCard key={s.id}>
-                <h3>{s.nombre}</h3>
-                <TagRow>
-                  <Tag>{s.categoria}</Tag>
-                  <Tag>{t("servicios.minutes", { n: s.duracion })}</Tag>
-                </TagRow>
-                <Muted>{t("servicios.listPrice")} <b>{s.precio.toFixed(2)}€</b></Muted>
-                <Button variant="danger" size="sm" onClick={() => eliminar(s.id, s.nombre)}>
-                  {t("common.delete")}
-                </Button>
-              </SimpleCard>
-            ))}
-          </CardGrid>
+          <>
+            {grupos.length > 1 && (
+              <div className={styles.catToolbar}>
+                <Button size="sm" variant="ghost" onClick={expandirTodo}>{t("servicios.expandAll")}</Button>
+                <Button size="sm" variant="ghost" onClick={colapsarTodo}>{t("servicios.collapseAll")}</Button>
+              </div>
+            )}
+
+            <div className={styles.accordion}>
+              {grupos.map((g) => {
+                const abierta = !cerradas.has(g.categoria);
+                const panelId = `cat-${g.categoria.replace(/\s+/g, "-").toLowerCase()}`;
+                return (
+                  <section key={g.categoria} className={`${styles.catItem} ${abierta ? styles.open : ""}`}>
+                    <button
+                      type="button"
+                      className={styles.catHead}
+                      onClick={() => toggle(g.categoria)}
+                      aria-expanded={abierta}
+                      aria-controls={panelId}
+                    >
+                      <span className={styles.catNombre}>{g.categoria}</span>
+                      <span className={styles.catCount}>
+                        {t("servicios.countSub", { n: g.servicios.length })}
+                      </span>
+                      <span className={styles.catChevron} aria-hidden>
+                        <Icon name="chevron" width={17} height={17} strokeWidth={2.2} />
+                      </span>
+                    </button>
+
+                    {abierta && (
+                      <div id={panelId} className={styles.catBody}>
+                        <div className={styles.servGrid}>
+                          {g.servicios.map((s) => (
+                            <article key={s.id} className={styles.servCard}>
+                              <h3 className={styles.servNombre}>{s.nombre}</h3>
+                              {s.descripcion && <p className={styles.servDesc}>{s.descripcion}</p>}
+                              <div className={styles.servMeta}>
+                                <span className={styles.servDur}>
+                                  <Icon name="clock" width={13} height={13} />
+                                  {t("servicios.minutes", { n: s.duracion })}
+                                </span>
+                                <span className={styles.servPrecio}>{s.precio.toFixed(2)}€</span>
+                              </div>
+                              <div className={styles.servFoot}>
+                                <Button variant="danger" size="sm" block onClick={() => eliminar(s.id, s.nombre)}>
+                                  {t("common.delete")}
+                                </Button>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
+          </>
         )}
       </Panel>
 

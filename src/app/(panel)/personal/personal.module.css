@@ -1,0 +1,38 @@
+.rowActions {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Credenciales generadas — se muestran una sola vez */
+.credBox {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 14px 16px;
+  border: 1.5px dashed var(--teal-500);
+  border-radius: var(--r-md);
+  background: var(--teal-50);
+  margin-bottom: 4px;
+}
+:global([data-theme="dark"]) .credBox {
+  background: rgba(15,207,174,.08);
+  border-color: rgba(15,207,174,.5);
+}
+.credRow {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  font-size: 13px;
+}
+.credRow label {
+  color: var(--slate-500); font-weight: 700;
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: .5px;
+}
+.credValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13.5px; font-weight: 700;
+  color: var(--navy-900);
+  word-break: break-all; text-align: right;
+}
+:global([data-theme="dark"]) .credValue { color: #e8edf5; }
+
+.credWarn {
+  font-size: 12px; line-height: 1.5;
+  color: var(--slate-500);
+}

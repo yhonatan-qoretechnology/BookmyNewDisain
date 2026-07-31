@@ -105,10 +105,18 @@ export interface Cliente {
 export interface Servicio {
   id: number;
   nombre: string;
+  /** Nombre de la categoría ya traducido (CategoryTranslation) */
   categoria: string;
+  descripcion: string;
   duracion: number;
   precio: number;
   activo: boolean;
+}
+
+/** Servicios de una categoría, para la vista de catálogo en acordeón */
+export interface CategoriaCatalogo {
+  categoria: string;
+  servicios: Servicio[];
 }
 
 export interface Factura {
@@ -119,22 +127,40 @@ export interface Factura {
   estado: EstadoFactura;
 }
 
+/** Estado de moderación de una reseña (enum ResenaState del backend) */
+export type EstadoResena = "pendiente" | "aprobada" | "rechazada";
+
 export interface Resena {
   id: number;
   cliente: string;
+  /** Correo del autor — destino al responder la reseña */
+  email: string;
   estrellas: number;
   texto: string;
   fecha: string;
-  respondida: boolean;
+  estado: EstadoResena;
+  /** Atajo de `estado === "aprobada"` para los badges */
+  aprobada: boolean;
 }
 
 export interface Empleado {
   id: number;
   nombre: string;
   rol: string;
+  /** Nombre de la sede ya resuelto (o "—" si no se pudo resolver) */
   sede: string;
+  sedeId: string;
+  telefono: string;
   reservas: number;
   activo: boolean;
+  /** Usuario de acceso al panel vinculado al profesional, si ya lo tiene */
+  userId: number | null;
+}
+
+/** Credenciales recién generadas para que un empleado entre al panel */
+export interface CredencialesEmpleado {
+  email: string;
+  password: string;
 }
 
 /* ── Flujo de creación de reservas ───────────────────────── */

@@ -10,7 +10,7 @@ import type {
   ApiProfesionalDetalle,
   ApiPayment, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
   CreateAppointmentDto, CreateServiceDto, LoginResponse, Paginated,
-  SendMessageDto,
+  RegisterUserDto, SendMessageDto,
 } from "./types";
 
 /* ── AuthModule ─────────────────────────────────────────── */
@@ -23,6 +23,15 @@ export const AuthApi = {
   /** GET /auth/users (requiere JWT). Devuelve la lista de usuarios;
       los clientes finales tienen role === "CLIENT". */
   findAllUsers: () => http.get<ApiUser[]>(EP.users),
+
+  /**
+   * POST /auth/register — alta de usuario. Se usa para dar acceso al
+   * panel a un empleado (role EMPLOYEE) desde la sección Personal.
+   * ⚠️ El backend responde `{ user }` o el propio usuario según versión:
+   * se contemplan ambas formas al leer el id.
+   */
+  register: (dto: RegisterUserDto) =>
+    http.post<{ user?: ApiUser; id?: number } & Partial<ApiUser>>(EP.register, dto),
 
   updateUser: (id: number, data: Record<string, unknown>) =>
     http.patch(EP.userById(id), data),
@@ -65,6 +74,9 @@ export const ProfesionalesApi = {
     http.get<ApiProfesionalDetalle>(EP.profesionalDetalle(id) + qs({ lang })),
   create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string }) =>
     http.post<ApiProfesional>(EP.profesionales, data),
+  /** PATCH /profesionales/:id — edición y vínculo con su usuario (user_id) */
+  update: (id: number, data: Partial<ApiProfesional>) =>
+    http.patch<ApiProfesional>(EP.profesionalById(id), data),
   remove: (id: number) => http.delete(EP.profesionalById(id)),
 };
 

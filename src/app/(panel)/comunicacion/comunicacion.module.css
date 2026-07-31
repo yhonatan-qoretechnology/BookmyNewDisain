@@ -309,6 +309,41 @@
 }
 :global([data-theme="dark"]) .chatHead { border-color: #1e2640; background: #141824; }
 
+/* Descarga del histórico del chat (solo dueño del negocio) */
+.exportActions {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+.exportBtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--slate-500);
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.exportBtn:hover:not(:disabled) {
+  border-color: var(--teal-500);
+  color: var(--teal-600);
+  background: var(--teal-50);
+}
+.exportBtn:disabled { opacity: .45; cursor: not-allowed; }
+:global([data-theme="dark"]) .exportBtn {
+  border-color: #1e2640; background: rgba(255,255,255,.04); color: #8392ab;
+}
+:global([data-theme="dark"]) .exportBtn:hover:not(:disabled) {
+  border-color: rgba(15,207,174,.5); color: #0fcfae; background: rgba(15,207,174,.10);
+}
+
+@media (max-width: 640px) {
+  .exportBtn { padding: 7px 10px; font-size: 0; gap: 0; }
+  .exportBtn svg { width: 17px; height: 17px; }
+}
+
 .chatMsgs {
   flex: 1; padding: 20px 60px;
   display: flex; flex-direction: column; gap: 8px;

@@ -469,6 +469,8 @@ const en: Dictionary = {
     description: "Description",
     descriptionPlaceholder: "Service description (optional)",
     categoryRequired: "Select a category",
+    expandAll: "Expand all",
+    collapseAll: "Collapse all",
     deleteTitle: "Delete service",
     deleteMsg: "Delete \u201c{nombre}\u201d? Its prices and translations will also be removed.",
     deleted: "Service deleted",
@@ -499,6 +501,29 @@ const en: Dictionary = {
     deleted: "Member removed",
     deleteAria: "Remove {nombre}",
     fillApi: "The backend requires a unique phone and a branch to create a professional.",
+    /* Editing */
+    editTitle: "Edit team member",
+    editAria: "Edit {nombre}",
+    updated: "Team member updated",
+    /* Panel access (username + password) */
+    access: "Access",
+    hasAccess: "Has access",
+    noAccess: "No access",
+    createAccess: "Create access",
+    resetAccess: "New password",
+    createAccessTitle: "Create panel access",
+    resetAccessTitle: "Reset password",
+    createAccessSub: "A user account will be created so {nombre} can sign in and check their calendar.",
+    resetAccessSub: "A new password will be generated for {nombre}. The previous one will stop working.",
+    loginEmail: "Login email",
+    accessHint: "The password is generated automatically and shown only once.",
+    generate: "Generate",
+    password: "Password",
+    credWarning: "Save these details now: for security reasons the password cannot be retrieved again.",
+    copyCred: "Copy details",
+    copied: "Details copied to clipboard",
+    copyError: "Couldn't copy the details",
+    accessCreated: "Access created successfully",
   },
 
 
@@ -512,6 +537,27 @@ const en: Dictionary = {
     unanswered: "Unanswered",
     reply: "Reply",
     markedAnswered: "Review marked as answered",
+    /* Moderation states */
+    estado: {
+      pendiente: "Pending",
+      aprobada: "Approved",
+      rechazada: "Rejected",
+    },
+    /* Approve */
+    approve: "Approve",
+    approved: "Review approved and published",
+    /* Reply */
+    replyTitle: "Reply to {cliente}",
+    replyLabel: "Your reply",
+    replyPlaceholder: "Thanks for your feedback…",
+    replyRequired: "Write a reply before sending it.",
+    sendReply: "Send reply",
+    replySent: "Your mail client opened with the reply",
+    noEmail: "This review has no email address linked.",
+    noText: "No comment",
+    mailSubject: "Reply to your review — {negocio}",
+    mailBody:
+      "Hi {cliente},\n\nThank you for sharing your feedback with us.\n\n{respuesta}\n\nBest regards,\nThe {negocio} team",
   },
 
   sedes: {
@@ -535,6 +581,13 @@ const en: Dictionary = {
   comunicacion: {
     writeTo: "Message {canal}…",
     message: "Message",
+    /* History download (business owner) */
+    exportPdf: "Download PDF",
+    exportTxt: "Download TXT",
+    exportTitle: "Conversation transcript",
+    exportMe: "Me",
+    exportFooter: "Downloaded on {fecha}",
+    exportAttachment: "[attachment]",
   },
 
   configuracion: {

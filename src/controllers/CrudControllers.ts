@@ -2,11 +2,15 @@
    Controladores de dominio — consumo exclusivo del API oficial.
    Cada bloque es el espejo de un módulo NestJS del backend.
 ============================================================ */
-import type { Cliente, Empleado, Factura, Resena, SedeDetalle, Servicio } from "@/models";
+import type {
+  CategoriaCatalogo, CredencialesEmpleado, Cliente, Empleado, Factura, Resena,
+  SedeDetalle, Servicio,
+} from "@/models";
 import {
   AuthApi, CategoriesApi, PaymentsApi, ProfesionalesApi, ResenasApi,
   SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
+import type { ApiProfesional, ApiService } from "@/api/types";
 
 /* ── Clientes (AuthModule: Users con role CLIENT) ────────── */
 export const ClientesController = {
@@ -32,6 +36,29 @@ export const ClientesController = {
 };
 
 /* ── Servicios (ServiceModule + CategoryModule) ──────────── */
+
+/** Categoría de respaldo cuando el servicio no tiene ninguna asignada */
+export const SIN_CATEGORIA = "Sin categoría";
+
+/**
+ * Resuelve el nombre de la categoría de un servicio tolerando las
+ * distintas formas en que el backend puede serializar la relación:
+ * `category.name`, `category.translations[]` o solo `categoryId`.
+ */
+function nombreCategoria(
+  sv: ApiService,
+  porId: Map<number, string>,
+  language: string
+): string {
+  const cat = sv.category;
+  if (cat?.name) return cat.name;
+  const trads = cat?.translations ?? [];
+  const propia = trads.find((tr) => tr.language === language) ?? trads[0];
+  if (propia?.name) return propia.name;
+  const id = cat?.id ?? sv.categoryId;
+  return (id != null ? porId.get(id) : undefined) || SIN_CATEGORIA;
+}
+
 export const ServiciosController = {
   /**
    * Lista servicios con traducción y precio — GET /services?language=.
@@ -40,17 +67,35 @@ export const ServiciosController = {
    */
   async search(term: string, language = "es"): Promise<Servicio[]> {
     const q = term.toLowerCase();
-    const list = await ServicesApi.findAll(language).catch(() => []);
+    /* Las categorías se piden aparte para resolver el nombre cuando
+       GET /services devuelve la relación sin traducir (solo el id). */
+    const [list, categorias] = await Promise.all([
+      ServicesApi.findAll(language).catch(() => []),
+      this.getCategorias(language).catch(() => [] as Array<{ id: number; nombre: string }>),
+    ]);
+    const porId = new Map(categorias.map((c) => [c.id, c.nombre]));
     return (list || [])
       .map((sv) => ({
         id: sv.id,
         nombre: sv.name,
-        categoria: sv.description || "—",
+        categoria: nombreCategoria(sv, porId, language),
+        descripcion: sv.description || "",
         duracion: sv.prices?.[0]?.duration ?? 30,
         precio: sv.prices?.[0]?.amount ?? 0,
         activo: true,
       }))
-      .filter((s) => (s.nombre + s.categoria).toLowerCase().includes(q));
+      .filter((s) => (s.nombre + s.categoria + s.descripcion).toLowerCase().includes(q));
+  },
+
+  /** Agrupa el catálogo por categoría conservando el orden de aparición. */
+  agruparPorCategoria(servicios: Servicio[]): CategoriaCatalogo[] {
+    const grupos = new Map<string, Servicio[]>();
+    for (const s of servicios) {
+      const lista = grupos.get(s.categoria);
+      if (lista) lista.push(s);
+      else grupos.set(s.categoria, [s]);
+    }
+    return Array.from(grupos, ([categoria, lista]) => ({ categoria, servicios: lista }));
   },
 
   /**
@@ -119,45 +164,129 @@ export const FacturasController = {
 };
 
 /* ── Reseñas (ResenaModule) ──────────────────────────────── */
+const RESENA_ESTADO: Record<string, Resena["estado"]> = {
+  PENDIENTE: "pendiente",
+  APROBADA: "aprobada",
+  RECHAZADA: "rechazada",
+};
+
 export const ResenasController = {
   /** Lista reseñas — GET /resenas (incluye usuario.UserData). */
   async search(term: string): Promise<Resena[]> {
     const q = term.toLowerCase();
     const list = await ResenasApi.findAll().catch(() => []);
     return (list || [])
-      .map((r) => ({
-        id: r.id,
-        cliente: r.usuario?.UserData?.name || r.usuario?.email || `#${r.usuarioId}`,
-        estrellas: Math.round(r.calificacion),
-        texto: r.comentario || "",
-        fecha: (r.createdAt || "").slice(0, 10),
-        respondida: r.estado === "APROBADA",
-      }))
+      .map((r) => {
+        const estado = RESENA_ESTADO[r.estado] ?? (r.aprobado ? "aprobada" : "pendiente");
+        return {
+          id: r.id,
+          cliente: r.usuario?.UserData?.name || r.usuario?.email || `#${r.usuarioId}`,
+          email: r.usuario?.email || "",
+          estrellas: Math.round(r.calificacion),
+          texto: r.comentario || "",
+          fecha: (r.createdAt || "").slice(0, 10),
+          estado,
+          aprobada: estado === "aprobada",
+        };
+      })
       .filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
   },
 
-  /** Aprueba una reseña — PATCH /resenas/:id/aprobar. */
-  async responder(id: number): Promise<void> {
+  /** Aprueba una reseña (la publica) — PATCH /resenas/:id/aprobar. */
+  async aprobar(id: number): Promise<void> {
     await ResenasApi.aprobar(id);
   },
 };
 
-/* ── Personal (ProfesionalModule) ────────────────────────── */
+/* ── Personal (ProfesionalModule + AuthModule) ───────────── */
+
+/** Contraseña temporal legible (sin caracteres ambiguos) */
+function generarPassword(largo = 10): string {
+  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = new Uint32Array(largo);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (n) => abc[n % abc.length]).join("");
+}
+
 export const PersonalController = {
-  /** Lista profesionales — GET /profesionales. */
-  async search(term: string): Promise<Empleado[]> {
+  /**
+   * Lista profesionales — GET /profesionales, con el nombre de la
+   * sede resuelto a partir de las sedes visibles para la sesión.
+   * @param term Búsqueda por nombre o rol.
+   * @param sedes Sedes { id, nombre } ya cargadas por la vista.
+   */
+  async search(
+    term: string,
+    sedes: Array<{ id: string; nombre: string }> = []
+  ): Promise<Empleado[]> {
     const q = term.toLowerCase();
     const list = await ProfesionalesApi.findAll().catch(() => []);
+    const nombreSede = new Map(sedes.map((s) => [s.id, s.nombre]));
     return (list || [])
       .map((p) => ({
         id: p.id,
         nombre: p.nombre,
         rol: p.biografia || "Profesional",
-        sede: `#${p.sedeId}`,
+        sede: nombreSede.get(String(p.sedeId)) || "—",
+        sedeId: String(p.sedeId),
+        telefono: p.phone || "",
         reservas: 0,
         activo: p.state !== "disabled",
+        userId: p.user_id ?? null,
       }))
       .filter((p) => (p.nombre + p.rol).toLowerCase().includes(q));
+  },
+
+  /** Edita un profesional — PATCH /profesionales/:id. */
+  async update(
+    id: number,
+    input: { nombre: string; rol: string; telefono: string; sedeId: string }
+  ): Promise<void> {
+    await ProfesionalesApi.update(id, {
+      nombre: input.nombre.trim(),
+      phone: input.telefono.trim(),
+      biografia: input.rol.trim(),
+      sedeId: Number(input.sedeId),
+    });
+  },
+
+  /**
+   * Crea el usuario de acceso del empleado y lo vincula al profesional
+   * para que pueda entrar al panel y ver su calendario:
+   *   1. POST /auth/register  → usuario con rol EMPLOYEE
+   *   2. PATCH /profesionales/:id { user_id } → vínculo
+   * La contraseña se genera aquí y se devuelve UNA sola vez para
+   * entregarla al empleado (el backend la almacena cifrada).
+   * @throws ApiError si el correo ya existe o el DTO no coincide.
+   */
+  async crearAcceso(
+    empleado: Empleado,
+    email: string
+  ): Promise<CredencialesEmpleado> {
+    const password = generarPassword();
+    const creado = await AuthApi.register({
+      email: email.trim().toLowerCase(),
+      password,
+      name: empleado.nombre,
+      phone: empleado.telefono || undefined,
+      role: "EMPLOYEE",
+    });
+    const userId = creado?.user?.id ?? creado?.id;
+    if (userId != null) {
+      /* Vínculo profesional ⇄ usuario (columna user_id) */
+      await ProfesionalesApi.update(empleado.id, { user_id: Number(userId) }).catch(() => undefined);
+    }
+    return { email: email.trim().toLowerCase(), password };
+  },
+
+  /**
+   * Restablece la contraseña de un empleado que ya tiene usuario —
+   * PATCH /auth/users/:id { password }.
+   */
+  async regenerarPassword(userId: number, email: string): Promise<CredencialesEmpleado> {
+    const password = generarPassword();
+    await AuthApi.updateUser(userId, { password });
+    return { email, password };
   },
 
   /** Elimina un profesional — DELETE /profesionales/:id. */
@@ -175,16 +304,26 @@ export const SedesController = {
    */
   async search(term: string, negocioId: string): Promise<SedeDetalle[]> {
     const q = term.toLowerCase();
-    const list = negocioId
-      ? await SedesApi.findByEmpresa(Number(negocioId)).catch(() => [])
-      : await SedesApi.findAll().catch(() => []);
+    /* El listado de sedes no siempre incluye la relación `profesionales`,
+       así que el equipo se cuenta con una única consulta a
+       GET /profesionales agrupada por sedeId. */
+    const [list, profesionales] = await Promise.all([
+      negocioId
+        ? SedesApi.findByEmpresa(Number(negocioId)).catch(() => [])
+        : SedesApi.findAll().catch(() => []),
+      ProfesionalesApi.findAll().catch(() => [] as ApiProfesional[]),
+    ]);
+    const equipoPorSede = new Map<number, number>();
+    for (const p of profesionales || []) {
+      equipoPorSede.set(p.sedeId, (equipoPorSede.get(p.sedeId) || 0) + 1);
+    }
     return (list || [])
       .map((s) => ({
         id: s.id,
         negocioId: String(s.empresaId),
         nombre: s.nombre,
         direccion: s.direccion,
-        equipo: s.profesionales?.length ?? 0,
+        equipo: equipoPorSede.get(s.id) ?? s.profesionales?.length ?? 0,
         activa: true,
       }))
       .filter((s) => (s.nombre + s.direccion).toLowerCase().includes(q));

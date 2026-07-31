@@ -1,0 +1,21 @@
+/* Acciones de moderación de cada reseña */
+.cardActions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 12px;
+}
+.cardActions > * { flex: 1; min-width: 110px; }
+
+/* Vista previa de la reseña dentro del modal de respuesta */
+.quote {
+  padding: 12px 14px;
+  border-left: 3px solid var(--teal-500);
+  border-radius: var(--r-sm);
+  background: var(--hover-surface);
+  color: var(--slate-500);
+  font-size: 13px; line-height: 1.55;
+  margin-bottom: 16px;
+}
+.quote b { display: block; color: var(--navy-900); margin-bottom: 4px; }
+:global([data-theme="dark"]) .quote b { color: #e8edf5; }
+
+.replyArea { min-height: 120px; resize: vertical; font-family: inherit; }

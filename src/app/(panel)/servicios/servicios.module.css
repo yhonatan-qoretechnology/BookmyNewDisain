@@ -1,0 +1,91 @@
+/* ============================================================
+   Catálogo de servicios agrupado por categoría (acordeón)
+   Mismo lenguaje visual que el acordeón del flujo de reservas.
+============================================================ */
+.accordion { display: flex; flex-direction: column; gap: 12px; }
+
+.catItem {
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+.catItem.open { border-color: var(--teal-100); }
+
+.catHead {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; text-align: left; color: inherit;
+}
+.catHead:hover { background: var(--hover-surface); }
+
+.catNombre {
+  flex: 1; min-width: 0;
+  font-size: 14.5px; font-weight: 800; color: var(--navy-900);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+:global([data-theme="dark"]) .catNombre { color: #e8edf5; }
+
+.catCount {
+  flex: none;
+  font-size: 11.5px; font-weight: 800; color: var(--teal-700);
+  background: var(--teal-50);
+  padding: 3px 10px; border-radius: 999px;
+}
+:global([data-theme="dark"]) .catCount { background: rgba(15,207,174,.12); color: #0fcfae; }
+
+.catChevron {
+  flex: none; display: inline-flex;
+  color: var(--slate-500);
+  transition: transform .22s cubic-bezier(.4,0,.2,1);
+}
+.catItem.open .catChevron { transform: rotate(180deg); color: var(--teal-600); }
+
+.catBody { padding: 0 14px 14px; }
+
+/* Tarjetas de servicio dentro de la categoría */
+.servGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.servCard {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  transition: border-color .15s ease;
+}
+.servCard:hover { border-color: var(--teal-400); }
+
+.servNombre { font-size: 14px; font-weight: 800; color: var(--navy-900); }
+:global([data-theme="dark"]) .servNombre { color: #e8edf5; }
+
+.servDesc {
+  font-size: 12px; color: var(--slate-500); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.servMeta {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 2px;
+}
+.servDur {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--slate-500);
+}
+.servDur svg { color: var(--teal-600); }
+.servPrecio { font-weight: 800; font-size: 15px; color: var(--teal-700); }
+:global([data-theme="dark"]) .servPrecio { color: #0fcfae; }
+
+.servFoot { margin-top: auto; padding-top: 4px; }
+
+/* Barra de utilidades del catálogo */
+.catToolbar {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-bottom: 12px;
+}

@@ -4,6 +4,7 @@
 ============================================================ */
 import { useEffect, useRef, useState } from "react";
 import { ComunicacionController } from "@/controllers/ComunicacionController";
+import { ChatExportController, puedeExportarChats } from "@/controllers/ChatExportController";
 import { useSession } from "@/context/SessionContext";
 import { useData } from "@/hooks/useData";
 import { useI18n } from "@/i18n";
@@ -98,6 +99,20 @@ export default function ComunicacionPage() {
     }
   };
 
+  /* ── Exportar la conversación (solo dueño / superadmin) ──── */
+  const puedeExportar = puedeExportarChats(session);
+  const etiquetasExport = {
+    title: t("comunicacion.exportTitle"),
+    me: t("comunicacion.exportMe"),
+    footer: t("comunicacion.exportFooter", { fecha: new Date().toLocaleString() }),
+    attachment: t("comunicacion.exportAttachment"),
+  };
+  const exportar = (formato: "pdf" | "txt") => {
+    if (!canal) return;
+    if (formato === "pdf") ChatExportController.descargarPdf(canal, mensajes, session, etiquetasExport);
+    else ChatExportController.descargarTexto(canal, mensajes, session, etiquetasExport);
+  };
+
   /** Envía por POST /ChatMessage/messages y recarga la conversación. */
   const enviar = async () => {
     const cuerpo = texto.trim();
@@ -162,6 +177,31 @@ export default function ComunicacionPage() {
               <span className={styles.comName}>{canal.nombre}</span>
               <span className={styles.comSub}>{canal.sub}</span>
             </span>
+            {/* Descarga del histórico — solo para el dueño del negocio */}
+            {puedeExportar && (
+              <div className={styles.exportActions}>
+                <button
+                  type="button"
+                  className={styles.exportBtn}
+                  onClick={() => exportar("pdf")}
+                  disabled={mensajes.length === 0}
+                  title={t("comunicacion.exportPdf")}
+                >
+                  <Icon name="printer" width={16} height={16} />
+                  {t("comunicacion.exportPdf")}
+                </button>
+                <button
+                  type="button"
+                  className={styles.exportBtn}
+                  onClick={() => exportar("txt")}
+                  disabled={mensajes.length === 0}
+                  title={t("comunicacion.exportTxt")}
+                >
+                  <Icon name="invoice" width={16} height={16} />
+                  {t("comunicacion.exportTxt")}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
