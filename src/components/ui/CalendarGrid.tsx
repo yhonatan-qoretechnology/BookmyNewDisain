@@ -163,7 +163,7 @@ export default function CalendarGrid({
             <Icon name="chevron-right" strokeWidth={2.2} width={18} height={18} />
           </button>
         </div>
-        <div className={styles.viewToggle}>
+        {/* <div className={styles.viewToggle}>
           {VIEWS.map((v) => (
             <button
               key={v.id}
@@ -174,7 +174,7 @@ export default function CalendarGrid({
               {v.label}
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
       <div className={styles.calGrid}>{cells}</div>
     </>
