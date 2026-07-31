@@ -28,6 +28,8 @@ export const ClientesController = {
         nombre: u.UserData?.name || u.email,
         correo: u.email,
         telefono: u.UserData?.phone || "—",
+        /* Misma fuente que usa el popup de reservas para la foto */
+        foto: u.fotoPerfil || null,
         visitas: 0,
         ultima: "—",
       }))

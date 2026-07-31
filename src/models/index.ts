@@ -98,6 +98,8 @@ export interface Cliente {
   nombre: string;
   correo: string;
   telefono: string;
+  /** Ruta de la foto de perfil (columna `fotoPerfil` del usuario) */
+  foto: string | null;
   visitas: number;
   ultima: string;
 }

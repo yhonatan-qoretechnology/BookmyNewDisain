@@ -33,7 +33,7 @@ export default function ClientesPage() {
           <DataTable headers={[t("common.client"), t("common.email"), t("common.phone"), t("clientes.visits"), t("clientes.lastVisit")]}>
             {lista.map((c) => (
               <tr key={c.id}>
-                <td><PersonRow name={c.nombre} bold /></td>
+                <td><PersonRow name={c.nombre} photo={c.foto} bold /></td>
                 <td>{c.correo}</td>
                 <td>{c.telefono}</td>
                 <td><b>{c.visitas}</b></td>

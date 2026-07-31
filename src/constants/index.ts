@@ -101,6 +101,20 @@ export const DIAS_AGENDABLES = 60;
 /* ── Estados de reservas ─────────────────────────────────── */
 export const ESTADOS_RESERVA = ["todos", "pendiente", "confirmada", "atendida", "cancelado", "noShow"] as const;
 
+/* ── Imágenes servidas por el backend ────────────────────── */
+/** Base de las imágenes (fotos de perfil, logos, fotos de sede) */
+export const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
+
+/**
+ * URL absoluta de una imagen del backend. Las rutas que ya vienen
+ * absolutas (http/https o data:) se devuelven tal cual.
+ * @param ruta Ruta relativa guardada en la BD (p. ej. "uploads/ab.jpg").
+ */
+export function fotoUrl(ruta: string | null | undefined): string | null {
+  if (!ruta) return null;
+  return /^(https?:|data:)/.test(ruta) ? ruta : `${IMG_BASE_URL}${ruta}`;
+}
+
 /* ── Helpers de formato compartidos ──────────────────────── */
 export function initials(name: string): string {
   return name
