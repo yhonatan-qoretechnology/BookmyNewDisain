@@ -12,7 +12,11 @@ import type { Canal, Mensaje, Session } from "@/models";
 
 /** Roles autorizados a descargar transcripciones completas */
 export function puedeExportarChats(session: Session | null): boolean {
-  return session?.role === "owner" || session?.role === "superadmin";
+  return (
+    session?.role === "owner" ||
+    session?.role === "superadmin" ||
+    session?.role === "admin"
+  );
 }
 
 /** Nombre de archivo seguro: "Ana Ruiz" → "ana-ruiz" */
