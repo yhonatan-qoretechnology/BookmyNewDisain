@@ -9,6 +9,7 @@
      CLIENT       → sin acceso al panel (usa la app de clientes)
 ============================================================ */
 import type { MetodoPago, Reserva, Rol, Session } from "@/models";
+import { madridHHmm, madridYmd } from "@/lib/timezone";
 import type { ApiAppointment, ApiAppointmentStatus, ApiRole, ApiUser } from "./types";
 
 export const ROLE_MAP: Record<ApiRole, Rol | null> = {
@@ -50,10 +51,17 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
   };
 }
 
-const hhmm = (iso: string): string => {
-  const d = new Date(iso);
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
-};
+/**
+ * Hora que ve el usuario, en Europe/Madrid.
+ * El backend guarda instantes UTC pero valida en hora de Madrid: una
+ * cita almacenada como 08:00Z es, en la sede, la de las 10:00. Antes
+ * aquí se leía getUTCHours(), y el panel mostraba todas las citas dos
+ * horas antes de su hora real.
+ */
+const hhmm = (iso: string): string => madridHHmm(new Date(iso));
+
+/** Día al que pertenece la cita en Madrid (no el de UTC). */
+const diaMadrid = (iso: string): string => madridYmd(new Date(iso));
 
 /**
  * Convierte un Appointment del backend al modelo del panel.

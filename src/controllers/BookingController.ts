@@ -21,13 +21,21 @@ import type {
   BookingDraft, CategoriaServicios, ClienteOpcion, ProfesionalCard,
   SedeOpcion, ServicioOpcion, SlotHora,
 } from "@/models";
-import { DIAS_AGENDABLES, HORARIO_DEFECTO } from "@/constants";
-import { AppointmentsApi, AuthApi, ProfesionalesApi, SedesApi } from "@/api/modules";
+import { DIAS_AGENDABLES } from "@/constants";
+import {
+  AppointmentsApi, AuthApi, DisponibilidadApi, ProfesionalesApi, SedesApi,
+} from "@/api/modules";
 import { http } from "@/api/http";
 import { EP } from "@/api/endpoints";
 import type {
-  ApiAppointment, ApiPaymentMethod, ApiSede, ApiServicioProfesional, ApiUser,
+  ApiAppointment, ApiDisponibilidadProfesional, ApiPaymentMethod, ApiSede,
+  ApiServicioProfesional, ApiUser,
 } from "@/api/types";
+import {
+  construirSlots, ocupacionDeCita, resolverCierres, resolverHorario,
+  type Ocupacion,
+} from "@/lib/disponibilidad";
+import { madridDayOfWeek, madridToday, madridYmd } from "@/lib/timezone";
 
 /* ── Interfaces por caso de uso (ISP) ────────────────────── */
 export interface SedesProvider {
@@ -123,55 +131,91 @@ function agruparPorCategoria(servicios: ServicioOpcion[]): CategoriaServicios[] 
 }
 
 /* ── Utilidades de tiempo ────────────────────────────────── */
-const pad = (n: number) => String(n).padStart(2, "0");
-const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-function minutesOf(hhmm: string): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  return h * 60 + m;
-}
-
-interface Ocupacion { startMin: number; endMin: number }
-
-/** Intervalos ocupados por fecha del profesional (citas no canceladas) */
+/**
+ * Intervalos ocupados del profesional, agrupados por fecha de Madrid.
+ * Las citas canceladas y las marcadas como no presentadas liberan hueco.
+ */
 function buildOcupacion(citas: ApiAppointment[]): Map<string, Ocupacion[]> {
   const map = new Map<string, Ocupacion[]>();
   for (const a of citas) {
     if (a.estado === "CANCELLED" || a.estado === "NO_SHOW") continue;
+    if (!a.horaInicio) continue;
     const ini = new Date(a.horaInicio);
-    const fin = new Date(a.horaFin || new Date(ini.getTime() + (a.duracion || 30) * 60000).toISOString());
-    const key = (a.fecha || a.horaInicio || "").slice(0, 10);
-    if (!key) continue;
+    if (Number.isNaN(ini.getTime())) continue;
+    const finIso =
+      a.horaFin || new Date(ini.getTime() + (a.duracion || 30) * 60000).toISOString();
+    /* La clave es el día en Madrid, no el de UTC: una cita de las 00:30
+       de Madrid pertenece al día anterior en UTC. */
+    const key = madridYmd(ini);
     const arr = map.get(key) || [];
-    arr.push({
-      startMin: ini.getUTCHours() * 60 + ini.getUTCMinutes(),
-      endMin: fin.getUTCHours() * 60 + fin.getUTCMinutes(),
-    });
+    arr.push(ocupacionDeCita(a.horaInicio, finIso));
     map.set(key, arr);
   }
   return map;
 }
 
-/** Genera las franjas libres de un día según horario y ocupación */
-function buildSlots(fecha: string, duracionMin: number, ocupadas: Ocupacion[]): SlotHora[] {
-  const apertura = minutesOf(HORARIO_DEFECTO.apertura);
-  const cierre = minutesOf(HORARIO_DEFECTO.cierre);
-  const hoy = ymd(new Date());
-  const ahoraMin = new Date().getHours() * 60 + new Date().getMinutes();
-  const slots: SlotHora[] = [];
-  for (let t = apertura; t + duracionMin <= cierre; t += duracionMin) {
-    if (fecha === hoy && t <= ahoraMin) continue; // no agendar en el pasado
-    const solapa = ocupadas.some((o) => t < o.endMin && t + duracionMin > o.startMin);
-    if (solapa) continue;
-    const hora = `${pad(Math.floor(t / 60))}:${pad(t % 60)}`;
-    const horaFin = `${pad(Math.floor((t + duracionMin) / 60))}:${pad((t + duracionMin) % 60)}`;
-    slots.push({
-      hora,
-      inicioISO: `${fecha}T${hora}:00.000Z`,
-      finISO: `${fecha}T${horaFin}:00.000Z`,
-    });
-  }
-  return slots;
+/** Datos de la sede y del profesional que condicionan las franjas. */
+interface ContextoAgenda {
+  sede: Pick<ApiSede, "horario" | "diasCerrado">;
+  horarios: Awaited<ReturnType<typeof DisponibilidadApi.horarioSede>>;
+  cierres: ReturnType<typeof resolverCierres>;
+  /** Disponibilidad del profesional indexada por fecha de Madrid */
+  disponibilidadPorDia: Map<string, ApiDisponibilidadProfesional>;
+}
+
+/**
+ * Reúne horario, cierres y disponibilidad reales. Se cachea porque el
+ * asistente consulta el mismo contexto en cada paso del calendario.
+ */
+async function fetchContexto(sedeId: string, profesionalId: string): Promise<ContextoAgenda> {
+  return cached(`ctx:${sedeId}:${profesionalId}`, async () => {
+    const desde = madridToday();
+    const hastaDate = new Date();
+    hastaDate.setDate(hastaDate.getDate() + DIAS_AGENDABLES + 1);
+    const hasta = madridYmd(hastaDate);
+
+    const [sedes, horarios, cierresRaw, dispo] = await Promise.all([
+      SedesApi.findOne(Number(sedeId)).catch(() => null),
+      DisponibilidadApi.horarioSede(Number(sedeId)).catch(() => []),
+      DisponibilidadApi.diasCerrados(Number(sedeId), desde, hasta).catch(() => []),
+      DisponibilidadApi.profesional(Number(profesionalId), desde, hasta).catch(() => []),
+    ]);
+
+    const sede = sedes ?? { horario: null, diasCerrado: [] };
+    const disponibilidadPorDia = new Map<string, ApiDisponibilidadProfesional>();
+    for (const d of dispo || []) {
+      const f = new Date(d.fecha);
+      if (!Number.isNaN(f.getTime())) disponibilidadPorDia.set(madridYmd(f), d);
+    }
+
+    return {
+      sede,
+      horarios: horarios || [],
+      cierres: resolverCierres(sede, cierresRaw || []),
+      disponibilidadPorDia,
+    };
+  });
+}
+
+/** Franjas libres de un día usando el horario real de la sede. */
+function buildSlots(
+  ctx: ContextoAgenda,
+  fecha: string,
+  duracionMin: number,
+  ocupadas: Ocupacion[],
+): SlotHora[] {
+  const diaSemana = madridDayOfWeek(new Date(`${fecha}T12:00:00Z`));
+  const horarios = resolverHorario(ctx.sede, ctx.horarios, diaSemana);
+
+  return construirSlots({
+    fecha,
+    duracionMin,
+    horarios,
+    cierres: ctx.cierres,
+    disponibilidad: ctx.disponibilidadPorDia.get(fecha) ?? null,
+    ocupadas,
+  });
 }
 
 /** Agenda del profesional con tolerancia de shape y fallback */
@@ -253,27 +297,38 @@ export const BookingController:
    * días pasados.
    */
   async getDiasNoDisponibles(profesionalId: string, sedeId: string, duracionMin: number, excludeAppointmentId?: number): Promise<Set<string>> {
-    const citas = await fetchAgenda(profesionalId, sedeId);
+    const [citas, ctx] = await Promise.all([
+      fetchAgenda(profesionalId, sedeId),
+      fetchContexto(sedeId, profesionalId),
+    ]);
     const ocupacion = buildOcupacion(
       excludeAppointmentId ? citas.filter((c) => c.id !== excludeAppointmentId) : citas
     );
     const bloqueados = new Set<string>();
-    const hoy = new Date();
+    /* Se recorre la ventana agendable en días de Madrid, que es el
+       calendario que ve el usuario. */
+    const base = new Date();
     for (let i = 0; i <= DIAS_AGENDABLES; i++) {
-      const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + i);
-      const key = ymd(d);
-      if (buildSlots(key, duracionMin, ocupacion.get(key) || []).length === 0) bloqueados.add(key);
+      const d = new Date(base.getTime());
+      d.setDate(d.getDate() + i);
+      const key = madridYmd(d);
+      if (buildSlots(ctx, key, duracionMin, ocupacion.get(key) || []).length === 0) {
+        bloqueados.add(key);
+      }
     }
     return bloqueados;
   },
 
   /** Franjas reales libres del profesional en una fecha. */
   async getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number, excludeAppointmentId?: number): Promise<SlotHora[]> {
-    const citas = await fetchAgenda(profesionalId, sedeId);
+    const [citas, ctx] = await Promise.all([
+      fetchAgenda(profesionalId, sedeId),
+      fetchContexto(sedeId, profesionalId),
+    ]);
     const ocupacion = buildOcupacion(
       excludeAppointmentId ? citas.filter((c) => c.id !== excludeAppointmentId) : citas
     );
-    return buildSlots(fecha, duracionMin, ocupacion.get(fecha) || []);
+    return buildSlots(ctx, fecha, duracionMin, ocupacion.get(fecha) || []);
   },
 
   /**

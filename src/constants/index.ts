@@ -91,9 +91,17 @@ export const SESSION_STORAGE_KEY = "bookmy-session";
 export const MESES_CORTOS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
 /* ── Agenda por defecto del asistente de reservas ────────── */
-/** Horario laboral por defecto para generar franjas cuando el
-    backend no expone GET /horario-sede por sede. Sustituible por
-    un HorarioProvider real sin tocar el asistente (OCP). */
+/**
+ * @deprecated Horario inventado: no corresponde a ninguna sede real y
+ * hacía que el asistente ofreciera franjas que el backend rechazaba
+ * con 400 (fuera de horario o en domingo).
+ *
+ * El horario real se resuelve en `@/lib/disponibilidad` → resolverHorario,
+ * que replica la precedencia del backend: tabla `horario_sede` y, si no
+ * hay filas, el JSON `sede.horario`.
+ *
+ * Solo sigue aquí porque lo usa BookingWizardController, que está sin uso.
+ */
 export const HORARIO_DEFECTO = { apertura: "08:00", cierre: "20:00" } as const;
 /** Días hacia adelante que el calendario permite agendar */
 export const DIAS_AGENDABLES = 60;
