@@ -9,7 +9,8 @@ import { useData } from "@/hooks/useData";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants";
 import { NegociosController } from "@/controllers/NegociosController";
-import type { Sede } from "@/models";
+import type { Negocio, Sede } from "@/models";
+import { ImagenesApi } from "@/api/modules";
 import { useSession } from "@/context/SessionContext";
 import { useBooking } from "@/context/BookingContext";
 import { useUi } from "@/context/UiContext";
@@ -21,6 +22,7 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
+import ImageUpload from "@/components/ui/ImageUpload";
 import styles from "./empresas.module.css";
 
 export default function EmpresasPage() {
@@ -86,6 +88,18 @@ export default function EmpresasPage() {
     toast(t("empresas.branchSet", { sede: sede.nombre }), "success");
   };
 
+  /**
+   * PATCH /empresas/:id/logo (multipart, campo "logo").
+   * El logo encabeza las facturas (EmisorController lo lee de aquí),
+   * por eso se recarga la lista al terminar.
+   */
+  const subirLogo = async (negocio: Negocio, file: File) => {
+    const actualizada = await ImagenesApi.empresaLogo(Number(negocio.id), file);
+    await reload();
+    toast(t("imagen.actualizada"), "success");
+    return actualizada?.logo ?? null;
+  };
+
   const agregar = async () => {
     if (!nombre.trim()) { toast(t("common.requiredName"), "error"); return; }
     try {
@@ -118,6 +132,16 @@ export default function EmpresasPage() {
               return (
                 <div key={n.id} className={activa ? styles.current : undefined}>
                   <SimpleCard>
+                    {/* El logo solo se puede cambiar en la empresa que se
+                        administra; el superadmin puede en cualquiera. */}
+                    <ImageUpload
+                      value={n.logo}
+                      nombre={n.nombre}
+                      variant="card"
+                      label={t("imagen.logo")}
+                      disabled={!activa && session.role !== "superadmin"}
+                      onUpload={(file) => subirLogo(n, file)}
+                    />
                     <h3>{n.nombre}</h3>
                     <Muted>{n.rubro}</Muted>
                     <TagRow>

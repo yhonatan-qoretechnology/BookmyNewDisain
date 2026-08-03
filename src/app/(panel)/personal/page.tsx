@@ -10,7 +10,7 @@ import { useState } from "react";
 import type { CredencialesEmpleado, Empleado } from "@/models";
 import { PersonalController } from "@/controllers/CrudControllers";
 import { NegociosController } from "@/controllers/NegociosController";
-import { ProfesionalesApi } from "@/api/modules";
+import { ImagenesApi, ProfesionalesApi } from "@/api/modules";
 import { useData } from "@/hooks/useData";
 import { useUi } from "@/context/UiContext";
 import { useSession } from "@/context/SessionContext";
@@ -24,6 +24,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import { PersonRow } from "@/components/ui/People";
+import ImageUpload from "@/components/ui/ImageUpload";
 import styles from "./personal.module.css";
 
 /** Correo sugerido a partir del nombre: "Ana Ruiz" → "ana.ruiz" */
@@ -86,6 +87,20 @@ export default function PersonalPage() {
     setERol(p.rol);
     setETelefono(p.telefono);
     setESede(p.sedeId);
+  };
+
+  /**
+   * PATCH /profesionales/:id/imagen (multipart, campo "imagen").
+   * Esta foto es la que se ve en el carrusel de profesionales al
+   * agendar, así que se recarga la lista al terminar.
+   */
+  const subirFotoProfesional = async (empleado: Empleado, file: File) => {
+    const actualizado = await ImagenesApi.profesional(Number(empleado.id), file);
+    const ruta = actualizado?.imagen ?? null;
+    setEditando((prev) => (prev ? { ...prev, foto: ruta } : prev));
+    await reload();
+    toast(t("imagen.actualizada"), "success");
+    return ruta;
   };
 
   const guardarEdicion = async () => {
@@ -237,6 +252,16 @@ export default function PersonalPage() {
       {/* Edición de integrante */}
       <Modal open={!!editando} onClose={() => setEditando(null)}>
         <ModalTitle>{t("personal.editTitle")}</ModalTitle>
+        {editando && (
+          <ImageUpload
+            value={editando.foto}
+            nombre={editando.nombre}
+            variant="avatar"
+            label={t("imagen.fotoProfesional")}
+            hint={t("imagen.hint")}
+            onUpload={(file) => subirFotoProfesional(editando, file)}
+          />
+        )}
         <Field label={t("common.fullName")} htmlFor="ep-nombre">
           <input id="ep-nombre" value={eNombre} onChange={(e) => setENombre(e.target.value)} />
         </Field>

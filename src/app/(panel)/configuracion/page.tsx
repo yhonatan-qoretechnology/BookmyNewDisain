@@ -9,9 +9,10 @@ import { useSession } from "@/context/SessionContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useUi } from "@/context/UiContext";
 import { LOCALES, useI18n } from "@/i18n";
-import { AuthApi } from "@/api/modules";
+import { AuthApi, ImagenesApi } from "@/api/modules";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
+import ImageUpload from "@/components/ui/ImageUpload";
 import styles from "./configuracion.module.css";
 
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -52,6 +53,20 @@ export default function ConfiguracionPage() {
     }
   };
 
+  /**
+   * PATCH /auth/users/:id/foto (multipart, campo "fotoPerfil").
+   * Devuelve el usuario actualizado; su `fotoPerfil` se refleja en la
+   * sesión para que el avatar del Topbar cambie sin recargar.
+   */
+  const subirFoto = async (file: File) => {
+    if (!session) return null;
+    const actualizado = await ImagenesApi.usuario(Number(session.id), file);
+    const ruta = actualizado?.fotoPerfil ?? null;
+    updateSession({ foto: ruta });
+    toast(t("imagen.actualizada"), "success");
+    return ruta;
+  };
+
   const cambiarPass = async () => {
     if (!passActual || passNueva.length < 6) {
       toast(t("configuracion.passTooShort"), "error");
@@ -85,6 +100,14 @@ export default function ConfiguracionPage() {
         <Panel>
           <PanelHead title={t("configuracion.profileTitle")} sub={t("configuracion.profileSub", { rol: t(`roles.${session?.role || "superadmin"}`) })} />
           <div className={styles.formCol}>
+            <ImageUpload
+              value={session?.foto}
+              nombre={session?.name || ""}
+              variant="avatar"
+              label={t("imagen.fotoPerfil")}
+              hint={t("imagen.hint")}
+              onUpload={subirFoto}
+            />
             <div>
               <label htmlFor="cf-nombre">{t("common.name")}</label>
               <input id="cf-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
