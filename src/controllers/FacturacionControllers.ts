@@ -9,12 +9,18 @@
                            selectores de Facturación, según el rol.
    · EmisorController    → datos de la empresa (logo, NIT, contacto)
                            y de la sede, para la cabecera de la factura.
-   · CategoriasGastoController → categorías base + propias del usuario.
-   · GastosController    → CRUD de gastos con respaldo local.
+   · CategoriasGastoController → categorías base + propias de la empresa
+                           (GET/POST/DELETE /categorias-gasto).
+   · GastosController    → CRUD contra GastoModule (/gastos). El alcance
+                           por sede lo resuelve el backend con el token,
+                           así que aquí no se filtra por rol a mano.
 ============================================================ */
 import type { Session } from "@/models";
-import { EmpresasApi, PaymentsApi, SedesApi } from "@/api/modules";
-import type { ApiPaymentFiltered } from "@/api/types";
+import { fotoUrl } from "@/constants";
+import {
+  CategoriasGastoApi, EmpresasApi, GastosApi, PaymentsApi, SedesApi,
+} from "@/api/modules";
+import type { ApiCategoriaGasto, ApiGasto, ApiPaymentFiltered } from "@/api/types";
 
 /* ============================================================
    Tipos
@@ -62,26 +68,32 @@ export interface Factura {
   items: FacturaItem[];
 }
 
-/** Las categorías son libres: hay unas base y el usuario crea las suyas */
-export type CategoriaGasto = string;
-
-export const CATEGORIAS_GASTO: CategoriaGasto[] = [
-  "Insumos",
-  "Alimentación",
-  "Provisiones",
-  "Materiales",
-  "Recibos",
-  "Alquiler",
-];
+/**
+ * Categoría de gasto tal como la maneja el panel. Las `isBase` vienen de
+ * la plataforma (comunes a todas las empresas y no eliminables); el resto
+ * son propias de la empresa de la sesión.
+ */
+export interface CategoriaGasto {
+  id: number;
+  nombre: string;
+  isBase: boolean;
+}
 
 export interface Gasto {
+  /** id numérico del backend, en texto (clave de React y params de ruta) */
   id: string;
-  gasto: string;             // nombre / descripción corta
-  categoria: CategoriaGasto;
+  gasto: string;             // descripcion del backend
+  /** Nombre de la categoría, para pintar y filtrar */
+  categoria: string;
+  /** id real de la categoría, necesario al crear/actualizar */
+  categoriaId: number;
   fecha: string;             // ISO yyyy-mm-dd
-  ticket: string | null;     // dataURL o URL de la imagen del tickete
+  /** URL pública del comprobante (ya absoluta), o null */
+  ticket: string | null;
   ticketNombre?: string;     // nombre de archivo original
   total: number;
+  sedeId: number;
+  sedeNombre?: string;
 }
 
 export interface FiltrosFactura {
@@ -96,8 +108,12 @@ export interface FiltrosFactura {
 
 export interface FiltrosGasto {
   gasto?: string;
-  categoria?: CategoriaGasto | "";
+  /** Nombre de la categoría ("" = todas). Se aplica en cliente: el
+      endpoint solo filtra por sede/empresa. */
+  categoria?: string;
   fecha?: string;
+  /** Acota a una sede concreta dentro del alcance del usuario. */
+  sedeId?: string;
 }
 
 /* ============================================================
@@ -343,100 +359,106 @@ export const FiltroFacturasController = {
 
 /* ============================================================
    CategoriasGastoController
-   Base (CATEGORIAS_GASTO) + propias del usuario. El respaldo es
-   localStorage para que funcione aunque no exista el endpoint.
+   GET/POST/DELETE /categorias-gasto. El backend devuelve las base
+   (isBase, comunes a todos) más las de la empresa del token, así
+   que aquí no hay lista local de respaldo.
 ============================================================ */
-const LS_CATS = "app.gastos.categorias";
-
-function catsRead(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = JSON.parse(localStorage.getItem(LS_CATS) ?? "[]");
-    return Array.isArray(raw) ? raw.filter((c) => typeof c === "string") : [];
-  } catch {
-    return [];
-  }
-}
-function catsWrite(items: string[]) {
-  if (typeof window !== "undefined") localStorage.setItem(LS_CATS, JSON.stringify(items));
-}
-
 export const CategoriasGastoController = {
-  /** Solo las creadas por el usuario */
-  propias(): string[] {
-    return catsRead();
+  /** Base + propias, tal como las ordena el backend (base primero). */
+  async list(): Promise<CategoriaGasto[]> {
+    const list = await CategoriasGastoApi.findAll().catch(() => [] as ApiCategoriaGasto[]);
+    return (list || []).map((c) => ({ id: c.id, nombre: c.nombre, isBase: c.isBase }));
   },
 
-  /** Base + propias, sin duplicados y ordenadas alfabéticamente */
-  list(): CategoriaGasto[] {
-    const propias = catsRead();
-    const vistas = new Set(CATEGORIAS_GASTO.map(norm));
-    const extra = propias.filter((c) => {
-      const k = norm(c);
-      if (vistas.has(k)) return false;
-      vistas.add(k);
-      return true;
-    });
-    return [...CATEGORIAS_GASTO, ...extra.sort((a, b) => a.localeCompare(b))];
+  /** Solo las propias de la empresa (las únicas eliminables). */
+  async propias(): Promise<CategoriaGasto[]> {
+    return (await this.list()).filter((c) => !c.isBase);
   },
 
-  /** ¿Ya existe (ignorando mayúsculas y tildes)? */
-  existe(nombre: string): boolean {
+  /** Solo las base de la plataforma. */
+  async base(): Promise<CategoriaGasto[]> {
+    return (await this.list()).filter((c) => c.isBase);
+  },
+
+  /** ¿Ya existe ese nombre? (ignorando mayúsculas y tildes) */
+  existe(nombre: string, lista: CategoriaGasto[]): boolean {
     const k = norm(nombre.trim());
-    return this.list().some((c) => norm(c) === k);
-  },
-
-  /** ¿Es una de las base? (no se pueden eliminar) */
-  esBase(nombre: string): boolean {
-    const k = norm(nombre);
-    return CATEGORIAS_GASTO.some((c) => norm(c) === k);
+    return lista.some((c) => norm(c.nombre) === k);
   },
 
   /**
-   * Crea una categoría propia.
-   * @returns la categoría normalizada, o null si estaba repetida.
+   * Crea una categoría propia — POST /categorias-gasto.
+   * La empresa sale del token; el backend responde 403 si el usuario
+   * no tiene una asociada y 400 si el nombre ya existe.
+   * @returns la categoría creada, o un mensaje de error legible.
    */
-  create(nombre: string): CategoriaGasto | null {
+  async create(nombre: string): Promise<{ categoria?: CategoriaGasto; error?: string }> {
     const limpio = nombre.trim().replace(/\s+/g, " ");
-    if (!limpio || this.existe(limpio)) return null;
-    catsWrite([...catsRead(), limpio]);
-    return limpio;
+    if (!limpio) return { error: "VACIA" };
+    try {
+      const c = await CategoriasGastoApi.create(limpio);
+      return { categoria: { id: c.id, nombre: c.nombre, isBase: c.isBase } };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Error" };
+    }
   },
 
-  /** Elimina una categoría propia (las base se ignoran) */
-  remove(nombre: string): void {
-    if (this.esBase(nombre)) return;
-    catsWrite(catsRead().filter((c) => norm(c) !== norm(nombre)));
+  /**
+   * Elimina una categoría propia — DELETE /categorias-gasto/:id.
+   * El backend rechaza las base y las que tengan gastos asociados.
+   */
+  async remove(id: number): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await CategoriasGastoApi.remove(id);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "Error" };
+    }
   },
 };
 
 /* ============================================================
    GastosController
-   CRUD contra /gastos con respaldo en localStorage para que el
-   módulo funcione aunque el endpoint no exista todavía.
+   CRUD contra GastoModule (/gastos). El endpoint /gastos/filter ya
+   acota por rol usando el token, así que aquí solo se afinan los
+   filtros que el backend no cubre (texto, categoría y fecha).
 ============================================================ */
-const LS_KEY = "app.gastos";
 
-function lsRead(): Gasto[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
-    return Array.isArray(raw) ? (raw as Gasto[]) : [];
-  } catch {
-    return [];
-  }
-}
-function lsWrite(items: Gasto[]) {
-  if (typeof window !== "undefined") localStorage.setItem(LS_KEY, JSON.stringify(items));
+/** Gasto del API → modelo del panel. */
+function mapGasto(g: ApiGasto): Gasto {
+  /* ticketUrl llega absoluta con SFTP activo ("https://bookmy.es/...") o
+     relativa si el backend guarda en local ("/uploads/gastos/..."); se
+     quita la barra inicial para que fotoUrl() no genere una doble. */
+  const ticket = g.ticketUrl ? fotoUrl(g.ticketUrl.replace(/^\//, "")) : null;
+  return {
+    id: String(g.id),
+    gasto: g.descripcion,
+    categoria: g.categoria?.nombre ?? "—",
+    categoriaId: g.categoriaId,
+    fecha: (g.fecha || "").slice(0, 10),
+    ticket,
+    ticketNombre: g.ticketUrl ? g.ticketUrl.split("/").pop() || undefined : undefined,
+    total: g.total,
+    sedeId: g.sedeId,
+    sedeNombre: g.sede?.nombre,
+  };
 }
 
 export const GastosController = {
-  async list(): Promise<Gasto[]> {
-    return lsRead();
+  /**
+   * Gastos visibles para el usuario — GET /gastos/filter.
+   * @param sedeId Acota a una sede dentro de su alcance (opcional).
+   */
+  async list(sedeId?: string): Promise<Gasto[]> {
+    const list = await GastosApi.filter(
+      sedeId ? { sedeId: Number(sedeId) } : {}
+    ).catch(() => [] as ApiGasto[]);
+    return (list || []).map(mapGasto);
   },
 
+  /** Lista filtrada: sede la resuelve el API, el resto se afina aquí. */
   async search(f: FiltrosGasto): Promise<Gasto[]> {
-    const all = await this.list();
+    const all = await this.list(f.sedeId);
     return all
       .filter(
         (g) =>
@@ -447,20 +469,64 @@ export const GastosController = {
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
   },
 
-  async create(input: Omit<Gasto, "id">): Promise<Gasto> {
-    const nuevo: Gasto = { ...input, id: `G-${Date.now()}` };
-    lsWrite([nuevo, ...lsRead()]);
-    return nuevo;
+  /**
+   * Sedes donde el usuario puede registrar un gasto.
+   * Un BRANCH_ADMIN tiene la suya fija; owner y superadmin eligen.
+   */
+  async sedesDisponibles(session: Session | null): Promise<OpcionFiltro[]> {
+    if (!session) return [];
+    if (session.sedeId) {
+      return [{ id: session.sedeId, nombre: session.sedeName || session.sedeId }];
+    }
+    const list = session.negocioId
+      ? await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => [])
+      : await SedesApi.findAll().catch(() => []);
+    return (list || []).map((s) => ({ id: String(s.id), nombre: s.nombre }));
   },
 
+  /**
+   * Sube el comprobante — POST /gastos/upload.
+   * Va antes de crear el gasto: devuelve la URL que se manda como
+   * `ticketUrl`. El backend comprime las imágenes igual que en el chat.
+   * @returns la URL pública del archivo subido.
+   */
+  async subirTicket(file: File): Promise<string> {
+    const { fileUrl } = await GastosApi.upload(file);
+    return fileUrl;
+  },
+
+  /**
+   * Registra un gasto — POST /gastos. El userId lo pone el backend
+   * desde el token; `sedeId` es obligatorio y debe estar en su alcance.
+   */
+  async create(input: {
+    gasto: string;
+    categoriaId: number;
+    fecha: string;
+    total: number;
+    sedeId: number;
+    ticketUrl?: string;
+  }): Promise<Gasto> {
+    const creado = await GastosApi.create({
+      descripcion: input.gasto,
+      total: input.total,
+      fecha: input.fecha,
+      categoriaId: input.categoriaId,
+      sedeId: input.sedeId,
+      ...(input.ticketUrl ? { ticketUrl: input.ticketUrl } : {}),
+    });
+    return mapGasto(creado);
+  },
+
+  /** DELETE /gastos/:id */
   async remove(id: string): Promise<void> {
-    lsWrite(lsRead().filter((g) => g.id !== id));
+    await GastosApi.remove(Number(id));
   },
 
   /** ¿Hay gastos usando esta categoría? (bloquea su eliminación) */
-  async usaCategoria(categoria: string): Promise<boolean> {
+  async usaCategoria(categoriaId: number): Promise<boolean> {
     const all = await this.list();
-    return all.some((g) => norm(g.categoria) === norm(categoria));
+    return all.some((g) => g.categoriaId === categoriaId);
   },
 
   /** Totales del listado mostrado (tarjetas de resumen) */

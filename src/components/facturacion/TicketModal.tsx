@@ -12,14 +12,30 @@ import EmptyState from "@/components/ui/EmptyState";
 import Modal from "./Modal";
 import styles from "./facturacion.module.css";
 
-export function descargarTicket(g: Gasto) {
+/**
+ * Descarga el comprobante. Ahora el tickete vive en otro origen
+ * (bookmy.es), y ahí el navegador ignora el atributo `download` y se
+ * limita a abrir la imagen; por eso se baja el binario y se descarga
+ * desde un blob local. Si falla (CORS o red), se abre en otra pestaña.
+ */
+export async function descargarTicket(g: Gasto) {
   if (!g.ticket) return;
-  const a = document.createElement("a");
-  a.href = g.ticket;
-  a.download = g.ticketNombre || `tickete-${g.id}.png`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  const nombre = g.ticketNombre || `tickete-${g.id}.jpg`;
+  try {
+    const res = await fetch(g.ticket);
+    if (!res.ok) throw new Error(String(res.status));
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    window.open(g.ticket, "_blank", "noopener");
+  }
 }
 
 export default function TicketModal({
@@ -42,7 +58,7 @@ export default function TicketModal({
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("common.close")}</Button>
-          <Button onClick={() => descargarTicket(gasto)} disabled={!gasto.ticket}>
+          <Button onClick={() => void descargarTicket(gasto)} disabled={!gasto.ticket}>
             <Icon name="download" /> {t("gastos.descargarImagen")}
           </Button>
         </>

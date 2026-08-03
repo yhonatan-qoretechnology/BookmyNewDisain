@@ -9,6 +9,7 @@
 import { useMemo, useState } from "react";
 import { fmtFechaLarga, fmtMoneda } from "@/constants";
 import {
+  CategoriaGasto,
   CategoriasGastoController,
   Gasto,
   GastosController,
@@ -49,13 +50,18 @@ export default function GastosPage() {
     []
   );
 
-  /* Base + propias del usuario */
-  const categorias = useMemo(() => CategoriasGastoController.list(), [catVersion]);
+  /* Base + propias, desde GET /categorias-gasto */
+  const { data: categorias } = useData<CategoriaGasto[]>(
+    () => CategoriasGastoController.list(),
+    [catVersion],
+    []
+  );
   const resumen = useMemo(() => GastosController.resumen(lista), [lista]);
 
+  /* El filtro trabaja con el nombre: el endpoint no filtra por categoría */
   const opcionesCategoria = [
     { value: "", label: t("gastos.todasCategorias") },
-    ...categorias.map((c) => ({ value: c, label: c })),
+    ...categorias.map((c) => ({ value: c.nombre, label: c.nombre })),
   ];
 
   const eliminar = (g: Gasto) => {
@@ -165,7 +171,7 @@ export default function GastosPage() {
                       {t("common.view")}
                     </Button>
                     <IconButton
-                      onClick={() => descargarTicket(g)}
+                      onClick={() => void descargarTicket(g)}
                       disabled={!g.ticket}
                       title={t("common.download")}
                       aria-label={`${t("common.download")}: ${g.gasto}`}
