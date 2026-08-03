@@ -400,6 +400,21 @@ const en: Dictionary = {
     pdfError: "The PDF could not be generated",
   },
 
+  /* Image upload — shared across screens */
+  imagen: {
+    cambiar: "Change image",
+    subiendo: "Uploading…",
+    actualizada: "Image updated",
+    hint: "JPG, PNG or WEBP · up to 10 MB",
+    fotoPerfil: "Profile photo",
+    logo: "Company logo",
+    fotoProfesional: "Staff photo",
+    imagenSede: "Branch image",
+    errTipo: "The file must be an image (JPG, PNG, WEBP or GIF).",
+    errPeso: "The image is over 10 MB. Choose a lighter one.",
+    errSubida: "The image could not be uploaded.",
+  },
+
   gastos: {
     panelTitle: "Expenses",
     panelSub: "Expense record with attached receipt",
@@ -428,6 +443,8 @@ const en: Dictionary = {
     adjuntoHint: "JPG, PNG or WEBP · up to 10 MB",
     adjuntoCta: "Drag the image here or click to browse",
     quitarImagen: "Remove image",
+    sede: "Branch",
+    subiendo: "Uploading receipt…",
     guardar: "Save expense",
     guardando: "Saving…",
     creado: "Expense recorded",
@@ -441,7 +458,11 @@ const en: Dictionary = {
     errFecha: "Select the date.",
     errTotal: "The total must be greater than 0.",
     errTipo: "The receipt must be an image (JPG, PNG, WEBP…).",
-    errPeso: "The image is over 4 MB. Attach a lighter one.",
+    errPeso: "The image is over 10 MB. Attach a lighter one.",
+    errSede: "Select the branch for this expense.",
+    errCategoria: "No categories available yet.",
+    errSubida: "The receipt could not be uploaded.",
+    errGuardar: "The expense could not be saved.",
     nuevaCategoria: "New category",
     nuevaCategoriaSub: "Create your own category to classify expenses.",
     categoriaNombre: "Category name",
@@ -471,8 +492,6 @@ const en: Dictionary = {
     salesSub: "Last 6 months (thousands of €)",
     fromReviews: "from reviews",
     topTitle: "Best-selling services",
-    sede: "Branch",
-    subiendo: "Uploading receipt…",
     topSub: "Accumulated bookings",
   },
 

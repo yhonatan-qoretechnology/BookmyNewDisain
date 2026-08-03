@@ -12,6 +12,7 @@ import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { LanguageToggle } from "@/components/layout/Topbar";
+import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
 import styles from "./login.module.css";
 
 export default function LoginPage() {
@@ -24,6 +25,9 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  /* Recuperación de contraseña por OTP */
+  const [recuperarOpen, setRecuperarOpen] = useState(false);
+  const [exito, setExito] = useState("");
 
   // Si ya hay sesión, redirigir directamente
   useEffect(() => {
@@ -87,6 +91,7 @@ export default function LoginPage() {
           <p className={styles.lede}>{t("login.lede")}</p>
 
           {error && <div className={styles.error} role="alert">{error}</div>}
+          {exito && <div className={styles.exito} role="status">{exito}</div>}
 
           <div className={styles.field}>
             <label htmlFor="lg-email">{t("login.email")}</label>
@@ -121,7 +126,13 @@ export default function LoginPage() {
               />
               {t("login.remember")}
             </label>
-            <button type="button" className={styles.forgot}>{t("login.forgot")}</button>
+            <button
+              type="button"
+              className={styles.forgot}
+              onClick={() => { setError(""); setExito(""); setRecuperarOpen(true); }}
+            >
+              {t("login.forgot")}
+            </button>
           </div>
 
           <button type="submit" className={styles.submit} disabled={submitting}>
@@ -129,6 +140,13 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+
+      <RecuperarPasswordModal
+        open={recuperarOpen}
+        emailInicial={email}
+        onClose={() => setRecuperarOpen(false)}
+        onExito={(mensaje) => { setExito(mensaje); setError(""); }}
+      />
     </div>
   );
 }

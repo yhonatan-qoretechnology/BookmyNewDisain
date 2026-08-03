@@ -401,6 +401,21 @@ const es = {
     pdfError: "No se pudo generar el PDF",
   },
 
+  /* Subida de imágenes — compartido por todas las pantallas */
+  imagen: {
+    cambiar: "Cambiar imagen",
+    subiendo: "Subiendo…",
+    actualizada: "Imagen actualizada",
+    hint: "JPG, PNG o WEBP · hasta 10 MB",
+    fotoPerfil: "Foto de perfil",
+    logo: "Logo de la empresa",
+    fotoProfesional: "Foto del profesional",
+    imagenSede: "Imagen de la sede",
+    errTipo: "El archivo debe ser una imagen (JPG, PNG, WEBP o GIF).",
+    errPeso: "La imagen supera 10 MB. Elige una más liviana.",
+    errSubida: "No se pudo subir la imagen.",
+  },
+
   gastos: {
     panelTitle: "Gastos",
     panelSub: "Registro de gastos con tickete adjunto",
@@ -431,8 +446,10 @@ const es = {
     adjuntoHint: "JPG, PNG o WEBP · hasta 10 MB",
     adjuntoCta: "Arrastra la imagen o haz clic para buscarla",
     quitarImagen: "Quitar imagen",
+    sede: "Sede",
     guardar: "Guardar gasto",
     guardando: "Guardando…",
+    subiendo: "Subiendo tickete…",
     creado: "Gasto registrado",
     eliminar: "Eliminar gasto",
     eliminarTitulo: "Eliminar gasto",
@@ -445,7 +462,11 @@ const es = {
     errFecha: "Selecciona la fecha.",
     errTotal: "El total debe ser mayor a 0.",
     errTipo: "El tickete debe ser una imagen (JPG, PNG, WEBP…).",
-    errPeso: "La imagen supera 4 MB. Adjunta una más liviana.",
+    errPeso: "La imagen supera 10 MB. Adjunta una más liviana.",
+    errSede: "Selecciona la sede del gasto.",
+    errCategoria: "No hay categorías disponibles todavía.",
+    errSubida: "No se pudo subir el tickete.",
+    errGuardar: "No se pudo guardar el gasto.",
     /* Categorías */
     nuevaCategoria: "Nueva categoría",
     nuevaCategoriaSub: "Crea una categoría propia para clasificar tus gastos.",
@@ -474,7 +495,6 @@ const es = {
     lastReviews: "últimas 90 reseñas",
     salesTitle: "Ventas por mes",
     salesSub: "Últimos 6 meses (miles de €)",
-    sede: "Sede",
     fromReviews: "según reseñas",
     topTitle: "Servicios más vendidos",
     topSub: "Reservas acumuladas",
