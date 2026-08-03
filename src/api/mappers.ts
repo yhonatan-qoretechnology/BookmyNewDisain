@@ -83,10 +83,14 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
       (a.service as { name?: string })?.name ||
       `#${a.serviceId}`,
     cliente: a.user?.UserData?.name || a.user?.email || `#${a.userId}`,
+    clienteId: a.userId,
     telefono: a.user?.UserData?.phone || "—",
     email: a.user?.email || "—",
     clienteFoto: a.user?.fotoPerfil || null,
-    fecha: (a.fecha || a.horaInicio || "").slice(0, 10),
+    /* La fecha se deriva de horaInicio en hora de Madrid: el campo
+       `fecha` del backend es medianoche UTC y puede caer en el día
+       anterior para las citas de primera hora. */
+    fecha: a.horaInicio ? diaMadrid(a.horaInicio) : (a.fecha || "").slice(0, 10),
     hora: a.horaInicio ? hhmm(a.horaInicio) : "—",
     precio: a.Payment?.totalAmount ?? 0,
     estado: APPT_ESTADO_MAP[a.estado] ?? "pendiente",
