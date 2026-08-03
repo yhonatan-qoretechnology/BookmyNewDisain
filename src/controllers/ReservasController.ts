@@ -11,6 +11,7 @@ import type { MetodoPago, Reserva, Session, SlotHora } from "@/models";
 import { AppointmentsApi, AuthApi, ProfesionalesApi, SedesApi, ServicesApi } from "@/api/modules";
 import { APPT_ESTADO_MAP, mapAppointment } from "@/api/mappers";
 import type { ApiPaymentMethod } from "@/api/types";
+import { madridYmd } from "@/lib/timezone";
 import { BookingController } from "./BookingController";
 
 /** Opción unificada para los selects del flujo de agendado */
@@ -222,14 +223,25 @@ export const ReservasController = {
    * @throws ApiError si el backend rechaza la nueva franja.
    */
   async reagendar(reserva: Reserva, slot: SlotHora): Promise<Reserva> {
-    const updated = await AppointmentsApi.reschedule(reserva.apiId!, {
-      fecha: slot.inicioISO,
-      horaInicio: slot.inicioISO,
-      horaFin: slot.finISO,
+    if (reserva.apiId == null) throw new Error("SIN_ID");
+    /* RescheduleAppointmentDto NO admite un ISO completo: exige la fecha
+       y las horas por separado (@IsDateString + @Matches HH:mm:ss). Ojo,
+       no es el mismo contrato que POST /appointments, que sí recibe ISO.
+
+       `slot.inicioISO` es el instante real en UTC (una franja de las
+       10:00 de Madrid viaja como 08:00Z) y el backend lo reconstruye
+       con Date.UTC(...) para volver a leerlo en Madrid. Por eso aquí
+       se mandan los componentes UTC, no la hora que ve el usuario. */
+    const inicio = new Date(slot.inicioISO);
+    const updated = await AppointmentsApi.reschedule(reserva.apiId, {
+      fecha: slot.inicioISO.slice(0, 10),       // YYYY-MM-DD (UTC)
+      horaInicio: slot.inicioISO.slice(11, 19), // HH:mm:ss (UTC)
+      horaFin: slot.finISO.slice(11, 19),       // HH:mm:ss (UTC)
     });
     const mapped: Reserva = {
       ...reserva,
-      fecha: slot.inicioISO.slice(0, 10),
+      /* Para mostrar sí se usa el día de Madrid */
+      fecha: madridYmd(inicio),
       hora: slot.hora,
       estado: APPT_ESTADO_MAP[updated.estado] ?? reserva.estado,
     };
