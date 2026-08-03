@@ -314,6 +314,156 @@ export interface CreateServiceDto {
   prices: Array<{ amount: number; duration: number; currency?: string }>;
 }
 
+/* ── ClientManagement (@Controller('clients')) ───────────────
+   Endpoint dedicado a los clientes finales. A diferencia de
+   /auth/users, ya viene filtrado por role CLIENT, paginado y con
+   guard de rol, y pesa ~6 veces menos. */
+
+/** Enum ClientState de schema.prisma */
+export type ApiClientState = "enabled" | "disabled" | "blocked";
+
+/** Cliente tal como lo devuelve client-management.service.ts */
+export interface ApiClient {
+  id: number;
+  email: string;
+  state: ApiClientState;
+  createdAt: string;
+  /** Avatar; se resuelve con fotoUrl() */
+  fotoPerfil?: string | null;
+  userData: {
+    name: string;
+    phone: string;
+    idioma: string;
+    gender: string;
+    birthdate: string | null;
+  } | null;
+  userLocation: {
+    address: string | null;
+    latitude: number;
+    longitude: number;
+  } | null;
+}
+
+/** GET /clients → { clients, pagination } */
+export interface ApiClientsPage {
+  clients: ApiClient[];
+  pagination: {
+    page: number; limit: number; total: number;
+    totalPages: number; hasNext: boolean; hasPrev: boolean;
+  };
+}
+
+/** Filtros de GET /clients (ClientListDto). `name` y `email` son
+    independientes: enviarlos juntos los combina con AND. */
+export interface ClientListParams {
+  email?: string;
+  name?: string;
+  id?: number;
+  page?: number;
+  limit?: number;
+}
+
+/* ── Disponibilidad (HorarioSede · DiaCerradoSede · DisponibilidadProfesional) ──
+   Estas tres tablas son la fuente que valida appointment.service.ts al
+   crear y al reagendar. Cuando no hay filas, el backend cae al JSON
+   `sede.horario` / `sede.diasCerrado`; el panel replica esa precedencia. */
+
+/** GET /horario-sede?sedeId=&activo= — fila de `horario_sede`. */
+export interface ApiHorarioSede {
+  id: number;
+  sedeId: number;
+  /** 0 = domingo … 6 = sábado (mismo índice que Date.getDay()) */
+  diaSemana: number;
+  /** "HH:mm" en hora local de la sede (Europe/Madrid) */
+  horaApertura: string;
+  horaCierre: string;
+  activo: boolean;
+  sede?: { id: number; nombre: string };
+}
+
+/** GET /dia-cerrado-sede?sedeId=&desde=&hasta= — fila de `dias_cerrados_sede`. */
+export interface ApiDiaCerradoSede {
+  id: number;
+  sedeId: number;
+  /** ISO completo; solo interesa la parte de fecha */
+  fecha: string;
+  motivo?: string | null;
+  todoElDia: boolean;
+  /** "HH:mm" cuando el cierre es parcial */
+  horaInicio?: string | null;
+  horaFin?: string | null;
+  sede?: { id: number; nombre: string };
+}
+
+/** GET /disponibilidad-profesional?profesionalId=&desde=&hasta= */
+export interface ApiDisponibilidadProfesional {
+  id: number;
+  profesionalId: number;
+  fecha: string;
+  disponible: boolean;
+  /** Restringe la franja del profesional ese día concreto */
+  horaInicio?: string | null;
+  horaFin?: string | null;
+  motivo?: string | null;
+  profesional?: { id: number; nombre: string; sedeId: number };
+}
+
+/* ── GastoModule ────────────────────────────────────────── */
+
+/** Fila de `categorias_gasto`. `isBase` marca las de plataforma:
+    las comparten todas las empresas y no se pueden eliminar. */
+export interface ApiCategoriaGasto {
+  id: number;
+  nombre: string;
+  /** null en las categorías base (no pertenecen a ninguna empresa) */
+  empresaId: number | null;
+  isBase: boolean;
+  createdAt: string;
+}
+
+/** Fila de `gastos` tal como la devuelve gasto.service.ts (gastoInclude). */
+export interface ApiGasto {
+  id: number;
+  descripcion: string;
+  total: number;
+  /** ISO completo; el panel solo usa la parte de fecha */
+  fecha: string;
+  ticketUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  categoriaId: number;
+  sedeId: number;
+  userId: number;
+  categoria?: ApiCategoriaGasto;
+  sede?: { id: number; nombre: string };
+  user?: { id: number; email: string };
+}
+
+/** DTO de POST /gastos (create-gasto.dto.ts) */
+export interface CreateGastoDto {
+  /** máx. 160 caracteres */
+  descripcion: string;
+  total: number;
+  /** IsDateString — "YYYY-MM-DD" es válido */
+  fecha: string;
+  categoriaId: number;
+  sedeId: number;
+  ticketUrl?: string;
+}
+
+/** DTO de PATCH /gastos/:id — parcial y SIN sedeId (OmitType en el backend:
+    un gasto no se puede mover de sede). */
+export type UpdateGastoDto = Partial<Omit<CreateGastoDto, "sedeId">>;
+
+/** Respuesta de POST /gastos/upload (gasto.service.ts → storeGastoFile) */
+export interface ApiGastoUploadResponse {
+  /** URL pública ya resuelta (SFTP o /uploads local) */
+  fileUrl: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
 /** DTO de POST /ChatMessage/messages (send-message.dto.ts) */
 export interface SendMessageDto {
   senderId: number;
