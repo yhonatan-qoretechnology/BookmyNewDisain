@@ -5,12 +5,16 @@
    adjunto quedan a la vista sin necesidad de hacer scroll.
    Incluye el acceso directo para crear una categoría nueva.
 ============================================================ */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CategoriasGastoController,
+  FiltroFacturasController,
   Gasto,
   GastosController,
+  OpcionFiltro,
 } from "@/controllers/FacturacionControllers";
+import { useData } from "@/hooks/useData";
+import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Button from "@/components/ui/Button";
@@ -20,7 +24,9 @@ import CategoriaFormModal from "./CategoriaFormModal";
 import styles from "./facturacion.module.css";
 
 const hoy = () => new Date().toISOString().slice(0, 10);
-const MAX_BYTES = 4 * 1024 * 1024;
+/** Mismas restricciones que POST /gastos/upload */
+const TICKET_TIPOS = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
+const MAX_BYTES = 10 * 1024 * 1024;
 
 export default function GastoFormModal({
   open,
@@ -33,45 +39,81 @@ export default function GastoFormModal({
 }) {
   const { t } = useI18n();
   const { toast } = useUi();
+  const { session } = useSession();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [gasto, setGasto] = useState("");
-  const [categoria, setCategoria] = useState("");
+  const [categoriaId, setCategoriaId] = useState("");
+  const [empresaId, setEmpresaId] = useState("");
+  const [sedeId, setSedeId] = useState("");
   const [fecha, setFecha] = useState(hoy());
   const [total, setTotal] = useState("");
-  const [ticket, setTicket] = useState<string | null>(null);
-  const [ticketNombre, setTicketNombre] = useState("");
+  const [ticketFile, setTicketFile] = useState<File | null>(null);
+  const [ticketPreviewUrl, setTicketPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-  const [catVersion, setCatVersion] = useState(0);
 
-  /* Base + propias; se recalcula al crear una categoría nueva */
-  const categorias = useMemo(() => CategoriasGastoController.list(), [catVersion]);
-  const categoriaActual = categoria || categorias[0] || "";
+  /* Base + propias de la empresa de la sesión; se recarga al crear una nueva */
+  const { data: categorias, reload: reloadCategorias } = useData(
+    () => (open ? CategoriasGastoController.list() : Promise.resolve([])),
+    [open], []
+  );
+  const categoriaActual = categoriaId || categorias[0]?.id || "";
 
-  if (!open) return null;
+  /* Empresa: solo superadmin elige (owner ya tiene la suya fija) */
+  const esSuperadmin = session?.role === "superadmin";
+  const { data: empresasOpt } = useData(
+    () => (open && esSuperadmin ? FiltroFacturasController.empresas(session) : Promise.resolve([] as OpcionFiltro[])),
+    [open, esSuperadmin, session?.id], []
+  );
+
+  /* Sede a la que se factura: fija para admin de sede, elegible para owner/superadmin.
+     El superadmin debe elegir primero la empresa; owner ya tiene la suya fija. */
+  const puedeElegirSede = session?.role === "owner" || esSuperadmin;
+  const { data: sedesOpt } = useData(
+    () => {
+      if (!open || !puedeElegirSede) return Promise.resolve([] as OpcionFiltro[]);
+      if (esSuperadmin && !empresaId) return Promise.resolve([] as OpcionFiltro[]);
+      return FiltroFacturasController.sedes(session, esSuperadmin ? empresaId : undefined);
+    },
+    [open, puedeElegirSede, esSuperadmin, empresaId, session?.id], []
+  );
+  useEffect(() => { setSedeId(""); }, [empresaId]);
+  const sedeActual = puedeElegirSede ? (sedeId || sedesOpt[0]?.id || "") : (session?.sedeId || "");
+
+  const esPdf = ticketFile?.type === "application/pdf";
 
   const reset = () => {
-    setGasto(""); setCategoria(""); setFecha(hoy());
-    setTotal(""); setTicket(null); setTicketNombre("");
+    setGasto(""); setCategoriaId(""); setEmpresaId(""); setSedeId(""); setFecha(hoy());
+    setTotal(""); setTicketFile(null);
+    if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl);
+    setTicketPreviewUrl(null);
     setError(""); setDragging(false);
   };
+
+  /* Libera el object URL del preview al cambiar de archivo o desmontar */
+  useEffect(() => () => { if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl); }, [ticketPreviewUrl]);
+
+  if (!open) return null;
 
   const cerrar = () => { reset(); onClose(); };
 
   const onFile = (file?: File | null) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return setError(t("gastos.errTipo"));
+    if (!TICKET_TIPOS.includes(file.type)) return setError(t("gastos.errTipo"));
     if (file.size > MAX_BYTES) return setError(t("gastos.errPeso"));
     setError("");
-    const reader = new FileReader();
-    reader.onload = () => {
-      setTicket(reader.result as string);
-      setTicketNombre(file.name);
-    };
-    reader.readAsDataURL(file);
+    if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl);
+    setTicketFile(file);
+    setTicketPreviewUrl(file.type === "application/pdf" ? null : URL.createObjectURL(file));
+  };
+
+  const quitarTicket = () => {
+    if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl);
+    setTicketFile(null);
+    setTicketPreviewUrl(null);
   };
 
   const guardar = async () => {
@@ -79,20 +121,24 @@ export default function GastoFormModal({
     if (!gasto.trim()) return setError(t("gastos.errNombre"));
     if (!fecha) return setError(t("gastos.errFecha"));
     if (!monto || monto <= 0) return setError(t("gastos.errTotal"));
+    if (esSuperadmin && !empresaId) return setError(t("gastos.errEmpresa"));
+    if (!sedeActual) return setError(t("gastos.errSede"));
 
     setSaving(true);
     try {
       const nuevo = await GastosController.create({
         gasto: gasto.trim(),
-        categoria: categoriaActual,
+        categoriaId: categoriaActual,
+        sedeId: sedeActual,
         fecha,
         total: monto,
-        ticket,
-        ticketNombre: ticketNombre || undefined,
+        ticket: ticketFile,
       });
       toast(t("gastos.creado"), "success");
       onSaved(nuevo);
       cerrar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("gastos.errGuardar"));
     } finally {
       setSaving(false);
     }
@@ -141,9 +187,9 @@ export default function GastoFormModal({
                   id="gf-categoria"
                   className={styles.input}
                   value={categoriaActual}
-                  onChange={(e) => setCategoria(e.target.value)}
+                  onChange={(e) => setCategoriaId(e.target.value)}
                 >
-                  {categorias.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select>
                 <svg className={styles.caret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                   <path d="M6 9l6 6 6-6" />
@@ -160,6 +206,51 @@ export default function GastoFormModal({
               </button>
             </div>
           </div>
+
+          {/* Empresa — solo superadmin elige, define qué sedes se pueden facturar */}
+          {esSuperadmin && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="gf-empresa">{t("gastos.empresa")}</label>
+              <div className={styles.selectWrap}>
+                <select
+                  id="gf-empresa"
+                  className={styles.input}
+                  value={empresaId}
+                  onChange={(e) => setEmpresaId(e.target.value)}
+                >
+                  <option value="">{t("gastos.elegirEmpresa")}</option>
+                  {empresasOpt.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                </select>
+                <svg className={styles.caret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+          )}
+
+          {/* Sede a la que se factura — solo owner/superadmin eligen, admin de sede ya está fijo */}
+          {puedeElegirSede && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="gf-sede">{t("gastos.sede")}</label>
+              <div className={styles.selectWrap}>
+                <select
+                  id="gf-sede"
+                  className={styles.input}
+                  value={sedeActual}
+                  disabled={esSuperadmin && !empresaId}
+                  onChange={(e) => setSedeId(e.target.value)}
+                >
+                  <option value="">
+                    {esSuperadmin && !empresaId ? t("gastos.primeroEmpresa") : t("gastos.elegirSede")}
+                  </option>
+                  {sedesOpt.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                </select>
+                <svg className={styles.caret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+          )}
 
           {/* Fila 2 — fecha + total */}
           <div className={styles.field}>
@@ -195,17 +286,20 @@ export default function GastoFormModal({
               <span className={styles.hint}>{t("gastos.adjuntoHint")}</span>
             </label>
 
-            {ticket ? (
+            {ticketFile ? (
               <div className={styles.preview}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ticket} alt={t("gastos.adjunto")} />
+                {esPdf ? (
+                  <div className={styles.previewPdf}>
+                    <Icon name="fileText" />
+                    <span>{ticketFile.name}</span>
+                  </div>
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={ticketPreviewUrl!} alt={t("gastos.adjunto")} />
+                )}
                 <div className={styles.previewBar}>
-                  <span className={styles.previewName}>{ticketNombre}</span>
-                  <button
-                    type="button"
-                    className={styles.previewQuitar}
-                    onClick={() => { setTicket(null); setTicketNombre(""); }}
-                  >
+                  <span className={styles.previewName}>{ticketFile.name}</span>
+                  <button type="button" className={styles.previewQuitar} onClick={quitarTicket}>
                     {t("gastos.quitarImagen")}
                   </button>
                 </div>
@@ -233,7 +327,7 @@ export default function GastoFormModal({
             <input
               ref={fileRef}
               type="file"
-              accept="image/*"
+              accept={TICKET_TIPOS.join(",")}
               className={styles.fileInput}
               onChange={(e) => onFile(e.target.files?.[0])}
             />
@@ -252,8 +346,8 @@ export default function GastoFormModal({
         open={catOpen}
         onClose={() => setCatOpen(false)}
         onCreated={(nueva) => {
-          setCatVersion((v) => v + 1);
-          setCategoria(nueva);
+          reloadCategorias();
+          setCategoriaId(nueva.id);
           setCatOpen(false);
         }}
       />

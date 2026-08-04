@@ -6,14 +6,17 @@
    - Botón "Agregar gasto" abre el formulario ancho con adjunto
    - "Nueva categoría" crea categorías propias sin salir de la vista
 ============================================================ */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fmtFechaLarga, fmtMoneda } from "@/constants";
 import {
   CategoriasGastoController,
+  esTicketPdf,
+  FiltroFacturasController,
   Gasto,
   GastosController,
 } from "@/controllers/FacturacionControllers";
 import { useData } from "@/hooks/useData";
+import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
@@ -31,31 +34,50 @@ import styles from "@/components/facturacion/facturacion.module.css";
 
 export default function GastosPage() {
   const { t } = useI18n();
+  const { session } = useSession();
   const { toast, confirm } = useUi();
 
   const [fGasto, setFGasto] = useState("");
-  const [fCategoria, setFCategoria] = useState("");
+  const [fCategoriaId, setFCategoriaId] = useState("");
   const [fFecha, setFFecha] = useState("");
-  const [refresh, setRefresh] = useState(0);
-  const [catVersion, setCatVersion] = useState(0);
+  /* Alcance por rol: empresa (solo superadmin) y sede (superadmin/owner) */
+  const [fEmpresaId, setFEmpresaId] = useState("");
+  const [fSedeId, setFSedeId] = useState("");
 
   const [ticketDe, setTicketDe] = useState<Gasto | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
 
+  /* Opciones de los selectores de empresa/sede, según el rol de la sesión */
+  const { data: empresasOpt } = useData(
+    () => FiltroFacturasController.empresas(session),
+    [session?.id, session?.role], []
+  );
+  const { data: sedesOpt } = useData(
+    () => FiltroFacturasController.sedes(session, fEmpresaId),
+    [session?.id, session?.role, session?.negocioId, fEmpresaId], []
+  );
+  useEffect(() => { setFSedeId(""); }, [fEmpresaId]);
+
+  const hayFiltroEmpresa = session?.role === "superadmin" && empresasOpt.length > 0;
+  const hayFiltroSede = (session?.role === "superadmin" || session?.role === "owner") && sedesOpt.length > 0;
+
   const { data: lista, reload } = useData(
-    () => GastosController.search({ gasto: fGasto, categoria: fCategoria, fecha: fFecha }),
-    [fGasto, fCategoria, fFecha, refresh],
+    () => GastosController.search(session, { gasto: fGasto, categoriaId: fCategoriaId, fecha: fFecha, empresaId: fEmpresaId, sedeId: fSedeId }),
+    [session?.id, session?.negocioId, session?.sedeId, fGasto, fCategoriaId, fFecha, fEmpresaId, fSedeId],
     []
   );
 
-  /* Base + propias del usuario */
-  const categorias = useMemo(() => CategoriasGastoController.list(), [catVersion]);
+  /* Base + propias de la empresa de la sesión */
+  const { data: categorias, reload: reloadCategorias } = useData(
+    () => CategoriasGastoController.list(),
+    [session?.id], []
+  );
   const resumen = useMemo(() => GastosController.resumen(lista), [lista]);
 
   const opcionesCategoria = [
     { value: "", label: t("gastos.todasCategorias") },
-    ...categorias.map((c) => ({ value: c, label: c })),
+    ...categorias.map((c) => ({ value: c.id, label: c.nombre })),
   ];
 
   const eliminar = (g: Gasto) => {
@@ -99,12 +121,44 @@ export default function GastosPage() {
       <Panel>
         <PanelHead title={t("gastos.panelTitle")} sub={t("gastos.panelSub")} />
 
+        {/* Fila 1 · Ámbito: a qué empresa/sede pertenecen los gastos (solo si el rol elige) */}
+        {(hayFiltroEmpresa || hayFiltroSede) && (
+          <Toolbar>
+            <FilterGroup>
+              {hayFiltroEmpresa && (
+                <FilterSelect
+                  value={fEmpresaId}
+                  onChange={setFEmpresaId}
+                  icon="building"
+                  label={t("facturacion.filterEmpresa")}
+                  options={[
+                    { value: "", label: t("facturacion.filterEmpresa") },
+                    ...empresasOpt.map((e) => ({ value: e.id, label: e.nombre })),
+                  ]}
+                />
+              )}
+              {hayFiltroSede && (
+                <FilterSelect
+                  value={fSedeId}
+                  onChange={setFSedeId}
+                  icon="mapPin"
+                  label={t("facturacion.filterSede")}
+                  options={[
+                    { value: "", label: t("facturacion.filterSede") },
+                    ...sedesOpt.map((s) => ({ value: s.id, label: s.nombre })),
+                  ]}
+                />
+              )}
+            </FilterGroup>
+          </Toolbar>
+        )}
+
         <Toolbar>
           <FilterGroup>
             <SearchBox value={fGasto} onChange={setFGasto} placeholder={t("gastos.filterGasto")} compact />
             <FilterSelect
-              value={fCategoria}
-              onChange={setFCategoria}
+              value={fCategoriaId}
+              onChange={setFCategoriaId}
               options={opcionesCategoria}
               label={t("gastos.categoria")}
               icon="tag"
@@ -149,8 +203,12 @@ export default function GastosPage() {
                       title={t("gastos.verTickete")}
                       aria-label={`${t("gastos.verTickete")}: ${g.gasto}`}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={g.ticket} alt={`${t("gastos.tickete")} — ${g.gasto}`} />
+                      {esTicketPdf(g.ticket) ? (
+                        <Icon name="fileText" />
+                      ) : (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={g.ticket} alt={`${t("gastos.tickete")} — ${g.gasto}`} />
+                      )}
                     </button>
                   ) : (
                     <span className={styles.sinTicket} title={t("gastos.sinTickete")}>
@@ -195,14 +253,14 @@ export default function GastosPage() {
       <GastoFormModal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        onSaved={() => setRefresh((n) => n + 1)}
+        onSaved={() => reload()}
       />
 
       {/* Alta de categorías propias desde la propia vista */}
       <CategoriaFormModal
         open={catOpen}
         onClose={() => setCatOpen(false)}
-        onCreated={() => { setCatVersion((v) => v + 1); setCatOpen(false); }}
+        onCreated={() => { reloadCategorias(); setCatOpen(false); }}
       />
     </>
   );

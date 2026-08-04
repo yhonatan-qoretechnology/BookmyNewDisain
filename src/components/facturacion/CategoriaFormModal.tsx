@@ -4,11 +4,14 @@
    Muestra las predeterminadas y las del usuario (eliminables
    si ningún gasto las está usando).
 ============================================================ */
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
+  CategoriaGasto,
   CategoriasGastoController,
   GastosController,
 } from "@/controllers/FacturacionControllers";
+import { useData } from "@/hooks/useData";
+import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Button from "@/components/ui/Button";
@@ -24,42 +27,55 @@ export default function CategoriaFormModal({
   open: boolean;
   onClose: () => void;
   /** Devuelve la categoría creada para seleccionarla al vuelo */
-  onCreated: (categoria: string) => void;
+  onCreated: (categoria: CategoriaGasto) => void;
 }) {
   const { t } = useI18n();
   const { toast } = useUi();
+  const { session } = useSession();
   const [nombre, setNombre] = useState("");
   const [error, setError] = useState("");
-  const [version, setVersion] = useState(0);
+  const [creando, setCreando] = useState(false);
 
-  const base = useMemo(() => CategoriasGastoController.list().filter((c) => CategoriasGastoController.esBase(c)), []);
-  const propias = useMemo(() => CategoriasGastoController.propias(), [version]);
+  const { data: categorias, reload } = useData(
+    () => (open ? CategoriasGastoController.list() : Promise.resolve([])),
+    [open], []
+  );
+  const base = categorias.filter((c) => c.esBase);
+  const propias = categorias.filter((c) => !c.esBase);
 
   if (!open) return null;
 
-  const crear = () => {
+  const crear = async () => {
     const limpio = nombre.trim();
     if (!limpio) return setError(t("gastos.categoriaVacia"));
-    if (CategoriasGastoController.existe(limpio)) return setError(t("gastos.categoriaDuplicada"));
 
-    const creada = CategoriasGastoController.create(limpio);
-    if (!creada) return setError(t("gastos.categoriaDuplicada"));
-
-    toast(t("gastos.categoriaCreada", { nombre: creada }), "success");
-    setNombre("");
-    setError("");
-    setVersion((v) => v + 1);
-    onCreated(creada);
+    setCreando(true);
+    try {
+      const creada = await CategoriasGastoController.create(limpio);
+      toast(t("gastos.categoriaCreada", { nombre: creada.nombre }), "success");
+      setNombre("");
+      setError("");
+      await reload();
+      onCreated(creada);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("gastos.categoriaDuplicada"));
+    } finally {
+      setCreando(false);
+    }
   };
 
-  const eliminar = async (categoria: string) => {
-    if (await GastosController.usaCategoria(categoria)) {
+  const eliminar = async (categoria: CategoriaGasto) => {
+    if (await GastosController.usaCategoria(session, categoria.id)) {
       toast(t("gastos.categoriaEnUso"), "error");
       return;
     }
-    CategoriasGastoController.remove(categoria);
-    setVersion((v) => v + 1);
-    toast(t("gastos.categoriaEliminada"), "success");
+    try {
+      await CategoriasGastoController.remove(categoria.id);
+      await reload();
+      toast(t("gastos.categoriaEliminada"), "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t("gastos.categoriaEnUso"), "error");
+    }
   };
 
   return (
@@ -72,7 +88,7 @@ export default function CategoriaFormModal({
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("common.cancel")}</Button>
-          <Button onClick={crear}>
+          <Button onClick={crear} disabled={creando}>
             <Icon name="plus" /> {t("gastos.categoriaCrear")}
           </Button>
         </>
@@ -107,13 +123,13 @@ export default function CategoriaFormModal({
             <span className={styles.chipEmpty}>{t("gastos.categoriaSinPropias")}</span>
           ) : (
             propias.map((c) => (
-              <span key={c} className={styles.chip}>
-                {c}
+              <span key={c.id} className={styles.chip}>
+                {c.nombre}
                 <button
                   type="button"
                   className={styles.chipDel}
                   onClick={() => eliminar(c)}
-                  aria-label={`${t("gastos.categoriaEliminar")}: ${c}`}
+                  aria-label={`${t("gastos.categoriaEliminar")}: ${c.nombre}`}
                   title={t("gastos.categoriaEliminar")}
                 >
                   <Icon name="x" />
@@ -128,7 +144,7 @@ export default function CategoriaFormModal({
         <p className={styles.catSectionTitle}>{t("gastos.categoriaBase")}</p>
         <div className={styles.chipRow}>
           {base.map((c) => (
-            <span key={c} className={`${styles.chip} ${styles.chipBase}`}>{c}</span>
+            <span key={c.id} className={`${styles.chip} ${styles.chipBase}`}>{c.nombre}</span>
           ))}
         </div>
       </div>

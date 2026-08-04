@@ -3,7 +3,7 @@
    TicketModal — popup con la imagen del tickete + descarga
 ============================================================ */
 import { fmtFechaLarga, fmtMoneda } from "@/constants";
-import type { Gasto } from "@/controllers/FacturacionControllers";
+import { esTicketPdf, type Gasto } from "@/controllers/FacturacionControllers";
 import { useI18n } from "@/i18n";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -12,14 +12,14 @@ import EmptyState from "@/components/ui/EmptyState";
 import Modal from "./Modal";
 import styles from "./facturacion.module.css";
 
+/**
+ * El comprobante es una URL remota (no un dataURL): el atributo
+ * `download` del navegador no fuerza la descarga en URLs cross-origin,
+ * así que simplemente lo abrimos en una pestaña nueva.
+ */
 export function descargarTicket(g: Gasto) {
   if (!g.ticket) return;
-  const a = document.createElement("a");
-  a.href = g.ticket;
-  a.download = g.ticketNombre || `tickete-${g.id}.png`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  window.open(g.ticket, "_blank", "noopener,noreferrer");
 }
 
 export default function TicketModal({
@@ -60,12 +60,19 @@ export default function TicketModal({
       </div>
 
       {gasto.ticket ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={gasto.ticket}
-          alt={`${t("gastos.tickete")} — ${gasto.gasto}`}
-          className={styles.ticketFull}
-        />
+        esTicketPdf(gasto.ticket) ? (
+          <div className={styles.previewPdf}>
+            <Icon name="fileText" />
+            <span>{gasto.ticketNombre || t("gastos.tickete")}</span>
+          </div>
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={gasto.ticket}
+            alt={`${t("gastos.tickete")} — ${gasto.gasto}`}
+            className={styles.ticketFull}
+          />
+        )
       ) : (
         <EmptyState icon="image" title={t("gastos.sinTickete")} />
       )}

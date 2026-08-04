@@ -6,8 +6,8 @@
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
-  ApiAppointment, ApiCategory, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse, ApiEmpresa,
-  ApiProfesionalDetalle,
+  ApiAppointment, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse, ApiEmpresa,
+  ApiGasto, ApiGastoUploadResponse, ApiProfesionalDetalle,
   ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
   CreateAppointmentDto, CreateServiceDto, LoginResponse, Paginated,
   RegisterUserDto, SendMessageDto,
@@ -196,4 +196,37 @@ export const PaymentsApi = {
     http.get<ApiPaymentFiltered[]>(EP.paymentsFilter + qs({ userId: params.userId, sedeId: params.sedeId })),
   confirm: (id: number) => http.patch<ApiPayment>(EP.paymentConfirm(id)),
   cancel: (id: number, data?: { reason?: string }) => http.patch<ApiPayment>(EP.paymentCancel(id), data),
+};
+
+/* ── Gastos (categorías base/empresa + CRUD) ─────────────── */
+export const CategoriasGastoApi = {
+  /** GET /categorias-gasto — base del sistema + propias de la empresa de la sesión. */
+  findAll: () => http.get<ApiCategoriaGasto[]>(EP.categoriasGasto),
+  /** POST /categorias-gasto — crea una categoría propia de la empresa de la sesión. */
+  create: (nombre: string) => http.post<ApiCategoriaGasto>(EP.categoriasGasto, { nombre }),
+  /** DELETE /categorias-gasto/:id — el backend rechaza las base (isBase). */
+  remove: (id: number) => http.delete(EP.categoriaGastoById(id)),
+};
+
+export const GastosApi = {
+  /**
+   * GET /gastos/filter?sedeId=&empresaId= — el backend valida en el
+   * servidor que el alcance pertenezca al usuario autenticado.
+   */
+  filter: (params: { sedeId?: number; empresaId?: number } = {}) =>
+    http.get<ApiGasto[]>(EP.gastosFilter + qs({ sedeId: params.sedeId, empresaId: params.empresaId })),
+  create: (dto: {
+    descripcion: string; total: number; fecha: string;
+    categoriaId: number; sedeId: number; ticketUrl?: string;
+  }) => http.post<ApiGasto>(EP.gastos, dto),
+  update: (id: number, dto: Partial<{
+    descripcion: string; total: number; fecha: string; categoriaId: number; ticketUrl: string;
+  }>) => http.patch<ApiGasto>(EP.gastoById(id), dto),
+  remove: (id: number) => http.delete(EP.gastoById(id)),
+  /** POST /gastos/upload — comprobante (imagen o PDF, máx. 10MB), mismo contrato que /ChatMessage/upload. */
+  upload: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return http.postForm<ApiGastoUploadResponse>(EP.gastosUpload, form);
+  },
 };

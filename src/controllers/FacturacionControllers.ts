@@ -9,12 +9,14 @@
                            selectores de Facturación, según el rol.
    · EmisorController    → datos de la empresa (logo, NIT, contacto)
                            y de la sede, para la cabecera de la factura.
-   · CategoriasGastoController → categorías base + propias del usuario.
-   · GastosController    → CRUD de gastos con respaldo local.
+   · CategoriasGastoController → GET/POST/DELETE /categorias-gasto
+                           (base del sistema + propias de la empresa).
+   · GastosController    → GET /gastos/filter, POST/PATCH/DELETE /gastos,
+                           POST /gastos/upload (comprobante).
 ============================================================ */
 import type { Session } from "@/models";
-import { EmpresasApi, PaymentsApi, SedesApi } from "@/api/modules";
-import type { ApiPaymentFiltered } from "@/api/types";
+import { CategoriasGastoApi, EmpresasApi, GastosApi, PaymentsApi, SedesApi } from "@/api/modules";
+import type { ApiGasto, ApiPaymentFiltered } from "@/api/types";
 
 /* ============================================================
    Tipos
@@ -62,41 +64,40 @@ export interface Factura {
   items: FacturaItem[];
 }
 
-/** Las categorías son libres: hay unas base y el usuario crea las suyas */
-export type CategoriaGasto = string;
-
-export const CATEGORIAS_GASTO: CategoriaGasto[] = [
-  "Insumos",
-  "Alimentación",
-  "Provisiones",
-  "Materiales",
-  "Recibos",
-  "Alquiler",
-];
+/** Categoría de gasto — base del sistema (esBase) o propia de la empresa */
+export interface CategoriaGasto {
+  id: string;
+  nombre: string;
+  esBase: boolean;
+}
 
 export interface Gasto {
   id: string;
-  gasto: string;             // nombre / descripción corta
-  categoria: CategoriaGasto;
+  gasto: string;             // descripcion en el API
+  categoriaId: string;
+  categoria: string;         // nombre de la categoría, resuelto para mostrar en la tabla
   fecha: string;             // ISO yyyy-mm-dd
-  ticket: string | null;     // dataURL o URL de la imagen del tickete
-  ticketNombre?: string;     // nombre de archivo original
+  ticket: string | null;     // ticketUrl del comprobante subido
+  ticketNombre?: string;     // derivado de la URL
   total: number;
+  sedeId: string;
 }
 
-export interface FiltrosFactura {
-  /** Búsqueda libre: coincide con ID, cliente o servicio */
-  q?: string;
-  fecha?: string;
-  /** Solo superadmin: acota a las sedes de una empresa (resuelve sus IDs). */
+/** Alcance compartido por Facturas y Gastos: qué sede(s) consultar según el rol */
+interface AlcanceFiltro {
   empresaId?: string;
-  /** Superadmin/owner: acota a una sede concreta. */
   sedeId?: string;
 }
 
-export interface FiltrosGasto {
+export interface FiltrosFactura extends AlcanceFiltro {
+  /** Búsqueda libre: coincide con ID, cliente o servicio */
+  q?: string;
+  fecha?: string;
+}
+
+export interface FiltrosGasto extends AlcanceFiltro {
   gasto?: string;
-  categoria?: CategoriaGasto | "";
+  categoriaId?: string;
   fecha?: string;
 }
 
@@ -158,13 +159,13 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
 }
 
 /**
- * Resuelve qué sedes consultar en /payments/filter según el rol:
+ * Resuelve qué sedes consultar (en /payments/filter o /gastos/filter) según el rol:
  *  · admin (sede)   → siempre su propia sede, sin opción de cambiarla.
  *  · owner (empresa) → la sede elegida, o todas las de su empresa.
  *  · superadmin      → la sede elegida; si no, las de la empresa elegida;
  *                      si tampoco, sin restricción (undefined = todo el sistema).
  */
-async function resolverSedesConsulta(session: Session | null, f: FiltrosFactura): Promise<number[] | undefined> {
+async function resolverSedesConsulta(session: Session | null, f: AlcanceFiltro): Promise<number[] | undefined> {
   if (!session) return [];
 
   if (session.role === "admin") {
@@ -343,130 +344,154 @@ export const FiltroFacturasController = {
 
 /* ============================================================
    CategoriasGastoController
-   Base (CATEGORIAS_GASTO) + propias del usuario. El respaldo es
-   localStorage para que funcione aunque no exista el endpoint.
+   GET/POST/DELETE /categorias-gasto — base del sistema (empresaId
+   null) + propias de la empresa de la sesión, resueltas en el
+   backend a partir del AdminProfile del usuario autenticado.
 ============================================================ */
-const LS_CATS = "app.gastos.categorias";
-
-function catsRead(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = JSON.parse(localStorage.getItem(LS_CATS) ?? "[]");
-    return Array.isArray(raw) ? raw.filter((c) => typeof c === "string") : [];
-  } catch {
-    return [];
-  }
-}
-function catsWrite(items: string[]) {
-  if (typeof window !== "undefined") localStorage.setItem(LS_CATS, JSON.stringify(items));
-}
-
 export const CategoriasGastoController = {
-  /** Solo las creadas por el usuario */
-  propias(): string[] {
-    return catsRead();
+  /** Base + propias de la empresa de la sesión, base primero y luego alfabético */
+  async list(): Promise<CategoriaGasto[]> {
+    const rows = await CategoriasGastoApi.findAll().catch(() => []);
+    return (rows || [])
+      .map((c) => ({ id: String(c.id), nombre: c.nombre, esBase: c.isBase }))
+      .sort((a, b) => (a.esBase !== b.esBase ? (a.esBase ? -1 : 1) : a.nombre.localeCompare(b.nombre)));
   },
 
-  /** Base + propias, sin duplicados y ordenadas alfabéticamente */
-  list(): CategoriaGasto[] {
-    const propias = catsRead();
-    const vistas = new Set(CATEGORIAS_GASTO.map(norm));
-    const extra = propias.filter((c) => {
-      const k = norm(c);
-      if (vistas.has(k)) return false;
-      vistas.add(k);
-      return true;
-    });
-    return [...CATEGORIAS_GASTO, ...extra.sort((a, b) => a.localeCompare(b))];
-  },
-
-  /** ¿Ya existe (ignorando mayúsculas y tildes)? */
-  existe(nombre: string): boolean {
-    const k = norm(nombre.trim());
-    return this.list().some((c) => norm(c) === k);
-  },
-
-  /** ¿Es una de las base? (no se pueden eliminar) */
-  esBase(nombre: string): boolean {
-    const k = norm(nombre);
-    return CATEGORIAS_GASTO.some((c) => norm(c) === k);
+  /** Solo las propias (no base) — para el listado de "tus categorías" */
+  async propias(): Promise<CategoriaGasto[]> {
+    return (await this.list()).filter((c) => !c.esBase);
   },
 
   /**
-   * Crea una categoría propia.
-   * @returns la categoría normalizada, o null si estaba repetida.
+   * Crea una categoría propia de la empresa de la sesión.
+   * Lanza si el backend la rechaza (nombre vacío, duplicada, etc.) —
+   * el llamador debe mostrar `err.message`.
    */
-  create(nombre: string): CategoriaGasto | null {
+  async create(nombre: string): Promise<CategoriaGasto> {
     const limpio = nombre.trim().replace(/\s+/g, " ");
-    if (!limpio || this.existe(limpio)) return null;
-    catsWrite([...catsRead(), limpio]);
-    return limpio;
+    const creada = await CategoriasGastoApi.create(limpio);
+    return { id: String(creada.id), nombre: creada.nombre, esBase: creada.isBase };
   },
 
-  /** Elimina una categoría propia (las base se ignoran) */
-  remove(nombre: string): void {
-    if (this.esBase(nombre)) return;
-    catsWrite(catsRead().filter((c) => norm(c) !== norm(nombre)));
+  /** Elimina una categoría propia (el backend rechaza las base con 403) */
+  async remove(id: string): Promise<void> {
+    await CategoriasGastoApi.remove(Number(id));
   },
 };
 
 /* ============================================================
    GastosController
-   CRUD contra /gastos con respaldo en localStorage para que el
-   módulo funcione aunque el endpoint no exista todavía.
+   GET /gastos/filter, POST/PATCH/DELETE /gastos, POST /gastos/upload.
+   Mismo criterio de alcance por rol que FacturasController.
 ============================================================ */
-const LS_KEY = "app.gastos";
 
-function lsRead(): Gasto[] {
-  if (typeof window === "undefined") return [];
+/** Nombre de archivo a partir de una URL (última porción del path) */
+function nombreArchivoDeUrl(url: string): string {
   try {
-    const raw = JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
-    return Array.isArray(raw) ? (raw as Gasto[]) : [];
+    const limpio = url.split("?")[0].split("#")[0];
+    return decodeURIComponent(limpio.substring(limpio.lastIndexOf("/") + 1)) || "comprobante";
   } catch {
-    return [];
+    return "comprobante";
   }
 }
-function lsWrite(items: Gasto[]) {
-  if (typeof window !== "undefined") localStorage.setItem(LS_KEY, JSON.stringify(items));
+
+/** ¿El comprobante es un PDF? (para no renderizarlo como <img>) */
+export function esTicketPdf(url: string | null | undefined): boolean {
+  return !!url && /\.pdf(\?.*)?$/i.test(url);
+}
+
+/** Fila de /gastos/filter → Gasto de la tabla */
+function gastoDesdeApi(g: ApiGasto): Gasto {
+  return {
+    id: String(g.id),
+    gasto: g.descripcion,
+    categoriaId: String(g.categoriaId),
+    categoria: g.categoria?.nombre || "—",
+    fecha: (g.fecha || "").slice(0, 10),
+    ticket: g.ticketUrl || null,
+    ticketNombre: g.ticketUrl ? nombreArchivoDeUrl(g.ticketUrl) : undefined,
+    total: Number(g.total || 0),
+    sedeId: String(g.sedeId),
+  };
 }
 
 export const GastosController = {
-  async list(): Promise<Gasto[]> {
-    return lsRead();
+  /**
+   * Gastos de la sesión, de más reciente a más antiguo. El alcance de
+   * sedes a consultar depende del rol (ver resolverSedesConsulta).
+   */
+  async list(session: Session | null, filtros: FiltrosGasto = {}): Promise<Gasto[]> {
+    if (!session) return [];
+    const sedeIds = await resolverSedesConsulta(session, filtros);
+
+    let rows: ApiGasto[] = [];
+    if (sedeIds === undefined) {
+      rows = await GastosApi.filter({}).catch(() => []);
+    } else if (sedeIds.length > 0) {
+      const lotes = await Promise.all(
+        sedeIds.map((sedeId) => GastosApi.filter({ sedeId }).catch(() => [] as ApiGasto[]))
+      );
+      rows = lotes.flat();
+    }
+
+    return rows.map(gastoDesdeApi).sort((a, b) => b.fecha.localeCompare(a.fecha));
   },
 
-  async search(f: FiltrosGasto): Promise<Gasto[]> {
-    const all = await this.list();
-    return all
-      .filter(
-        (g) =>
-          match(g.gasto, f.gasto) &&
-          (!f.categoria || norm(g.categoria) === norm(f.categoria)) &&
-          (!f.fecha || g.fecha === f.fecha)
-      )
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+  /** Filtrado por columnas (Gasto, Categoría, Fecha) sobre el listado ya acotado por sede/empresa */
+  async search(session: Session | null, f: FiltrosGasto): Promise<Gasto[]> {
+    const all = await this.list(session, f);
+    return all.filter(
+      (g) =>
+        match(g.gasto, f.gasto) &&
+        (!f.categoriaId || g.categoriaId === f.categoriaId) &&
+        (!f.fecha || g.fecha === f.fecha)
+    );
   },
 
-  async create(input: Omit<Gasto, "id">): Promise<Gasto> {
-    const nuevo: Gasto = { ...input, id: `G-${Date.now()}` };
-    lsWrite([nuevo, ...lsRead()]);
-    return nuevo;
+  /**
+   * Crea un gasto — si hay comprobante lo sube primero (POST /gastos/upload)
+   * y luego crea el gasto (POST /gastos) con la URL resultante.
+   * @param sedeId Sede a la que se factura el gasto (fija para admin de sede,
+   *   elegida en el formulario para owner/superadmin).
+   */
+  async create(input: {
+    gasto: string;
+    categoriaId: string;
+    fecha: string;
+    total: number;
+    sedeId: string;
+    ticket?: File | null;
+  }): Promise<Gasto> {
+    let ticketUrl: string | undefined;
+    if (input.ticket) {
+      const subida = await GastosApi.upload(input.ticket);
+      ticketUrl = subida.fileUrl;
+    }
+    const creado = await GastosApi.create({
+      descripcion: input.gasto,
+      total: input.total,
+      fecha: input.fecha,
+      categoriaId: Number(input.categoriaId),
+      sedeId: Number(input.sedeId),
+      ticketUrl,
+    });
+    return gastoDesdeApi(creado);
   },
 
   async remove(id: string): Promise<void> {
-    lsWrite(lsRead().filter((g) => g.id !== id));
+    await GastosApi.remove(Number(id));
   },
 
-  /** ¿Hay gastos usando esta categoría? (bloquea su eliminación) */
-  async usaCategoria(categoria: string): Promise<boolean> {
-    const all = await this.list();
-    return all.some((g) => norm(g.categoria) === norm(categoria));
+  /** ¿Hay gastos usando esta categoría? (bloquea su eliminación en el front) */
+  async usaCategoria(session: Session | null, categoriaId: string): Promise<boolean> {
+    const all = await this.list(session, {});
+    return all.some((g) => g.categoriaId === categoriaId);
   },
 
   /** Totales del listado mostrado (tarjetas de resumen) */
   resumen(lista: Gasto[]) {
     const total = lista.reduce((s, g) => s + g.total, 0);
-    const categorias = new Set(lista.map((g) => norm(g.categoria))).size;
+    const categorias = new Set(lista.map((g) => g.categoriaId)).size;
     return {
       total,
       registros: lista.length,

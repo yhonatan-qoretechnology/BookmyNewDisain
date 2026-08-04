@@ -81,6 +81,16 @@ export const EP = {
   paymentConfirm: (id: number) => `/payments/${id}/confirm`,
   paymentCancel: (id: number) => `/payments/${id}/cancel`,
 
+  /* @Controller('gastos') */
+  gastosFilter: "/gastos/filter",
+  gastos: "/gastos",
+  gastoById: (id: number) => `/gastos/${id}`,
+  gastosUpload: "/gastos/upload",
+
+  /* @Controller('categorias-gasto') */
+  categoriasGasto: "/categorias-gasto",
+  categoriaGastoById: (id: number) => `/categorias-gasto/${id}`,
+
   /* @Controller('horario-sede') */
   horarioSede: "/horario-sede",
 } as const;

@@ -145,6 +145,12 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
   display: block; width: 100%; height: 132px;
   object-fit: cover; background: var(--muted-cell);
 }
+.previewPdf {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 132px; background: var(--muted-cell); color: var(--slate-500);
+  font-size: 13px; font-weight: 700;
+}
+.previewPdf svg { width: 22px; height: 22px; color: var(--red, #d64545); }
 .previewBar {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 8px 10px; background: var(--surface);
@@ -289,9 +295,11 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
   border-radius: var(--r-sm); overflow: hidden;
   border: 1px solid var(--border); background: var(--muted-cell);
   cursor: pointer; display: inline-flex;
+  align-items: center; justify-content: center;
   transition: all .15s ease;
 }
 .ticketThumb img { width: 100%; height: 100%; object-fit: cover; }
+.ticketThumb svg { width: 20px; height: 20px; color: var(--red, #d64545); }
 .ticketThumb:hover { border-color: var(--teal-500); transform: scale(1.06); }
 .sinTicket {
   display: inline-flex; align-items: center; justify-content: center;

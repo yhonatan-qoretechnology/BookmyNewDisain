@@ -262,6 +262,40 @@ export interface ApiCategory {
   translations: Array<{ id: number; name: string; description?: string | null; language: string }>;
 }
 
+/** GET /categorias-gasto — base del sistema (empresaId null) + propias de la empresa */
+export interface ApiCategoriaGasto {
+  id: number;
+  nombre: string;
+  empresaId: number | null;
+  isBase: boolean;
+  createdAt?: string;
+}
+
+/** Fila de GET /gastos/filter?sedeId=&empresaId= */
+export interface ApiGasto {
+  id: number;
+  descripcion: string;
+  total: number;
+  fecha: string;
+  ticketUrl?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  categoriaId: number;
+  sedeId: number;
+  userId: number;
+  categoria?: ApiCategoriaGasto;
+  sede?: { id: number; nombre: string };
+  user?: { id: number; email: string };
+}
+
+/** Respuesta de POST /gastos/upload (multipart, campo "file") */
+export interface ApiGastoUploadResponse {
+  fileUrl: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
 /** Fila de la tabla chat (GET /ChatMessage/messages/:a/:b) */
 export interface ApiChatMessage {
   id: number;
