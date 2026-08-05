@@ -130,13 +130,12 @@ export const ServiciosController = {
    */
   async search(term: string, language = "es"): Promise<Servicio[]> {
     const q = term.toLowerCase();
-    /* Las categorías se piden aparte para resolver el nombre cuando
-       GET /services devuelve la relación sin traducir (solo el id). */
-    const [list, categorias] = await Promise.all([
-      ServicesApi.findAll(language).catch(() => []),
-      this.getCategorias(language).catch(() => [] as Array<{ id: number; nombre: string }>),
-    ]);
-    const porId = new Map(categorias.map((c) => [c.id, c.nombre]));
+    /* GET /services ya resuelve el nombre de la categoría. Antes se
+       pedían también todas las categorías para completarlo, lo que
+       suponía una segunda petición en cada pulsación del buscador;
+       nombreCategoria conserva ese camino como respaldo. */
+    const list = await ServicesApi.findAll(language).catch(() => []);
+    const porId = new Map<number, string>();
     return (list || [])
       .map((sv) => ({
         id: sv.id,
