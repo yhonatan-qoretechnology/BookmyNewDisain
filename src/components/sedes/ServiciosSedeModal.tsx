@@ -8,6 +8,10 @@
 
    La relación Sede<->Service (la que decide quién puede editar el
    servicio) la sincroniza el backend, así que desde aquí no se toca.
+
+   Diseño: el catálogo puede superar los 200 servicios, así que la
+   cabecera y el pie quedan fijos y solo scrollea la lista. Los
+   servicios se agrupan por categoría para poder recorrerlos.
 ============================================================ */
 import { useMemo, useState } from "react";
 import {
@@ -19,12 +23,9 @@ import { useData } from "@/hooks/useData";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import { fmtMoneda } from "@/constants";
-import Modal, { ModalTitle, ModalText, ModalActions } from "@/components/ui/Modal";
+import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
-import Badge from "@/components/ui/Badge";
-import EmptyState from "@/components/ui/EmptyState";
-import { SearchBox } from "@/components/ui/Toolbar";
 import styles from "./ServiciosSedeModal.module.css";
 
 export default function ServiciosSedeModal({
@@ -43,8 +44,8 @@ export default function ServiciosSedeModal({
   const [busqueda, setBusqueda] = useState("");
   const [soloAsignados, setSoloAsignados] = useState(false);
   const [guardando, setGuardando] = useState<number | null>(null);
-  /* Cambios locales sobre la respuesta del API, para no recargar
-     la lista entera en cada clic */
+  /* Cambios locales sobre la respuesta del API: evita recargar
+     doscientos servicios en cada clic */
   const [cambios, setCambios] = useState<Map<number, number | null>>(new Map());
 
   const abierto = sedeId != null;
@@ -86,6 +87,18 @@ export default function ServiciosSedeModal({
     );
   }, [lista, busqueda, soloAsignados]);
 
+  /* Agrupado por categoría: recorrer 200 servicios en plano es inviable */
+  const grupos = useMemo(() => {
+    const m = new Map<string, ServicioAsignable[]>();
+    for (const s of visibles) {
+      const k = s.categoria || "—";
+      const arr = m.get(k);
+      if (arr) arr.push(s);
+      else m.set(k, [s]);
+    }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [visibles]);
+
   const asignados = lista.filter((s) => s.asignado).length;
 
   if (!abierto) return null;
@@ -111,62 +124,91 @@ export default function ServiciosSedeModal({
     onClose();
   };
 
+  const sinProfesionales = profesionales.length === 0;
+
   return (
-    <Modal open onClose={cerrar} maxWidth={720}>
-      <ModalTitle>{t("serviciosSede.titulo", { sede: sedeNombre })}</ModalTitle>
-      <ModalText>{t("serviciosSede.sub")}</ModalText>
-
-      {profesionales.length === 0 ? (
-        <EmptyState
-          icon="user"
-          title={t("serviciosSede.sinProfesionales")}
-          message={t("serviciosSede.sinProfesionalesMsg")}
-        />
-      ) : (
-        <>
-          {/* Profesional cuyo catálogo se está editando */}
-          <div className={styles.profesionales} role="tablist">
-            {profesionales.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                role="tab"
-                aria-selected={p.id === profActivo}
-                className={p.id === profActivo ? styles.profActivo : styles.prof}
-                onClick={() => { setProfesionalId(p.id); setCambios(new Map()); }}
-              >
-                {p.nombre}
-              </button>
-            ))}
+    <Modal open onClose={cerrar} maxWidth={760} contentScroll>
+      {/* ── Cabecera fija ── */}
+      <header className={styles.head}>
+        <div className={styles.headTop}>
+          <div className={styles.headText}>
+            <h3>{t("serviciosSede.titulo", { sede: sedeNombre })}</h3>
+            <p>{t("serviciosSede.sub")}</p>
           </div>
+          <button
+            type="button"
+            className={styles.cerrar}
+            onClick={cerrar}
+            aria-label={t("common.close")}
+          >
+            ×
+          </button>
+        </div>
 
-          <div className={styles.barra}>
-            <SearchBox
-              value={busqueda}
-              onChange={setBusqueda}
-              placeholder={t("serviciosSede.buscar")}
-              compact
-            />
-            <label className={styles.filtro}>
-              <input
-                type="checkbox"
-                checked={soloAsignados}
-                onChange={(e) => setSoloAsignados(e.target.checked)}
-              />
-              {t("serviciosSede.soloAsignados")}
-            </label>
-            <Badge kind="activo">
-              {t("serviciosSede.contador", { n: asignados, total: lista.length })}
-            </Badge>
+        {!sinProfesionales && (
+          <>
+            {/* Con muchos profesionales, un desplegable no rompe la altura */}
+            <div className={styles.controles}>
+              <label className={styles.campo}>
+                <span>{t("serviciosSede.profesional")}</span>
+                <select
+                  value={profActivo ?? ""}
+                  onChange={(e) => { setProfesionalId(Number(e.target.value)); setCambios(new Map()); }}
+                >
+                  {profesionales.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className={styles.campo}>
+                <span>{t("serviciosSede.buscar")}</span>
+                <input
+                  type="search"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder={t("serviciosSede.buscarPlaceholder")}
+                />
+              </label>
+            </div>
+
+            <div className={styles.resumen}>
+              <label className={styles.filtro}>
+                <input
+                  type="checkbox"
+                  checked={soloAsignados}
+                  onChange={(e) => setSoloAsignados(e.target.checked)}
+                />
+                {t("serviciosSede.soloAsignados")}
+              </label>
+              <span className={styles.contador}>
+                <b>{asignados}</b> {t("serviciosSede.deTotal", { total: lista.length })}
+              </span>
+            </div>
+          </>
+        )}
+      </header>
+
+      {/* ── Zona con scroll propio ── */}
+      <div className={styles.scrollArea}>
+        {sinProfesionales ? (
+          <div className={styles.aviso}>
+            <Icon name="user" />
+            <b>{t("serviciosSede.sinProfesionales")}</b>
+            <span>{t("serviciosSede.sinProfesionalesMsg")}</span>
           </div>
-
-          <div className={styles.lista}>
-            {loading ? (
-              <p className={styles.vacio}>{t("common.loading")}</p>
-            ) : visibles.length === 0 ? (
-              <p className={styles.vacio}>{t("serviciosSede.sinResultados")}</p>
-            ) : (
-              visibles.map((s) => (
+        ) : loading ? (
+          <p className={styles.vacio}>{t("common.loading")}</p>
+        ) : grupos.length === 0 ? (
+          <p className={styles.vacio}>{t("serviciosSede.sinResultados")}</p>
+        ) : (
+          grupos.map(([categoria, items]) => (
+            <section key={categoria} className={styles.grupo}>
+              <h4 className={styles.grupoTitulo}>
+                {categoria}
+                <span>{items.length}</span>
+              </h4>
+              {items.map((s) => (
                 <label
                   key={s.id}
                   className={`${styles.fila} ${s.asignado ? styles.filaOn : ""}`}
@@ -179,29 +221,28 @@ export default function ServiciosSedeModal({
                   />
                   <span className={styles.info}>
                     <b>{s.nombre}</b>
-                    <span className={styles.meta}>
-                      {s.categoria}
-                      {s.duracion > 0 && ` · ${s.duracion} min`}
-                    </span>
+                    {s.duracion > 0 && (
+                      <span className={styles.meta}>{s.duracion} min</span>
+                    )}
                   </span>
                   <span className={styles.precio}>
                     {s.precio > 0 ? fmtMoneda(s.precio, s.moneda) : "—"}
                   </span>
-                  {guardando === s.id && <span className={styles.spinner} aria-hidden />}
+                  <span className={styles.estado} aria-hidden>
+                    {guardando === s.id ? <span className={styles.spinner} /> : null}
+                  </span>
                 </label>
-              ))
-            )}
-          </div>
+              ))}
+            </section>
+          ))
+        )}
+      </div>
 
-          <p className={styles.nota}>
-            <Icon name="circle-x" /> {t("serviciosSede.nota")}
-          </p>
-        </>
-      )}
-
-      <ModalActions>
+      {/* ── Pie fijo ── */}
+      <footer className={styles.foot}>
+        <p className={styles.nota}>{t("serviciosSede.nota")}</p>
         <Button onClick={cerrar}>{t("common.close")}</Button>
-      </ModalActions>
+      </footer>
     </Modal>
   );
 }
