@@ -257,9 +257,13 @@ export const ResenasController = {
       .filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
   },
 
-  /** Aprueba una reseña (la publica) — PATCH /resenas/:id/aprobar. */
-  async aprobar(id: number): Promise<void> {
-    await ResenasApi.aprobar(id);
+  /**
+   * Publica o rechaza una reseña — PATCH /resenas/:id/aprobar.
+   * El backend deja `estado` en APROBADA o RECHAZADA según el valor.
+   * @param aprobado true la publica, false la rechaza.
+   */
+  async aprobar(id: number, aprobado = true): Promise<void> {
+    await ResenasApi.aprobar(id, aprobado);
   },
 };
 

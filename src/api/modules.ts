@@ -188,7 +188,14 @@ export const AppointmentsApi = {
 export const ResenasApi = {
   findAll: () => http.get<ApiResena[]>(EP.resenas),
   bySede: (sedeId: number) => http.get<ApiResena[]>(EP.resenasBySede(sedeId)),
-  aprobar: (id: number) => http.patch<ApiResena>(EP.resenaAprobar(id)),
+  /**
+   * PATCH /resenas/:id/aprobar — publica o rechaza una reseña.
+   * ⚠️ El cuerpo { aprobado } es OBLIGATORIO: sin él, el backend
+   * respondía 500 al leer body.aprobado sobre undefined.
+   * @param aprobado true publica la reseña, false la rechaza.
+   */
+  aprobar: (id: number, aprobado = true) =>
+    http.patch<ApiResena>(EP.resenaAprobar(id), { aprobado }),
 };
 
 /* ── ServiceModule (escritura) ──────────────────────────── */
