@@ -9,8 +9,10 @@ import type {
   ApiAppointment, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
   ApiClient, ApiClientsPage, ApiDiaCerradoSede, ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
-  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
-  ClientListParams, CreateAppointmentDto, CreateGastoDto, CreateServiceDto, LoginResponse, Paginated,
+  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService,
+  ApiServicioAsignable, ApiUser,
+  ClientListParams, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
+  CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
   RegisterUserDto, SendMessageDto, UpdateGastoDto,
 } from "./types";
 
@@ -75,6 +77,29 @@ export const PasswordRecoveryApi = {
       code,
       newPassword,
     }),
+};
+
+/* ── ServiceSedeProfesionalModule ────────────────────────────
+   Fuente de verdad de "quién presta qué y dónde". Ojo: no confundir
+   con POST /sedes/:id/servicios, que solo toca la relación de
+   pertenencia y NO hace que un servicio se pueda reservar. */
+export const AsignacionesApi = {
+  /**
+   * Servicios de la sede con marca de si los presta ese profesional.
+   * @returns cada servicio con `asignado` y su `asignacionId`.
+   */
+  porProfesional: (sedeId: number, profesionalId: number, language = "es") =>
+    http.get<ApiServicioAsignable[]>(
+      EP.serviciosAsignables(sedeId, profesionalId) + qs({ language })
+    ),
+
+  /** POST — asigna un servicio a un profesional en una sede. */
+  asignar: (dto: CreateServiceSedeProfesionalDto) =>
+    http.post<{ id: number }>(EP.serviceSedeProfesional, dto),
+
+  /** DELETE — quita la asignación por su id (el `asignacionId`). */
+  quitar: (asignacionId: number) =>
+    http.delete(EP.serviceSedeProfesionalById(asignacionId)),
 };
 
 /* ── ClientManagementModule ─────────────────────────────── */

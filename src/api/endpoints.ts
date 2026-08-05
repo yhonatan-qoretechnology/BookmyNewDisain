@@ -71,6 +71,14 @@ export const EP = {
   serviceById: (id: number) => `/services/${id}`,
   servicesBySede: (sedeId: number) => `/services/by-sede/${sedeId}`,
 
+  /* @Controller('service-sede-profesional') — qué servicio presta cada
+     profesional en cada sede. Es la terna que valida crear una cita. */
+  serviceSedeProfesional: "/service-sede-profesional",
+  serviceSedeProfesionalById: (id: number) => `/service-sede-profesional/${id}`,
+  /** Todos los servicios de la sede, marcando cuáles presta ese profesional */
+  serviciosAsignables: (sedeId: number, profesionalId: number) =>
+    `/service-sede-profesional/by-sede/${sedeId}/by-profesional/${profesionalId}`,
+
   /* @Controller('categories') */
   categories: "/categories",
   /** PATCH multipart — campo "image". Devuelve la Category actualizada. */

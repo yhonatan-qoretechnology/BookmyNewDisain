@@ -400,6 +400,21 @@ const en: Dictionary = {
     pdfError: "The PDF could not be generated",
   },
 
+  /* Services each professional offers at a branch */
+  serviciosSede: {
+    abrir: "Services",
+    titulo: "Services at {sede}",
+    sub: "Tick the services each professional offers. Only what's ticked here can be booked.",
+    buscar: "Search service…",
+    soloAsignados: "Assigned only",
+    contador: "{n} of {total}",
+    sinResultados: "No service matches the search.",
+    sinProfesionales: "This branch has no staff",
+    sinProfesionalesMsg: "Add at least one professional under Staff to assign services.",
+    nota: "A service with no professional assigned won't show up when booking at this branch.",
+    errGuardar: "The change could not be saved.",
+  },
+
   /* Image upload — shared across screens */
   imagen: {
     cambiar: "Change image",

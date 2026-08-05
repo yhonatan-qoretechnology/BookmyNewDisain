@@ -314,6 +314,31 @@ export interface CreateServiceDto {
   prices: Array<{ amount: number; duration: number; currency?: string }>;
 }
 
+/* ── ServiceSedeProfesional ──────────────────────────────────
+   Tabla que decide de verdad si algo se puede reservar: crear una
+   cita valida que exista la terna (sede, servicio, profesional).
+   El backend mantiene sincronizada la relación Sede<->Service, que
+   es la que usa el control de permisos por empresa. */
+
+/** Fila de GET /service-sede-profesional/by-sede/:s/by-profesional/:p */
+export interface ApiServicioAsignable {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  categoria: string;
+  precios: Array<{ id: number; amount: number; duration: number; currency: string }>;
+  asignado: boolean;
+  /** id de la fila de service_sede_profesional; null si no está asignado */
+  asignacionId: number | null;
+}
+
+/** DTO de POST /service-sede-profesional */
+export interface CreateServiceSedeProfesionalDto {
+  sedeId: number;
+  serviceId: number;
+  profesionalId: number;
+}
+
 /* ── ClientManagement (@Controller('clients')) ───────────────
    Endpoint dedicado a los clientes finales. A diferencia de
    /auth/users, ya viene filtrado por role CLIENT, paginado y con

@@ -7,10 +7,10 @@ import type {
   Resena, SedeDetalle, Servicio, Session,
 } from "@/models";
 import {
-  AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
+  AsignacionesApi, AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
-import type { ApiClient, ApiProfesional, ApiService } from "@/api/types";
+import type { ApiClient, ApiProfesional, ApiService, ApiServicioAsignable } from "@/api/types";
 import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
@@ -424,5 +424,69 @@ export const SedesController = {
   async borrarImagen(sedeId: number, ruta: string): Promise<string[]> {
     const actualizada = await ImagenesApi.borrarSedeImagenes(sedeId, [ruta]);
     return actualizada?.imagenes ?? [];
+  },
+};
+
+/* ── Servicios por sede y profesional ─────────────────────── */
+
+export interface ServicioAsignable {
+  id: number;
+  nombre: string;
+  categoria: string;
+  precio: number;
+  moneda: string;
+  duracion: number;
+  asignado: boolean;
+  asignacionId: number | null;
+}
+
+/**
+ * Gestiona qué servicios presta cada profesional en cada sede.
+ *
+ * Escribe en service_sede_profesional, que es la tabla que valida el
+ * backend al crear una cita. La relación Sede<->Service (la que usa el
+ * control de permisos) la sincroniza el propio backend, asi que desde
+ * aqui no hay que tocarla.
+ */
+export const AsignacionesController = {
+  /** Catálogo completo de la sede con el estado de asignación. */
+  async listar(
+    sedeId: number,
+    profesionalId: number,
+    language = "es",
+  ): Promise<ServicioAsignable[]> {
+    const list = await AsignacionesApi.porProfesional(sedeId, profesionalId, language)
+      .catch(() => [] as ApiServicioAsignable[]);
+    return (list || []).map((s) => ({
+      id: s.id,
+      nombre: s.nombre,
+      categoria: s.categoria || "—",
+      precio: s.precios?.[0]?.amount ?? 0,
+      moneda: s.precios?.[0]?.currency ?? "EUR",
+      duracion: s.precios?.[0]?.duration ?? 0,
+      asignado: s.asignado,
+      asignacionId: s.asignacionId,
+    }));
+  },
+
+  /**
+   * Activa o desactiva un servicio para ese profesional.
+   * @returns el nuevo `asignacionId`, o null si se desasignó.
+   */
+  async alternar(
+    servicio: ServicioAsignable,
+    sedeId: number,
+    profesionalId: number,
+  ): Promise<number | null> {
+    if (servicio.asignado && servicio.asignacionId != null) {
+      await AsignacionesApi.quitar(servicio.asignacionId);
+      return null;
+    }
+    const creada = await AsignacionesApi.asignar({
+      sedeId,
+      serviceId: servicio.id,
+      profesionalId,
+    });
+    return creada?.id ?? null;
   },
 };

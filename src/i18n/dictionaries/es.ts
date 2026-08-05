@@ -401,6 +401,21 @@ const es = {
     pdfError: "No se pudo generar el PDF",
   },
 
+  /* Servicios que presta cada profesional en una sede */
+  serviciosSede: {
+    abrir: "Servicios",
+    titulo: "Servicios de {sede}",
+    sub: "Marca los servicios que presta cada profesional. Solo lo marcado aquí se puede reservar.",
+    buscar: "Buscar servicio…",
+    soloAsignados: "Solo los asignados",
+    contador: "{n} de {total}",
+    sinResultados: "Ningún servicio coincide con la búsqueda.",
+    sinProfesionales: "Esta sede no tiene profesionales",
+    sinProfesionalesMsg: "Añade al menos un profesional en Personal para poder asignarle servicios.",
+    nota: "Un servicio sin ningún profesional asignado no aparecerá al reservar en esta sede.",
+    errGuardar: "No se pudo guardar el cambio.",
+  },
+
   /* Subida de imágenes — compartido por todas las pantallas */
   imagen: {
     cambiar: "Cambiar imagen",
