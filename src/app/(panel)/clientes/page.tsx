@@ -5,6 +5,8 @@
 import { useState } from "react";
 import { ClientesController } from "@/controllers/CrudControllers";
 import { useData } from "@/hooks/useData";
+import { useSession } from "@/context/SessionContext";
+import { fmtFechaCorta } from "@/constants";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox } from "@/components/ui/Toolbar";
@@ -14,8 +16,14 @@ import { PersonRow } from "@/components/ui/People";
 
 export default function ClientesPage() {
   const { t } = useI18n();
+  const { session } = useSession();
   const [search, setSearch] = useState("");
-  const { data: lista } = useData(() => ClientesController.search(search), [search], []);
+  /* La sesión delimita las citas con las que se calculan las visitas */
+  const { data: lista } = useData(
+    () => ClientesController.search(search, session),
+    [search, session?.id, session?.sedeId, session?.negocioId],
+    []
+  );
 
   return (
     <>
@@ -37,7 +45,7 @@ export default function ClientesPage() {
                 <td>{c.correo}</td>
                 <td>{c.telefono}</td>
                 <td><b>{c.visitas}</b></td>
-                <td>{c.ultima}</td>
+                <td>{c.ultima === "—" ? "—" : fmtFechaCorta(c.ultima)}</td>
               </tr>
             ))}
           </DataTable>

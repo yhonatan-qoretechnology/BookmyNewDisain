@@ -63,8 +63,21 @@ export const http = {
     request<T>(path, { method: "PATCH", body: data !== undefined ? JSON.stringify(data) : undefined }),
   put:   <T>(path: string, data?: unknown) =>
     request<T>(path, { method: "PUT", body: data !== undefined ? JSON.stringify(data) : undefined }),
-  delete:<T>(path: string) => request<T>(path, { method: "DELETE" }),
-  /** Para endpoints multipart (fotos, logos): NO fijar Content-Type */
+  /** DELETE admite cuerpo: algunos endpoints lo exigen, como
+      DELETE /sedes/:id/imagenes, que recibe { imagenes: [...] }. */
+  delete:<T>(path: string, data?: unknown) =>
+    request<T>(path, { method: "DELETE", body: data !== undefined ? JSON.stringify(data) : undefined }),
+  /** Para endpoints multipart (fotos, logos): NO fijar Content-Type
+      — el navegador añade solo el boundary. */
   postForm: <T>(path: string, form: FormData) =>
     request<T>(path, { method: "POST", body: form }),
+  /** Igual que postForm pero con PATCH: casi todas las subidas de imagen
+      del backend (foto de perfil, logo, imagen de profesional y de
+      categoría) están declaradas como @Patch, no @Post. */
+  patchForm: <T>(path: string, form: FormData) =>
+    request<T>(path, { method: "PATCH", body: form }),
+  /** Multipart con PUT — lo usa el reemplazo de una imagen de sede
+      por su posición (PUT /sedes/:id/imagenes/:index). */
+  putForm: <T>(path: string, form: FormData) =>
+    request<T>(path, { method: "PUT", body: form }),
 };

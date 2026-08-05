@@ -104,6 +104,17 @@
   margin-bottom: 16px;
 }
 
+/* Confirmación al volver de recuperar la contraseña */
+.exito {
+  background: rgba(15,207,174,.12);
+  color: #0b9c84;
+  border: 1px solid rgba(15,207,174,.35);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
 /* Campos */
 .field { margin-bottom: 16px; }
 .field label {

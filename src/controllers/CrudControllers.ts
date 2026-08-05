@@ -3,37 +3,98 @@
    Cada bloque es el espejo de un módulo NestJS del backend.
 ============================================================ */
 import type {
-  CategoriaCatalogo, CredencialesEmpleado, Cliente, Empleado, Factura, Resena,
-  SedeDetalle, Servicio,
+  CategoriaCatalogo, CredencialesEmpleado, Cliente, Empleado, Factura, Reserva,
+  Resena, SedeDetalle, Servicio, Session,
 } from "@/models";
 import {
-  AuthApi, CategoriesApi, PaymentsApi, ProfesionalesApi, ResenasApi,
-  SedesApi, ServicesApi, ServicesWriteApi,
+  AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
+  ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
-import type { ApiProfesional, ApiService } from "@/api/types";
+import type { ApiClient, ApiProfesional, ApiService } from "@/api/types";
+import { ReservasController } from "./ReservasController";
 
-/* ── Clientes (AuthModule: Users con role CLIENT) ────────── */
+/* ── Clientes (ClientManagementModule: GET /clients) ─────── */
+/** Nº de visitas y última visita, calculadas desde las citas. */
+interface EstadisticasCliente {
+  visitas: number;
+  ultima: string;
+}
+
+/**
+ * Agrupa las citas por cliente.
+ * Se cuenta como visita toda cita ya pasada que no esté cancelada ni
+ * marcada como no presentada; la última visita es la más reciente de
+ * ellas. El alcance lo fija la sesión (una sede, las de la empresa o
+ * todas), así que un admin de sede solo ve lo suyo.
+ */
+function agruparVisitas(reservas: Reserva[]): Map<number, EstadisticasCliente> {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const porCliente = new Map<number, EstadisticasCliente>();
+
+  for (const r of reservas) {
+    if (r.clienteId == null) continue;
+    if (r.estado === "cancelado" || r.estado === "noShow") continue;
+    if (r.fecha > hoy) continue; // aún no ha ocurrido
+
+    const previo = porCliente.get(r.clienteId);
+    if (!previo) {
+      porCliente.set(r.clienteId, { visitas: 1, ultima: r.fecha });
+    } else {
+      previo.visitas += 1;
+      if (r.fecha > previo.ultima) previo.ultima = r.fecha;
+    }
+  }
+
+  return porCliente;
+}
+
 export const ClientesController = {
   /**
-   * Lista y filtra clientes finales — GET /auth/users (role CLIENT).
-   * @param term Texto de búsqueda por nombre o correo.
+   * Clientes finales — GET /clients (ClientManagementModule).
+   *
+   * Sustituye a /auth/users: el backend ya filtra por role CLIENT,
+   * pagina y aplica el guard de rol, y la respuesta pesa ~6 veces
+   * menos. El endpoint filtra por `name` y `email` de forma
+   * independiente (combinados serían AND), así que para conservar la
+   * búsqueda «nombre O correo» se lanzan las dos y se fusionan.
+   *
+   * @param term Texto libre: se busca en nombre y en correo.
+   * @param session Sesión activa; delimita las citas para las visitas.
    */
-  async search(term: string): Promise<Cliente[]> {
-    const q = term.toLowerCase();
-    const users = await AuthApi.findAllUsers().catch(() => []);
-    return (users || [])
-      .filter((u) => u.role === "CLIENT")
-      .map((u) => ({
-        id: u.id,
-        nombre: u.UserData?.name || u.email,
-        correo: u.email,
-        telefono: u.UserData?.phone || "—",
-        /* Misma fuente que usa el popup de reservas para la foto */
-        foto: u.fotoPerfil || null,
-        visitas: 0,
-        ultima: "—",
-      }))
-      .filter((c) => (c.nombre + c.correo).toLowerCase().includes(q));
+  async search(term: string, session?: Session | null): Promise<Cliente[]> {
+    const q = term.trim();
+
+    const paginas = q
+      ? await Promise.all([
+          ClientsApi.list({ name: q, limit: 100 }).catch(() => null),
+          ClientsApi.list({ email: q, limit: 100 }).catch(() => null),
+        ])
+      : [await ClientsApi.list({ limit: 100 }).catch(() => null)];
+
+    /* Fusión por id para no repetir a quien coincide por ambos campos */
+    const unicos = new Map<number, ApiClient>();
+    for (const p of paginas) {
+      for (const c of p?.clients ?? []) unicos.set(c.id, c);
+    }
+
+    /* Visitas reales en lugar de los ceros que se mostraban antes */
+    const reservas = session
+      ? await ReservasController.getForSession(session).catch(() => [] as Reserva[])
+      : [];
+    const stats = agruparVisitas(reservas);
+
+    return [...unicos.values()].map((c) => {
+      const s = stats.get(c.id);
+      return {
+        id: c.id,
+        nombre: c.userData?.name || c.email,
+        correo: c.email,
+        telefono: c.userData?.phone || "—",
+        foto: c.fotoPerfil || null,
+        visitas: s?.visitas ?? 0,
+        ultima: s?.ultima ?? "—",
+      };
+    });
   },
 };
 
@@ -331,6 +392,7 @@ export const SedesController = {
         direccion: s.direccion,
         equipo: equipoPorSede.get(s.id) ?? s.profesionales?.length ?? 0,
         activa: true,
+        imagenes: s.imagenes ?? [],
       }))
       .filter((s) => (s.nombre + s.direccion).toLowerCase().includes(q));
   },
@@ -342,5 +404,21 @@ export const SedesController = {
       direccion: input.direccion,
       empresaId: Number(input.negocioId),
     });
+  },
+
+  /**
+   * Añade una imagen a la sede — POST /sedes/:id/imagen (campo "imagen").
+   * El backend la agrega al array `imagenes` y devuelve la sede entera.
+   * @returns el listado de imágenes ya actualizado.
+   */
+  async subirImagen(sedeId: number, file: File): Promise<string[]> {
+    const actualizada = await ImagenesApi.sede(sedeId, file);
+    return actualizada?.imagenes ?? [];
+  },
+
+  /** Quita una imagen — DELETE /sedes/:id/imagenes { imagenes: [ruta] }. */
+  async borrarImagen(sedeId: number, ruta: string): Promise<string[]> {
+    const actualizada = await ImagenesApi.borrarSedeImagenes(sedeId, [ruta]);
+    return actualizada?.imagenes ?? [];
   },
 };

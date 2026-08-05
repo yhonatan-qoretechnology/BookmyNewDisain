@@ -13,6 +13,24 @@ export const EP = {
   userById: (id: number) => `/auth/users/${id}`,
   userPassword: (id: number) => `/auth/users/${id}/password`,
 
+  /* Recuperación de contraseña por OTP — públicos (sin token).
+     El código es de 6 dígitos, se manda por correo y caduca a los
+     5 minutos (otp.service.ts → sendPasswordResetOtp). */
+  passwordOtpRequest: "/auth/users/password/otp/request",
+  passwordOtpValidate: "/auth/users/password/otp/validate",
+  /** PATCH, no POST */
+  passwordOtpChange: "/auth/users/password/otp/change",
+  /** PATCH multipart — campo "fotoPerfil". Devuelve el Users actualizado. */
+  userFoto: (id: number) => `/auth/users/${id}/foto`,
+
+  /* @Controller('clients') — clientes finales (role CLIENT).
+     Requiere JWT + rol admin. Preferir esto a /auth/users: viene
+     paginado, ya filtrado por rol y sin el resto de usuarios. */
+  clients: "/clients",
+  clientById: (id: number) => `/clients/${id}`,
+  /** POST { email } — búsqueda exacta por correo */
+  clientsSearch: "/clients/search",
+
   /* @Controller('admin') — gestión de administradores */
   admins: "/admin/admins",
   adminById: (userId: number) => `/admin/admins/${userId}`,
@@ -22,12 +40,22 @@ export const EP = {
   /* @Controller('empresas') */
   empresas: "/empresas",
   empresaById: (id: number) => `/empresas/${id}`,
+  /** PATCH multipart — campo "logo". Devuelve la Empresa actualizada. */
+  empresaLogo: (id: number) => `/empresas/${id}/logo`,
 
   /* @Controller('sedes') */
   sedes: "/sedes",
   sedeById: (id: number) => `/sedes/${id}`,
   sedesByEmpresa: (empresaId: number) => `/sedes/empresa/${empresaId}`,
   sedeServicios: (id: number) => `/sedes/${id}/servicios`,
+  /** POST multipart — campo "imagen": añade UNA imagen a sede.imagenes */
+  sedeImagen: (id: number) => `/sedes/${id}/imagen`,
+  /** POST multipart (campo "imagenes", varias) y DELETE con JSON { imagenes: [] } */
+  sedeImagenes: (id: number) => `/sedes/${id}/imagenes`,
+  /** PUT multipart — reemplaza la imagen de una posición concreta */
+  sedeImagenPorIndice: (id: number, index: number) => `/sedes/${id}/imagenes/${index}`,
+  /** POST multipart (campo "imagenes") — tabla Galeria, distinta de sede.imagenes */
+  sedeGaleria: (id: number) => `/sedes/${id}/galeria`,
 
   /* @Controller('profesionales') */
   profesionales: "/profesionales",
@@ -35,6 +63,8 @@ export const EP = {
   profesionalesBySede: (sedeId: number) => `/profesionales/by-sede/${sedeId}`,
   /** GET /profesionales/:id/detalle?lang= — profesional + sede + servicios */
   profesionalDetalle: (id: number) => `/profesionales/${id}/detalle`,
+  /** PATCH multipart — campo "imagen". Devuelve el Profesional actualizado. */
+  profesionalImagen: (id: number) => `/profesionales/${id}/imagen`,
 
   /* @Controller('services') */
   services: "/services",
@@ -43,6 +73,8 @@ export const EP = {
 
   /* @Controller('categories') */
   categories: "/categories",
+  /** PATCH multipart — campo "image". Devuelve la Category actualizada. */
+  categoryImage: (id: number) => `/categories/${id}/image`,
 
   /* @Controller('ChatMessage') — chat REST (además del gateway WS) */
   chatUsers: "/ChatMessage/users",
@@ -81,16 +113,27 @@ export const EP = {
   paymentConfirm: (id: number) => `/payments/${id}/confirm`,
   paymentCancel: (id: number) => `/payments/${id}/cancel`,
 
-  /* @Controller('gastos') */
+  /* Disponibilidad — las tres fuentes que valida el backend al agendar.
+     Abiertas (sin guard) en lectura. Si devuelven [], appointment.service
+     cae al JSON `sede.horario` / `sede.diasCerrado`. */
+  /** GET /horario-sede?sedeId=&activo= */
+  horarioSede: "/horario-sede",
+  /** GET /dia-cerrado-sede?sedeId=&desde=&hasta= */
+  diaCerradoSede: "/dia-cerrado-sede",
+  /** GET /disponibilidad-profesional?profesionalId=&desde=&hasta=&disponible= */
+  disponibilidadProfesional: "/disponibilidad-profesional",
+
+  /* @Controller('gastos') — requiere JWT + rol admin.
+     El alcance por sede/empresa lo resuelve el backend a partir del token
+     (gasto.service.ts → resolveSedeScope), así que los filtros que se
+     manden fuera de ese alcance se ignoran o responden 403. */
   gastosFilter: "/gastos/filter",
   gastos: "/gastos",
   gastoById: (id: number) => `/gastos/${id}`,
+  /** POST multipart/form-data (campo "file") — imagen o PDF, máx. 10MB */
   gastosUpload: "/gastos/upload",
 
-  /* @Controller('categorias-gasto') */
+  /* @Controller('categorias-gasto') — requiere JWT + rol admin */
   categoriasGasto: "/categorias-gasto",
   categoriaGastoById: (id: number) => `/categorias-gasto/${id}`,
-
-  /* @Controller('horario-sede') */
-  horarioSede: "/horario-sede",
 } as const;

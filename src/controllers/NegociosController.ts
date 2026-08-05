@@ -15,6 +15,7 @@ const mapEmpresa = (e: ApiEmpresa): Negocio => ({
   nombre: e.nombre,
   rubro: e.descripcion || "—",
   activo: true,
+  logo: e.logo ?? null,
 });
 
 export const NegociosController = {

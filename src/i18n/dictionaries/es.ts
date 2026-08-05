@@ -37,6 +37,7 @@ const es = {
     results: "{n} registro(s)",
     requiredName: "El nombre es obligatorio",
     comingSoon: "La vista {view} estará disponible próximamente",
+    loading: "Cargando…",
     actions: "Acciones",
     view: "Ver",
     download: "Descargar",
@@ -125,6 +126,34 @@ const es = {
     invalid: "Credenciales incorrectas.",
     apiNotConfigured: "Falta configurar NEXT_PUBLIC_API_URL (.env.local) con la URL del backend.",
     clientRole: "Tu cuenta es de cliente final: usa la app de clientes para reservar.",
+  },
+
+  /* Recuperación de contraseña por OTP */
+  recuperar: {
+    titulo: "Recuperar contraseña",
+    subEmail: "Te enviaremos un código de 6 dígitos a tu correo.",
+    subCodigo: "Escribe el código que enviamos a {email}. Caduca en 5 minutos.",
+    subPassword: "Elige tu nueva contraseña.",
+    email: "Correo electrónico",
+    codigo: "Código de verificación",
+    nueva: "Nueva contraseña",
+    repetir: "Repetir contraseña",
+    enviar: "Enviar código",
+    verificar: "Verificar código",
+    guardar: "Guardar contraseña",
+    enviando: "Enviando…",
+    verificando: "Verificando…",
+    guardando: "Guardando…",
+    reenviar: "Reenviar código",
+    reenviado: "Código reenviado",
+    volver: "Volver",
+    cambiarCorreo: "Usar otro correo",
+    exito: "Contraseña actualizada. Ya puedes entrar.",
+    errEmail: "Escribe un correo válido.",
+    errCodigo: "El código debe tener 6 dígitos.",
+    errCorta: "La contraseña debe tener al menos 6 caracteres.",
+    errDistintas: "Las contraseñas no coinciden.",
+    errGenerico: "No se pudo completar la operación. Inténtalo de nuevo.",
   },
 
   pages: {
@@ -372,6 +401,21 @@ const es = {
     pdfError: "No se pudo generar el PDF",
   },
 
+  /* Subida de imágenes — compartido por todas las pantallas */
+  imagen: {
+    cambiar: "Cambiar imagen",
+    subiendo: "Subiendo…",
+    actualizada: "Imagen actualizada",
+    hint: "JPG, PNG o WEBP · hasta 10 MB",
+    fotoPerfil: "Foto de perfil",
+    logo: "Logo de la empresa",
+    fotoProfesional: "Foto del profesional",
+    imagenSede: "Imagen de la sede",
+    errTipo: "El archivo debe ser una imagen (JPG, PNG, WEBP o GIF).",
+    errPeso: "La imagen supera 10 MB. Elige una más liviana.",
+    errSubida: "No se pudo subir la imagen.",
+  },
+
   gastos: {
     panelTitle: "Gastos",
     panelSub: "Registro de gastos con tickete adjunto",
@@ -409,6 +453,7 @@ const es = {
     primeroEmpresa: "Primero selecciona la empresa",
     guardar: "Guardar gasto",
     guardando: "Guardando…",
+    subiendo: "Subiendo tickete…",
     creado: "Gasto registrado",
     eliminar: "Eliminar gasto",
     eliminarTitulo: "Eliminar gasto",
@@ -425,6 +470,9 @@ const es = {
     errGuardar: "No se pudo guardar el gasto. Inténtalo de nuevo.",
     errTipo: "El comprobante debe ser una imagen (JPG, PNG, WEBP) o PDF.",
     errPeso: "El archivo supera 10 MB. Adjunta uno más liviano.",
+   
+    errCategoria: "No hay categorías disponibles todavía.",
+    errSubida: "No se pudo subir el tickete.",
     /* Categorías */
     nuevaCategoria: "Nueva categoría",
     nuevaCategoriaSub: "Crea una categoría propia para clasificar tus gastos.",

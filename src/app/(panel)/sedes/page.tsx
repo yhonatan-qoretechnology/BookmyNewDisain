@@ -15,6 +15,7 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
+import ImageGallery from "@/components/ui/ImageGallery";
 
 export default function SedesPage() {
   const { toast } = useUi();
@@ -66,6 +67,13 @@ export default function SedesPage() {
                   <Tag>{t("sedes.team", { n: s.equipo })}</Tag>
                   <Badge kind={s.activa ? "activo" : "inactivo"}>{s.activa ? t("sedes.open") : t("sedes.closed")}</Badge>
                 </TagRow>
+                {/* Estas imágenes son las que se ven al elegir sede en una reserva */}
+                <ImageGallery
+                  label={t("imagen.imagenSede")}
+                  imagenes={s.imagenes}
+                  onAdd={(file) => SedesController.subirImagen(s.id, file)}
+                  onRemove={(ruta) => SedesController.borrarImagen(s.id, ruta)}
+                />
               </SimpleCard>
             ))}
           </CardGrid>

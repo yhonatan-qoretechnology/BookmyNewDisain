@@ -30,6 +30,8 @@ export interface Negocio {
   /** Descripción/rubro (columna descripcion de empresas) */
   rubro: string;
   activo: boolean;
+  /** Logo de la empresa (columna logo_url); encabeza las facturas */
+  logo?: string | null;
 }
 
 export interface Sede {
@@ -49,6 +51,8 @@ export interface SedeDetalle {
   direccion: string;
   equipo: number;
   activa: boolean;
+  /** Rutas de sede.imagenes; se muestran al elegir sede en una reserva */
+  imagenes: string[];
 }
 
 /** Sesión activa guardada en sessionStorage */
@@ -74,6 +78,8 @@ export interface Reserva {
   apiId?: number;
   servicio: string;
   cliente: string;
+  /** id del usuario cliente (Appointment.userId), para cruzar con /clients */
+  clienteId?: number;
   telefono: string;
   email: string;
   clienteFoto?: string | null;

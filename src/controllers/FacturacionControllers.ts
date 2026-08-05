@@ -15,6 +15,7 @@
                            POST /gastos/upload (comprobante).
 ============================================================ */
 import type { Session } from "@/models";
+import { fotoUrl } from "@/constants";
 import { CategoriasGastoApi, EmpresasApi, GastosApi, PaymentsApi, SedesApi } from "@/api/modules";
 import type { ApiGasto, ApiPaymentFiltered } from "@/api/types";
 
@@ -402,13 +403,17 @@ export function esTicketPdf(url: string | null | undefined): boolean {
 
 /** Fila de /gastos/filter → Gasto de la tabla */
 function gastoDesdeApi(g: ApiGasto): Gasto {
+  /* ticketUrl llega absoluta con SFTP activo ("https://bookmy.es/...") o
+     relativa si el backend guarda en local ("/uploads/gastos/..."); se
+     quita la barra inicial para que fotoUrl() no genere una doble. */
+  const ticket = g.ticketUrl ? fotoUrl(g.ticketUrl.replace(/^\//, "")) : null;
   return {
     id: String(g.id),
     gasto: g.descripcion,
     categoriaId: String(g.categoriaId),
     categoria: g.categoria?.nombre || "—",
     fecha: (g.fecha || "").slice(0, 10),
-    ticket: g.ticketUrl || null,
+    ticket,
     ticketNombre: g.ticketUrl ? nombreArchivoDeUrl(g.ticketUrl) : undefined,
     total: Number(g.total || 0),
     sedeId: String(g.sedeId),

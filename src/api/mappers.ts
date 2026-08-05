@@ -9,6 +9,7 @@
      CLIENT       → sin acceso al panel (usa la app de clientes)
 ============================================================ */
 import type { MetodoPago, Reserva, Rol, Session } from "@/models";
+import { madridHHmm, madridYmd } from "@/lib/timezone";
 import type { ApiAppointment, ApiAppointmentStatus, ApiRole, ApiUser } from "./types";
 
 export const ROLE_MAP: Record<ApiRole, Rol | null> = {
@@ -50,10 +51,17 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
   };
 }
 
-const hhmm = (iso: string): string => {
-  const d = new Date(iso);
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
-};
+/**
+ * Hora que ve el usuario, en Europe/Madrid.
+ * El backend guarda instantes UTC pero valida en hora de Madrid: una
+ * cita almacenada como 08:00Z es, en la sede, la de las 10:00. Antes
+ * aquí se leía getUTCHours(), y el panel mostraba todas las citas dos
+ * horas antes de su hora real.
+ */
+const hhmm = (iso: string): string => madridHHmm(new Date(iso));
+
+/** Día al que pertenece la cita en Madrid (no el de UTC). */
+const diaMadrid = (iso: string): string => madridYmd(new Date(iso));
 
 /**
  * Convierte un Appointment del backend al modelo del panel.
@@ -75,10 +83,14 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
       (a.service as { name?: string })?.name ||
       `#${a.serviceId}`,
     cliente: a.user?.UserData?.name || a.user?.email || `#${a.userId}`,
+    clienteId: a.userId,
     telefono: a.user?.UserData?.phone || "—",
     email: a.user?.email || "—",
     clienteFoto: a.user?.fotoPerfil || null,
-    fecha: (a.fecha || a.horaInicio || "").slice(0, 10),
+    /* La fecha se deriva de horaInicio en hora de Madrid: el campo
+       `fecha` del backend es medianoche UTC y puede caer en el día
+       anterior para las citas de primera hora. */
+    fecha: a.horaInicio ? diaMadrid(a.horaInicio) : (a.fecha || "").slice(0, 10),
     hora: a.horaInicio ? hhmm(a.horaInicio) : "—",
     precio: a.Payment?.totalAmount ?? 0,
     estado: APPT_ESTADO_MAP[a.estado] ?? "pendiente",
