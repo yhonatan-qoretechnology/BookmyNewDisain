@@ -322,33 +322,15 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
               </div>
             )}
             <div className={`${styles.header} ${styles[reserva.estado]}`}>
-              {reserva.sedeImagenes && reserva.sedeImagenes.length > 0 && (
-                <img 
-                  src={`${IMG_BASE_URL}${reserva.sedeImagenes[0]}`} 
-                  alt={sedeNombre} 
-                  style={{ 
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    opacity: 0.15,
-                    zIndex: 0
-                  }} 
-                />
-              )}
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className={styles.headerRow}>
-                  <div>
-                    <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '4px' }}>{sedeNombre || "—"}</div>
-                    <div className={styles.service}>{reserva.servicio}</div>
-                    <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
-                  </div>
-                  <button className={styles.close} onClick={close} aria-label={t("popup.close")}>
-                    <Icon name="close" strokeWidth={2.2} width={16} height={16} />
-                  </button>
+              <div className={styles.headerRow}>
+                <div>
+                  <div className={styles.headerSede}>{sedeNombre || "—"}</div>
+                  <div className={styles.service}>{reserva.servicio}</div>
+                  <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
                 </div>
+                <button className={styles.close} onClick={close} aria-label={t("popup.close")}>
+                  <Icon name="close" strokeWidth={2.2} width={16} height={16} />
+                </button>
               </div>
             </div>
 

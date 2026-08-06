@@ -30,6 +30,7 @@
 .cancelado { background: var(--grad-red); }
 
 .headerRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.headerSede { font-size: 13px; opacity: .9; margin-bottom: 4px; }
 .service { font-size: 19px; font-weight: 800; margin-bottom: 8px; line-height: 1.2; }
 .badge {
   display: inline-flex; align-items: center;
