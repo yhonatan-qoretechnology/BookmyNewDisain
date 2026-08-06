@@ -719,9 +719,6 @@ const es = {
     printedAt: "Impreso el {fecha}",
     waMessage:
       "Hola {cliente} 👋\nTe confirmamos tu cita en *{sede}*:\n\n📋 *Servicio:* {servicio}\n📅 *Fecha:* {fecha}\n⏰ *Hora:* {hora}\n💶 *Precio:* {precio}€\n\n¡Te esperamos! ✨",
-    mailSubject: "Confirmación de cita — {servicio}",
-    mailBody:
-      "Hola {cliente},\n\nTe confirmamos tu próxima cita:\n\nServicio: {servicio}\nFecha: {fecha}\nHora: {hora}\nEspecialista: {especialista}\nPrecio: {precio}€\n{notas}\n¡Nos vemos pronto!\nEquipo {negocio}",
   },
 };
 

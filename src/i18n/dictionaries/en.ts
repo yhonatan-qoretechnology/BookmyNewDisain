@@ -714,9 +714,6 @@ const en: Dictionary = {
     printedAt: "Printed on {fecha}",
     waMessage:
       "Hi {cliente} 👋\nYour appointment at *{sede}* is confirmed:\n\n📋 *Service:* {servicio}\n📅 *Date:* {fecha}\n⏰ *Time:* {hora}\n💶 *Price:* {precio}€\n\nSee you soon! ✨",
-    mailSubject: "Appointment confirmation — {servicio}",
-    mailBody:
-      "Hi {cliente},\n\nYour upcoming appointment is confirmed:\n\nService: {servicio}\nDate: {fecha}\nTime: {hora}\nSpecialist: {especialista}\nPrice: {precio}€\n{notas}\nSee you soon!\nThe {negocio} team",
   },
 };
 
