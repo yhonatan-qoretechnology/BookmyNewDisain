@@ -28,6 +28,8 @@ export const EP = {
      paginado, ya filtrado por rol y sin el resto de usuarios. */
   clients: "/clients",
   clientById: (id: number) => `/clients/${id}`,
+  /** PATCH { password } — un admin fija la contraseña sin saber la anterior */
+  clientPassword: (id: number) => `/clients/${id}/password`,
   /** POST { email } — búsqueda exacta por correo */
   clientsSearch: "/clients/search",
 

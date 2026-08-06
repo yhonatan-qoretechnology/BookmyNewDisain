@@ -37,6 +37,8 @@ const en: Dictionary = {
     requiredName: "Name is required",
     comingSoon: "The {view} view is coming soon",
     loading: "Loading…",
+    saving: "Saving…",
+    error: "The operation could not be completed",
     actions: "Actions",
     view: "View",
     download: "Download",
@@ -359,11 +361,54 @@ const en: Dictionary = {
     modalTitle: "New client",
     namePlaceholder: "First and last name",
     added: "Client added",
-    deleteTitle: "Delete client",
-    deleteMsg: "Are you sure you want to delete {nombre}? This action cannot be undone.",
-    deleted: "Client deleted",
+    deleteTitle: "Close the account",
+    deleteMsg: "Are you sure you want to delete {nombre}? They have no history, so their record will be removed entirely and cannot be recovered.",
+    deleteMsgHistorial:
+      "{nombre} has {citas} appointment(s) and {pagos} payment(s) on record. Those are kept because billing depends on them, but their personal details will be erased and they will lose access. This cannot be undone.",
+    deleteConfirm: "Yes, close it",
+    deleted: "Client deleted entirely",
+    anonymized: "Account closed and personal details anonymised",
     deleteAria: "Delete {nombre}",
     apiRegister: "In API mode, clients register from the client app (POST /auth/register).",
+
+    /* Client record */
+    editAria: "Edit {nombre}",
+    detailTitle: "Client record",
+    detailSub: "Client #{id}",
+    loadError: "The client record could not be loaded",
+    updated: "Details updated",
+    noChanges: "Nothing has changed",
+    sectionData: "Personal details",
+    gender: "Gender",
+    birthdate: "Date of birth",
+    language: "Language",
+    address: "Address",
+    emailRequired: "Email is required",
+    emailHint: "This is also their sign-in username for the client app.",
+    state: "Status",
+    stateHint: "Only “Active” can sign in.",
+    states: {
+      enabled: "Active",
+      disabled: "Disabled",
+      blocked: "Blocked",
+    },
+
+    /* Password */
+    sectionPassword: "Password",
+    passwordHint: "Set a new password without needing the old one. Use only when the client asks.",
+    newPassword: "New password",
+    repeatPassword: "Repeat password",
+    setPassword: "Change password",
+    passwordShort: "The password must be at least 6 characters",
+    passwordMismatch: "The two passwords do not match",
+    passwordChanged: "Password updated",
+
+    /* Closing the account */
+    sectionDanger: "Close account",
+    dangerClean: "This client has no appointments or payments, so their record will be removed entirely.",
+    dangerHistorial:
+      "They have {citas} appointment(s), {pagos} payment(s) and {resenas} review(s). Those are kept for billing; their personal details will be erased and they will lose access.",
+    deleteAccount: "Delete account",
   },
 
   facturacion: {

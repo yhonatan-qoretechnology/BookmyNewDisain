@@ -38,6 +38,8 @@ const es = {
     requiredName: "El nombre es obligatorio",
     comingSoon: "La vista {view} estará disponible próximamente",
     loading: "Cargando…",
+    saving: "Guardando…",
+    error: "No se pudo completar la operación",
     actions: "Acciones",
     view: "Ver",
     download: "Descargar",
@@ -358,11 +360,54 @@ const es = {
     modalTitle: "Nuevo cliente",
     namePlaceholder: "Nombre y apellidos",
     added: "Cliente agregado",
-    deleteTitle: "Eliminar cliente",
-    deleteMsg: "¿Seguro que quieres eliminar a {nombre}? Esta acción no se puede deshacer.",
-    deleted: "Cliente eliminado",
+    deleteTitle: "Dar de baja la cuenta",
+    deleteMsg: "¿Seguro que quieres eliminar a {nombre}? No tiene historial, así que su ficha se borrará por completo y no se podrá recuperar.",
+    deleteMsgHistorial:
+      "{nombre} tiene {citas} cita(s) y {pagos} pago(s) registrados. Esos datos se conservan porque sostienen la facturación, pero sus datos personales se borrarán y perderá el acceso. No se puede deshacer.",
+    deleteConfirm: "Sí, dar de baja",
+    deleted: "Cliente eliminado por completo",
+    anonymized: "Cuenta dada de baja y datos personales anonimizados",
     deleteAria: "Eliminar {nombre}",
     apiRegister: "En modo API los clientes se registran desde la app de clientes (POST /auth/register).",
+
+    /* Ficha del cliente */
+    editAria: "Editar a {nombre}",
+    detailTitle: "Ficha del cliente",
+    detailSub: "Cliente #{id}",
+    loadError: "No se pudo cargar la ficha del cliente",
+    updated: "Datos actualizados",
+    noChanges: "No has cambiado nada",
+    sectionData: "Datos personales",
+    gender: "Género",
+    birthdate: "Fecha de nacimiento",
+    language: "Idioma",
+    address: "Dirección",
+    emailRequired: "El correo es obligatorio",
+    emailHint: "Es también su usuario de acceso a la app de clientes.",
+    state: "Estado",
+    stateHint: "Solo «Activo» puede iniciar sesión.",
+    states: {
+      enabled: "Activo",
+      disabled: "Desactivado",
+      blocked: "Bloqueado",
+    },
+
+    /* Contraseña */
+    sectionPassword: "Contraseña",
+    passwordHint: "Fija una contraseña nueva sin necesidad de saber la anterior. Úsalo solo si el cliente lo pide.",
+    newPassword: "Nueva contraseña",
+    repeatPassword: "Repetir contraseña",
+    setPassword: "Cambiar contraseña",
+    passwordShort: "La contraseña debe tener al menos 6 caracteres",
+    passwordMismatch: "Las dos contraseñas no coinciden",
+    passwordChanged: "Contraseña actualizada",
+
+    /* Baja de la cuenta */
+    sectionDanger: "Dar de baja",
+    dangerClean: "Este cliente no tiene citas ni pagos, así que su ficha se borrará por completo.",
+    dangerHistorial:
+      "Tiene {citas} cita(s), {pagos} pago(s) y {resenas} reseña(s). Esos registros se conservan por facturación; se borrarán sus datos personales y perderá el acceso.",
+    deleteAccount: "Eliminar cuenta",
   },
 
   facturacion: {

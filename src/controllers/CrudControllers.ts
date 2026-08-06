@@ -10,7 +10,9 @@ import {
   AsignacionesApi, AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
-import type { ApiClient, ApiProfesional, ApiService, ApiServicioAsignable } from "@/api/types";
+import type {
+  ApiClient, ApiProfesional, ApiService, ApiServicioAsignable, ClientUpdatePayload,
+} from "@/api/types";
 import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
@@ -91,11 +93,45 @@ export const ClientesController = {
         correo: c.email,
         telefono: c.userData?.phone || "—",
         foto: c.fotoPerfil || null,
+        estado: c.state,
         visitas: s?.visitas ?? 0,
         ultima: s?.ultima ?? "—",
       };
     });
   },
+
+  /**
+   * Ficha completa — GET /clients/:id. Trae además el `historial`
+   * (citas, pagos, reseñas), que es lo que decide si al dar de baja
+   * la cuenta se borrará o solo se anonimizará.
+   */
+  getDetalle: (id: number) => ClientsApi.findOne(id),
+
+  /**
+   * PATCH /clients/:id. Solo se envían los campos con valor para no
+   * pisar con cadenas vacías lo que el cliente ya tenía guardado.
+   */
+  async update(id: number, datos: ClientUpdatePayload): Promise<ApiClient> {
+    const limpio: ClientUpdatePayload = {};
+    for (const [clave, valor] of Object.entries(datos)) {
+      if (valor === undefined) continue;
+      if (typeof valor === "string" && !valor.trim()) continue;
+      (limpio as Record<string, unknown>)[clave] =
+        typeof valor === "string" ? valor.trim() : valor;
+    }
+    return ClientsApi.update(id, limpio);
+  },
+
+  /** PATCH /clients/:id/password — el admin no necesita la anterior. */
+  cambiarPassword: (id: number, password: string) =>
+    ClientsApi.changePassword(id, password),
+
+  /**
+   * DELETE /clients/:id. Devuelve `mode` para poder contar al usuario
+   * qué ocurrió: `deleted` (se borró) o `anonymized` (tenía historial
+   * de facturación y solo se anonimizaron sus datos).
+   */
+  remove: (id: number) => ClientsApi.remove(id),
 };
 
 /* ── Servicios (ServiceModule + CategoryModule) ──────────── */

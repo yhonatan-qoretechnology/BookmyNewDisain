@@ -361,12 +361,49 @@ export interface ApiClient {
     idioma: string;
     gender: string;
     birthdate: string | null;
+    /** Está en `user_data`; `userLocation.address` es otra cosa */
+    direccion?: string | null;
+    countryId?: number;
   } | null;
   userLocation: {
     address: string | null;
     latitude: number;
     longitude: number;
   } | null;
+  /** Solo lo trae GET /clients/:id — lo que la baja conservará. */
+  historial?: ApiClientHistorial;
+}
+
+/** Registros que atan al cliente y que la baja no puede borrar. */
+export interface ApiClientHistorial {
+  citas: number;
+  pagos: number;
+  resenas: number;
+  gastos: number;
+}
+
+/**
+ * DELETE /clients/:id — el backend elige entre borrar de verdad
+ * (`deleted`, cliente sin historial) o anonimizar conservando citas y
+ * pagos (`anonymized`). El panel usa `mode` para explicar cuál pasó.
+ */
+export interface ApiClientDeleteResult {
+  message: string;
+  mode: "deleted" | "anonymized";
+  historial: ApiClientHistorial;
+}
+
+/** Campos que admite PATCH /clients/:id (UpdateClientDto). */
+export interface ClientUpdatePayload {
+  name?: string;
+  phone?: string;
+  email?: string;
+  idioma?: string;
+  gender?: string;
+  birthdate?: string | null;
+  direccion?: string;
+  countryId?: number;
+  state?: ApiClientState;
 }
 
 /** GET /clients → { clients, pagination } */

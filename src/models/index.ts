@@ -108,6 +108,8 @@ export interface Cliente {
   telefono: string;
   /** Ruta de la foto de perfil (columna `fotoPerfil` del usuario) */
   foto: string | null;
+  /** Estado de la cuenta; solo `enabled` puede iniciar sesión */
+  estado: "enabled" | "disabled" | "blocked";
   visitas: number;
   ultima: string;
 }

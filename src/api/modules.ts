@@ -7,11 +7,12 @@ import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
   ApiAppointment, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
-  ApiClient, ApiClientsPage, ApiDiaCerradoSede, ApiDisponibilidadProfesional, ApiEmpresa,
+  ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
+  ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService,
   ApiServicioAsignable, ApiUser,
-  ClientListParams, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
+  ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
   RegisterUserDto, SendMessageDto, UpdateGastoDto,
 } from "./types";
@@ -118,9 +119,23 @@ export const ClientsApi = {
   /** POST /clients/search { email } — coincidencia exacta; 404 si no existe. */
   search: (email: string) => http.post<ApiClient>(EP.clientsSearch, { email }),
 
-  /** PATCH /clients/:id — UpdateClientDto (nombre, teléfono, idioma…). */
-  update: (id: number, data: Record<string, unknown>) =>
+  /** PATCH /clients/:id — UpdateClientDto (nombre, teléfono, correo, país…). */
+  update: (id: number, data: ClientUpdatePayload) =>
     http.patch<ApiClient>(EP.clientById(id), data),
+
+  /**
+   * PATCH /clients/:id/password — un administrador fija la contraseña
+   * nueva; no se pide la anterior porque no la conoce.
+   */
+  changePassword: (id: number, password: string) =>
+    http.patch<{ message: string }>(EP.clientPassword(id), { password }),
+
+  /**
+   * DELETE /clients/:id — baja de la cuenta. El backend responde con
+   * `mode`: `deleted` si borró la ficha y `anonymized` si el cliente
+   * tenía historial y solo se anonimizaron sus datos.
+   */
+  remove: (id: number) => http.delete<ApiClientDeleteResult>(EP.clientById(id)),
 };
 
 /* ── EmpresaModule ──────────────────────────────────────── */
