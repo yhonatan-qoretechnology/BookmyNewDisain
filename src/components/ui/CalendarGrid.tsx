@@ -123,6 +123,7 @@ export default function CalendarGrid({
           <div
             key={`${e.id}-${i}`}
             className={styles.calEvent}
+            title={e.label}
             onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e.id, e.data); }}
             role={onEventClick ? "button" : undefined}
           >
