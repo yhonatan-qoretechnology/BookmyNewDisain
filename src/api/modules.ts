@@ -7,10 +7,13 @@ import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
   ApiAppointment, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
-  ApiClient, ApiClientsPage, ApiDiaCerradoSede, ApiDisponibilidadProfesional, ApiEmpresa,
+  ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
+  ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
-  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService, ApiUser,
-  ClientListParams, CreateAppointmentDto, CreateGastoDto, CreateServiceDto, LoginResponse, Paginated,
+  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService,
+  ApiServicioAsignable, ApiUser,
+  ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
+  CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
   RegisterUserDto, SendMessageDto, UpdateGastoDto,
 } from "./types";
 
@@ -77,6 +80,29 @@ export const PasswordRecoveryApi = {
     }),
 };
 
+/* ── ServiceSedeProfesionalModule ────────────────────────────
+   Fuente de verdad de "quién presta qué y dónde". Ojo: no confundir
+   con POST /sedes/:id/servicios, que solo toca la relación de
+   pertenencia y NO hace que un servicio se pueda reservar. */
+export const AsignacionesApi = {
+  /**
+   * Servicios de la sede con marca de si los presta ese profesional.
+   * @returns cada servicio con `asignado` y su `asignacionId`.
+   */
+  porProfesional: (sedeId: number, profesionalId: number, language = "es") =>
+    http.get<ApiServicioAsignable[]>(
+      EP.serviciosAsignables(sedeId, profesionalId) + qs({ language })
+    ),
+
+  /** POST — asigna un servicio a un profesional en una sede. */
+  asignar: (dto: CreateServiceSedeProfesionalDto) =>
+    http.post<{ id: number }>(EP.serviceSedeProfesional, dto),
+
+  /** DELETE — quita la asignación por su id (el `asignacionId`). */
+  quitar: (asignacionId: number) =>
+    http.delete(EP.serviceSedeProfesionalById(asignacionId)),
+};
+
 /* ── ClientManagementModule ─────────────────────────────── */
 export const ClientsApi = {
   /**
@@ -93,9 +119,23 @@ export const ClientsApi = {
   /** POST /clients/search { email } — coincidencia exacta; 404 si no existe. */
   search: (email: string) => http.post<ApiClient>(EP.clientsSearch, { email }),
 
-  /** PATCH /clients/:id — UpdateClientDto (nombre, teléfono, idioma…). */
-  update: (id: number, data: Record<string, unknown>) =>
+  /** PATCH /clients/:id — UpdateClientDto (nombre, teléfono, correo, país…). */
+  update: (id: number, data: ClientUpdatePayload) =>
     http.patch<ApiClient>(EP.clientById(id), data),
+
+  /**
+   * PATCH /clients/:id/password — un administrador fija la contraseña
+   * nueva; no se pide la anterior porque no la conoce.
+   */
+  changePassword: (id: number, password: string) =>
+    http.patch<{ message: string }>(EP.clientPassword(id), { password }),
+
+  /**
+   * DELETE /clients/:id — baja de la cuenta. El backend responde con
+   * `mode`: `deleted` si borró la ficha y `anonymized` si el cliente
+   * tenía historial y solo se anonimizaron sus datos.
+   */
+  remove: (id: number) => http.delete<ApiClientDeleteResult>(EP.clientById(id)),
 };
 
 /* ── EmpresaModule ──────────────────────────────────────── */
@@ -188,7 +228,14 @@ export const AppointmentsApi = {
 export const ResenasApi = {
   findAll: () => http.get<ApiResena[]>(EP.resenas),
   bySede: (sedeId: number) => http.get<ApiResena[]>(EP.resenasBySede(sedeId)),
-  aprobar: (id: number) => http.patch<ApiResena>(EP.resenaAprobar(id)),
+  /**
+   * PATCH /resenas/:id/aprobar — publica o rechaza una reseña.
+   * ⚠️ El cuerpo { aprobado } es OBLIGATORIO: sin él, el backend
+   * respondía 500 al leer body.aprobado sobre undefined.
+   * @param aprobado true publica la reseña, false la rechaza.
+   */
+  aprobar: (id: number, aprobado = true) =>
+    http.patch<ApiResena>(EP.resenaAprobar(id), { aprobado }),
 };
 
 /* ── ServiceModule (escritura) ──────────────────────────── */

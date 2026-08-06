@@ -314,6 +314,31 @@ export interface CreateServiceDto {
   prices: Array<{ amount: number; duration: number; currency?: string }>;
 }
 
+/* ── ServiceSedeProfesional ──────────────────────────────────
+   Tabla que decide de verdad si algo se puede reservar: crear una
+   cita valida que exista la terna (sede, servicio, profesional).
+   El backend mantiene sincronizada la relación Sede<->Service, que
+   es la que usa el control de permisos por empresa. */
+
+/** Fila de GET /service-sede-profesional/by-sede/:s/by-profesional/:p */
+export interface ApiServicioAsignable {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  categoria: string;
+  precios: Array<{ id: number; amount: number; duration: number; currency: string }>;
+  asignado: boolean;
+  /** id de la fila de service_sede_profesional; null si no está asignado */
+  asignacionId: number | null;
+}
+
+/** DTO de POST /service-sede-profesional */
+export interface CreateServiceSedeProfesionalDto {
+  sedeId: number;
+  serviceId: number;
+  profesionalId: number;
+}
+
 /* ── ClientManagement (@Controller('clients')) ───────────────
    Endpoint dedicado a los clientes finales. A diferencia de
    /auth/users, ya viene filtrado por role CLIENT, paginado y con
@@ -336,12 +361,49 @@ export interface ApiClient {
     idioma: string;
     gender: string;
     birthdate: string | null;
+    /** Está en `user_data`; `userLocation.address` es otra cosa */
+    direccion?: string | null;
+    countryId?: number;
   } | null;
   userLocation: {
     address: string | null;
     latitude: number;
     longitude: number;
   } | null;
+  /** Solo lo trae GET /clients/:id — lo que la baja conservará. */
+  historial?: ApiClientHistorial;
+}
+
+/** Registros que atan al cliente y que la baja no puede borrar. */
+export interface ApiClientHistorial {
+  citas: number;
+  pagos: number;
+  resenas: number;
+  gastos: number;
+}
+
+/**
+ * DELETE /clients/:id — el backend elige entre borrar de verdad
+ * (`deleted`, cliente sin historial) o anonimizar conservando citas y
+ * pagos (`anonymized`). El panel usa `mode` para explicar cuál pasó.
+ */
+export interface ApiClientDeleteResult {
+  message: string;
+  mode: "deleted" | "anonymized";
+  historial: ApiClientHistorial;
+}
+
+/** Campos que admite PATCH /clients/:id (UpdateClientDto). */
+export interface ClientUpdatePayload {
+  name?: string;
+  phone?: string;
+  email?: string;
+  idioma?: string;
+  gender?: string;
+  birthdate?: string | null;
+  direccion?: string;
+  countryId?: number;
+  state?: ApiClientState;
 }
 
 /** GET /clients → { clients, pagination } */

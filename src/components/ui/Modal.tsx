@@ -7,11 +7,16 @@ export default function Modal({
   onClose,
   children,
   maxWidth,
+  contentScroll = false,
 }: {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
   maxWidth?: number;
+  /** true cuando el contenido gestiona su propio scroll interno (listas
+      largas): la caja deja de scrollear entera y la cabecera y los
+      botones se quedan fijos a la vista. */
+  contentScroll?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -23,7 +28,12 @@ export default function Modal({
   if (!open) return null;
   return (
     <div className={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={styles.box} style={maxWidth ? { maxWidth } : undefined}>{children}</div>
+      <div
+        className={`${styles.box} ${contentScroll ? styles.contenido : ""}`}
+        style={maxWidth ? { maxWidth } : undefined}
+      >
+        {children}
+      </div>
     </div>
   );
 }

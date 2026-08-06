@@ -34,8 +34,10 @@
   box-shadow: 0 3px 8px rgba(15,207,174,.35);
 }
 
+/* minmax(0,1fr) y no 1fr: con 1fr el mínimo es el contenido, así que un
+   nombre de servicio largo ensancha su columna y descuadra la rejilla. */
 .calGrid {
-  display: grid; grid-template-columns: repeat(7, 1fr);
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
   border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden;
 }
 .dow {
@@ -43,21 +45,31 @@
   letter-spacing: .06em; text-transform: uppercase;
   padding: 9px 6px; color: var(--slate-500);
   border-bottom: 1px solid var(--border); text-align: center;
+  min-width: 0; overflow: hidden;
 }
 .calCell {
   min-height: 80px; border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border); padding: 7px;
+  min-width: 0; overflow: hidden;
 }
 .calCell:nth-child(7n) { border-right: none; }
 .mutedCell { background: var(--muted-cell); }
 .dayNum { font-weight: 800; font-size: 12.5px; color: var(--navy-900); display: block; margin-bottom: 3px; }
 .mutedCell .dayNum { color: var(--slate-300); }
+/* Se recorta a 2 líneas y parte las palabras largas: el texto nunca
+   decide el ancho de la celda. El título completo va en el tooltip. */
 .calEvent {
   border-left: 3px solid var(--teal-500);
   background: var(--teal-50); padding: 3px 5px;
   border-radius: 4px; font-size: 10.5px; font-weight: 700;
   color: var(--teal-700); line-height: 1.35; margin-top: 3px;
   cursor: pointer;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 :global([data-theme="dark"]) .calEvent { color: #0fcfae; }
 .calEventMore { opacity: .6; cursor: default; }
@@ -68,7 +80,7 @@
   .monthSwitch { font-size: 16px; }
   .calCell { min-height: 56px; padding: 4px; }
   .dayNum { font-size: 11px; }
-  .calEvent { font-size: 9px; padding: 2px 4px; }
+  .calEvent { font-size: 9px; padding: 2px 4px; -webkit-line-clamp: 1; line-clamp: 1; }
   .dow { font-size: 9.5px; padding: 7px 4px; }
 }
 @media (max-width: 380px) {

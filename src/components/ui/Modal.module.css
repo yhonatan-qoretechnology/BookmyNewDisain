@@ -10,7 +10,21 @@
   background: var(--surface-2); border-radius: var(--r-xl);
   width: 100%; max-width: 440px; padding: 28px; box-shadow: var(--shadow-lg);
   animation: fadeUp .2s ease;
+  /* Sin este tope, cualquier modal más alto que la pantalla se salía por
+     abajo en escritorio y sus botones quedaban fuera de alcance. */
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
 }
+
+/* Variante para modales con una lista larga: la caja deja de scrollear
+   como un todo y solo lo hace la zona interna que se marque, así la
+   cabecera y los botones siguen visibles mientras se recorre la lista. */
+.contenido {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -22,7 +36,7 @@
 @media (max-width: 600px) {
   .overlay { padding: 0; align-items: flex-end; }
   /* FIX PADDING: en móvil el modal conserva respiro interno */
-  .box { border-radius: var(--r-xl) var(--r-xl) 0 0; max-height: 88vh; overflow-y: auto; padding: 22px 18px 24px; }
+  .box { border-radius: var(--r-xl) var(--r-xl) 0 0; max-height: 92vh; padding: 22px 18px 24px; }
   .actions { flex-direction: column; }
 }
 

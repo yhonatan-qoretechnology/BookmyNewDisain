@@ -28,6 +28,8 @@ export const EP = {
      paginado, ya filtrado por rol y sin el resto de usuarios. */
   clients: "/clients",
   clientById: (id: number) => `/clients/${id}`,
+  /** PATCH { password } — un admin fija la contraseña sin saber la anterior */
+  clientPassword: (id: number) => `/clients/${id}/password`,
   /** POST { email } — búsqueda exacta por correo */
   clientsSearch: "/clients/search",
 
@@ -70,6 +72,14 @@ export const EP = {
   services: "/services",
   serviceById: (id: number) => `/services/${id}`,
   servicesBySede: (sedeId: number) => `/services/by-sede/${sedeId}`,
+
+  /* @Controller('service-sede-profesional') — qué servicio presta cada
+     profesional en cada sede. Es la terna que valida crear una cita. */
+  serviceSedeProfesional: "/service-sede-profesional",
+  serviceSedeProfesionalById: (id: number) => `/service-sede-profesional/${id}`,
+  /** Todos los servicios de la sede, marcando cuáles presta ese profesional */
+  serviciosAsignables: (sedeId: number, profesionalId: number) =>
+    `/service-sede-profesional/by-sede/${sedeId}/by-profesional/${profesionalId}`,
 
   /* @Controller('categories') */
   categories: "/categories",

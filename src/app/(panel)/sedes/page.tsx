@@ -16,6 +16,8 @@ import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
 import ImageGallery from "@/components/ui/ImageGallery";
+import Icon from "@/components/ui/Icon";
+import ServiciosSedeModal from "@/components/sedes/ServiciosSedeModal";
 
 export default function SedesPage() {
   const { toast } = useUi();
@@ -25,6 +27,8 @@ export default function SedesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
+  /* Sede cuyo catálogo de servicios se está editando */
+  const [serviciosDe, setServiciosDe] = useState<{ id: number; nombre: string } | null>(null);
 
   /* MODO API: GET /sedes/empresa/:empresaId (multi-tenant) */
   const { data: lista, reload } = useData(
@@ -74,6 +78,15 @@ export default function SedesPage() {
                   onAdd={(file) => SedesController.subirImagen(s.id, file)}
                   onRemove={(ruta) => SedesController.borrarImagen(s.id, ruta)}
                 />
+                <div style={{ marginTop: 12 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setServiciosDe({ id: s.id, nombre: s.nombre })}
+                  >
+                    <Icon name="tag" /> {t("serviciosSede.abrir")}
+                  </Button>
+                </div>
               </SimpleCard>
             ))}
           </CardGrid>
@@ -93,6 +106,13 @@ export default function SedesPage() {
           <Button onClick={agregar}>{t("common.save")}</Button>
         </ModalActions>
       </Modal>
+
+      {/* Qué servicios presta cada profesional de la sede */}
+      <ServiciosSedeModal
+        sedeId={serviciosDe?.id ?? null}
+        sedeNombre={serviciosDe?.nombre ?? ""}
+        onClose={() => setServiciosDe(null)}
+      />
     </>
   );
 }

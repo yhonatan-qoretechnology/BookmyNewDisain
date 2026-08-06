@@ -7,10 +7,12 @@ import type {
   Resena, SedeDetalle, Servicio, Session,
 } from "@/models";
 import {
-  AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
+  AsignacionesApi, AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
-import type { ApiClient, ApiProfesional, ApiService } from "@/api/types";
+import type {
+  ApiClient, ApiProfesional, ApiService, ApiServicioAsignable, ClientUpdatePayload,
+} from "@/api/types";
 import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
@@ -91,11 +93,45 @@ export const ClientesController = {
         correo: c.email,
         telefono: c.userData?.phone || "—",
         foto: c.fotoPerfil || null,
+        estado: c.state,
         visitas: s?.visitas ?? 0,
         ultima: s?.ultima ?? "—",
       };
     });
   },
+
+  /**
+   * Ficha completa — GET /clients/:id. Trae además el `historial`
+   * (citas, pagos, reseñas), que es lo que decide si al dar de baja
+   * la cuenta se borrará o solo se anonimizará.
+   */
+  getDetalle: (id: number) => ClientsApi.findOne(id),
+
+  /**
+   * PATCH /clients/:id. Solo se envían los campos con valor para no
+   * pisar con cadenas vacías lo que el cliente ya tenía guardado.
+   */
+  async update(id: number, datos: ClientUpdatePayload): Promise<ApiClient> {
+    const limpio: ClientUpdatePayload = {};
+    for (const [clave, valor] of Object.entries(datos)) {
+      if (valor === undefined) continue;
+      if (typeof valor === "string" && !valor.trim()) continue;
+      (limpio as Record<string, unknown>)[clave] =
+        typeof valor === "string" ? valor.trim() : valor;
+    }
+    return ClientsApi.update(id, limpio);
+  },
+
+  /** PATCH /clients/:id/password — el admin no necesita la anterior. */
+  cambiarPassword: (id: number, password: string) =>
+    ClientsApi.changePassword(id, password),
+
+  /**
+   * DELETE /clients/:id. Devuelve `mode` para poder contar al usuario
+   * qué ocurrió: `deleted` (se borró) o `anonymized` (tenía historial
+   * de facturación y solo se anonimizaron sus datos).
+   */
+  remove: (id: number) => ClientsApi.remove(id),
 };
 
 /* ── Servicios (ServiceModule + CategoryModule) ──────────── */
@@ -130,13 +166,12 @@ export const ServiciosController = {
    */
   async search(term: string, language = "es"): Promise<Servicio[]> {
     const q = term.toLowerCase();
-    /* Las categorías se piden aparte para resolver el nombre cuando
-       GET /services devuelve la relación sin traducir (solo el id). */
-    const [list, categorias] = await Promise.all([
-      ServicesApi.findAll(language).catch(() => []),
-      this.getCategorias(language).catch(() => [] as Array<{ id: number; nombre: string }>),
-    ]);
-    const porId = new Map(categorias.map((c) => [c.id, c.nombre]));
+    /* GET /services ya resuelve el nombre de la categoría. Antes se
+       pedían también todas las categorías para completarlo, lo que
+       suponía una segunda petición en cada pulsación del buscador;
+       nombreCategoria conserva ese camino como respaldo. */
+    const list = await ServicesApi.findAll(language).catch(() => []);
+    const porId = new Map<number, string>();
     return (list || [])
       .map((sv) => ({
         id: sv.id,
@@ -257,9 +292,13 @@ export const ResenasController = {
       .filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
   },
 
-  /** Aprueba una reseña (la publica) — PATCH /resenas/:id/aprobar. */
-  async aprobar(id: number): Promise<void> {
-    await ResenasApi.aprobar(id);
+  /**
+   * Publica o rechaza una reseña — PATCH /resenas/:id/aprobar.
+   * El backend deja `estado` en APROBADA o RECHAZADA según el valor.
+   * @param aprobado true la publica, false la rechaza.
+   */
+  async aprobar(id: number, aprobado = true): Promise<void> {
+    await ResenasApi.aprobar(id, aprobado);
   },
 };
 
@@ -420,5 +459,69 @@ export const SedesController = {
   async borrarImagen(sedeId: number, ruta: string): Promise<string[]> {
     const actualizada = await ImagenesApi.borrarSedeImagenes(sedeId, [ruta]);
     return actualizada?.imagenes ?? [];
+  },
+};
+
+/* ── Servicios por sede y profesional ─────────────────────── */
+
+export interface ServicioAsignable {
+  id: number;
+  nombre: string;
+  categoria: string;
+  precio: number;
+  moneda: string;
+  duracion: number;
+  asignado: boolean;
+  asignacionId: number | null;
+}
+
+/**
+ * Gestiona qué servicios presta cada profesional en cada sede.
+ *
+ * Escribe en service_sede_profesional, que es la tabla que valida el
+ * backend al crear una cita. La relación Sede<->Service (la que usa el
+ * control de permisos) la sincroniza el propio backend, asi que desde
+ * aqui no hay que tocarla.
+ */
+export const AsignacionesController = {
+  /** Catálogo completo de la sede con el estado de asignación. */
+  async listar(
+    sedeId: number,
+    profesionalId: number,
+    language = "es",
+  ): Promise<ServicioAsignable[]> {
+    const list = await AsignacionesApi.porProfesional(sedeId, profesionalId, language)
+      .catch(() => [] as ApiServicioAsignable[]);
+    return (list || []).map((s) => ({
+      id: s.id,
+      nombre: s.nombre,
+      categoria: s.categoria || "—",
+      precio: s.precios?.[0]?.amount ?? 0,
+      moneda: s.precios?.[0]?.currency ?? "EUR",
+      duracion: s.precios?.[0]?.duration ?? 0,
+      asignado: s.asignado,
+      asignacionId: s.asignacionId,
+    }));
+  },
+
+  /**
+   * Activa o desactiva un servicio para ese profesional.
+   * @returns el nuevo `asignacionId`, o null si se desasignó.
+   */
+  async alternar(
+    servicio: ServicioAsignable,
+    sedeId: number,
+    profesionalId: number,
+  ): Promise<number | null> {
+    if (servicio.asignado && servicio.asignacionId != null) {
+      await AsignacionesApi.quitar(servicio.asignacionId);
+      return null;
+    }
+    const creada = await AsignacionesApi.asignar({
+      sedeId,
+      serviceId: servicio.id,
+      profesionalId,
+    });
+    return creada?.id ?? null;
   },
 };

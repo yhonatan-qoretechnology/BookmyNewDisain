@@ -156,59 +156,6 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
     window.open(url, "_blank");
   };
 
-  const onEmail = async () => {
-    console.log('[ReservaPopup] Email button clicked - START');
-    if (!reserva) {
-      console.log('[ReservaPopup] No reserva data, returning');
-      return;
-    }
-    console.log('[ReservaPopup] Reserva data for email:', reserva);
-
-    const emailEndpoint = "https://web-3o8dd5nhjvbs.up-de-fra1-k8s-1.apps.run-on-seenode.com/email/send-invoice";
-    console.log('[ReservaPopup] Email endpoint:', emailEndpoint);
-
-    try {
-      const emailData = {
-        to: reserva.email,
-        subject: t("popup.mailSubject", { servicio: reserva.servicio }),
-        body: t("popup.mailBody", {
-          cliente: reserva.cliente,
-          servicio: reserva.servicio,
-          fecha: fmtFechaLarga(reserva.fecha),
-          hora: reserva.hora,
-          especialista: espNombre,
-          precio: reserva.precio.toFixed(2),
-          notas: reserva.notas ? `\n${t("common.notes")}: ${reserva.notas}\n` : "",
-          negocio: session?.negocioName || "BookMy",
-        }),
-        reservaId: reserva.id,
-      };
-
-      console.log('[ReservaPopup] Sending email with data:', emailData);
-
-      const response = await fetch(emailEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(emailData),
-      });
-
-      console.log('[ReservaPopup] Email response status:', response.status);
-
-      if (response.ok) {
-        console.log('[ReservaPopup] Email sent successfully');
-        alert('Email enviado correctamente');
-      } else {
-        console.error('[ReservaPopup] Email send failed:', response.statusText);
-        alert('Error al enviar el email');
-      }
-    } catch (error) {
-      console.error('[ReservaPopup] Error sending email:', error);
-      alert('Error al enviar el email');
-    }
-  };
-
   const onPrint = async () => {
     console.log('[ReservaPopup] Print button clicked - START');
     console.log('[ReservaPopup] Reserva data:', reserva);
@@ -322,33 +269,15 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
               </div>
             )}
             <div className={`${styles.header} ${styles[reserva.estado]}`}>
-              {reserva.sedeImagenes && reserva.sedeImagenes.length > 0 && (
-                <img 
-                  src={`${IMG_BASE_URL}${reserva.sedeImagenes[0]}`} 
-                  alt={sedeNombre} 
-                  style={{ 
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    opacity: 0.15,
-                    zIndex: 0
-                  }} 
-                />
-              )}
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className={styles.headerRow}>
-                  <div>
-                    <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '4px' }}>{sedeNombre || "—"}</div>
-                    <div className={styles.service}>{reserva.servicio}</div>
-                    <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
-                  </div>
-                  <button className={styles.close} onClick={close} aria-label={t("popup.close")}>
-                    <Icon name="close" strokeWidth={2.2} width={16} height={16} />
-                  </button>
+              <div className={styles.headerRow}>
+                <div>
+                  <div className={styles.headerSede}>{sedeNombre || "—"}</div>
+                  <div className={styles.service}>{reserva.servicio}</div>
+                  <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
                 </div>
+                <button className={styles.close} onClick={close} aria-label={t("popup.close")}>
+                  <Icon name="close" strokeWidth={2.2} width={16} height={16} />
+                </button>
               </div>
             </div>
 
@@ -394,10 +323,6 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
               <button className={`${styles.actionBtn} ${styles.whatsapp}`} onClick={onWhatsApp}>
                 <WhatsAppIcon width={22} height={22} />
                 WhatsApp
-              </button>
-              <button className={`${styles.actionBtn} ${styles.email}`} onClick={onEmail}>
-                <Icon name="mail" width={22} height={22} />
-                Email
               </button>
               <button className={`${styles.actionBtn} ${styles.print}`} onClick={onPrint}>
                 <Icon name="printer" width={22} height={22} />
