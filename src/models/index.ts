@@ -53,6 +53,10 @@ export interface SedeDetalle {
   activa: boolean;
   /** Rutas de sede.imagenes; se muestran al elegir sede en una reserva */
   imagenes: string[];
+  telefono: string;
+  provincia: string;
+  latitud: number | null;
+  longitud: number | null;
 }
 
 /** Sesión activa guardada en sessionStorage */
@@ -179,6 +183,26 @@ export interface Empleado {
 export interface CredencialesEmpleado {
   email: string;
   password: string;
+}
+
+/**
+ * Usuario con acceso administrativo creado desde /administradores:
+ * dueño de empresa (COMPANY_ADMIN → rol "owner") o administrador de
+ * una sede concreta (BRANCH_ADMIN → rol "admin").
+ */
+export interface Administrador {
+  id: number;
+  nombre: string;
+  email: string;
+  telefono: string;
+  rol: "owner" | "admin";
+  negocioId: string | null;
+  negocioName: string;
+  /** null si es dueño de toda la empresa (sin sede asignada) */
+  sedeId: string | null;
+  sedeName: string;
+  activo: boolean;
+  foto: string | null;
 }
 
 /* ── Flujo de creación de reservas ───────────────────────── */

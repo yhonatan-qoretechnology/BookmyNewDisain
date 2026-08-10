@@ -42,6 +42,7 @@ const en: Dictionary = {
     actions: "Actions",
     view: "View",
     download: "Download",
+    edit: "Edit",
   },
 
   roles: {
@@ -64,6 +65,7 @@ const en: Dictionary = {
   nav: {
     dashboard: "Dashboard",
     empresas: "Companies",
+    administradores: "Admins",
     reservas: "Bookings",
     clientes: "Clients",
     facturacion: "Billing",
@@ -275,6 +277,7 @@ const en: Dictionary = {
     emptyMsg: "No results for that search.",
     sedesCount: "{n} branch(es)",
     select: "Work with this company",
+    viewSedes: "Branches",
     current: "Current company",
     switched: "You are now operating on {empresa}",
     modalTitle: "Register company",
@@ -642,6 +645,47 @@ const en: Dictionary = {
     accessCreated: "Access created successfully",
   },
 
+  administradores: {
+    panelTitle: "Admins",
+    panelSub: "{n} company and branch admin(s)",
+    searchPlaceholder: "Search by name, email or company…",
+    new: "+ New admin",
+    emptyTitle: "No admins yet",
+    emptyMsg: "Create the first admin for a company or branch.",
+    colName: "Name",
+    colEmail: "Email",
+    colRole: "Type",
+    colCompany: "Company",
+    colBranch: "Branch",
+    roleCompany: "Company admin",
+    roleBranch: "Branch admin",
+    deleteAria: "Remove {nombre}",
+    deleteTitle: "Remove admin",
+    deleteMsg: "Are you sure you want to remove {nombre}'s access? They will no longer be able to sign in.",
+    deleted: "Admin removed",
+    /* Create */
+    modalTitle: "New admin",
+    modalHint: "Pick the company and, if this admin should only manage one branch, pick it too. Leave the branch empty to give access to the whole company.",
+    company: "Company",
+    companyPlaceholder: "Select a company",
+    branch: "Branch (optional)",
+    branchPlaceholder: "Whole company",
+    branchHint: "Without a branch, the admin manages the entire company.",
+    firstName: "First name",
+    lastName: "Last name",
+    create: "Create admin",
+    creating: "Creating…",
+    createdTitle: "Admin created",
+    createdSub: "Share these details with {nombre} so they can sign in.",
+    fillRequired: "Fill in company, first name, last name, phone and email.",
+    created: "Admin created successfully",
+    password: "Password",
+    credWarning: "Save these details now: for security reasons the password cannot be retrieved again.",
+    copyCred: "Copy details",
+    copied: "Details copied to clipboard",
+    copyError: "Couldn't copy the details",
+  },
+
 
   resenas: {
     panelTitle: "Recent reviews",
@@ -692,6 +736,37 @@ const en: Dictionary = {
     addressPlaceholder: "Street, number, city",
     teamSize: "Team size",
     created: "Branch created",
+  },
+
+  /* "Branches" drill-down inside /empresas (superadmin) */
+  empresaSedes: {
+    panelTitle: "{empresa} branches",
+    panelSub: "{n} branch(es)",
+    back: "Back to companies",
+    editTitle: "Edit branch",
+    updated: "Branch updated",
+    province: "Province",
+    provincePlaceholder: "City or province",
+    viewProfesionales: "Staff",
+    viewResenas: "Reviews",
+  },
+
+  sedeProfesionales: {
+    title: "{sede} staff",
+    sub: "Edit their details or check which services each one offers at this branch.",
+    emptyTitle: "No staff",
+    emptyMsg: "This branch doesn't have any staff assigned yet.",
+    services: "Services",
+  },
+
+  sedeResenas: {
+    title: "{sede} reviews",
+    emptyTitle: "No reviews",
+    emptyMsg: "This branch doesn't have any reviews yet.",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    activated: "Review activated and published",
+    deactivated: "Review deactivated",
   },
 
   comunicacion: {

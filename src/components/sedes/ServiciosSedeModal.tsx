@@ -13,7 +13,7 @@
    cabecera y el pie quedan fijos y solo scrollea la lista. Los
    servicios se agrupan por categoría para poder recorrerlos.
 ============================================================ */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AsignacionesController,
   type ServicioAsignable,
@@ -31,16 +31,19 @@ import styles from "./ServiciosSedeModal.module.css";
 export default function ServiciosSedeModal({
   sedeId,
   sedeNombre,
+  /** Profesional a preseleccionar al abrir (p. ej. desde "Ver profesionales" de una sede) */
+  profesionalIdInicial,
   onClose,
 }: {
   sedeId: number | null;
   sedeNombre: string;
+  profesionalIdInicial?: number | null;
   onClose: () => void;
 }) {
   const { t, locale } = useI18n();
   const { toast } = useUi();
 
-  const [profesionalId, setProfesionalId] = useState<number | null>(null);
+  const [profesionalId, setProfesionalId] = useState<number | null>(profesionalIdInicial ?? null);
   const [busqueda, setBusqueda] = useState("");
   const [soloAsignados, setSoloAsignados] = useState(false);
   const [guardando, setGuardando] = useState<number | null>(null);
@@ -49,6 +52,13 @@ export default function ServiciosSedeModal({
   const [cambios, setCambios] = useState<Map<number, number | null>>(new Map());
 
   const abierto = sedeId != null;
+
+  /* `profesionalIdInicial` puede cambiar entre aperturas sin que el
+     componente se desmonte (sigue en el árbol, solo oculto): se
+     resincroniza aquí en vez de solo en el useState inicial. */
+  useEffect(() => {
+    if (abierto) setProfesionalId(profesionalIdInicial ?? null);
+  }, [sedeId, profesionalIdInicial, abierto]);
 
   const { data: profesionales } = useData(
     () => (abierto ? ProfesionalesApi.findBySede(sedeId).catch(() => []) : Promise.resolve([])),

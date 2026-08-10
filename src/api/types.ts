@@ -49,6 +49,15 @@ export interface LoginResponse {
 }
 
 /**
+ * Respuesta de POST /admin/companies/:empresaId/admins y
+ * POST /admin/branches/:sedeId/admins (AdminManagementController).
+ */
+export interface ApiAdminCreateResponse {
+  message?: string;
+  user: ApiUser;
+}
+
+/**
  * DTO de POST /auth/register. Se usa para dar acceso al panel a un
  * empleado (`role: "EMPLOYEE"`), además del alta de clientes finales.
  * ⚠️ PUNTO DE AJUSTE: si el CreateUserDto del backend nombra los campos

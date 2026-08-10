@@ -43,6 +43,7 @@ const es = {
     actions: "Acciones",
     view: "Ver",
     download: "Descargar",
+    edit: "Editar",
   },
 
   roles: {
@@ -65,6 +66,7 @@ const es = {
   nav: {
     dashboard: "Dashboard",
     empresas: "Empresas",
+    administradores: "Administradores",
     reservas: "Reservas",
     clientes: "Clientes",
     facturacion: "Facturación",
@@ -274,6 +276,7 @@ const es = {
     emptyMsg: "No hay resultados para esa búsqueda.",
     sedesCount: "{n} sede(s)",
     select: "Trabajar con esta empresa",
+    viewSedes: "Sedes",
     current: "Empresa actual",
     switched: "Ahora estás operando sobre {empresa}",
     modalTitle: "Registrar empresa",
@@ -648,6 +651,46 @@ const es = {
     accessCreated: "Acceso generado correctamente",
   },
 
+  administradores: {
+    panelTitle: "Administradores",
+    panelSub: "{n} administrador(es) de empresa y de sede",
+    searchPlaceholder: "Buscar por nombre, correo o empresa…",
+    new: "+ Nuevo administrador",
+    emptyTitle: "Sin administradores",
+    emptyMsg: "Crea el primer administrador de una empresa o sede.",
+    colName: "Nombre",
+    colEmail: "Correo",
+    colRole: "Tipo",
+    colCompany: "Empresa",
+    colBranch: "Sede",
+    roleCompany: "Administrador de empresa",
+    roleBranch: "Administrador de sede",
+    deleteAria: "Eliminar a {nombre}",
+    deleteTitle: "Eliminar administrador",
+    deleteMsg: "¿Seguro que quieres eliminar el acceso de {nombre}? Ya no podrá entrar al panel.",
+    deleted: "Administrador eliminado",
+    /* Alta */
+    modalTitle: "Nuevo administrador",
+    modalHint: "Elige la empresa y, si el administrador es solo de una sede, elígela también. Si dejas la sede sin seleccionar, tendrá acceso a toda la empresa.",
+    company: "Empresa",
+    companyPlaceholder: "Selecciona una empresa",
+    branch: "Sede (opcional)",
+    branchPlaceholder: "Toda la empresa",
+    branchHint: "Sin sede, el administrador gestiona la empresa completa.",
+    firstName: "Nombre",
+    lastName: "Apellido",
+    create: "Crear administrador",
+    creating: "Creando…",
+    createdTitle: "Administrador creado",
+    createdSub: "Comparte estos datos con {nombre} para que entre al panel.",
+    fillRequired: "Completa empresa, nombre, apellido, teléfono y correo.",
+    created: "Administrador creado correctamente",
+    password: "Contraseña",
+    credWarning: "Guarda estos datos ahora: por seguridad, la contraseña no se puede volver a consultar.",
+    copyCred: "Copiar datos",
+    copied: "Datos copiados al portapapeles",
+    copyError: "No se pudieron copiar los datos",
+  },
 
   resenas: {
     panelTitle: "Reseñas recientes",
@@ -698,6 +741,37 @@ const es = {
     addressPlaceholder: "Calle, número, ciudad",
     teamSize: "Tamaño del equipo",
     created: "Sede creada",
+  },
+
+  /* Drill-down "Sedes" dentro de /empresas (superadmin) */
+  empresaSedes: {
+    panelTitle: "Sedes de {empresa}",
+    panelSub: "{n} sede(s)",
+    back: "Volver a empresas",
+    editTitle: "Editar sede",
+    updated: "Sede actualizada",
+    province: "Provincia",
+    provincePlaceholder: "Ciudad o provincia",
+    viewProfesionales: "Profesionales",
+    viewResenas: "Reseñas",
+  },
+
+  sedeProfesionales: {
+    title: "Profesionales de {sede}",
+    sub: "Edita sus datos o revisa qué servicios presta cada uno en esta sede.",
+    emptyTitle: "Sin profesionales",
+    emptyMsg: "Esta sede todavía no tiene profesionales asignados.",
+    services: "Servicios",
+  },
+
+  sedeResenas: {
+    title: "Reseñas de {sede}",
+    emptyTitle: "Sin reseñas",
+    emptyMsg: "Esta sede todavía no tiene reseñas.",
+    activate: "Activar",
+    deactivate: "Desactivar",
+    activated: "Reseña activada y publicada",
+    deactivated: "Reseña desactivada",
   },
 
   comunicacion: {

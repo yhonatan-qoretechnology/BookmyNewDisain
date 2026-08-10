@@ -6,6 +6,7 @@ export const ROUTES = {
   dashboard: "/dashboard",
   employeeDashboard: "/employee-dashboard",
   empresas: "/empresas",
+  administradores: "/administradores",
   reservas: "/reservas",
   reservaNueva: "/reservas/nueva",
   clientes: "/clientes",
@@ -55,6 +56,7 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
   superadmin: [
     { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
     { id: "empresas", label: "Empresas", href: ROUTES.empresas, icon: "building" },
+    { id: "administradores", label: "Administradores", href: ROUTES.administradores, icon: "shield" },
     { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
     { id: "clientes", label: "Clientes", href: ROUTES.clientes, icon: "users" },
     {

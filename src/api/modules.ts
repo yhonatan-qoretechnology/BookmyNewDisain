@@ -6,7 +6,7 @@
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
-  ApiAppointment, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
+  ApiAdminCreateResponse, ApiAppointment, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
@@ -43,6 +43,26 @@ export const AuthApi = {
   /** PATCH /auth/users/:id/password { currentPassword, newPassword } */
   changePassword: (id: number, currentPassword: string, newPassword: string) =>
     http.patch(EP.userPassword(id), { currentPassword, newPassword }),
+};
+
+/* ── AdminManagementModule — altas de COMPANY_ADMIN / BRANCH_ADMIN ──
+   Distinto de AuthApi.register: crea usuarios CON AdminProfile
+   (empresaId/sedeId) para que puedan entrar al panel como dueños de
+   empresa o administradores de sede. Ambos POST exigen multipart
+   aunque no se suba foto (CreateAdminUserDto del backend). */
+export const AdminApi = {
+  /** GET /admin/admins — todos los administradores de la plataforma. */
+  findAll: () => http.get<ApiUser[]>(EP.admins),
+  /** GET /admin/admins/:userId */
+  findOne: (userId: number) => http.get<ApiUser>(EP.adminById(userId)),
+  /** POST /admin/companies/:empresaId/admins (multipart) — dueño de empresa. */
+  createCompanyAdmin: (empresaId: number, form: FormData) =>
+    http.postForm<ApiAdminCreateResponse>(EP.createCompanyAdmin(empresaId), form),
+  /** POST /admin/branches/:sedeId/admins (multipart) — admin de sede. */
+  createBranchAdmin: (sedeId: number, form: FormData) =>
+    http.postForm<ApiAdminCreateResponse>(EP.createBranchAdmin(sedeId), form),
+  /** DELETE /admin/admins/:userId */
+  remove: (userId: number) => http.delete(EP.adminById(userId)),
 };
 
 /* ── Recuperación de contraseña por OTP ─────────────────────

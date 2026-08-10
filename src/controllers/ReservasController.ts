@@ -8,9 +8,9 @@
    porque el include de citas no trae traducciones.
 ============================================================ */
 import type { MetodoPago, Reserva, Session, SlotHora } from "@/models";
-import { AppointmentsApi, AuthApi, ProfesionalesApi, SedesApi, ServicesApi } from "@/api/modules";
+import { AppointmentsApi, AuthApi, PaymentsApi, ProfesionalesApi, SedesApi, ServicesApi } from "@/api/modules";
 import { APPT_ESTADO_MAP, mapAppointment } from "@/api/mappers";
-import type { ApiPaymentMethod } from "@/api/types";
+import type { ApiAppointment, ApiPayment, ApiPaymentMethod } from "@/api/types";
 import { madridYmd } from "@/lib/timezone";
 import { BookingController } from "./BookingController";
 
@@ -32,6 +32,22 @@ const remember = (lista: Reserva[]): Reserva[] => {
 
 /* Mapa id→nombre traducido de servicios (por idioma) */
 const serviceNamesCache = new Map<string, Map<number, string>>();
+
+/**
+ * GET /appointments (lista, individual y /latest) nunca incluye la
+ * relación Payment, así que `precio` da siempre 0 si no se completa
+ * a mano — GET /payments sí la trae. Se busca por appointmentId y se
+ * "rellena" cada cita antes de mapearla (mismo parche que ya usaba
+ * el popup de detalle en ReservaPopupContext, ahora también en listas).
+ */
+async function getPaymentsByAppointment(): Promise<Map<number, ApiPayment>> {
+  const payments = await PaymentsApi.findAll().catch(() => []);
+  return new Map((payments || []).map((p) => [p.appointmentId, p]));
+}
+
+function withPayment(a: ApiAppointment, payments: Map<number, ApiPayment>): ApiAppointment {
+  return a.Payment ? a : { ...a, Payment: payments.get(a.id) ?? null };
+}
 
 /**
  * Construye (y cachea) el mapa id→nombre de servicios en el idioma dado.
@@ -57,10 +73,10 @@ export const ReservasController = {
    */
   async getForSession(session: Session | null, language = "es"): Promise<Reserva[]> {
     if (!session) return [];
-    const names = await getServiceNames(language);
+    const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
     if (session.sedeId) {
       const page = await AppointmentsApi.findAll({ sedeId: Number(session.sedeId) });
-      return remember((page.items || []).map((a) => mapAppointment(a, names)));
+      return remember((page.items || []).map((a) => mapAppointment(withPayment(a, payments), names)));
     }
     const sedesEmp = session.negocioId
       ? await SedesApi.findByEmpresa(Number(session.negocioId))
@@ -70,7 +86,7 @@ export const ReservasController = {
         AppointmentsApi.findAll({ sedeId: s.id }).then((p) => p.items || []).catch(() => [])
       )
     );
-    return remember(porSede.flat().map((a) => mapAppointment(a, names)));
+    return remember(porSede.flat().map((a) => mapAppointment(withPayment(a, payments), names)));
   },
 
   /**
@@ -80,14 +96,14 @@ export const ReservasController = {
    */
   async getUltimas(n: number, session: Session | null, language = "es"): Promise<Reserva[]> {
     if (!session) return [];
-    const names = await getServiceNames(language);
+    const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
     const sedeId = session.sedeId
       ? Number(session.sedeId)
       : (await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => []))[0]?.id;
     if (!sedeId) return [];
     const r = await AppointmentsApi.latestBySede(sedeId, n).catch(() => []);
     const lista = Array.isArray(r) ? r : [];
-    return remember(lista.map((a) => mapAppointment(a, names)));
+    return remember(lista.map((a) => mapAppointment(withPayment(a, payments), names)));
   },
 
   /**
@@ -96,9 +112,9 @@ export const ReservasController = {
    */
   async getByEmpleado(session: Session | null, language = "es"): Promise<Reserva[]> {
     if (!session?.sedeId) return [];
-    const names = await getServiceNames(language);
+    const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
     const page = await AppointmentsApi.findAll({ sedeId: Number(session.sedeId) });
-    return remember((page.items || []).map((a) => mapAppointment(a, names)));
+    return remember((page.items || []).map((a) => mapAppointment(withPayment(a, payments), names)));
   },
 
   /**

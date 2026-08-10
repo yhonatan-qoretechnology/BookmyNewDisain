@@ -11,7 +11,7 @@ import {
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
 import type {
-  ApiClient, ApiProfesional, ApiService, ApiServicioAsignable, ClientUpdatePayload,
+  ApiClient, ApiProfesional, ApiResena, ApiService, ApiServicioAsignable, ClientUpdatePayload,
 } from "@/api/types";
 import { ReservasController } from "./ReservasController";
 
@@ -269,27 +269,37 @@ const RESENA_ESTADO: Record<string, Resena["estado"]> = {
   RECHAZADA: "rechazada",
 };
 
+const mapResena = (r: ApiResena): Resena => {
+  const estado = RESENA_ESTADO[r.estado] ?? (r.aprobado ? "aprobada" : "pendiente");
+  return {
+    id: r.id,
+    cliente: r.usuario?.UserData?.name || r.usuario?.email || `#${r.usuarioId}`,
+    email: r.usuario?.email || "",
+    foto: r.usuario?.fotoPerfil || null,
+    estrellas: Math.round(r.calificacion),
+    texto: r.comentario || "",
+    fecha: (r.createdAt || "").slice(0, 10),
+    estado,
+    aprobada: estado === "aprobada",
+  };
+};
+
 export const ResenasController = {
   /** Lista reseñas — GET /resenas (incluye usuario.UserData). */
   async search(term: string): Promise<Resena[]> {
     const q = term.toLowerCase();
     const list = await ResenasApi.findAll().catch(() => []);
-    return (list || [])
-      .map((r) => {
-        const estado = RESENA_ESTADO[r.estado] ?? (r.aprobado ? "aprobada" : "pendiente");
-        return {
-          id: r.id,
-          cliente: r.usuario?.UserData?.name || r.usuario?.email || `#${r.usuarioId}`,
-          email: r.usuario?.email || "",
-          foto: r.usuario?.fotoPerfil || null,
-          estrellas: Math.round(r.calificacion),
-          texto: r.comentario || "",
-          fecha: (r.createdAt || "").slice(0, 10),
-          estado,
-          aprobada: estado === "aprobada",
-        };
-      })
-      .filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
+    return (list || []).map(mapResena).filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
+  },
+
+  /**
+   * Reseñas de una sede concreta — GET /resenas/sede/:sedeId. Se usa
+   * desde el drill-down "Sedes" de /empresas, donde se quiere ver
+   * (y moderar) solo lo que dejaron los clientes de ESA sede.
+   */
+  async searchPorSede(sedeId: number): Promise<Resena[]> {
+    const list = await ResenasApi.bySede(sedeId).catch(() => []);
+    return (list || []).map(mapResena);
   },
 
   /**
@@ -316,6 +326,14 @@ export const PersonalController = {
   /**
    * Lista profesionales — GET /profesionales, con el nombre de la
    * sede resuelto a partir de las sedes visibles para la sesión.
+   *
+   * ⚠️ GET /profesionales no filtra por tenant: sin `sedes` esta lista
+   * trae los profesionales de TODAS las empresas. Cuando la vista ya
+   * conoce las sedes visibles (owner/admin con negocio activo) se
+   * filtra aquí mismo, para que Personal respete el aislamiento
+   * multi-tenant igual que el resto del panel. Con `sedes` vacío
+   * (superadmin sin empresa elegida) se deja tal cual: no hay un
+   * alcance claro contra el que filtrar.
    * @param term Búsqueda por nombre o rol.
    * @param sedes Sedes { id, nombre } ya cargadas por la vista.
    */
@@ -326,7 +344,9 @@ export const PersonalController = {
     const q = term.toLowerCase();
     const list = await ProfesionalesApi.findAll().catch(() => []);
     const nombreSede = new Map(sedes.map((s) => [s.id, s.nombre]));
+    const sedeIds = new Set(sedes.map((s) => s.id));
     return (list || [])
+      .filter((p) => sedeIds.size === 0 || sedeIds.has(String(p.sedeId)))
       .map((p) => ({
         id: p.id,
         nombre: p.nombre,
@@ -341,6 +361,27 @@ export const PersonalController = {
         userId: p.user_id ?? null,
       }))
       .filter((p) => (p.nombre + p.rol).toLowerCase().includes(q));
+  },
+
+  /**
+   * Profesionales de UNA sede — GET /profesionales/by-sede/:sedeId.
+   * Se usa desde el drill-down "Sedes" de /empresas: ya viene acotado
+   * por sede, así que no hace falta el filtro por tenant de `search`.
+   */
+  async searchPorSede(sedeId: number, sedeNombre: string): Promise<Empleado[]> {
+    const list = await ProfesionalesApi.findBySede(sedeId).catch(() => []);
+    return (list || []).map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      rol: p.biografia || "Profesional",
+      foto: p.imagen || null,
+      sede: sedeNombre,
+      sedeId: String(p.sedeId),
+      telefono: p.phone || "",
+      reservas: 0,
+      activo: p.state !== "disabled",
+      userId: p.user_id ?? null,
+    }));
   },
 
   /** Edita un profesional — PATCH /profesionales/:id. */
@@ -432,8 +473,21 @@ export const SedesController = {
         equipo: equipoPorSede.get(s.id) ?? s.profesionales?.length ?? 0,
         activa: true,
         imagenes: s.imagenes ?? [],
+        telefono: s.telefono || "",
+        provincia: s.provincia || "",
+        latitud: s.latitud ?? null,
+        longitud: s.longitud ?? null,
       }))
       .filter((s) => (s.nombre + s.direccion).toLowerCase().includes(q));
+  },
+
+  /**
+   * Sedes de una empresa concreta (sin depender de la sesión) — usado
+   * por el drill-down "Sedes" de /empresas, donde el superadmin mira
+   * una empresa que no es necesariamente la que tiene "activa".
+   */
+  async getByEmpresa(negocioId: string): Promise<SedeDetalle[]> {
+    return this.search("", negocioId);
   },
 
   /** Crea una sede — POST /sedes { nombre, direccion, empresaId }. */
@@ -442,6 +496,25 @@ export const SedesController = {
       nombre: input.nombre,
       direccion: input.direccion,
       empresaId: Number(input.negocioId),
+    });
+  },
+
+  /**
+   * Edita los datos de contacto de una sede — PATCH /sedes/:id.
+   * (El horario y los días cerrados se gestionan aparte, en
+   * horario-sede / dia-cerrado-sede — no se tocan desde aquí.)
+   */
+  async update(id: number, input: {
+    nombre: string; direccion: string; telefono: string; provincia: string;
+    latitud?: number | null; longitud?: number | null;
+  }): Promise<void> {
+    await SedesApi.update(id, {
+      nombre: input.nombre.trim(),
+      direccion: input.direccion.trim(),
+      telefono: input.telefono.trim() || undefined,
+      provincia: input.provincia.trim() || undefined,
+      latitud: input.latitud ?? undefined,
+      longitud: input.longitud ?? undefined,
     });
   },
 
