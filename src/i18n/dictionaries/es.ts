@@ -694,6 +694,119 @@ const es = {
     created: "Sede creada",
   },
 
+  /* ── Asistente de ayuda (widget flotante) ─────────────────
+     Las respuestas describen los menús reales del panel. Si se
+     renombra una sección, actualiza también su texto aquí. */
+  chatbot: {
+    fab: "Abrir el asistente de ayuda",
+    minimize: "Minimizar el asistente",
+    tooltipTitle: "¡Hola! Soy tu asistente BookMy",
+    tooltipText: "¿Tienes dudas o necesitas ayuda? Estoy aquí para echarte una mano.",
+    tooltipCta: "Solicitar asistencia",
+    title: "Asistente BookMy",
+    online: "En línea",
+    welcome: "👋 ¡Bienvenido!",
+    intro: "Te ayudo a entender cómo funciona el panel de reservas.",
+    prompt: "¿Sobre qué quieres saber más?",
+    optionsLabel: "Preguntas frecuentes",
+    back: "Volver",
+    contactCta: "Hablar con el equipo",
+    faqCta: "Ver preguntas",
+    faq: {
+      ids: [
+        "reserva", "reagendar", "cliente", "servicio",
+        "profesional", "acceso", "sede", "empresa",
+        "resena", "facturacion", "preferencias",
+      ],
+      reserva: {
+        q: "¿Cómo creo una reserva?",
+        a: [
+          "📍 Entra en «Reservas» y pulsa «+ Nueva reserva».",
+          "El asistente te guía paso a paso: sede → cliente → profesional → servicio → fecha → hora.",
+          "En el último paso verás un comprobante con el resumen y el método de pago. Revísalo y confirma.",
+        ],
+      },
+      reagendar: {
+        q: "¿Cómo reagendo una reserva?",
+        a: [
+          "📍 En el «Dashboard», dentro de «Últimas reservas», pulsa el icono de reagendar de la fila.",
+          "Se abrirá un calendario con los días y horas libres del mismo profesional.",
+          "Elige la nueva franja y confirma: se conservan el cliente, el servicio y el profesional.",
+        ],
+      },
+      cliente: {
+        q: "¿Cómo se registran los clientes?",
+        a: [
+          "📍 Los clientes finales se dan de alta desde la app de clientes, no desde el panel.",
+          "En «Clientes» puedes consultarlos, buscarlos y editar sus datos de contacto.",
+        ],
+      },
+      servicio: {
+        q: "¿Cómo creo un servicio?",
+        a: [
+          "📍 Entra en «Servicios» y pulsa «+ Nuevo servicio».",
+          "Completa el nombre, la categoría, la duración en minutos y el precio.",
+          "El catálogo se agrupa por categoría: puedes desplegar o comprimir cada una.",
+        ],
+      },
+      profesional: {
+        q: "¿Cómo añado a alguien al equipo?",
+        a: [
+          "📍 Entra en «Personal» y pulsa «+ Nueva integrante».",
+          "El teléfono y la sede son obligatorios, y el teléfono no puede repetirse.",
+          "Con el icono de editar puedes cambiar después su nombre, rol, teléfono o sede.",
+        ],
+      },
+      acceso: {
+        q: "¿Cómo doy acceso al panel a un empleado?",
+        a: [
+          "📍 En «Personal», pulsa «Generar acceso» en la fila de la persona.",
+          "Se crea su usuario y una contraseña que se muestra UNA sola vez: cópiala y entrégasela.",
+          "Con ese acceso podrá entrar al panel y consultar su calendario de citas.",
+        ],
+      },
+      sede: {
+        q: "¿Cómo creo una sede?",
+        a: [
+          "📍 Entra en «Sedes» y pulsa «+ Nueva sede».",
+          "Indica el nombre y la dirección. La sede queda asociada a tu negocio.",
+          "Cada tarjeta muestra el número de personas asignadas a esa sede.",
+        ],
+      },
+      empresa: {
+        q: "¿Cómo registro una empresa?",
+        a: [
+          "📍 Entra en «Empresas» y pulsa «+ Nueva empresa».",
+          "Completa el nombre y el rubro del negocio.",
+          "Desde el selector del Dashboard puedes cambiar sobre qué empresa y sede trabajas.",
+        ],
+      },
+      resena: {
+        q: "¿Cómo apruebo o respondo una reseña?",
+        a: [
+          "📍 Entra en «Reseñas»: cada tarjeta muestra la valoración y su estado.",
+          "«Aprobar» publica la reseña.",
+          "«Responder» abre un cuadro para redactar tu respuesta y enviarla por correo al cliente.",
+        ],
+      },
+      facturacion: {
+        q: "¿Dónde consulto la facturación?",
+        a: [
+          "📍 En el menú «Facturación», que se despliega en «Facturas» y «Gastos».",
+          "En «Facturas» tienes el histórico de cobros, con opción de ver y descargar cada una.",
+        ],
+      },
+      preferencias: {
+        q: "¿Cómo cambio el idioma o el modo oscuro?",
+        a: [
+          "📍 Entra en «Configuración», sección «Apariencia e idioma».",
+          "El idioma se guarda en tu usuario, así que te acompaña en cualquier dispositivo.",
+          "El modo oscuro también puedes activarlo desde el icono de la barra superior.",
+        ],
+      },
+    },
+  },
+
   comunicacion: {
     writeTo: "Escribe a {canal}…",
     message: "Mensaje",

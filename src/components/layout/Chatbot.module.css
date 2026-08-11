@@ -1,0 +1,258 @@
+/* ============================================================
+   Chatbot — asistente de ayuda flotante (esquina inferior derecha)
+   Usa los tokens del design system para integrarse con el panel
+   y responder al tema claro/oscuro sin estilos propios de color.
+   z-index 45: por encima del sidebar (40) y por debajo de los
+   modales (50), para que nunca tape un diálogo.
+============================================================ */
+.wrap {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+/* ── Botón flotante ──────────────────────────────────────── */
+.fab {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: var(--grad-teal);
+  color: #fff;
+  display: grid; place-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(15, 207, 174, .42);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.fab:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 26px rgba(15, 207, 174, .5); }
+.fab:active { transform: scale(.97); }
+.fab:focus-visible { outline: 3px solid var(--teal-100); outline-offset: 3px; }
+
+/* ── Tarjeta de saludo ───────────────────────────────────── */
+.tooltip {
+  position: relative;
+  width: 288px;
+  padding: 20px 18px 18px 46px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  animation: bmPop .22s ease;
+}
+.tooltipAvatar {
+  position: absolute;
+  left: -22px; top: 22px;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--grad-teal);
+  color: #fff;
+  display: grid; place-items: center;
+  border: 3px solid var(--surface);
+  box-shadow: var(--shadow-md);
+}
+.tooltipTitle {
+  font-size: 14px; font-weight: 800;
+  color: var(--navy-900);
+  margin-bottom: 6px;
+}
+.tooltipText {
+  font-size: 12.5px; line-height: 1.5;
+  color: var(--slate-500);
+  margin-bottom: 14px;
+}
+
+/* ── Ventana de conversación ─────────────────────────────── */
+.window {
+  width: 360px;
+  max-height: min(560px, calc(100vh - 130px));
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: bmPop .22s ease;
+}
+@keyframes bmPop {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.header {
+  display: flex; align-items: center; gap: 11px;
+  padding: 13px 14px;
+  background: var(--grad-teal);
+  color: #fff;
+  flex: none;
+}
+.headerIcon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .2);
+  display: grid; place-items: center;
+  flex: none;
+}
+.headerText { flex: 1; min-width: 0; }
+.headerTitle { font-size: 14.5px; font-weight: 800; line-height: 1.2; }
+.status {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, .9);
+  margin-top: 2px;
+}
+.statusDot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .28);
+}
+.headerClose {
+  width: 30px; height: 30px;
+  border: none; border-radius: 8px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  display: grid; place-items: center;
+  cursor: pointer; flex: none;
+  transition: background .15s ease;
+}
+.headerClose:hover { background: rgba(255, 255, 255, .3); }
+
+/* ── Cuerpo ──────────────────────────────────────────────── */
+.body {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 16px 14px;
+  background: var(--surface-2);
+  display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin;
+}
+.body::-webkit-scrollbar { width: 5px; }
+.body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.msgRow { display: flex; align-items: flex-end; gap: 8px; }
+.msgAvatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--grad-teal); color: #fff;
+  display: grid; place-items: center; flex: none;
+}
+.bubble {
+  flex: 1; min-width: 0;
+  padding: 13px 14px;
+  border-radius: var(--r-lg);
+  border-bottom-left-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--navy-900);
+  font-size: 13px; line-height: 1.55;
+}
+.bubble p { margin: 0 0 9px; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubbleLead { font-weight: 700; margin-bottom: 6px; }
+
+/* Lista de preguntas */
+.optionsLabel {
+  font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .6px;
+  color: var(--slate-500);
+  margin: 12px 0 7px;
+}
+.options { display: flex; flex-direction: column; gap: 6px; }
+.option {
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--navy-900);
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  text-align: left; cursor: pointer;
+  transition: all .15s ease;
+}
+.option:hover {
+  border-color: var(--teal-500);
+  background: var(--teal-50);
+  color: var(--teal-700);
+}
+.option svg { flex: none; color: var(--teal-600); }
+.optionText { flex: 1; min-width: 0; }
+
+/* Respuesta */
+.answerTitle {
+  font-size: 13.5px; font-weight: 800;
+  color: var(--navy-900);
+  margin-bottom: 9px;
+}
+.backBtn {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 12px; padding: 7px 13px;
+  border: none; border-radius: 999px;
+  background: var(--grad-teal); color: #fff;
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s ease;
+}
+.backBtn:hover { opacity: .9; }
+
+/* ── Pie con acciones rápidas ────────────────────────────── */
+.footer {
+  flex: none;
+  display: flex; gap: 8px;
+  padding: 11px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.quick {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--slate-500);
+  font-family: inherit; font-size: 11.5px; font-weight: 700;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.quick:hover {
+  border-color: var(--teal-500);
+  color: var(--teal-600);
+  background: var(--teal-50);
+}
+.quick svg { flex: none; }
+
+/* ── Tema oscuro ─────────────────────────────────────────── */
+:global([data-theme="dark"]) .tooltip,
+:global([data-theme="dark"]) .window { border-color: #1e2640; }
+:global([data-theme="dark"]) .tooltipTitle,
+:global([data-theme="dark"]) .answerTitle,
+:global([data-theme="dark"]) .bubble { color: #e8edf5; }
+:global([data-theme="dark"]) .bubble,
+:global([data-theme="dark"]) .option { border-color: #1e2640; }
+:global([data-theme="dark"]) .option { color: #e8edf5; background: rgba(255, 255, 255, .03); }
+:global([data-theme="dark"]) .option:hover {
+  background: rgba(15, 207, 174, .12);
+  color: #0fcfae;
+  border-color: rgba(15, 207, 174, .5);
+}
+:global([data-theme="dark"]) .quick { border-color: #1e2640; background: rgba(255, 255, 255, .03); }
+:global([data-theme="dark"]) .quick:hover {
+  background: rgba(15, 207, 174, .12);
+  color: #0fcfae;
+  border-color: rgba(15, 207, 174, .5);
+}
+:global([data-theme="dark"]) .footer { border-color: #1e2640; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .wrap { right: 14px; bottom: 14px; left: 14px; align-items: stretch; }
+  .fab { align-self: flex-end; }
+  .tooltip { width: auto; }
+  .window { width: auto; max-height: calc(100vh - 110px); }
+}
+
+/* El asistente no forma parte de ningún documento imprimible */
+@media print { .wrap { display: none !important; } }

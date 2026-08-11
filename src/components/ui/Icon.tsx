@@ -66,6 +66,7 @@ const ICONS: Record<string, React.ReactNode> = {
   tag: (<>{P("M3.5 11.2V4.5a1 1 0 0 1 1-1h6.7a1 1 0 0 1 .7.3l8 8a1 1 0 0 1 0 1.4l-6.7 6.7a1 1 0 0 1-1.4 0l-8-8a1 1 0 0 1-.3-.7z")}<circle cx="8" cy="8" r="1.3" /></>),
   wallet: (<><rect x="3" y="6" width="18" height="13" rx="2.5" />{P("M3 10h18M16.5 14.5h.01")}</>),
   trendDown: (<>{P("M3 8l5.5 6 4-3L21 19")}{P("M16 19h5v-5")}</>),
+  bot: (<><rect x="4" y="8" width="16" height="12" rx="3.5" />{P("M12 8V4.5")}<circle cx="12" cy="3.6" r="1.1" />{P("M2.5 12.5v3M21.5 12.5v3")}<circle cx="9.5" cy="14" r="1.05" fill="currentColor" stroke="none" /><circle cx="14.5" cy="14" r="1.05" fill="currentColor" stroke="none" />{P("M10 17.2h4")}</>),
   play: P("M5 3l14 9-14 9V3z"),
   pause: P("M6 4h4v16H6zM14 4h4v16h-4z"),
   /* Chat · adjuntos */

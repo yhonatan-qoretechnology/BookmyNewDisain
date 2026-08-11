@@ -689,6 +689,119 @@ const en: Dictionary = {
     created: "Branch created",
   },
 
+  /* ── Help assistant (floating widget) ─────────────────────
+     Answers describe the panel's real menus. If a section is
+     renamed, update its text here too. */
+  chatbot: {
+    fab: "Open the help assistant",
+    minimize: "Minimise the assistant",
+    tooltipTitle: "Hi! I'm your BookMy assistant",
+    tooltipText: "Got questions or need a hand? I'm here to help.",
+    tooltipCta: "Get assistance",
+    title: "BookMy Assistant",
+    online: "Online",
+    welcome: "👋 Welcome!",
+    intro: "I'll help you understand how the booking panel works.",
+    prompt: "What would you like to know more about?",
+    optionsLabel: "Frequently asked",
+    back: "Back",
+    contactCta: "Talk to the team",
+    faqCta: "See questions",
+    faq: {
+      ids: [
+        "reserva", "reagendar", "cliente", "servicio",
+        "profesional", "acceso", "sede", "empresa",
+        "resena", "facturacion", "preferencias",
+      ],
+      reserva: {
+        q: "How do I create a booking?",
+        a: [
+          "📍 Go to “Bookings” and click “+ New booking”.",
+          "The assistant walks you through it: branch → client → professional → service → date → time.",
+          "The last step shows a receipt with the summary and payment method. Review it and confirm.",
+        ],
+      },
+      reagendar: {
+        q: "How do I reschedule a booking?",
+        a: [
+          "📍 On the “Dashboard”, inside “Latest bookings”, click the reschedule icon on the row.",
+          "A calendar opens with the same professional's free days and times.",
+          "Pick the new slot and confirm: client, service and professional stay the same.",
+        ],
+      },
+      cliente: {
+        q: "How do clients get registered?",
+        a: [
+          "📍 End clients sign up from the client app, not from this panel.",
+          "In “Clients” you can browse, search and edit their contact details.",
+        ],
+      },
+      servicio: {
+        q: "How do I create a service?",
+        a: [
+          "📍 Go to “Services” and click “+ New service”.",
+          "Fill in the name, category, duration in minutes and price.",
+          "The catalog is grouped by category: you can expand or collapse each one.",
+        ],
+      },
+      profesional: {
+        q: "How do I add someone to the team?",
+        a: [
+          "📍 Go to “Staff” and click “+ New member”.",
+          "Phone and branch are required, and the phone number can't be repeated.",
+          "Use the edit icon to change their name, role, phone or branch later.",
+        ],
+      },
+      acceso: {
+        q: "How do I give an employee panel access?",
+        a: [
+          "📍 In “Staff”, click “Create access” on that person's row.",
+          "Their user account is created along with a password shown ONCE: copy it and hand it over.",
+          "With that access they can sign in and check their own appointment calendar.",
+        ],
+      },
+      sede: {
+        q: "How do I create a branch?",
+        a: [
+          "📍 Go to “Branches” and click “+ New branch”.",
+          "Enter the name and address. The branch is linked to your business.",
+          "Each card shows how many people are assigned to that branch.",
+        ],
+      },
+      empresa: {
+        q: "How do I register a company?",
+        a: [
+          "📍 Go to “Companies” and click “+ New company”.",
+          "Fill in the business name and industry.",
+          "Use the Dashboard selector to switch which company and branch you're working on.",
+        ],
+      },
+      resena: {
+        q: "How do I approve or reply to a review?",
+        a: [
+          "📍 Go to “Reviews”: each card shows the rating and its status.",
+          "“Approve” publishes the review.",
+          "“Reply” opens a box to write your response and email it to the client.",
+        ],
+      },
+      facturacion: {
+        q: "Where do I check billing?",
+        a: [
+          "📍 In the “Billing” menu, which expands into “Invoices” and “Expenses”.",
+          "“Invoices” holds the payment history, where you can view and download each one.",
+        ],
+      },
+      preferencias: {
+        q: "How do I change the language or dark mode?",
+        a: [
+          "📍 Go to “Settings”, section “Appearance & language”.",
+          "The language is saved on your user, so it follows you across devices.",
+          "Dark mode can also be toggled from the icon in the top bar.",
+        ],
+      },
+    },
+  },
+
   comunicacion: {
     writeTo: "Message {canal}…",
     message: "Message",
