@@ -265,6 +265,52 @@ export interface BookingDraft {
   card?: { number: string; expiry: string; cvv: string };
 }
 
+/* ── Stock e insumos ─────────────────────────────────────── */
+/** Producto del catálogo global de insumos (lo define el superadmin) */
+export interface Insumo {
+  id: string;
+  nombre: string;
+  categoria: string;
+  /** Unidad de medida: ud, bote, pack, caja… */
+  unidad: string;
+  precioRef: number;
+}
+
+/** Existencias de un insumo en una sede concreta */
+export interface StockItem {
+  sedeId: string;
+  insumoId: string;
+  insumo: Insumo;
+  stock: number;
+  /** Capacidad objetivo, para calcular el nivel de la barra */
+  max: number;
+}
+
+/** Nivel de existencias derivado de stock/max */
+export type NivelStock = "critico" | "medio" | "ok";
+
+export type EstadoSolicitud = "pendiente" | "aprobada" | "rechazada";
+
+/** Línea de una solicitud de inventario */
+export interface SolicitudItem {
+  insumoId: string;
+  cantidad: number;
+}
+
+/** Pedido de reposición que una sede envía a la administración */
+export interface SolicitudInventario {
+  id: string;
+  sedeId: string;
+  sedeNombre: string;
+  /** Usuario que la envió */
+  solicitanteId: string;
+  solicitanteNombre: string;
+  fecha: string; // YYYY-MM-DD
+  estado: EstadoSolicitud;
+  notas: string;
+  items: SolicitudItem[];
+}
+
 /* ── Comunicación entre sedes ────────────────────────────── */
 export interface Canal {
   id: string;
