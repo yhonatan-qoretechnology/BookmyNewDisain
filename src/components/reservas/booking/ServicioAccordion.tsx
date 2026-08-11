@@ -60,16 +60,13 @@ const ServicioCard = memo(function ServicioCard({
 function ServicioAccordionBase({ categorias, selectedId, onSelect }: ServicioAccordionProps) {
   const { t } = useI18n();
 
-  /* Abiertas por defecto: la primera categoría y la del servicio elegido */
-  const [abiertas, setAbiertas] = useState<Set<string>>(() => {
-    const iniciales = new Set<string>();
-    if (categorias[0]) iniciales.add(categorias[0].categoria);
-    const delSeleccionado = categorias.find((c) =>
-      c.servicios.some((s) => s.id === selectedId)
-    );
-    if (delSeleccionado) iniciales.add(delSeleccionado.categoria);
-    return iniciales;
-  });
+  /* Abiertas por defecto: TODAS las categorías, para que se vean los
+     servicios completos del profesional apenas cargan (antes solo se
+     abría la primera categoría y el resto quedaba oculto en acordeones
+     colapsados, dando la impresión de que faltaban servicios). */
+  const [abiertas, setAbiertas] = useState<Set<string>>(
+    () => new Set(categorias.map((c) => c.categoria))
+  );
 
   const toggle = useCallback((categoria: string) => {
     setAbiertas((prev) => {
