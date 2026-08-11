@@ -43,6 +43,7 @@ const en: Dictionary = {
     view: "View",
     download: "Download",
     edit: "Edit",
+    add: "Add",
   },
 
   roles: {
@@ -752,12 +753,22 @@ const en: Dictionary = {
     panelTitle: "{empresa} branches",
     panelSub: "{n} branch(es)",
     back: "Back to companies",
-    editTitle: "Edit branch",
+    editTitle: "Update branch",
     updated: "Branch updated",
     province: "Province",
     provincePlaceholder: "City or province",
     viewProfesionales: "Staff",
     viewResenas: "Reviews",
+    tabDatos: "Details",
+    tabImagenes: "Images",
+    latitude: "Latitude",
+    longitude: "Longitude",
+    schedule: "Schedule",
+    closed: "Closed",
+    closedDays: "Closed days (optional)",
+    saveData: "Update details",
+    notFoundTitle: "Branch not found",
+    notFoundMsg: "It may no longer exist or you may not have access to it.",
   },
 
   sedeProfesionales: {

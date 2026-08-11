@@ -24,6 +24,10 @@ export const ROUTES = {
   configuracion: "/configuracion",
 } as const;
 
+/** Vista de edición de una sede (Datos + Imágenes) — reemplaza el
+    modal anterior; se navega en vez de abrirse encima de la pantalla. */
+export const sedeEditarPath = (id: number | string) => `/sedes/${id}/editar`;
+
 /* ── Navegación por rol ──────────────────────────────────── */
 const COMMON_ITEMS: NavItem[] = [
   { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },

@@ -44,6 +44,7 @@ const es = {
     view: "Ver",
     download: "Descargar",
     edit: "Editar",
+    add: "Agregar",
   },
 
   roles: {
@@ -757,12 +758,22 @@ const es = {
     panelTitle: "Sedes de {empresa}",
     panelSub: "{n} sede(s)",
     back: "Volver a empresas",
-    editTitle: "Editar sede",
+    editTitle: "Actualizar sede",
     updated: "Sede actualizada",
     province: "Provincia",
     provincePlaceholder: "Ciudad o provincia",
     viewProfesionales: "Profesionales",
     viewResenas: "Reseñas",
+    tabDatos: "Datos",
+    tabImagenes: "Imágenes",
+    latitude: "Latitud",
+    longitude: "Longitud",
+    schedule: "Horario",
+    closed: "Cerrado",
+    closedDays: "Días cerrado (opcional)",
+    saveData: "Actualizar datos",
+    notFoundTitle: "Sede no encontrada",
+    notFoundMsg: "Puede que ya no exista o que no tengas acceso a ella.",
   },
 
   sedeProfesionales: {

@@ -11,7 +11,7 @@ import {
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
 import type {
-  ApiClient, ApiProfesional, ApiResena, ApiService, ApiServicioAsignable, ClientUpdatePayload,
+  ApiClient, ApiProfesional, ApiResena, ApiSede, ApiService, ApiServicioAsignable, ClientUpdatePayload,
 } from "@/api/types";
 import { ReservasController } from "./ReservasController";
 
@@ -459,6 +459,24 @@ export const PersonalController = {
 };
 
 /* ── Sedes (SedeModule, multi-tenant) ────────────────────── */
+function mapSedeDetalle(s: ApiSede, equipo: number): SedeDetalle {
+  return {
+    id: s.id,
+    negocioId: String(s.empresaId),
+    nombre: s.nombre,
+    direccion: s.direccion,
+    equipo,
+    activa: true,
+    imagenes: s.imagenes ?? [],
+    telefono: s.telefono || "",
+    provincia: s.provincia || "",
+    latitud: s.latitud ?? null,
+    longitud: s.longitud ?? null,
+    horario: s.horario ?? null,
+    diasCerrado: s.diasCerrado ?? [],
+  };
+}
+
 export const SedesController = {
   /**
    * Sedes de la empresa — GET /sedes/empresa/:empresaId.
@@ -481,19 +499,7 @@ export const SedesController = {
       equipoPorSede.set(p.sedeId, (equipoPorSede.get(p.sedeId) || 0) + 1);
     }
     return (list || [])
-      .map((s) => ({
-        id: s.id,
-        negocioId: String(s.empresaId),
-        nombre: s.nombre,
-        direccion: s.direccion,
-        equipo: equipoPorSede.get(s.id) ?? s.profesionales?.length ?? 0,
-        activa: true,
-        imagenes: s.imagenes ?? [],
-        telefono: s.telefono || "",
-        provincia: s.provincia || "",
-        latitud: s.latitud ?? null,
-        longitud: s.longitud ?? null,
-      }))
+      .map((s) => mapSedeDetalle(s, equipoPorSede.get(s.id) ?? s.profesionales?.length ?? 0))
       .filter((s) => (s.nombre + s.direccion).toLowerCase().includes(q));
   },
 
@@ -506,6 +512,17 @@ export const SedesController = {
     return this.search("", negocioId);
   },
 
+  /**
+   * Una sede por id — GET /sedes/:id. Fuente única de la vista de
+   * edición (/sedes/:id/editar): trae también `horario` y
+   * `diasCerrado`, que el listado no necesita pintar.
+   */
+  async getById(id: number): Promise<SedeDetalle | null> {
+    const s = await SedesApi.findOne(id).catch(() => null);
+    if (!s) return null;
+    return mapSedeDetalle(s, s.profesionales?.length ?? 0);
+  },
+
   /** Crea una sede — POST /sedes { nombre, direccion, empresaId }. */
   async add(input: { nombre: string; direccion: string; negocioId: string }): Promise<void> {
     await SedesApi.create({
@@ -516,13 +533,18 @@ export const SedesController = {
   },
 
   /**
-   * Edita los datos de contacto de una sede — PATCH /sedes/:id.
-   * (El horario y los días cerrados se gestionan aparte, en
-   * horario-sede / dia-cerrado-sede — no se tocan desde aquí.)
+   * Edita una sede — PATCH /sedes/:id. Incluye horario y días cerrado:
+   * el backend los guarda como JSON en la fila de la sede (columnas
+   * `horario`/`diasCerrado`), que es lo que de hecho usa hoy el cálculo
+   * de disponibilidad (las tablas horario_sede/dia_cerrado_sede están
+   * vacías en producción — ver src/lib/disponibilidad.ts). Si algún día
+   * se llenan esas tablas, tienen precedencia sobre este JSON y este
+   * formulario dejaría de reflejar la disponibilidad real.
    */
   async update(id: number, input: {
     nombre: string; direccion: string; telefono: string; provincia: string;
     latitud?: number | null; longitud?: number | null;
+    horario?: Record<string, string>; diasCerrado?: string[];
   }): Promise<void> {
     await SedesApi.update(id, {
       nombre: input.nombre.trim(),
@@ -531,6 +553,8 @@ export const SedesController = {
       provincia: input.provincia.trim() || undefined,
       latitud: input.latitud ?? undefined,
       longitud: input.longitud ?? undefined,
+      horario: input.horario,
+      diasCerrado: input.diasCerrado,
     });
   },
 

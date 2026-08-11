@@ -57,6 +57,10 @@ export interface SedeDetalle {
   provincia: string;
   latitud: number | null;
   longitud: number | null;
+  /** Horario semanal { lunes: "10:00-19:00", domingo: "Cerrado", … } */
+  horario: Record<string, string> | null;
+  /** Fechas puntuales de cierre (YYYY-MM-DD) */
+  diasCerrado: string[];
 }
 
 /** Sesión activa guardada en sessionStorage */

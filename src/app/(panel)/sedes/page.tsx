@@ -3,11 +3,13 @@
    Sedes — locales de la marca (View, solo superadmin)
 ============================================================ */
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { SedesController } from "@/controllers/CrudControllers";
 import { useData } from "@/hooks/useData";
 import { useUi } from "@/context/UiContext";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
+import { sedeEditarPath } from "@/constants";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import Badge, { Tag } from "@/components/ui/Badge";
@@ -20,6 +22,7 @@ import Icon from "@/components/ui/Icon";
 import ServiciosSedeModal from "@/components/sedes/ServiciosSedeModal";
 
 export default function SedesPage() {
+  const router = useRouter();
   const { toast } = useUi();
   const { t } = useI18n();
   const { session } = useSession();
@@ -78,7 +81,14 @@ export default function SedesPage() {
                   onAdd={(file) => SedesController.subirImagen(s.id, file)}
                   onRemove={(ruta) => SedesController.borrarImagen(s.id, ruta)}
                 />
-                <div style={{ marginTop: 12 }}>
+                <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push(sedeEditarPath(s.id))}
+                  >
+                    <Icon name="edit" /> {t("common.edit")}
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
