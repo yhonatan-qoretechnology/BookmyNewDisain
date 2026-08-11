@@ -7,7 +7,7 @@ import type {
   Resena, SedeDetalle, Servicio, Session,
 } from "@/models";
 import {
-  AsignacionesApi, AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
+  AsignacionesApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
 import type {
@@ -358,7 +358,8 @@ export const PersonalController = {
         telefono: p.phone || "",
         reservas: 0,
         activo: p.state !== "disabled",
-        userId: p.user_id ?? null,
+        tieneAcceso: p.acceso?.tieneAcceso ?? false,
+        accesoEmail: p.acceso?.email ?? null,
       }))
       .filter((p) => (p.nombre + p.rol).toLowerCase().includes(q));
   },
@@ -380,8 +381,34 @@ export const PersonalController = {
       telefono: p.phone || "",
       reservas: 0,
       activo: p.state !== "disabled",
-      userId: p.user_id ?? null,
+      tieneAcceso: p.acceso?.tieneAcceso ?? false,
+      accesoEmail: p.acceso?.email ?? null,
     }));
+  },
+
+  /** Sugiere una contraseña temporal legible, para prellenar los
+      formularios de alta / dar acceso / cambiar acceso. */
+  sugerirPassword(): string {
+    return generarPassword();
+  },
+
+  /**
+   * Crea un profesional — POST /profesionales. `password` es
+   * obligatorio (login de profesionales, rol EMPLOYEE): el backend
+   * genera solo el correo de acceso (patrón nombre@empresa.com) y lo
+   * devuelve en `acceso.email`, para mostrárselo al admin.
+   */
+  async crear(input: {
+    nombre: string; rol: string; telefono: string; sedeId: string; password: string;
+  }): Promise<{ email: string }> {
+    const creado = await ProfesionalesApi.create({
+      nombre: input.nombre.trim(),
+      phone: input.telefono.trim(),
+      sedeId: Number(input.sedeId),
+      biografia: input.rol.trim() || undefined,
+      password: input.password,
+    });
+    return { email: creado.acceso.email };
   },
 
   /** Edita un profesional — PATCH /profesionales/:id. */
@@ -398,42 +425,31 @@ export const PersonalController = {
   },
 
   /**
-   * Crea el usuario de acceso del empleado y lo vincula al profesional
-   * para que pueda entrar al panel y ver su calendario:
-   *   1. POST /auth/register  → usuario con rol EMPLOYEE
-   *   2. PATCH /profesionales/:id { user_id } → vínculo
-   * La contraseña se genera aquí y se devuelve UNA sola vez para
-   * entregarla al empleado (el backend la almacena cifrada).
+   * Da acceso al panel a un profesional viejo que aún no tenía login —
+   * PATCH /profesionales/:id/vincular-acceso { email, password }.
    * @throws ApiError si el correo ya existe o el DTO no coincide.
    */
-  async crearAcceso(
-    empleado: Empleado,
-    email: string
-  ): Promise<CredencialesEmpleado> {
-    const password = generarPassword();
-    const creado = await AuthApi.register({
-      email: email.trim().toLowerCase(),
-      password,
-      name: empleado.nombre,
-      phone: empleado.telefono || undefined,
-      role: "EMPLOYEE",
-    });
-    const userId = creado?.user?.id ?? creado?.id;
-    if (userId != null) {
-      /* Vínculo profesional ⇄ usuario (columna user_id) */
-      await ProfesionalesApi.update(empleado.id, { user_id: Number(userId) }).catch(() => undefined);
-    }
-    return { email: email.trim().toLowerCase(), password };
+  async darAcceso(id: number, email: string, password: string): Promise<CredencialesEmpleado> {
+    const correo = email.trim().toLowerCase();
+    await ProfesionalesApi.vincularAcceso(id, { email: correo, password });
+    return { email: correo, password };
   },
 
   /**
-   * Restablece la contraseña de un empleado que ya tiene usuario —
-   * PATCH /auth/users/:id { password }.
+   * Cambia correo y/o contraseña de un profesional que ya tiene login —
+   * PATCH /profesionales/:id/acceso { email?, password? }. Solo se
+   * manda lo que cambió; la contraseña se devuelve para mostrarla UNA
+   * sola vez (el backend no la vuelve a exponer).
    */
-  async regenerarPassword(userId: number, email: string): Promise<CredencialesEmpleado> {
-    const password = generarPassword();
-    await AuthApi.updateUser(userId, { password });
-    return { email, password };
+  async cambiarAcceso(
+    id: number,
+    cambios: { email?: string; password?: string }
+  ): Promise<{ email: string; password?: string }> {
+    const payload: { email?: string; password?: string } = {};
+    if (cambios.email) payload.email = cambios.email.trim().toLowerCase();
+    if (cambios.password) payload.password = cambios.password;
+    const res = await ProfesionalesApi.cambiarAcceso(id, payload);
+    return { email: res.email || payload.email || "", password: cambios.password };
   },
 
   /** Elimina un profesional — DELETE /profesionales/:id. */

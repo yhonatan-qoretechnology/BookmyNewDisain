@@ -101,6 +101,13 @@ export interface ApiSede {
   diasCerrado?: string[];
 }
 
+/** Bloque `acceso` que trae GET /profesionales y GET /profesionales/:id
+    desde el cambio de login de profesionales (rol EMPLOYEE). */
+export interface ApiProfesionalAcceso {
+  tieneAcceso: boolean;
+  email: string | null;
+}
+
 export interface ApiProfesional {
   id: number;
   nombre: string;
@@ -110,6 +117,14 @@ export interface ApiProfesional {
   state?: string;
   sedeId: number;
   user_id?: number | null;
+  acceso?: ApiProfesionalAcceso | null;
+}
+
+/** Respuesta de POST /profesionales: además del profesional creado,
+    trae el correo de acceso que generó el backend (patrón
+    nombre@empresa.com) — la contraseña no vuelve, solo se envió. */
+export interface ApiProfesionalCreateResponse extends Omit<ApiProfesional, "acceso"> {
+  acceso: { email: string; mensaje: string };
 }
 
 export interface ApiPrice {

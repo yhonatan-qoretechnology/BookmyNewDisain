@@ -67,6 +67,12 @@ export const EP = {
   profesionalDetalle: (id: number) => `/profesionales/${id}/detalle`,
   /** PATCH multipart — campo "imagen". Devuelve el Profesional actualizado. */
   profesionalImagen: (id: number) => `/profesionales/${id}/imagen`,
+  /** PATCH { email, password } — da acceso al panel a un profesional
+      viejo que aún no tiene login (acceso.tieneAcceso === false). */
+  profesionalVincularAcceso: (id: number) => `/profesionales/${id}/vincular-acceso`,
+  /** PATCH { email?, password? } — cambia el correo y/o la contraseña
+      de un profesional que ya tiene login (acceso.tieneAcceso === true). */
+  profesionalAcceso: (id: number) => `/profesionales/${id}/acceso`,
 
   /* @Controller('services') */
   services: "/services",

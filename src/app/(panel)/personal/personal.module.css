@@ -3,6 +3,12 @@
   flex-wrap: wrap;
 }
 
+/* Campo de contraseña + botón "Generar" en línea */
+.passRow {
+  display: flex; align-items: center; gap: 8px;
+}
+.passRow input { flex: 1; min-width: 0; }
+
 /* Credenciales generadas — se muestran una sola vez */
 .credBox {
   display: flex; flex-direction: column; gap: 10px;

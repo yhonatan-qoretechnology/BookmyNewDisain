@@ -10,7 +10,8 @@ import type {
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
-  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiResena, ApiSede, ApiService,
+  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiProfesionalAcceso,
+  ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiServicioAsignable, ApiUser,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
@@ -189,12 +190,24 @@ export const ProfesionalesApi = {
       (fuente única del paso de selección de servicio en reservas) */
   detalle: (id: number, lang: string) =>
     http.get<ApiProfesionalDetalle>(EP.profesionalDetalle(id) + qs({ lang })),
-  create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string }) =>
-    http.post<ApiProfesional>(EP.profesionales, data),
+  /** POST /profesionales — `password` es obligatorio (login de
+      profesionales, rol EMPLOYEE): el backend genera el correo de
+      acceso solo (nombre@empresa.com) y lo devuelve en `acceso.email`. */
+  create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string; password: string }) =>
+    http.post<ApiProfesionalCreateResponse>(EP.profesionales, data),
   /** PATCH /profesionales/:id — edición y vínculo con su usuario (user_id) */
   update: (id: number, data: Partial<ApiProfesional>) =>
     http.patch<ApiProfesional>(EP.profesionalById(id), data),
   remove: (id: number) => http.delete(EP.profesionalById(id)),
+  /** PATCH /profesionales/:id/vincular-acceso — da acceso al panel a un
+      profesional viejo que aún no tenía login (acceso.tieneAcceso === false). */
+  vincularAcceso: (id: number, data: { email: string; password: string }) =>
+    http.patch<ApiProfesionalAcceso>(EP.profesionalVincularAcceso(id), data),
+  /** PATCH /profesionales/:id/acceso — cambia correo y/o contraseña de
+      uno que ya tiene login (acceso.tieneAcceso === true). Ambos campos
+      son opcionales: se manda solo lo que cambió. */
+  cambiarAcceso: (id: number, data: { email?: string; password?: string }) =>
+    http.patch<ApiProfesionalAcceso>(EP.profesionalAcceso(id), data),
 };
 
 /* ── ServiceModule ──────────────────────────────────────── */

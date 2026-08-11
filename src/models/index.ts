@@ -175,8 +175,10 @@ export interface Empleado {
   telefono: string;
   reservas: number;
   activo: boolean;
-  /** Usuario de acceso al panel vinculado al profesional, si ya lo tiene */
-  userId: number | null;
+  /** true si el profesional ya tiene login al panel (rol EMPLOYEE) */
+  tieneAcceso: boolean;
+  /** Correo de acceso real, cuando `tieneAcceso` es true */
+  accesoEmail: string | null;
 }
 
 /** Credenciales recién generadas para que un empleado entre al panel */
