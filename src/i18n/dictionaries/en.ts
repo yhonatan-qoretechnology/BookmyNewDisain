@@ -842,12 +842,16 @@ const en: Dictionary = {
 
   popup: {
     close: "Close",
-    print: "Print",
+    print: "PDF",
+    email: "Email",
     noNotes: "No additional notes",
     sheetTitle: "Booking Sheet — {id}",
     printedAt: "Printed on {fecha}",
     waMessage:
       "Hi {cliente} 👋\nYour appointment at *{sede}* is confirmed:\n\n📋 *Service:* {servicio}\n📅 *Date:* {fecha}\n⏰ *Time:* {hora}\n💶 *Price:* {precio}€\n\nSee you soon! ✨",
+    emailSubject: "Your appointment confirmation — {sede}",
+    emailMessage:
+      "Hi {cliente},\n\nYour appointment at {sede} is confirmed:\n\nService: {servicio}\nDate: {fecha}\nTime: {hora}\nPrice: {precio}€\n\nSee you soon!",
   },
 };
 

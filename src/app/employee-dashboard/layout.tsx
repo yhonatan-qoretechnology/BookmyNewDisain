@@ -3,7 +3,7 @@
    Layout del panel de especialista — guard + AppShell
 ============================================================ */
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import AppShell from "@/components/layout/AppShell";
@@ -14,6 +14,8 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
   const { session, loading } = useSession();
   const { t } = useI18n();
   const router = useRouter();
+  const pathname = usePathname();
+  const enCalendario = pathname === ROUTES.employeeCalendario;
 
   useEffect(() => {
     if (loading) return;
@@ -50,9 +52,9 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
   return (
     <AppShell
       meta={{
-        title: t("pages.employee.title"),
-        accent: t("pages.employee.accent"),
-        breadcrumb: t("nav.emp-main"),
+        title: enCalendario ? t("pages.calendario.title") : t("pages.employee.title"),
+        accent: enCalendario ? t("pages.calendario.accent") : t("pages.employee.accent"),
+        breadcrumb: enCalendario ? t("nav.calendario") : t("nav.emp-main"),
         breadcrumbRoot: t("topbar.breadcrumbRootEmployee"),
         bellCount: 2,
       }}

@@ -107,14 +107,20 @@ export const ReservasController = {
   },
 
   /**
-   * Citas del panel de empleado: las de su sede.
-   * @param session Sesión (usa session.sedeId).
+   * Citas del panel de empleado: solo las propias del profesional
+   * (session.profesionalId, resuelto en el login desde el JWT). Si por
+   * lo que sea no está disponible, se cae a todas las de su sede en vez
+   * de dejar la pantalla vacía.
+   * @param session Sesión (usa session.sedeId y session.profesionalId).
    */
   async getByEmpleado(session: Session | null, language = "es"): Promise<Reserva[]> {
     if (!session?.sedeId) return [];
     const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
     const page = await AppointmentsApi.findAll({ sedeId: Number(session.sedeId) });
-    return remember((page.items || []).map((a) => mapAppointment(withPayment(a, payments), names)));
+    const items = session.profesionalId
+      ? (page.items || []).filter((a) => String(a.profesionalId) === session.profesionalId)
+      : (page.items || []);
+    return remember(items.map((a) => mapAppointment(withPayment(a, payments), names)));
   },
 
   /**

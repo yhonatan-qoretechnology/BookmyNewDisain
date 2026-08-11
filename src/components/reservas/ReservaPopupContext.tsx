@@ -156,6 +156,35 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
     window.open(url, "_blank");
   };
 
+  /**
+   * Abre el cliente de correo del usuario con el recibo prellenado
+   * (mailto:) — no hay endpoint en el backend para enviar el correo
+   * desde el servidor, así que se arma acá igual que el mensaje de
+   * WhatsApp, pero al correo del cliente (reserva.email).
+   */
+  const onEmail = () => {
+    console.log('[ReservaPopup] Email button clicked');
+    if (!reserva) return;
+    if (!reserva.email) {
+      console.warn('[ReservaPopup] No email available');
+      return;
+    }
+    const asunto = encodeURIComponent(t("popup.emailSubject", { sede: sedeNombre }));
+    const cuerpo = encodeURIComponent(
+      t("popup.emailMessage", {
+        cliente: reserva.cliente,
+        sede: sedeNombre,
+        servicio: reserva.servicio,
+        fecha: fmtFechaLarga(reserva.fecha),
+        hora: reserva.hora,
+        precio: reserva.precio.toFixed(2),
+      })
+    );
+    const url = `mailto:${reserva.email}?subject=${asunto}&body=${cuerpo}`;
+    console.log('[ReservaPopup] Opening mail client:', url);
+    window.location.href = url;
+  };
+
   const onPrint = async () => {
     console.log('[ReservaPopup] Print button clicked - START');
     console.log('[ReservaPopup] Reserva data:', reserva);
@@ -323,6 +352,10 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
               <button className={`${styles.actionBtn} ${styles.whatsapp}`} onClick={onWhatsApp}>
                 <WhatsAppIcon width={22} height={22} />
                 WhatsApp
+              </button>
+              <button className={`${styles.actionBtn} ${styles.email}`} onClick={onEmail}>
+                <Icon name="mail" width={22} height={22} />
+                {t("popup.email")}
               </button>
               <button className={`${styles.actionBtn} ${styles.print}`} onClick={onPrint}>
                 <Icon name="printer" width={22} height={22} />

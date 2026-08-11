@@ -74,6 +74,10 @@ export interface Session {
   foto: string | null;
   /** Parámetro de idioma tal como viene de la BD (tabla usuarios) */
   idioma: string;
+  /** Id del profesional vinculado (rol employee) — viene del JWT, no del
+      body de POST /auth/login. Sede/especialidad de un employee se
+      resuelven a partir de este id (GET /profesionales/:id/detalle). */
+  profesionalId: string | null;
 }
 
 export interface Reserva {

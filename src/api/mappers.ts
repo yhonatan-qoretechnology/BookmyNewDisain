@@ -45,6 +45,9 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
     sedeName: opts.sedeName || null,
     especialidad: null,
     foto: u.fotoPerfil || u.AdminProfile?.photoUrl || null,
+    /* Se completa aparte para EMPLOYEE (AuthController.login), a partir
+       del profesionalId que trae el JWT — un employee no tiene AdminProfile. */
+    profesionalId: null,
     /* ⚙️ PARÁMETRO DE BD: user_data.idioma viaja del login a la
        sesión; el I18nProvider lo aplica automáticamente. */
     idioma: u.UserData?.idioma?.slice(0, 2).toLowerCase() || "es",

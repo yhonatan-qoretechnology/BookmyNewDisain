@@ -5,6 +5,7 @@ export const ROUTES = {
   login: "/",
   dashboard: "/dashboard",
   employeeDashboard: "/employee-dashboard",
+  employeeCalendario: "/employee-dashboard/calendario",
   empresas: "/empresas",
   administradores: "/administradores",
   reservas: "/reservas",
@@ -49,6 +50,11 @@ const ADMIN_ITEMS: NavItem[] = [
 
 const EMPLOYEE_ITEMS: NavItem[] = [
   { id: "emp-main", label: "Mis Reservas", href: ROUTES.employeeDashboard, icon: "calendar" },
+  { id: "calendario", label: "Calendario", href: ROUTES.employeeCalendario, icon: "calendar" },
+  /* La pantalla de Configuración es enteramente personal (perfil propio,
+     cambiar su contraseña, tema, idioma) — no depende de permisos de
+     admin, así que el profesional también debe poder entrar ahí. */
+  { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
 

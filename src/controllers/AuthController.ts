@@ -7,8 +7,9 @@
 import type { Session } from "@/models";
 import { SESSION_STORAGE_KEY } from "@/constants";
 import { isApiEnabled, setToken } from "@/api/config";
-import { AuthApi, EmpresasApi, SedesApi } from "@/api/modules";
+import { AuthApi, EmpresasApi, ProfesionalesApi, SedesApi } from "@/api/modules";
 import { mapUserToSession } from "@/api/mappers";
+import { decodeJwtPayload } from "@/lib/jwt";
 
 export const AuthController = {
   /* ── Persistencia de la sesión (sessionStorage) ────────── */
@@ -65,6 +66,28 @@ export const AuthController = {
       setToken(null);
       return { error: "CLIENT_ROLE" };
     }
+
+    /* EMPLOYEE (profesional): no tiene AdminProfile, así que su sede no
+       viene en `user`. El backend agrega `profesionalId` al JWT — se
+       decodifica aquí y se resuelve sede/especialidad/foto con
+       GET /profesionales/:id/detalle, la misma fuente que usa el paso
+       de servicios del agendado. Sin esto, "Mis Reservas" quedaba
+       siempre vacío (getByEmpleado exige session.sedeId). */
+    if (res.user.role === "EMPLOYEE") {
+      const payload = decodeJwtPayload<{ profesionalId?: number }>(res.token);
+      const profesionalId = payload?.profesionalId;
+      if (profesionalId != null) {
+        try {
+          const detalle = await ProfesionalesApi.detalle(profesionalId, session.idioma);
+          session.profesionalId = String(profesionalId);
+          session.sedeId = detalle.sedeId != null ? String(detalle.sedeId) : session.sedeId;
+          session.sedeName = detalle.sede?.nombre || session.sedeName;
+          session.especialidad = detalle.biografia || session.especialidad;
+          session.foto = session.foto || detalle.imagen || null;
+        } catch { /* el panel del empleado funciona igual sin estos datos */ }
+      }
+    }
+
     return { session };
   },
 };

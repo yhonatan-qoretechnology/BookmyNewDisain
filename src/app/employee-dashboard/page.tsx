@@ -15,7 +15,6 @@ import DataTable, { PriceCell } from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
-import CalendarGrid from "@/components/ui/CalendarGrid";
 import { PersonRow } from "@/components/ui/People";
 import styles from "./employee.module.css";
 
@@ -28,10 +27,11 @@ export default function EmployeeDashboardPage() {
   const [estadoIdx, setEstadoIdx] = useState(0);
   const estado = ESTADOS_RESERVA[estadoIdx];
 
-  /* Citas de la sede del empleado — GET /appointments?sedeId */
+  /* Citas propias del profesional — GET /appointments?sedeId, filtradas
+     por profesionalId (ver ReservasController.getByEmpleado) */
   const { data: mias } = useData(
     () => ReservasController.getByEmpleado(session, locale),
-    [session?.id, session?.sedeId, locale], []
+    [session?.id, session?.sedeId, session?.profesionalId, locale], []
   );
 
   const lista = useMemo(() => {
@@ -48,14 +48,6 @@ export default function EmployeeDashboardPage() {
   const hoyCount = mias.filter((r) => r.fecha === hoyISO).length;
   const pendientes = mias.filter((r) => r.estado === "pendiente").length;
   const atendidas = mias.filter((r) => r.estado === "atendida").length;
-
-  const calMap = ReservasController.buildCalendarMap(mias);
-  const events = Object.fromEntries(
-    Object.entries(calMap).map(([fecha, rs]) => [
-      fecha,
-      rs.map((r) => ({ id: r.id, label: `${r.hora} ${r.cliente.split(" ")[0]}`, data: r })),
-    ])
-  );
 
   return (
     <>
@@ -105,11 +97,6 @@ export default function EmployeeDashboardPage() {
             ))}
           </DataTable>
         )}
-      </Panel>
-
-      <Panel style={{ marginTop: 20 }}>
-        <PanelHead title={t("employee.myCalendar")} sub={t("employee.myCalendarSub")} />
-        <CalendarGrid events={events} maxPerCell={3} onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)} />
       </Panel>
     </>
   );

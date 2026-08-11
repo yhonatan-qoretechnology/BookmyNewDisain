@@ -847,12 +847,16 @@ const es = {
 
   popup: {
     close: "Cerrar",
-    print: "Imprimir",
+    print: "PDF",
+    email: "Correo",
     noNotes: "Sin notas adicionales",
     sheetTitle: "Ficha de Reserva — {id}",
     printedAt: "Impreso el {fecha}",
     waMessage:
       "Hola {cliente} 👋\nTe confirmamos tu cita en *{sede}*:\n\n📋 *Servicio:* {servicio}\n📅 *Fecha:* {fecha}\n⏰ *Hora:* {hora}\n💶 *Precio:* {precio}€\n\n¡Te esperamos! ✨",
+    emailSubject: "Confirmación de tu cita — {sede}",
+    emailMessage:
+      "Hola {cliente},\n\nTe confirmamos tu cita en {sede}:\n\nServicio: {servicio}\nFecha: {fecha}\nHora: {hora}\nPrecio: {precio}€\n\n¡Te esperamos!",
   },
 };
 
