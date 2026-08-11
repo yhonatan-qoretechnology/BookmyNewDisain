@@ -78,6 +78,7 @@ const en: Dictionary = {
     personal: "Staff",
     resenas: "Reviews",
     sedes: "Branches",
+    stock: "Stock & supplies",
     comunicacion: "Messaging",
     configuracion: "Settings",
     logout: "Log out",
@@ -173,6 +174,7 @@ const en: Dictionary = {
     personal: { title: "Team &", accent: "Staff" },
     resenas: { title: "Client", accent: "Reviews" },
     sedes: { title: "My", accent: "Branches" },
+    stock: { title: "Stock &", accent: "Supplies" },
     comunicacion: { title: "Branch", accent: "Messaging" },
     configuracion: { title: "Settings", accent: "" },
     employee: { title: "My", accent: "Bookings" },
@@ -746,6 +748,192 @@ const en: Dictionary = {
     addressPlaceholder: "Street, number, city",
     teamSize: "Team size",
     created: "Branch created",
+  },
+
+  /* ── Help assistant (floating widget) ─────────────────────
+     Answers describe the panel's real menus. If a section is
+     renamed, update its text here too. */
+  chatbot: {
+    fab: "Open the help assistant",
+    minimize: "Minimise the assistant",
+    tooltipTitle: "Hi! I'm your BookMy assistant",
+    tooltipText: "Got questions or need a hand? I'm here to help.",
+    tooltipCta: "Get assistance",
+    title: "BookMy Assistant",
+    online: "Online",
+    welcome: "👋 Welcome!",
+    intro: "I'll help you understand how the booking panel works.",
+    prompt: "What would you like to know more about?",
+    optionsLabel: "Frequently asked",
+    back: "Back",
+    contactCta: "Talk to the team",
+    faqCta: "See questions",
+    faq: {
+      ids: [
+        "reserva", "reagendar", "cliente", "servicio",
+        "profesional", "acceso", "sede", "empresa",
+        "resena", "facturacion", "preferencias",
+      ],
+      reserva: {
+        q: "How do I create a booking?",
+        a: [
+          "📍 Go to “Bookings” and click “+ New booking”.",
+          "The assistant walks you through it: branch → client → professional → service → date → time.",
+          "The last step shows a receipt with the summary and payment method. Review it and confirm.",
+        ],
+      },
+      reagendar: {
+        q: "How do I reschedule a booking?",
+        a: [
+          "📍 On the “Dashboard”, inside “Latest bookings”, click the reschedule icon on the row.",
+          "A calendar opens with the same professional's free days and times.",
+          "Pick the new slot and confirm: client, service and professional stay the same.",
+        ],
+      },
+      cliente: {
+        q: "How do clients get registered?",
+        a: [
+          "📍 End clients sign up from the client app, not from this panel.",
+          "In “Clients” you can browse, search and edit their contact details.",
+        ],
+      },
+      servicio: {
+        q: "How do I create a service?",
+        a: [
+          "📍 Go to “Services” and click “+ New service”.",
+          "Fill in the name, category, duration in minutes and price.",
+          "The catalog is grouped by category: you can expand or collapse each one.",
+        ],
+      },
+      profesional: {
+        q: "How do I add someone to the team?",
+        a: [
+          "📍 Go to “Staff” and click “+ New member”.",
+          "Phone and branch are required, and the phone number can't be repeated.",
+          "Use the edit icon to change their name, role, phone or branch later.",
+        ],
+      },
+      acceso: {
+        q: "How do I give an employee panel access?",
+        a: [
+          "📍 In “Staff”, click “Create access” on that person's row.",
+          "Their user account is created along with a password shown ONCE: copy it and hand it over.",
+          "With that access they can sign in and check their own appointment calendar.",
+        ],
+      },
+      sede: {
+        q: "How do I create a branch?",
+        a: [
+          "📍 Go to “Branches” and click “+ New branch”.",
+          "Enter the name and address. The branch is linked to your business.",
+          "Each card shows how many people are assigned to that branch.",
+        ],
+      },
+      empresa: {
+        q: "How do I register a company?",
+        a: [
+          "📍 Go to “Companies” and click “+ New company”.",
+          "Fill in the business name and industry.",
+          "Use the Dashboard selector to switch which company and branch you're working on.",
+        ],
+      },
+      resena: {
+        q: "How do I approve or reply to a review?",
+        a: [
+          "📍 Go to “Reviews”: each card shows the rating and its status.",
+          "“Approve” publishes the review.",
+          "“Reply” opens a box to write your response and email it to the client.",
+        ],
+      },
+      facturacion: {
+        q: "Where do I check billing?",
+        a: [
+          "📍 In the “Billing” menu, which expands into “Invoices” and “Expenses”.",
+          "“Invoices” holds the payment history, where you can view and download each one.",
+        ],
+      },
+      preferencias: {
+        q: "How do I change the language or dark mode?",
+        a: [
+          "📍 Go to “Settings”, section “Appearance & language”.",
+          "The language is saved on your user, so it follows you across devices.",
+          "Dark mode can also be toggled from the icon in the top bar.",
+        ],
+      },
+    },
+  },
+
+  stock: {
+    /* Tabs */
+    tabCatalogo: "Supply catalog",
+    tabStock: "Stock by branch",
+    tabSolicitudes: "Requests",
+    tabMiStock: "{sede} stock",
+    tabMisSolicitudes: "My requests",
+    /* Tables */
+    product: "Product",
+    unit: "Unit",
+    refPrice: "Ref. price",
+    refPriceEur: "Reference price (€)",
+    stock: "Stock",
+    currentStock: "Current stock",
+    currentStockShort: "Current stock: {n} {unidad}",
+    level: "Level",
+    critical: "Critical",
+    restock: "+5 Restock",
+    branchActive: "Active",
+    searchPlaceholder: "Search supply…",
+    /* Catalog */
+    newInsumo: "+ New supply",
+    newInsumoTitle: "New supply",
+    newInsumoSub: "Add a product to the global supply catalog.",
+    createInsumo: "Create supply",
+    categoryPlaceholder: "Nails, Facial, Massage…",
+    unitPlaceholder: "unit, jar, pack…",
+    fillRequired: "Fill in name, category and unit of measure",
+    insumoCreated: "Supply added to the catalog",
+    deleteTitle: "Delete supply",
+    deleteMsg: "Delete “{nombre}” from the catalog? It will also be removed from every branch's stock.",
+    deleteAria: "Delete {nombre}",
+    insumoDeleted: "Supply deleted",
+    stockUpdated: "Stock updated",
+    /* Requests */
+    requestInventory: "Request inventory",
+    requestTitle: "Request inventory",
+    requestSub: "Pick the products your branch needs and set the quantity.",
+    notesLabel: "Notes for the administration",
+    notesPlaceholder: "E.g.: Urgent, critical stock…",
+    sendRequest: "Send request",
+    requestSent: "Request sent to the administration",
+    requestEmpty: "Set a quantity for at least one product",
+    quantity: "Quantity of {nombre}",
+    increase: "Add one unit of {nombre}",
+    decrease: "Remove one unit of {nombre}",
+    requestedBy: "Requested by {nombre} · {fecha}",
+    sentOn: "Sent on {fecha}",
+    approve: "✓ Approve",
+    reject: "✕ Reject",
+    requestApproved: "Request approved · stock updated",
+    requestRejected: "Request rejected",
+    rejectTitle: "Reject request",
+    rejectMsg: "Reject this inventory request? The branch won't receive the requested units.",
+    estado: {
+      pendiente: "Pending",
+      aprobada: "Approved",
+      rechazada: "Rejected",
+    },
+    /* Empty states */
+    emptyCatalogTitle: "No supplies",
+    emptyCatalogMsg: "No results for that search.",
+    emptyStockTitle: "No stock",
+    emptyStockMsg: "No supplies match your search.",
+    emptyRequestsTitle: "No requests",
+    emptyRequestsMsg: "Inventory requests from the branches will show up here.",
+    emptyMyRequestsMsg: "You haven't sent any inventory requests yet.",
+    noSedesTitle: "No branches",
+    noSedesMsg: "Register a branch to start tracking its stock.",
+    noBranchTitle: "No branch assigned",
+    noBranchMsg: "Your user has no branch assigned, so there's no stock to show.",
   },
 
   /* "Branches" drill-down inside /empresas (superadmin) */

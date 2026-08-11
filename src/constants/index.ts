@@ -20,6 +20,7 @@ export const ROUTES = {
   personal: "/personal",
   resenas: "/resenas",
   sedes: "/sedes",
+  stock: "/stock",
   comunicacion: "/comunicacion",
   configuracion: "/configuracion",
 } as const;
@@ -47,6 +48,7 @@ const ADMIN_ITEMS: NavItem[] = [
   { id: "servicios", label: "Servicios", href: ROUTES.servicios, icon: "scissors" },
   { id: "personal", label: "Personal", href: ROUTES.personal, icon: "user" },
   { id: "calendario", label: "Calendario", href: ROUTES.calendario, icon: "calendar" },
+  { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
   { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
@@ -86,6 +88,7 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { id: "personal", label: "Personal", href: ROUTES.personal, icon: "user" },
     { id: "resenas", label: "Reseñas", href: ROUTES.resenas, icon: "star" },
     { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
+    { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
     { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
     { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
     { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },

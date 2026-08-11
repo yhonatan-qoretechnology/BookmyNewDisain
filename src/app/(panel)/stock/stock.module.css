@@ -1,0 +1,179 @@
+/* ============================================================
+   Stock · Insumos — estilos propios del módulo
+   ------------------------------------------------------------
+   Solo lo específico de esta pantalla: la barra de nivel, las
+   tarjetas de solicitud y el selector de cantidades. El resto
+   (panel, tabla, toolbar, badges, botones, modal y pestañas)
+   sale de los componentes de `src/components/ui`.
+============================================================ */
+
+/* ── Barra de nivel de existencias ───────────────────────── */
+.barTrack {
+  width: 110px; height: 6px;
+  border-radius: 999px;
+  background: var(--page-bg);
+  overflow: hidden;
+}
+.barFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--grad-teal);
+  transition: width .25s ease;
+}
+.barFill.critico { background: var(--grad-red); }
+.barFill.medio { background: var(--grad-amber); }
+:global([data-theme="dark"]) .barTrack { background: rgba(255, 255, 255, .07); }
+
+/* Celda de existencias: "8 / 30 ud" + aviso de nivel crítico */
+.stockCell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stockCount { font-variant-numeric: tabular-nums; }
+
+/* ── Bloque por sede (vista global) ──────────────────────── */
+.sedeGroup { margin-bottom: 28px; }
+.sedeGroup:last-child { margin-bottom: 0; }
+.sedeTitle {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: 17px; font-weight: 800;
+  color: var(--navy-900);
+  margin-bottom: 12px;
+}
+:global([data-theme="dark"]) .sedeTitle { color: #e8edf5; }
+
+/* ── Tarjeta de solicitud ────────────────────────────────── */
+.solCard {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+.solCard:last-child { margin-bottom: 0; }
+:global([data-theme="dark"]) .solCard {
+  background: #161929;
+  border: 1px solid #1e2640;
+}
+
+.solHead {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  margin-bottom: 14px;
+}
+.solHead h4 {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 15px; font-weight: 800;
+  color: var(--navy-900);
+}
+.solHead small { display: block; font-size: 12px; color: var(--slate-500); margin-top: 3px; }
+.solId { font-size: 13px; font-weight: 800; color: var(--slate-500); }
+:global([data-theme="dark"]) .solHead h4 { color: #e8edf5; }
+:global([data-theme="dark"]) .solHead small { color: #4a5670; }
+
+.solNotes {
+  font-size: 12.5px; font-style: italic;
+  color: var(--slate-500);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--page-bg);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--teal-400);
+}
+:global([data-theme="dark"]) .solNotes {
+  background: rgba(15, 207, 174, .06);
+  color: #4a5670;
+  border-left-color: #0fcfae;
+}
+
+.solItems { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.solItemRow {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px;
+  background: var(--page-bg);
+  border-radius: var(--r-sm);
+  font-size: 13.5px;
+}
+.solItemRow svg { flex: none; color: var(--teal-600); }
+.solItemName { flex: 1; min-width: 0; }
+.solQty {
+  margin-left: auto; flex: none;
+  background: var(--teal-50); color: var(--teal-700);
+  font-weight: 800; font-size: 13px;
+  padding: 3px 10px; border-radius: 999px;
+}
+:global([data-theme="dark"]) .solItemRow { background: rgba(255, 255, 255, .04); color: #8392ab; }
+:global([data-theme="dark"]) .solQty { background: rgba(15, 207, 174, .12); color: #0fcfae; }
+
+.solActions { display: flex; gap: 10px; }
+
+/* ── Selector de cantidades del modal de solicitud ───────── */
+.requestList {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 14px;
+}
+:global([data-theme="dark"]) .requestList { border-color: #1e2640; }
+
+.requestRow {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.requestRow:last-child { border-bottom: none; }
+:global([data-theme="dark"]) .requestRow { border-bottom-color: #1e2640; }
+
+.insumoName { font-size: 14px; font-weight: 600; color: var(--navy-900); }
+.insumoCat { font-size: 12px; color: var(--slate-500); margin-top: 2px; }
+:global([data-theme="dark"]) .insumoName { color: #e8edf5; }
+:global([data-theme="dark"]) .insumoCat { color: #4a5670; }
+
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper button {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--navy-900);
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: all .14s ease;
+}
+.stepper button:hover { background: var(--teal-50); border-color: var(--teal-400); }
+.stepper input {
+  width: 48px; text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  background: var(--surface); color: var(--navy-900);
+}
+/* Oculta las flechas nativas: el paso se controla con los botones */
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper input { -moz-appearance: textfield; appearance: textfield; }
+:global([data-theme="dark"]) .stepper button {
+  background: rgba(255, 255, 255, .06); border-color: #1e2640; color: #8392ab;
+}
+:global([data-theme="dark"]) .stepper input {
+  background: rgba(255, 255, 255, .04); border-color: #1e2640; color: #e8edf5;
+}
+
+/* Contador de la pestaña de solicitudes pendientes */
+.tabBadge {
+  display: inline-block;
+  background: var(--red); color: #fff;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 11px; font-weight: 800;
+  margin-left: 6px;
+}
+
+.rowEnd { text-align: right; }
+
+@media (max-width: 640px) {
+  .requestRow { grid-template-columns: 1fr; gap: 8px; }
+  .solActions { flex-direction: column; }
+  .barTrack { width: 80px; }
+}

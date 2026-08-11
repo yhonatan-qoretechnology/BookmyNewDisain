@@ -79,6 +79,7 @@ const es = {
     personal: "Personal",
     resenas: "Reseñas",
     sedes: "Sedes",
+    stock: "Stock e insumos",
     comunicacion: "Comunicación",
     configuracion: "Configuración",
     logout: "Cerrar sesión",
@@ -174,6 +175,7 @@ const es = {
     personal: { title: "Equipo y", accent: "Personal" },
     resenas: { title: "Reseñas de", accent: "Clientes" },
     sedes: { title: "Mis", accent: "Sedes" },
+    stock: { title: "Stock e", accent: "Insumos" },
     comunicacion: { title: "Comunicación entre", accent: "Sedes" },
     configuracion: { title: "Configuración", accent: "" },
     employee: { title: "Mis", accent: "Reservas" },
@@ -751,6 +753,192 @@ const es = {
     addressPlaceholder: "Calle, número, ciudad",
     teamSize: "Tamaño del equipo",
     created: "Sede creada",
+  },
+
+  /* ── Asistente de ayuda (widget flotante) ─────────────────
+     Las respuestas describen los menús reales del panel. Si se
+     renombra una sección, actualiza también su texto aquí. */
+  chatbot: {
+    fab: "Abrir el asistente de ayuda",
+    minimize: "Minimizar el asistente",
+    tooltipTitle: "¡Hola! Soy tu asistente BookMy",
+    tooltipText: "¿Tienes dudas o necesitas ayuda? Estoy aquí para echarte una mano.",
+    tooltipCta: "Solicitar asistencia",
+    title: "Asistente BookMy",
+    online: "En línea",
+    welcome: "👋 ¡Bienvenido!",
+    intro: "Te ayudo a entender cómo funciona el panel de reservas.",
+    prompt: "¿Sobre qué quieres saber más?",
+    optionsLabel: "Preguntas frecuentes",
+    back: "Volver",
+    contactCta: "Hablar con el equipo",
+    faqCta: "Ver preguntas",
+    faq: {
+      ids: [
+        "reserva", "reagendar", "cliente", "servicio",
+        "profesional", "acceso", "sede", "empresa",
+        "resena", "facturacion", "preferencias",
+      ],
+      reserva: {
+        q: "¿Cómo creo una reserva?",
+        a: [
+          "📍 Entra en «Reservas» y pulsa «+ Nueva reserva».",
+          "El asistente te guía paso a paso: sede → cliente → profesional → servicio → fecha → hora.",
+          "En el último paso verás un comprobante con el resumen y el método de pago. Revísalo y confirma.",
+        ],
+      },
+      reagendar: {
+        q: "¿Cómo reagendo una reserva?",
+        a: [
+          "📍 En el «Dashboard», dentro de «Últimas reservas», pulsa el icono de reagendar de la fila.",
+          "Se abrirá un calendario con los días y horas libres del mismo profesional.",
+          "Elige la nueva franja y confirma: se conservan el cliente, el servicio y el profesional.",
+        ],
+      },
+      cliente: {
+        q: "¿Cómo se registran los clientes?",
+        a: [
+          "📍 Los clientes finales se dan de alta desde la app de clientes, no desde el panel.",
+          "En «Clientes» puedes consultarlos, buscarlos y editar sus datos de contacto.",
+        ],
+      },
+      servicio: {
+        q: "¿Cómo creo un servicio?",
+        a: [
+          "📍 Entra en «Servicios» y pulsa «+ Nuevo servicio».",
+          "Completa el nombre, la categoría, la duración en minutos y el precio.",
+          "El catálogo se agrupa por categoría: puedes desplegar o comprimir cada una.",
+        ],
+      },
+      profesional: {
+        q: "¿Cómo añado a alguien al equipo?",
+        a: [
+          "📍 Entra en «Personal» y pulsa «+ Nueva integrante».",
+          "El teléfono y la sede son obligatorios, y el teléfono no puede repetirse.",
+          "Con el icono de editar puedes cambiar después su nombre, rol, teléfono o sede.",
+        ],
+      },
+      acceso: {
+        q: "¿Cómo doy acceso al panel a un empleado?",
+        a: [
+          "📍 En «Personal», pulsa «Generar acceso» en la fila de la persona.",
+          "Se crea su usuario y una contraseña que se muestra UNA sola vez: cópiala y entrégasela.",
+          "Con ese acceso podrá entrar al panel y consultar su calendario de citas.",
+        ],
+      },
+      sede: {
+        q: "¿Cómo creo una sede?",
+        a: [
+          "📍 Entra en «Sedes» y pulsa «+ Nueva sede».",
+          "Indica el nombre y la dirección. La sede queda asociada a tu negocio.",
+          "Cada tarjeta muestra el número de personas asignadas a esa sede.",
+        ],
+      },
+      empresa: {
+        q: "¿Cómo registro una empresa?",
+        a: [
+          "📍 Entra en «Empresas» y pulsa «+ Nueva empresa».",
+          "Completa el nombre y el rubro del negocio.",
+          "Desde el selector del Dashboard puedes cambiar sobre qué empresa y sede trabajas.",
+        ],
+      },
+      resena: {
+        q: "¿Cómo apruebo o respondo una reseña?",
+        a: [
+          "📍 Entra en «Reseñas»: cada tarjeta muestra la valoración y su estado.",
+          "«Aprobar» publica la reseña.",
+          "«Responder» abre un cuadro para redactar tu respuesta y enviarla por correo al cliente.",
+        ],
+      },
+      facturacion: {
+        q: "¿Dónde consulto la facturación?",
+        a: [
+          "📍 En el menú «Facturación», que se despliega en «Facturas» y «Gastos».",
+          "En «Facturas» tienes el histórico de cobros, con opción de ver y descargar cada una.",
+        ],
+      },
+      preferencias: {
+        q: "¿Cómo cambio el idioma o el modo oscuro?",
+        a: [
+          "📍 Entra en «Configuración», sección «Apariencia e idioma».",
+          "El idioma se guarda en tu usuario, así que te acompaña en cualquier dispositivo.",
+          "El modo oscuro también puedes activarlo desde el icono de la barra superior.",
+        ],
+      },
+    },
+  },
+
+  stock: {
+    /* Pestañas */
+    tabCatalogo: "Catálogo de insumos",
+    tabStock: "Stock por sede",
+    tabSolicitudes: "Solicitudes",
+    tabMiStock: "Stock de {sede}",
+    tabMisSolicitudes: "Mis solicitudes",
+    /* Tablas */
+    product: "Producto",
+    unit: "Unidad",
+    refPrice: "Precio ref.",
+    refPriceEur: "Precio de referencia (€)",
+    stock: "Stock",
+    currentStock: "Stock actual",
+    currentStockShort: "Stock actual: {n} {unidad}",
+    level: "Nivel",
+    critical: "Crítico",
+    restock: "+5 Reponer",
+    branchActive: "Activa",
+    searchPlaceholder: "Buscar insumo…",
+    /* Catálogo */
+    newInsumo: "+ Nuevo insumo",
+    newInsumoTitle: "Nuevo insumo",
+    newInsumoSub: "Agrega un producto al catálogo global de insumos.",
+    createInsumo: "Crear insumo",
+    categoryPlaceholder: "Uñas, Facial, Masajes…",
+    unitPlaceholder: "ud, bote, pack…",
+    fillRequired: "Completa nombre, categoría y unidad de medida",
+    insumoCreated: "Insumo creado en el catálogo",
+    deleteTitle: "Eliminar insumo",
+    deleteMsg: "¿Eliminar “{nombre}” del catálogo? También se retirará de las existencias de todas las sedes.",
+    deleteAria: "Eliminar {nombre}",
+    insumoDeleted: "Insumo eliminado",
+    stockUpdated: "Stock actualizado",
+    /* Solicitudes */
+    requestInventory: "Solicitar inventario",
+    requestTitle: "Solicitar inventario",
+    requestSub: "Elige los productos que necesitas para tu sede e indica la cantidad.",
+    notesLabel: "Notas para la administración",
+    notesPlaceholder: "Ej: Urgente, stock crítico…",
+    sendRequest: "Enviar solicitud",
+    requestSent: "Solicitud enviada a la administración",
+    requestEmpty: "Indica la cantidad de al menos un producto",
+    quantity: "Cantidad de {nombre}",
+    increase: "Añadir una unidad de {nombre}",
+    decrease: "Quitar una unidad de {nombre}",
+    requestedBy: "Solicitado por {nombre} · {fecha}",
+    sentOn: "Enviada el {fecha}",
+    approve: "✓ Aprobar",
+    reject: "✕ Rechazar",
+    requestApproved: "Solicitud aprobada · stock actualizado",
+    requestRejected: "Solicitud rechazada",
+    rejectTitle: "Rechazar solicitud",
+    rejectMsg: "¿Rechazar esta solicitud de inventario? La sede no recibirá las unidades pedidas.",
+    estado: {
+      pendiente: "Pendiente",
+      aprobada: "Aprobada",
+      rechazada: "Rechazada",
+    },
+    /* Estados vacíos */
+    emptyCatalogTitle: "Sin insumos",
+    emptyCatalogMsg: "No hay resultados para esa búsqueda.",
+    emptyStockTitle: "Sin existencias",
+    emptyStockMsg: "No hay insumos que coincidan con la búsqueda.",
+    emptyRequestsTitle: "Sin solicitudes",
+    emptyRequestsMsg: "Las solicitudes de inventario de las sedes aparecerán aquí.",
+    emptyMyRequestsMsg: "Aún no has enviado ninguna solicitud de inventario.",
+    noSedesTitle: "Sin sedes",
+    noSedesMsg: "Registra una sede para poder controlar sus existencias.",
+    noBranchTitle: "Sin sede asignada",
+    noBranchMsg: "Tu usuario no tiene una sede asignada, así que no hay existencias que mostrar.",
   },
 
   /* Drill-down "Sedes" dentro de /empresas (superadmin) */
