@@ -7,11 +7,11 @@ import type {
   Resena, SedeDetalle, Servicio, Session,
 } from "@/models";
 import {
-  AsignacionesApi, AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
+  AsignacionesApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
 import type {
-  ApiClient, ApiProfesional, ApiService, ApiServicioAsignable, ClientUpdatePayload,
+  ApiClient, ApiProfesional, ApiResena, ApiSede, ApiService, ApiServicioAsignable, ClientUpdatePayload,
 } from "@/api/types";
 import { ReservasController } from "./ReservasController";
 
@@ -269,27 +269,37 @@ const RESENA_ESTADO: Record<string, Resena["estado"]> = {
   RECHAZADA: "rechazada",
 };
 
+const mapResena = (r: ApiResena): Resena => {
+  const estado = RESENA_ESTADO[r.estado] ?? (r.aprobado ? "aprobada" : "pendiente");
+  return {
+    id: r.id,
+    cliente: r.usuario?.UserData?.name || r.usuario?.email || `#${r.usuarioId}`,
+    email: r.usuario?.email || "",
+    foto: r.usuario?.fotoPerfil || null,
+    estrellas: Math.round(r.calificacion),
+    texto: r.comentario || "",
+    fecha: (r.createdAt || "").slice(0, 10),
+    estado,
+    aprobada: estado === "aprobada",
+  };
+};
+
 export const ResenasController = {
   /** Lista reseñas — GET /resenas (incluye usuario.UserData). */
   async search(term: string): Promise<Resena[]> {
     const q = term.toLowerCase();
     const list = await ResenasApi.findAll().catch(() => []);
-    return (list || [])
-      .map((r) => {
-        const estado = RESENA_ESTADO[r.estado] ?? (r.aprobado ? "aprobada" : "pendiente");
-        return {
-          id: r.id,
-          cliente: r.usuario?.UserData?.name || r.usuario?.email || `#${r.usuarioId}`,
-          email: r.usuario?.email || "",
-          foto: r.usuario?.fotoPerfil || null,
-          estrellas: Math.round(r.calificacion),
-          texto: r.comentario || "",
-          fecha: (r.createdAt || "").slice(0, 10),
-          estado,
-          aprobada: estado === "aprobada",
-        };
-      })
-      .filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
+    return (list || []).map(mapResena).filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
+  },
+
+  /**
+   * Reseñas de una sede concreta — GET /resenas/sede/:sedeId. Se usa
+   * desde el drill-down "Sedes" de /empresas, donde se quiere ver
+   * (y moderar) solo lo que dejaron los clientes de ESA sede.
+   */
+  async searchPorSede(sedeId: number): Promise<Resena[]> {
+    const list = await ResenasApi.bySede(sedeId).catch(() => []);
+    return (list || []).map(mapResena);
   },
 
   /**
@@ -326,6 +336,14 @@ export const PersonalController = {
   /**
    * Lista profesionales — GET /profesionales, con el nombre de la
    * sede resuelto a partir de las sedes visibles para la sesión.
+   *
+   * ⚠️ GET /profesionales no filtra por tenant: sin `sedes` esta lista
+   * trae los profesionales de TODAS las empresas. Cuando la vista ya
+   * conoce las sedes visibles (owner/admin con negocio activo) se
+   * filtra aquí mismo, para que Personal respete el aislamiento
+   * multi-tenant igual que el resto del panel. Con `sedes` vacío
+   * (superadmin sin empresa elegida) se deja tal cual: no hay un
+   * alcance claro contra el que filtrar.
    * @param term Búsqueda por nombre o rol.
    * @param sedes Sedes { id, nombre } ya cargadas por la vista.
    */
@@ -336,7 +354,9 @@ export const PersonalController = {
     const q = term.toLowerCase();
     const list = await ProfesionalesApi.findAll().catch(() => []);
     const nombreSede = new Map(sedes.map((s) => [s.id, s.nombre]));
+    const sedeIds = new Set(sedes.map((s) => s.id));
     return (list || [])
+      .filter((p) => sedeIds.size === 0 || sedeIds.has(String(p.sedeId)))
       .map((p) => ({
         id: p.id,
         nombre: p.nombre,
@@ -348,9 +368,57 @@ export const PersonalController = {
         telefono: p.phone || "",
         reservas: 0,
         activo: p.state !== "disabled",
-        userId: p.user_id ?? null,
+        tieneAcceso: p.acceso?.tieneAcceso ?? false,
+        accesoEmail: p.acceso?.email ?? null,
       }))
       .filter((p) => (p.nombre + p.rol).toLowerCase().includes(q));
+  },
+
+  /**
+   * Profesionales de UNA sede — GET /profesionales/by-sede/:sedeId.
+   * Se usa desde el drill-down "Sedes" de /empresas: ya viene acotado
+   * por sede, así que no hace falta el filtro por tenant de `search`.
+   */
+  async searchPorSede(sedeId: number, sedeNombre: string): Promise<Empleado[]> {
+    const list = await ProfesionalesApi.findBySede(sedeId).catch(() => []);
+    return (list || []).map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      rol: p.biografia || "Profesional",
+      foto: p.imagen || null,
+      sede: sedeNombre,
+      sedeId: String(p.sedeId),
+      telefono: p.phone || "",
+      reservas: 0,
+      activo: p.state !== "disabled",
+      tieneAcceso: p.acceso?.tieneAcceso ?? false,
+      accesoEmail: p.acceso?.email ?? null,
+    }));
+  },
+
+  /** Sugiere una contraseña temporal legible, para prellenar los
+      formularios de alta / dar acceso / cambiar acceso. */
+  sugerirPassword(): string {
+    return generarPassword();
+  },
+
+  /**
+   * Crea un profesional — POST /profesionales. `password` es
+   * obligatorio (login de profesionales, rol EMPLOYEE): el backend
+   * genera solo el correo de acceso (patrón nombre@empresa.com) y lo
+   * devuelve en `acceso.email`, para mostrárselo al admin.
+   */
+  async crear(input: {
+    nombre: string; rol: string; telefono: string; sedeId: string; password: string;
+  }): Promise<{ email: string }> {
+    const creado = await ProfesionalesApi.create({
+      nombre: input.nombre.trim(),
+      phone: input.telefono.trim(),
+      sedeId: Number(input.sedeId),
+      biografia: input.rol.trim() || undefined,
+      password: input.password,
+    });
+    return { email: creado.acceso.email };
   },
 
   /** Edita un profesional — PATCH /profesionales/:id. */
@@ -367,42 +435,31 @@ export const PersonalController = {
   },
 
   /**
-   * Crea el usuario de acceso del empleado y lo vincula al profesional
-   * para que pueda entrar al panel y ver su calendario:
-   *   1. POST /auth/register  → usuario con rol EMPLOYEE
-   *   2. PATCH /profesionales/:id { user_id } → vínculo
-   * La contraseña se genera aquí y se devuelve UNA sola vez para
-   * entregarla al empleado (el backend la almacena cifrada).
+   * Da acceso al panel a un profesional viejo que aún no tenía login —
+   * PATCH /profesionales/:id/vincular-acceso { email, password }.
    * @throws ApiError si el correo ya existe o el DTO no coincide.
    */
-  async crearAcceso(
-    empleado: Empleado,
-    email: string
-  ): Promise<CredencialesEmpleado> {
-    const password = generarPassword();
-    const creado = await AuthApi.register({
-      email: email.trim().toLowerCase(),
-      password,
-      name: empleado.nombre,
-      phone: empleado.telefono || undefined,
-      role: "EMPLOYEE",
-    });
-    const userId = creado?.user?.id ?? creado?.id;
-    if (userId != null) {
-      /* Vínculo profesional ⇄ usuario (columna user_id) */
-      await ProfesionalesApi.update(empleado.id, { user_id: Number(userId) }).catch(() => undefined);
-    }
-    return { email: email.trim().toLowerCase(), password };
+  async darAcceso(id: number, email: string, password: string): Promise<CredencialesEmpleado> {
+    const correo = email.trim().toLowerCase();
+    await ProfesionalesApi.vincularAcceso(id, { email: correo, password });
+    return { email: correo, password };
   },
 
   /**
-   * Restablece la contraseña de un empleado que ya tiene usuario —
-   * PATCH /auth/users/:id { password }.
+   * Cambia correo y/o contraseña de un profesional que ya tiene login —
+   * PATCH /profesionales/:id/acceso { email?, password? }. Solo se
+   * manda lo que cambió; la contraseña se devuelve para mostrarla UNA
+   * sola vez (el backend no la vuelve a exponer).
    */
-  async regenerarPassword(userId: number, email: string): Promise<CredencialesEmpleado> {
-    const password = generarPassword();
-    await AuthApi.updateUser(userId, { password });
-    return { email, password };
+  async cambiarAcceso(
+    id: number,
+    cambios: { email?: string; password?: string }
+  ): Promise<{ email: string; password?: string }> {
+    const payload: { email?: string; password?: string } = {};
+    if (cambios.email) payload.email = cambios.email.trim().toLowerCase();
+    if (cambios.password) payload.password = cambios.password;
+    const res = await ProfesionalesApi.cambiarAcceso(id, payload);
+    return { email: res.email || payload.email || "", password: cambios.password };
   },
 
   /** Elimina un profesional — DELETE /profesionales/:id. */
@@ -412,6 +469,24 @@ export const PersonalController = {
 };
 
 /* ── Sedes (SedeModule, multi-tenant) ────────────────────── */
+function mapSedeDetalle(s: ApiSede, equipo: number): SedeDetalle {
+  return {
+    id: s.id,
+    negocioId: String(s.empresaId),
+    nombre: s.nombre,
+    direccion: s.direccion,
+    equipo,
+    activa: true,
+    imagenes: s.imagenes ?? [],
+    telefono: s.telefono || "",
+    provincia: s.provincia || "",
+    latitud: s.latitud ?? null,
+    longitud: s.longitud ?? null,
+    horario: s.horario ?? null,
+    diasCerrado: s.diasCerrado ?? [],
+  };
+}
+
 export const SedesController = {
   /**
    * Sedes de la empresa — GET /sedes/empresa/:empresaId.
@@ -434,16 +509,28 @@ export const SedesController = {
       equipoPorSede.set(p.sedeId, (equipoPorSede.get(p.sedeId) || 0) + 1);
     }
     return (list || [])
-      .map((s) => ({
-        id: s.id,
-        negocioId: String(s.empresaId),
-        nombre: s.nombre,
-        direccion: s.direccion,
-        equipo: equipoPorSede.get(s.id) ?? s.profesionales?.length ?? 0,
-        activa: true,
-        imagenes: s.imagenes ?? [],
-      }))
+      .map((s) => mapSedeDetalle(s, equipoPorSede.get(s.id) ?? s.profesionales?.length ?? 0))
       .filter((s) => (s.nombre + s.direccion).toLowerCase().includes(q));
+  },
+
+  /**
+   * Sedes de una empresa concreta (sin depender de la sesión) — usado
+   * por el drill-down "Sedes" de /empresas, donde el superadmin mira
+   * una empresa que no es necesariamente la que tiene "activa".
+   */
+  async getByEmpresa(negocioId: string): Promise<SedeDetalle[]> {
+    return this.search("", negocioId);
+  },
+
+  /**
+   * Una sede por id — GET /sedes/:id. Fuente única de la vista de
+   * edición (/sedes/:id/editar): trae también `horario` y
+   * `diasCerrado`, que el listado no necesita pintar.
+   */
+  async getById(id: number): Promise<SedeDetalle | null> {
+    const s = await SedesApi.findOne(id).catch(() => null);
+    if (!s) return null;
+    return mapSedeDetalle(s, s.profesionales?.length ?? 0);
   },
 
   /** Crea una sede — POST /sedes { nombre, direccion, empresaId }. */
@@ -452,6 +539,32 @@ export const SedesController = {
       nombre: input.nombre,
       direccion: input.direccion,
       empresaId: Number(input.negocioId),
+    });
+  },
+
+  /**
+   * Edita una sede — PATCH /sedes/:id. Incluye horario y días cerrado:
+   * el backend los guarda como JSON en la fila de la sede (columnas
+   * `horario`/`diasCerrado`), que es lo que de hecho usa hoy el cálculo
+   * de disponibilidad (las tablas horario_sede/dia_cerrado_sede están
+   * vacías en producción — ver src/lib/disponibilidad.ts). Si algún día
+   * se llenan esas tablas, tienen precedencia sobre este JSON y este
+   * formulario dejaría de reflejar la disponibilidad real.
+   */
+  async update(id: number, input: {
+    nombre: string; direccion: string; telefono: string; provincia: string;
+    latitud?: number | null; longitud?: number | null;
+    horario?: Record<string, string>; diasCerrado?: string[];
+  }): Promise<void> {
+    await SedesApi.update(id, {
+      nombre: input.nombre.trim(),
+      direccion: input.direccion.trim(),
+      telefono: input.telefono.trim() || undefined,
+      provincia: input.provincia.trim() || undefined,
+      latitud: input.latitud ?? undefined,
+      longitud: input.longitud ?? undefined,
+      horario: input.horario,
+      diasCerrado: input.diasCerrado,
     });
   },
 

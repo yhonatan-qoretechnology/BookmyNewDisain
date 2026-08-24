@@ -53,6 +53,14 @@ export interface SedeDetalle {
   activa: boolean;
   /** Rutas de sede.imagenes; se muestran al elegir sede en una reserva */
   imagenes: string[];
+  telefono: string;
+  provincia: string;
+  latitud: number | null;
+  longitud: number | null;
+  /** Horario semanal { lunes: "10:00-19:00", domingo: "Cerrado", … } */
+  horario: Record<string, string> | null;
+  /** Fechas puntuales de cierre (YYYY-MM-DD) */
+  diasCerrado: string[];
 }
 
 /** Sesión activa guardada en sessionStorage */
@@ -70,6 +78,10 @@ export interface Session {
   foto: string | null;
   /** Parámetro de idioma tal como viene de la BD (tabla usuarios) */
   idioma: string;
+  /** Id del profesional vinculado (rol employee) — viene del JWT, no del
+      body de POST /auth/login. Sede/especialidad de un employee se
+      resuelven a partir de este id (GET /profesionales/:id/detalle). */
+  profesionalId: string | null;
 }
 
 export interface Reserva {
@@ -171,14 +183,36 @@ export interface Empleado {
   telefono: string;
   reservas: number;
   activo: boolean;
-  /** Usuario de acceso al panel vinculado al profesional, si ya lo tiene */
-  userId: number | null;
+  /** true si el profesional ya tiene login al panel (rol EMPLOYEE) */
+  tieneAcceso: boolean;
+  /** Correo de acceso real, cuando `tieneAcceso` es true */
+  accesoEmail: string | null;
 }
 
 /** Credenciales recién generadas para que un empleado entre al panel */
 export interface CredencialesEmpleado {
   email: string;
   password: string;
+}
+
+/**
+ * Usuario con acceso administrativo creado desde /administradores:
+ * dueño de empresa (COMPANY_ADMIN → rol "owner") o administrador de
+ * una sede concreta (BRANCH_ADMIN → rol "admin").
+ */
+export interface Administrador {
+  id: number;
+  nombre: string;
+  email: string;
+  telefono: string;
+  rol: "owner" | "admin";
+  negocioId: string | null;
+  negocioName: string;
+  /** null si es dueño de toda la empresa (sin sede asignada) */
+  sedeId: string | null;
+  sedeName: string;
+  activo: boolean;
+  foto: string | null;
 }
 
 /* ── Flujo de creación de reservas ───────────────────────── */
@@ -362,4 +396,17 @@ export interface DemoAccount {
   sub: string;
   av: string;
   cls: "" | "admin" | "emp";
+}
+
+/* ── Notificaciones (GET /notifications) ────────────────────
+   Hoy solo llegan de tipo "reserva_nueva" (BRANCH_ADMIN de la sede
+   donde se creó una reserva), pero el modelo queda genérico. */
+export interface Notificacion {
+  id: number;
+  tipo: string;
+  titulo: string;
+  cuerpo: string;
+  leida: boolean;
+  creadaEn: string;
+  datos: Record<string, unknown> | null;
 }

@@ -49,6 +49,15 @@ export interface LoginResponse {
 }
 
 /**
+ * Respuesta de POST /admin/companies/:empresaId/admins y
+ * POST /admin/branches/:sedeId/admins (AdminManagementController).
+ */
+export interface ApiAdminCreateResponse {
+  message?: string;
+  user: ApiUser;
+}
+
+/**
  * DTO de POST /auth/register. Se usa para dar acceso al panel a un
  * empleado (`role: "EMPLOYEE"`), además del alta de clientes finales.
  * ⚠️ PUNTO DE AJUSTE: si el CreateUserDto del backend nombra los campos
@@ -92,6 +101,13 @@ export interface ApiSede {
   diasCerrado?: string[];
 }
 
+/** Bloque `acceso` que trae GET /profesionales y GET /profesionales/:id
+    desde el cambio de login de profesionales (rol EMPLOYEE). */
+export interface ApiProfesionalAcceso {
+  tieneAcceso: boolean;
+  email: string | null;
+}
+
 export interface ApiProfesional {
   id: number;
   nombre: string;
@@ -101,6 +117,14 @@ export interface ApiProfesional {
   state?: string;
   sedeId: number;
   user_id?: number | null;
+  acceso?: ApiProfesionalAcceso | null;
+}
+
+/** Respuesta de POST /profesionales: además del profesional creado,
+    trae el correo de acceso que generó el backend (patrón
+    nombre@empresa.com) — la contraseña no vuelve, solo se envió. */
+export interface ApiProfesionalCreateResponse extends Omit<ApiProfesional, "acceso"> {
+  acceso: { email: string; mensaje: string };
 }
 
 export interface ApiPrice {
@@ -225,6 +249,25 @@ export interface ApiResena {
   usuarioId: number;
   createdAt: string;
   usuario?: { id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string } | null };
+}
+
+/** GET /notifications, PATCH /notifications/:id/read (notification.service.ts) */
+export interface ApiNotification {
+  id: number;
+  userId: number;
+  type: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown> | null;
+  read: boolean;
+  createdAt: string;
+  readAt: string | null;
+}
+
+export interface ApiNotificationsListResponse {
+  items: ApiNotification[];
+  unreadCount: number;
+  pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
 /** DTO exacto de POST /appointments (create-appointment.dto.ts) */

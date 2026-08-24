@@ -1,9 +1,8 @@
 "use client";
 /* ============================================================
    CategoriaFormModal — crear categorías de gasto propias
-   Contra CategoriaGastoModule (/categorias-gasto): muestra las
-   base de la plataforma y las de la empresa (eliminables solo si
-   ningún gasto las está usando; el backend también lo valida).
+   Muestra las predeterminadas y las del usuario (eliminables
+   si ningún gasto las está usando).
 ============================================================ */
 import { useState } from "react";
 import {
@@ -12,6 +11,7 @@ import {
   GastosController,
 } from "@/controllers/FacturacionControllers";
 import { useData } from "@/hooks/useData";
+import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Button from "@/components/ui/Button";
@@ -30,58 +30,53 @@ function Contenido({
 }) {
   const { t } = useI18n();
   const { toast } = useUi();
+  const { session } = useSession();
   const [nombre, setNombre] = useState("");
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [version, setVersion] = useState(0);
+  const [creando, setCreando] = useState(false);
 
-  /* Base + propias del API; se recarga tras crear o eliminar */
-  const { data: categorias, loading } = useData<CategoriaGasto[]>(
+  /* Base + propias del API; `reload()` la refresca tras crear o borrar.
+     El contenido solo se monta cuando el modal está abierto, así que la
+     consulta ya no necesita el flag `open` que tenía antes. */
+  const { data: categorias, reload } = useData(
     () => CategoriasGastoController.list(),
-    [version],
-    []
+    [], []
   );
+  const base = categorias.filter((c) => c.esBase);
+  const propias = categorias.filter((c) => !c.esBase);
 
-
-  const base = categorias.filter((c) => c.isBase);
-  const propias = categorias.filter((c) => !c.isBase);
 
   const crear = async () => {
     const limpio = nombre.trim();
     if (!limpio) return setError(t("gastos.categoriaVacia"));
-    if (CategoriasGastoController.existe(limpio, categorias)) {
-      return setError(t("gastos.categoriaDuplicada"));
-    }
 
-    setSaving(true);
+    setCreando(true);
     try {
-      const { categoria, error: err } = await CategoriasGastoController.create(limpio);
-      if (!categoria) {
-        setError(err === "VACIA" ? t("gastos.categoriaVacia") : err || t("gastos.categoriaDuplicada"));
-        return;
-      }
-      toast(t("gastos.categoriaCreada", { nombre: categoria.nombre }), "success");
+      const creada = await CategoriasGastoController.create(limpio);
+      toast(t("gastos.categoriaCreada", { nombre: creada.nombre }), "success");
       setNombre("");
       setError("");
-      setVersion((v) => v + 1);
-      onCreated(categoria);
+      await reload();
+      onCreated(creada);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("gastos.categoriaDuplicada"));
     } finally {
-      setSaving(false);
+      setCreando(false);
     }
   };
 
   const eliminar = async (categoria: CategoriaGasto) => {
-    if (await GastosController.usaCategoria(categoria.id)) {
+    if (await GastosController.usaCategoria(session, categoria.id)) {
       toast(t("gastos.categoriaEnUso"), "error");
       return;
     }
-    const { ok, error: err } = await CategoriasGastoController.remove(categoria.id);
-    if (!ok) {
-      toast(err || t("gastos.categoriaEnUso"), "error");
-      return;
+    try {
+      await CategoriasGastoController.remove(categoria.id);
+      await reload();
+      toast(t("gastos.categoriaEliminada"), "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t("gastos.categoriaEnUso"), "error");
     }
-    setVersion((v) => v + 1);
-    toast(t("gastos.categoriaEliminada"), "success");
   };
 
   return (
@@ -93,8 +88,8 @@ function Contenido({
       closeLabel={t("common.close")}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose} disabled={saving}>{t("common.cancel")}</Button>
-          <Button onClick={crear} disabled={saving}>
+          <Button variant="ghost" onClick={onClose}>{t("common.cancel")}</Button>
+          <Button onClick={crear} disabled={creando}>
             <Icon name="plus" /> {t("gastos.categoriaCrear")}
           </Button>
         </>
@@ -112,7 +107,7 @@ function Contenido({
           maxLength={40}
           placeholder={t("gastos.categoriaPlaceholder")}
           onChange={(e) => { setNombre(e.target.value); setError(""); }}
-          onKeyDown={(e) => { if (e.key === "Enter" && !saving) void crear(); }}
+          onKeyDown={(e) => { if (e.key === "Enter") crear(); }}
         />
       </div>
 
@@ -125,9 +120,7 @@ function Contenido({
       <div className={styles.catSection}>
         <p className={styles.catSectionTitle}>{t("gastos.categoriaPropias")}</p>
         <div className={styles.chipRow}>
-          {loading ? (
-            <span className={styles.chipEmpty}>{t("common.loading")}</span>
-          ) : propias.length === 0 ? (
+          {propias.length === 0 ? (
             <span className={styles.chipEmpty}>{t("gastos.categoriaSinPropias")}</span>
           ) : (
             propias.map((c) => (
@@ -136,7 +129,7 @@ function Contenido({
                 <button
                   type="button"
                   className={styles.chipDel}
-                  onClick={() => void eliminar(c)}
+                  onClick={() => eliminar(c)}
                   aria-label={`${t("gastos.categoriaEliminar")}: ${c.nombre}`}
                   title={t("gastos.categoriaEliminar")}
                 >

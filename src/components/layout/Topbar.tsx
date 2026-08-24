@@ -11,6 +11,7 @@ import { LOCALES, useI18n, type LocaleCode } from "@/i18n";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { EASE_OUT, SPRING } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
+import NotificationBell from "./NotificationBell";
 import styles from "./Topbar.module.css";
 
 /* ── Selector de idioma ───────────────────────────────────
@@ -92,13 +93,13 @@ export default function Topbar({
   accent,
   breadcrumb,
   breadcrumbRoot,
-  bellCount = 6,
   onMenuToggle,
 }: {
   title: string;
   accent?: string;
   breadcrumb?: string;
   breadcrumbRoot?: string;
+  /** @deprecated la campana ya trae su propio contador real (NotificationBell). Prop ignorada, se deja para no romper a quien todavía la pase. */
   bellCount?: number;
   onMenuToggle: () => void;
 }) {
@@ -154,10 +155,7 @@ export default function Topbar({
           <Icon name="sun" className={styles.iconSun} />
         </motion.button>
 
-        <button className={styles.iconAction} aria-label={t("topbar.notifications")}>
-          <Icon name="bell" />
-          <span className={styles.bellDot}>{bellCount}</span>
-        </button>
+        <NotificationBell />
 
         <div className={styles.userChip}>
           <div className={styles.userAvatar}>

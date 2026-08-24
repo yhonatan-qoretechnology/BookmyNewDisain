@@ -3,7 +3,7 @@
    TicketModal — popup con la imagen del tickete + descarga
 ============================================================ */
 import { fmtFechaLarga, fmtMoneda } from "@/constants";
-import type { Gasto } from "@/controllers/FacturacionControllers";
+import { esTicketPdf, type Gasto } from "@/controllers/FacturacionControllers";
 import { useI18n } from "@/i18n";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -14,29 +14,13 @@ import Modal from "./Modal";
 import styles from "./facturacion.module.css";
 
 /**
- * Descarga el comprobante. Ahora el tickete vive en otro origen
- * (bookmy.es), y ahí el navegador ignora el atributo `download` y se
- * limita a abrir la imagen; por eso se baja el binario y se descarga
- * desde un blob local. Si falla (CORS o red), se abre en otra pestaña.
+ * El comprobante es una URL remota (no un dataURL): el atributo
+ * `download` del navegador no fuerza la descarga en URLs cross-origin,
+ * así que simplemente lo abrimos en una pestaña nueva.
  */
-export async function descargarTicket(g: Gasto) {
+export function descargarTicket(g: Gasto) {
   if (!g.ticket) return;
-  const nombre = g.ticketNombre || `tickete-${g.id}.jpg`;
-  try {
-    const res = await fetch(g.ticket);
-    if (!res.ok) throw new Error(String(res.status));
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = nombre;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  } catch {
-    window.open(g.ticket, "_blank", "noopener");
-  }
+  window.open(g.ticket, "_blank", "noopener,noreferrer");
 }
 
 function Contenido({
@@ -58,7 +42,7 @@ function Contenido({
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("common.close")}</Button>
-          <Button onClick={() => void descargarTicket(gasto)} disabled={!gasto.ticket}>
+          <Button onClick={() => descargarTicket(gasto)} disabled={!gasto.ticket}>
             <Icon name="download" /> {t("gastos.descargarImagen")}
           </Button>
         </>
@@ -76,12 +60,19 @@ function Contenido({
       </div>
 
       {gasto.ticket ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={gasto.ticket}
-          alt={`${t("gastos.tickete")} — ${gasto.gasto}`}
-          className={styles.ticketFull}
-        />
+        esTicketPdf(gasto.ticket) ? (
+          <div className={styles.previewPdf}>
+            <Icon name="fileText" />
+            <span>{gasto.ticketNombre || t("gastos.tickete")}</span>
+          </div>
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={gasto.ticket}
+            alt={`${t("gastos.tickete")} — ${gasto.gasto}`}
+            className={styles.ticketFull}
+          />
+        )
       ) : (
         <EmptyState icon="image" title={t("gastos.sinTickete")} />
       )}

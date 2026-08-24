@@ -9,18 +9,15 @@
                            selectores de Facturación, según el rol.
    · EmisorController    → datos de la empresa (logo, NIT, contacto)
                            y de la sede, para la cabecera de la factura.
-   · CategoriasGastoController → categorías base + propias de la empresa
-                           (GET/POST/DELETE /categorias-gasto).
-   · GastosController    → CRUD contra GastoModule (/gastos). El alcance
-                           por sede lo resuelve el backend con el token,
-                           así que aquí no se filtra por rol a mano.
+   · CategoriasGastoController → GET/POST/DELETE /categorias-gasto
+                           (base del sistema + propias de la empresa).
+   · GastosController    → GET /gastos/filter, POST/PATCH/DELETE /gastos,
+                           POST /gastos/upload (comprobante).
 ============================================================ */
 import type { Session } from "@/models";
 import { fotoUrl } from "@/constants";
-import {
-  CategoriasGastoApi, EmpresasApi, GastosApi, PaymentsApi, SedesApi,
-} from "@/api/modules";
-import type { ApiCategoriaGasto, ApiGasto, ApiPaymentFiltered } from "@/api/types";
+import { CategoriasGastoApi, EmpresasApi, GastosApi, PaymentsApi, SedesApi } from "@/api/modules";
+import type { ApiGasto, ApiPaymentFiltered } from "@/api/types";
 
 /* ============================================================
    Tipos
@@ -68,52 +65,41 @@ export interface Factura {
   items: FacturaItem[];
 }
 
-/**
- * Categoría de gasto tal como la maneja el panel. Las `isBase` vienen de
- * la plataforma (comunes a todas las empresas y no eliminables); el resto
- * son propias de la empresa de la sesión.
- */
+/** Categoría de gasto — base del sistema (esBase) o propia de la empresa */
 export interface CategoriaGasto {
-  id: number;
+  id: string;
   nombre: string;
-  isBase: boolean;
+  esBase: boolean;
 }
 
 export interface Gasto {
-  /** id numérico del backend, en texto (clave de React y params de ruta) */
   id: string;
-  gasto: string;             // descripcion del backend
-  /** Nombre de la categoría, para pintar y filtrar */
-  categoria: string;
-  /** id real de la categoría, necesario al crear/actualizar */
-  categoriaId: number;
+  gasto: string;             // descripcion en el API
+  categoriaId: string;
+  categoria: string;         // nombre de la categoría, resuelto para mostrar en la tabla
   fecha: string;             // ISO yyyy-mm-dd
-  /** URL pública del comprobante (ya absoluta), o null */
-  ticket: string | null;
-  ticketNombre?: string;     // nombre de archivo original
+  ticket: string | null;     // ticketUrl del comprobante subido
+  ticketNombre?: string;     // derivado de la URL
   total: number;
-  sedeId: number;
-  sedeNombre?: string;
+  sedeId: string;
 }
 
-export interface FiltrosFactura {
+/** Alcance compartido por Facturas y Gastos: qué sede(s) consultar según el rol */
+interface AlcanceFiltro {
+  empresaId?: string;
+  sedeId?: string;
+}
+
+export interface FiltrosFactura extends AlcanceFiltro {
   /** Búsqueda libre: coincide con ID, cliente o servicio */
   q?: string;
   fecha?: string;
-  /** Solo superadmin: acota a las sedes de una empresa (resuelve sus IDs). */
-  empresaId?: string;
-  /** Superadmin/owner: acota a una sede concreta. */
-  sedeId?: string;
 }
 
-export interface FiltrosGasto {
+export interface FiltrosGasto extends AlcanceFiltro {
   gasto?: string;
-  /** Nombre de la categoría ("" = todas). Se aplica en cliente: el
-      endpoint solo filtra por sede/empresa. */
-  categoria?: string;
+  categoriaId?: string;
   fecha?: string;
-  /** Acota a una sede concreta dentro del alcance del usuario. */
-  sedeId?: string;
 }
 
 /* ============================================================
@@ -174,13 +160,13 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
 }
 
 /**
- * Resuelve qué sedes consultar en /payments/filter según el rol:
+ * Resuelve qué sedes consultar (en /payments/filter o /gastos/filter) según el rol:
  *  · admin (sede)   → siempre su propia sede, sin opción de cambiarla.
  *  · owner (empresa) → la sede elegida, o todas las de su empresa.
  *  · superadmin      → la sede elegida; si no, las de la empresa elegida;
  *                      si tampoco, sin restricción (undefined = todo el sistema).
  */
-async function resolverSedesConsulta(session: Session | null, f: FiltrosFactura): Promise<number[] | undefined> {
+async function resolverSedesConsulta(session: Session | null, f: AlcanceFiltro): Promise<number[] | undefined> {
   if (!session) return [];
 
   if (session.role === "admin") {
@@ -359,73 +345,64 @@ export const FiltroFacturasController = {
 
 /* ============================================================
    CategoriasGastoController
-   GET/POST/DELETE /categorias-gasto. El backend devuelve las base
-   (isBase, comunes a todos) más las de la empresa del token, así
-   que aquí no hay lista local de respaldo.
+   GET/POST/DELETE /categorias-gasto — base del sistema (empresaId
+   null) + propias de la empresa de la sesión, resueltas en el
+   backend a partir del AdminProfile del usuario autenticado.
 ============================================================ */
 export const CategoriasGastoController = {
-  /** Base + propias, tal como las ordena el backend (base primero). */
+  /** Base + propias de la empresa de la sesión, base primero y luego alfabético */
   async list(): Promise<CategoriaGasto[]> {
-    const list = await CategoriasGastoApi.findAll().catch(() => [] as ApiCategoriaGasto[]);
-    return (list || []).map((c) => ({ id: c.id, nombre: c.nombre, isBase: c.isBase }));
+    const rows = await CategoriasGastoApi.findAll().catch(() => []);
+    return (rows || [])
+      .map((c) => ({ id: String(c.id), nombre: c.nombre, esBase: c.isBase }))
+      .sort((a, b) => (a.esBase !== b.esBase ? (a.esBase ? -1 : 1) : a.nombre.localeCompare(b.nombre)));
   },
 
-  /** Solo las propias de la empresa (las únicas eliminables). */
+  /** Solo las propias (no base) — para el listado de "tus categorías" */
   async propias(): Promise<CategoriaGasto[]> {
-    return (await this.list()).filter((c) => !c.isBase);
-  },
-
-  /** Solo las base de la plataforma. */
-  async base(): Promise<CategoriaGasto[]> {
-    return (await this.list()).filter((c) => c.isBase);
-  },
-
-  /** ¿Ya existe ese nombre? (ignorando mayúsculas y tildes) */
-  existe(nombre: string, lista: CategoriaGasto[]): boolean {
-    const k = norm(nombre.trim());
-    return lista.some((c) => norm(c.nombre) === k);
+    return (await this.list()).filter((c) => !c.esBase);
   },
 
   /**
-   * Crea una categoría propia — POST /categorias-gasto.
-   * La empresa sale del token; el backend responde 403 si el usuario
-   * no tiene una asociada y 400 si el nombre ya existe.
-   * @returns la categoría creada, o un mensaje de error legible.
+   * Crea una categoría propia de la empresa de la sesión.
+   * Lanza si el backend la rechaza (nombre vacío, duplicada, etc.) —
+   * el llamador debe mostrar `err.message`.
    */
-  async create(nombre: string): Promise<{ categoria?: CategoriaGasto; error?: string }> {
+  async create(nombre: string): Promise<CategoriaGasto> {
     const limpio = nombre.trim().replace(/\s+/g, " ");
-    if (!limpio) return { error: "VACIA" };
-    try {
-      const c = await CategoriasGastoApi.create(limpio);
-      return { categoria: { id: c.id, nombre: c.nombre, isBase: c.isBase } };
-    } catch (e) {
-      return { error: e instanceof Error ? e.message : "Error" };
-    }
+    const creada = await CategoriasGastoApi.create(limpio);
+    return { id: String(creada.id), nombre: creada.nombre, esBase: creada.isBase };
   },
 
-  /**
-   * Elimina una categoría propia — DELETE /categorias-gasto/:id.
-   * El backend rechaza las base y las que tengan gastos asociados.
-   */
-  async remove(id: number): Promise<{ ok: boolean; error?: string }> {
-    try {
-      await CategoriasGastoApi.remove(id);
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Error" };
-    }
+  /** Elimina una categoría propia (el backend rechaza las base con 403) */
+  async remove(id: string): Promise<void> {
+    await CategoriasGastoApi.remove(Number(id));
   },
 };
 
 /* ============================================================
    GastosController
-   CRUD contra GastoModule (/gastos). El endpoint /gastos/filter ya
-   acota por rol usando el token, así que aquí solo se afinan los
-   filtros que el backend no cubre (texto, categoría y fecha).
+   GET /gastos/filter, POST/PATCH/DELETE /gastos, POST /gastos/upload.
+   Mismo criterio de alcance por rol que FacturasController.
 ============================================================ */
 
-/** Gasto del API → modelo del panel. */
-function mapGasto(g: ApiGasto): Gasto {
+/** Nombre de archivo a partir de una URL (última porción del path) */
+function nombreArchivoDeUrl(url: string): string {
+  try {
+    const limpio = url.split("?")[0].split("#")[0];
+    return decodeURIComponent(limpio.substring(limpio.lastIndexOf("/") + 1)) || "comprobante";
+  } catch {
+    return "comprobante";
+  }
+}
+
+/** ¿El comprobante es un PDF? (para no renderizarlo como <img>) */
+export function esTicketPdf(url: string | null | undefined): boolean {
+  return !!url && /\.pdf(\?.*)?$/i.test(url);
+}
+
+/** Fila de /gastos/filter → Gasto de la tabla */
+function gastoDesdeApi(g: ApiGasto): Gasto {
   /* ticketUrl llega absoluta con SFTP activo ("https://bookmy.es/...") o
      relativa si el backend guarda en local ("/uploads/gastos/..."); se
      quita la barra inicial para que fotoUrl() no genere una doble. */
@@ -433,106 +410,93 @@ function mapGasto(g: ApiGasto): Gasto {
   return {
     id: String(g.id),
     gasto: g.descripcion,
-    categoria: g.categoria?.nombre ?? "—",
-    categoriaId: g.categoriaId,
+    categoriaId: String(g.categoriaId),
+    categoria: g.categoria?.nombre || "—",
     fecha: (g.fecha || "").slice(0, 10),
     ticket,
-    ticketNombre: g.ticketUrl ? g.ticketUrl.split("/").pop() || undefined : undefined,
-    total: g.total,
-    sedeId: g.sedeId,
-    sedeNombre: g.sede?.nombre,
+    ticketNombre: g.ticketUrl ? nombreArchivoDeUrl(g.ticketUrl) : undefined,
+    total: Number(g.total || 0),
+    sedeId: String(g.sedeId),
   };
 }
 
 export const GastosController = {
   /**
-   * Gastos visibles para el usuario — GET /gastos/filter.
-   * @param sedeId Acota a una sede dentro de su alcance (opcional).
+   * Gastos de la sesión, de más reciente a más antiguo. El alcance de
+   * sedes a consultar depende del rol (ver resolverSedesConsulta).
    */
-  async list(sedeId?: string): Promise<Gasto[]> {
-    const list = await GastosApi.filter(
-      sedeId ? { sedeId: Number(sedeId) } : {}
-    ).catch(() => [] as ApiGasto[]);
-    return (list || []).map(mapGasto);
-  },
-
-  /** Lista filtrada: sede la resuelve el API, el resto se afina aquí. */
-  async search(f: FiltrosGasto): Promise<Gasto[]> {
-    const all = await this.list(f.sedeId);
-    return all
-      .filter(
-        (g) =>
-          match(g.gasto, f.gasto) &&
-          (!f.categoria || norm(g.categoria) === norm(f.categoria)) &&
-          (!f.fecha || g.fecha === f.fecha)
-      )
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
-  },
-
-  /**
-   * Sedes donde el usuario puede registrar un gasto.
-   * Un BRANCH_ADMIN tiene la suya fija; owner y superadmin eligen.
-   */
-  async sedesDisponibles(session: Session | null): Promise<OpcionFiltro[]> {
+  async list(session: Session | null, filtros: FiltrosGasto = {}): Promise<Gasto[]> {
     if (!session) return [];
-    if (session.sedeId) {
-      return [{ id: session.sedeId, nombre: session.sedeName || session.sedeId }];
+    const sedeIds = await resolverSedesConsulta(session, filtros);
+
+    let rows: ApiGasto[] = [];
+    if (sedeIds === undefined) {
+      rows = await GastosApi.filter({}).catch(() => []);
+    } else if (sedeIds.length > 0) {
+      const lotes = await Promise.all(
+        sedeIds.map((sedeId) => GastosApi.filter({ sedeId }).catch(() => [] as ApiGasto[]))
+      );
+      rows = lotes.flat();
     }
-    const list = session.negocioId
-      ? await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => [])
-      : await SedesApi.findAll().catch(() => []);
-    return (list || []).map((s) => ({ id: String(s.id), nombre: s.nombre }));
+
+    return rows.map(gastoDesdeApi).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  },
+
+  /** Filtrado por columnas (Gasto, Categoría, Fecha) sobre el listado ya acotado por sede/empresa */
+  async search(session: Session | null, f: FiltrosGasto): Promise<Gasto[]> {
+    const all = await this.list(session, f);
+    return all.filter(
+      (g) =>
+        match(g.gasto, f.gasto) &&
+        (!f.categoriaId || g.categoriaId === f.categoriaId) &&
+        (!f.fecha || g.fecha === f.fecha)
+    );
   },
 
   /**
-   * Sube el comprobante — POST /gastos/upload.
-   * Va antes de crear el gasto: devuelve la URL que se manda como
-   * `ticketUrl`. El backend comprime las imágenes igual que en el chat.
-   * @returns la URL pública del archivo subido.
-   */
-  async subirTicket(file: File): Promise<string> {
-    const { fileUrl } = await GastosApi.upload(file);
-    return fileUrl;
-  },
-
-  /**
-   * Registra un gasto — POST /gastos. El userId lo pone el backend
-   * desde el token; `sedeId` es obligatorio y debe estar en su alcance.
+   * Crea un gasto — si hay comprobante lo sube primero (POST /gastos/upload)
+   * y luego crea el gasto (POST /gastos) con la URL resultante.
+   * @param sedeId Sede a la que se factura el gasto (fija para admin de sede,
+   *   elegida en el formulario para owner/superadmin).
    */
   async create(input: {
     gasto: string;
-    categoriaId: number;
+    categoriaId: string;
     fecha: string;
     total: number;
-    sedeId: number;
-    ticketUrl?: string;
+    sedeId: string;
+    ticket?: File | null;
   }): Promise<Gasto> {
+    let ticketUrl: string | undefined;
+    if (input.ticket) {
+      const subida = await GastosApi.upload(input.ticket);
+      ticketUrl = subida.fileUrl;
+    }
     const creado = await GastosApi.create({
       descripcion: input.gasto,
       total: input.total,
       fecha: input.fecha,
-      categoriaId: input.categoriaId,
-      sedeId: input.sedeId,
-      ...(input.ticketUrl ? { ticketUrl: input.ticketUrl } : {}),
+      categoriaId: Number(input.categoriaId),
+      sedeId: Number(input.sedeId),
+      ticketUrl,
     });
-    return mapGasto(creado);
+    return gastoDesdeApi(creado);
   },
 
-  /** DELETE /gastos/:id */
   async remove(id: string): Promise<void> {
     await GastosApi.remove(Number(id));
   },
 
-  /** ¿Hay gastos usando esta categoría? (bloquea su eliminación) */
-  async usaCategoria(categoriaId: number): Promise<boolean> {
-    const all = await this.list();
+  /** ¿Hay gastos usando esta categoría? (bloquea su eliminación en el front) */
+  async usaCategoria(session: Session | null, categoriaId: string): Promise<boolean> {
+    const all = await this.list(session, {});
     return all.some((g) => g.categoriaId === categoriaId);
   },
 
   /** Totales del listado mostrado (tarjetas de resumen) */
   resumen(lista: Gasto[]) {
     const total = lista.reduce((s, g) => s + g.total, 0);
-    const categorias = new Set(lista.map((g) => norm(g.categoria))).size;
+    const categorias = new Set(lista.map((g) => g.categoriaId)).size;
     return {
       total,
       registros: lista.length,

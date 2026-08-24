@@ -5,7 +5,9 @@ export const ROUTES = {
   login: "/",
   dashboard: "/dashboard",
   employeeDashboard: "/employee-dashboard",
+  employeeCalendario: "/employee-dashboard/calendario",
   empresas: "/empresas",
+  administradores: "/administradores",
   reservas: "/reservas",
   reservaNueva: "/reservas/nueva",
   clientes: "/clientes",
@@ -22,6 +24,10 @@ export const ROUTES = {
   comunicacion: "/comunicacion",
   configuracion: "/configuracion",
 } as const;
+
+/** Vista de edición de una sede (Datos + Imágenes) — reemplaza el
+    modal anterior; se navega en vez de abrirse encima de la pantalla. */
+export const sedeEditarPath = (id: number | string) => `/sedes/${id}/editar`;
 
 /* ── Navegación por rol ──────────────────────────────────── */
 const COMMON_ITEMS: NavItem[] = [
@@ -50,6 +56,11 @@ const ADMIN_ITEMS: NavItem[] = [
 
 const EMPLOYEE_ITEMS: NavItem[] = [
   { id: "emp-main", label: "Mis Reservas", href: ROUTES.employeeDashboard, icon: "calendar" },
+  { id: "calendario", label: "Calendario", href: ROUTES.employeeCalendario, icon: "calendar" },
+  /* La pantalla de Configuración es enteramente personal (perfil propio,
+     cambiar su contraseña, tema, idioma) — no depende de permisos de
+     admin, así que el profesional también debe poder entrar ahí. */
+  { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
 
@@ -57,6 +68,7 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
   superadmin: [
     { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
     { id: "empresas", label: "Empresas", href: ROUTES.empresas, icon: "building" },
+    { id: "administradores", label: "Administradores", href: ROUTES.administradores, icon: "shield" },
     { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
     { id: "clientes", label: "Clientes", href: ROUTES.clientes, icon: "users" },
     {

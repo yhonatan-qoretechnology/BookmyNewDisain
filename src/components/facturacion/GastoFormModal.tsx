@@ -3,24 +3,19 @@
    GastoFormModal — "Agregar gasto"
    Popup ancho (780px) en dos columnas: todos los campos y el
    adjunto quedan a la vista sin necesidad de hacer scroll.
-
-   Flujo contra el backend (GastoModule):
-   1. Si hay tickete → POST /gastos/upload devuelve su URL pública.
-   2. POST /gastos con esa URL en `ticketUrl` + categoriaId + sedeId.
-   La sede es obligatoria: un BRANCH_ADMIN la tiene fija en su sesión,
-   owner y superadmin la eligen en el selector.
+   Incluye el acceso directo para crear una categoría nueva.
 ============================================================ */
 import { useEffect, useRef, useState } from "react";
 import {
-  CategoriaGasto,
   CategoriasGastoController,
+  FiltroFacturasController,
   Gasto,
   GastosController,
+  OpcionFiltro,
 } from "@/controllers/FacturacionControllers";
-import type { OpcionFiltro } from "@/controllers/FacturacionControllers";
 import { useData } from "@/hooks/useData";
-import { useI18n } from "@/i18n";
 import { useSession } from "@/context/SessionContext";
+import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
@@ -30,7 +25,8 @@ import CategoriaFormModal from "./CategoriaFormModal";
 import styles from "./facturacion.module.css";
 
 const hoy = () => new Date().toISOString().slice(0, 10);
-/** Mismo tope que el backend (GASTO_MAX_FILE_SIZE_BYTES) */
+/** Mismas restricciones que POST /gastos/upload */
+const TICKET_TIPOS = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
 const MAX_BYTES = 10 * 1024 * 1024;
 
 function Contenido({
@@ -46,68 +42,76 @@ function Contenido({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [gasto, setGasto] = useState("");
-  const [categoriaId, setCategoriaId] = useState<number | null>(null);
+  const [categoriaId, setCategoriaId] = useState("");
+  const [empresaId, setEmpresaId] = useState("");
   const [sedeId, setSedeId] = useState("");
   const [fecha, setFecha] = useState(hoy());
   const [total, setTotal] = useState("");
-  /* Archivo real a subir + previsualización local (no se manda tal cual) */
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [ticketFile, setTicketFile] = useState<File | null>(null);
+  const [ticketPreviewUrl, setTicketPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
-  const [catVersion, setCatVersion] = useState(0);
 
-  /* Categorías del API (base + propias); se recarga al crear una nueva */
-  const { data: categorias } = useData<CategoriaGasto[]>(
+  /* Base + propias de la empresa de la sesión; se recarga al crear una nueva */
+  const { data: categorias, reload: reloadCategorias } = useData(
     () => CategoriasGastoController.list(),
-    [catVersion],
-    []
+    [], []
+  );
+  const categoriaActual = categoriaId || categorias[0]?.id || "";
+
+  /* Empresa: solo superadmin elige (owner ya tiene la suya fija) */
+  const esSuperadmin = session?.role === "superadmin";
+  const { data: empresasOpt } = useData(
+    () => (esSuperadmin ? FiltroFacturasController.empresas(session) : Promise.resolve([] as OpcionFiltro[])),
+    [esSuperadmin, session?.id], []
   );
 
-  /* Sedes donde este usuario puede registrar el gasto */
-  const { data: sedes } = useData<OpcionFiltro[]>(
-    () => GastosController.sedesDisponibles(session),
-    [session?.id],
-    []
+  /* Sede a la que se factura: fija para admin de sede, elegible para owner/superadmin.
+     El superadmin debe elegir primero la empresa; owner ya tiene la suya fija. */
+  const puedeElegirSede = session?.role === "owner" || esSuperadmin;
+  const { data: sedesOpt } = useData(
+    () => {
+      if (!puedeElegirSede) return Promise.resolve([] as OpcionFiltro[]);
+      if (esSuperadmin && !empresaId) return Promise.resolve([] as OpcionFiltro[]);
+      return FiltroFacturasController.sedes(session, esSuperadmin ? empresaId : undefined);
+    },
+    [puedeElegirSede, esSuperadmin, empresaId, session?.id], []
   );
+  useEffect(() => { setSedeId(""); }, [empresaId]);
+  const sedeActual = puedeElegirSede ? (sedeId || sedesOpt[0]?.id || "") : (session?.sedeId || "");
 
-  /* Preselección: primera categoría y sede única */
-  useEffect(() => {
-    if (categoriaId == null && categorias.length) setCategoriaId(categorias[0].id);
-  }, [categorias, categoriaId]);
-
-  useEffect(() => {
-    if (!sedeId && sedes.length) setSedeId(sedes[0].id);
-  }, [sedes, sedeId]);
-
+  const esPdf = ticketFile?.type === "application/pdf";
 
   const reset = () => {
-    setGasto(""); setCategoriaId(null); setFecha(hoy());
-    setTotal(""); setFile(null); setPreview(null);
+    setGasto(""); setCategoriaId(""); setEmpresaId(""); setSedeId(""); setFecha(hoy());
+    setTotal(""); setTicketFile(null);
+    if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl);
+    setTicketPreviewUrl(null);
     setError(""); setDragging(false);
   };
 
+  /* Libera el object URL del preview al cambiar de archivo o desmontar */
+  useEffect(() => () => { if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl); }, [ticketPreviewUrl]);
+
+
   const cerrar = () => { reset(); onClose(); };
 
-  const onFile = (f?: File | null) => {
-    if (!f) return;
-    if (!f.type.startsWith("image/")) return setError(t("gastos.errTipo"));
-    if (f.size > MAX_BYTES) return setError(t("gastos.errPeso"));
+  const onFile = (file?: File | null) => {
+    if (!file) return;
+    if (!TICKET_TIPOS.includes(file.type)) return setError(t("gastos.errTipo"));
+    if (file.size > MAX_BYTES) return setError(t("gastos.errPeso"));
     setError("");
-    /* El File es lo que se sube; el dataURL solo alimenta la miniatura
-       (sin object URLs, así no hay que liberar nada al cerrar el popup). */
-    setFile(f);
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(f);
+    if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl);
+    setTicketFile(file);
+    setTicketPreviewUrl(file.type === "application/pdf" ? null : URL.createObjectURL(file));
   };
 
-  const quitarAdjunto = () => {
-    setFile(null);
-    setPreview(null);
+  const quitarTicket = () => {
+    if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl);
+    setTicketFile(null);
+    setTicketPreviewUrl(null);
   };
 
   const guardar = async () => {
@@ -115,46 +119,28 @@ function Contenido({
     if (!gasto.trim()) return setError(t("gastos.errNombre"));
     if (!fecha) return setError(t("gastos.errFecha"));
     if (!monto || monto <= 0) return setError(t("gastos.errTotal"));
-    if (categoriaId == null) return setError(t("gastos.errCategoria"));
-    if (!sedeId) return setError(t("gastos.errSede"));
+    if (esSuperadmin && !empresaId) return setError(t("gastos.errEmpresa"));
+    if (!sedeActual) return setError(t("gastos.errSede"));
 
     setSaving(true);
     try {
-      /* 1 · Subir el tickete si lo hay (el backend lo comprime) */
-      let ticketUrl: string | undefined;
-      if (file) {
-        setSubiendo(true);
-        try {
-          ticketUrl = await GastosController.subirTicket(file);
-        } catch (e) {
-          setError(e instanceof Error ? e.message : t("gastos.errSubida"));
-          return;
-        } finally {
-          setSubiendo(false);
-        }
-      }
-
-      /* 2 · Crear el gasto ya con la URL del comprobante */
       const nuevo = await GastosController.create({
         gasto: gasto.trim(),
-        categoriaId,
+        categoriaId: categoriaActual,
+        sedeId: sedeActual,
         fecha,
         total: monto,
-        sedeId: Number(sedeId),
-        ticketUrl,
+        ticket: ticketFile,
       });
       toast(t("gastos.creado"), "success");
       onSaved(nuevo);
       cerrar();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t("gastos.errGuardar"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("gastos.errGuardar"));
     } finally {
       setSaving(false);
     }
   };
-
-  /* El selector de sede solo aparece si hay más de una opción */
-  const mostrarSedes = sedes.length > 1;
 
   return (
     <>
@@ -169,7 +155,7 @@ function Contenido({
             <Button variant="ghost" onClick={cerrar} disabled={saving}>{t("common.cancel")}</Button>
             <Button onClick={guardar} disabled={saving}>
               <Icon name="check" />
-              {subiendo ? t("gastos.subiendo") : saving ? t("gastos.guardando") : t("gastos.guardar")}
+              {saving ? t("gastos.guardando") : t("gastos.guardar")}
             </Button>
           </>
         }
@@ -183,7 +169,6 @@ function Contenido({
               className={styles.input}
               value={gasto}
               autoFocus
-              maxLength={160}
               placeholder={t("gastos.nombrePlaceholder")}
               onChange={(e) => { setGasto(e.target.value); setError(""); }}
             />
@@ -199,12 +184,10 @@ function Contenido({
                 <select
                   id="gf-categoria"
                   className={styles.input}
-                  value={categoriaId ?? ""}
-                  onChange={(e) => setCategoriaId(Number(e.target.value))}
+                  value={categoriaActual}
+                  onChange={(e) => setCategoriaId(e.target.value)}
                 >
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nombre}</option>
-                  ))}
+                  {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select>
                 <svg className={styles.caret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                   <path d="M6 9l6 6 6-6" />
@@ -221,6 +204,51 @@ function Contenido({
               </button>
             </div>
           </div>
+
+          {/* Empresa — solo superadmin elige, define qué sedes se pueden facturar */}
+          {esSuperadmin && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="gf-empresa">{t("gastos.empresa")}</label>
+              <div className={styles.selectWrap}>
+                <select
+                  id="gf-empresa"
+                  className={styles.input}
+                  value={empresaId}
+                  onChange={(e) => setEmpresaId(e.target.value)}
+                >
+                  <option value="">{t("gastos.elegirEmpresa")}</option>
+                  {empresasOpt.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                </select>
+                <svg className={styles.caret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+          )}
+
+          {/* Sede a la que se factura — solo owner/superadmin eligen, admin de sede ya está fijo */}
+          {puedeElegirSede && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="gf-sede">{t("gastos.sede")}</label>
+              <div className={styles.selectWrap}>
+                <select
+                  id="gf-sede"
+                  className={styles.input}
+                  value={sedeActual}
+                  disabled={esSuperadmin && !empresaId}
+                  onChange={(e) => setSedeId(e.target.value)}
+                >
+                  <option value="">
+                    {esSuperadmin && !empresaId ? t("gastos.primeroEmpresa") : t("gastos.elegirSede")}
+                  </option>
+                  {sedesOpt.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                </select>
+                <svg className={styles.caret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+          )}
 
           {/* Fila 2 — fecha + total */}
           <div className={styles.field}>
@@ -249,28 +277,6 @@ function Contenido({
             />
           </div>
 
-          {/* Sede — solo cuando el usuario tiene más de una a su alcance */}
-          {mostrarSedes && (
-            <div className={`${styles.field} ${styles.full}`}>
-              <label className={styles.label} htmlFor="gf-sede">{t("gastos.sede")}</label>
-              <div className={styles.selectWrap}>
-                <select
-                  id="gf-sede"
-                  className={styles.input}
-                  value={sedeId}
-                  onChange={(e) => { setSedeId(e.target.value); setError(""); }}
-                >
-                  {sedes.map((s) => (
-                    <option key={s.id} value={s.id}>{s.nombre}</option>
-                  ))}
-                </select>
-                <svg className={styles.caret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </div>
-            </div>
-          )}
-
           {/* Fila 3 — adjunto del tickete a todo el ancho */}
           <div className={`${styles.field} ${styles.full}`}>
             <label className={styles.label}>
@@ -278,17 +284,20 @@ function Contenido({
               <span className={styles.hint}>{t("gastos.adjuntoHint")}</span>
             </label>
 
-            {preview ? (
+            {ticketFile ? (
               <div className={styles.preview}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={preview} alt={t("gastos.adjunto")} />
+                {esPdf ? (
+                  <div className={styles.previewPdf}>
+                    <Icon name="fileText" />
+                    <span>{ticketFile.name}</span>
+                  </div>
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={ticketPreviewUrl!} alt={t("gastos.adjunto")} />
+                )}
                 <div className={styles.previewBar}>
-                  <span className={styles.previewName}>{file?.name}</span>
-                  <button
-                    type="button"
-                    className={styles.previewQuitar}
-                    onClick={quitarAdjunto}
-                  >
+                  <span className={styles.previewName}>{ticketFile.name}</span>
+                  <button type="button" className={styles.previewQuitar} onClick={quitarTicket}>
                     {t("gastos.quitarImagen")}
                   </button>
                 </div>
@@ -316,7 +325,7 @@ function Contenido({
             <input
               ref={fileRef}
               type="file"
-              accept="image/*"
+              accept={TICKET_TIPOS.join(",")}
               className={styles.fileInput}
               onChange={(e) => onFile(e.target.files?.[0])}
             />
@@ -335,7 +344,7 @@ function Contenido({
         open={catOpen}
         onClose={() => setCatOpen(false)}
         onCreated={(nueva) => {
-          setCatVersion((v) => v + 1);
+          reloadCategorias();
           setCategoriaId(nueva.id);
           setCatOpen(false);
         }}
@@ -344,8 +353,9 @@ function Contenido({
   );
 }
 
-/* El AnimatePresence va aquí: retiene el formulario mientras se anima
-   su cierre en lugar de arrancarlo del árbol de golpe. */
+/* El AnimatePresence va aquí y no dentro de `Modal`: es este envoltorio
+   el que decide si el formulario se monta, así que es el único punto
+   donde se puede retener el nodo mientras se anima el cierre. */
 export default function GastoFormModal({
   open,
   onClose,

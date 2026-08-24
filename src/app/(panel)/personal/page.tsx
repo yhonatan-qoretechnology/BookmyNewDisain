@@ -2,15 +2,22 @@
 /* ============================================================
    Personal — equipo con alta, edición, baja y acceso al panel
    ------------------------------------------------------------
-   Cada integrante puede tener un usuario propio (role EMPLOYEE)
-   para entrar al panel y ver su calendario: se crea desde aquí
-   con "Generar acceso" (POST /auth/register + vínculo user_id).
+   Cada profesional puede iniciar sesión en el panel (rol EMPLOYEE):
+     · Alta:            POST /profesionales, con `password` obligatorio
+                         — el backend genera el correo de acceso solo
+                         (nombre@empresa.com) y lo devuelve en `acceso.email`.
+     · Dar acceso:      PATCH /profesionales/:id/vincular-acceso
+                         (profesionales viejos, `acceso.tieneAcceso === false`).
+     · Cambiar acceso:  PATCH /profesionales/:id/acceso
+                         (ya tiene login, `acceso.tieneAcceso === true`).
+   GET /profesionales trae el bloque `acceso` con el estado y el
+   correo real — no hace falta adivinarlo ni buscarlo aparte.
 ============================================================ */
 import { useState } from "react";
-import type { CredencialesEmpleado, Empleado } from "@/models";
+import type { Empleado } from "@/models";
 import { PersonalController } from "@/controllers/CrudControllers";
 import { NegociosController } from "@/controllers/NegociosController";
-import { ImagenesApi, ProfesionalesApi } from "@/api/modules";
+import { ImagenesApi } from "@/api/modules";
 import { useData } from "@/hooks/useData";
 import { useUi } from "@/context/UiContext";
 import { useSession } from "@/context/SessionContext";
@@ -30,9 +37,16 @@ import styles from "./personal.module.css";
 /** Correo sugerido a partir del nombre: "Ana Ruiz" → "ana.ruiz" */
 const sugerirEmail = (nombre: string, dominio: string) =>
   `${nombre.trim().toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, ".")
     || "empleado"}@${dominio}`;
+
+/** Credenciales para mostrar al admin tras dar/cambiar acceso o crear
+    (la contraseña puede faltar si solo se cambió el correo). */
+interface CredencialesVista {
+  email: string;
+  password: string | null;
+}
 
 export default function PersonalPage() {
   const { toast, confirm } = useUi();
@@ -46,6 +60,8 @@ export default function PersonalPage() {
   const [rol, setRol] = useState("");
   const [sede, setSede] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [password, setPassword] = useState("");
+  const [guardandoAlta, setGuardandoAlta] = useState(false);
 
   const { data: sedesOpc } = useData(() => NegociosController.getSedesForSession(session), [session?.negocioId], []);
   /* MODO API: GET /profesionales (el nombre de sede se resuelve con sedesOpc) */
@@ -54,22 +70,44 @@ export default function PersonalPage() {
     [search, sedesOpc], []
   );
 
+  const abrirAlta = () => {
+    setPassword(PersonalController.sugerirPassword());
+    setModalOpen(true);
+  };
+
+  /* ── Acceso al panel (declarado antes de `agregar` para reusar su
+     modal al mostrar el correo/contraseña recién creados) ────── */
+  const [accesoDe, setAccesoDe] = useState<Empleado | null>(null);
+  const [accesoEmail, setAccesoEmail] = useState("");
+  const [accesoPassword, setAccesoPassword] = useState("");
+  const [credenciales, setCredenciales] = useState<CredencialesVista | null>(null);
+  const [generando, setGenerando] = useState(false);
+
+  const cerrarAcceso = () => { setAccesoDe(null); setCredenciales(null); };
+
   const agregar = async () => {
     if (!nombre.trim()) { toast(t("common.requiredName"), "error"); return; }
+    /* POST /profesionales — el DTO exige phone único, sedeId y ahora password */
+    if (!telefono.trim() || !sede) { toast(t("personal.fillApi"), "error"); return; }
+    if (!password.trim()) { toast(t("personal.passwordRequired"), "error"); return; }
+    setGuardandoAlta(true);
     try {
-      /* POST /profesionales — el DTO exige phone único y sedeId */
-      if (!telefono.trim() || !sede) { toast(t("personal.fillApi"), "error"); return; }
-      await ProfesionalesApi.create({
-        nombre: nombre.trim(),
-        phone: telefono.trim(),
-        sedeId: Number(sede),
-        biografia: rol.trim() || undefined,
-      });
-      setModalOpen(false); setNombre(""); setRol(""); setSede(""); setTelefono("");
+      const nombreCreado = nombre.trim();
+      const { email } = await PersonalController.crear({ nombre, rol, telefono, sedeId: sede, password });
+      setModalOpen(false); setNombre(""); setRol(""); setSede(""); setTelefono(""); setPassword("");
       await reload();
       toast(t("personal.added"), "success");
+      /* Mostrar el correo que generó el backend + la contraseña que
+         se envió, para que el admin se la entregue al profesional. */
+      setAccesoDe({
+        id: 0, nombre: nombreCreado, rol: "", foto: null, sede: "", sedeId: "",
+        telefono: "", reservas: 0, activo: true, tieneAcceso: true, accesoEmail: email,
+      });
+      setCredenciales({ email, password });
     } catch (e) {
       toast(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setGuardandoAlta(false);
     }
   };
 
@@ -121,29 +159,44 @@ export default function PersonalPage() {
     }
   };
 
-  /* ── Acceso al panel (usuario + contraseña) ──────────────── */
-  const [accesoDe, setAccesoDe] = useState<Empleado | null>(null);
-  const [email, setEmail] = useState("");
-  const [credenciales, setCredenciales] = useState<CredencialesEmpleado | null>(null);
-  const [generando, setGenerando] = useState(false);
-
   const abrirAcceso = (p: Empleado) => {
     setAccesoDe(p);
     setCredenciales(null);
-    /* Dominio del correo de quien administra, como sugerencia */
-    setEmail(sugerirEmail(p.nombre, session?.email.split("@")[1] || "bookmy.es"));
+    if (p.tieneAcceso) {
+      /* Ya tiene cuenta: el correo real ya viene en `acceso.email`,
+         no hace falta adivinarlo ni buscarlo aparte. */
+      setAccesoEmail(p.accesoEmail || "");
+      setAccesoPassword("");
+    } else {
+      /* Profesional viejo sin login: sugerir correo y contraseña,
+         ambos editables antes de vincular el acceso. */
+      setAccesoEmail(sugerirEmail(p.nombre, session?.email.split("@")[1] || "bookmy.es"));
+      setAccesoPassword(PersonalController.sugerirPassword());
+    }
   };
-
-  const cerrarAcceso = () => { setAccesoDe(null); setCredenciales(null); };
 
   const generarAcceso = async () => {
     if (!accesoDe) return;
     setGenerando(true);
     try {
-      const cred = accesoDe.userId
-        ? await PersonalController.regenerarPassword(accesoDe.userId, email)
-        : await PersonalController.crearAcceso(accesoDe, email);
-      setCredenciales(cred);
+      if (!accesoDe.tieneAcceso) {
+        if (!accesoEmail.trim() || !accesoPassword.trim()) {
+          toast(t("personal.fillAccess"), "error");
+          return;
+        }
+        const cred = await PersonalController.darAcceso(accesoDe.id, accesoEmail, accesoPassword);
+        setCredenciales(cred);
+      } else {
+        const emailCambio = accesoEmail.trim().toLowerCase() !== (accesoDe.accesoEmail || "").toLowerCase()
+          ? accesoEmail : undefined;
+        const passwordCambio = accesoPassword.trim() || undefined;
+        if (!emailCambio && !passwordCambio) {
+          toast(t("personal.noChanges"), "error");
+          return;
+        }
+        const res = await PersonalController.cambiarAcceso(accesoDe.id, { email: emailCambio, password: passwordCambio });
+        setCredenciales({ email: res.email, password: res.password ?? null });
+      }
       await reload();
       toast(t("personal.accessCreated"), "success");
     } catch (e) {
@@ -156,9 +209,9 @@ export default function PersonalPage() {
   const copiarCredenciales = async () => {
     if (!credenciales) return;
     try {
-      await navigator.clipboard.writeText(
-        `${t("common.email")}: ${credenciales.email}\n${t("personal.password")}: ${credenciales.password}`
-      );
+      const lineas = [`${t("common.email")}: ${credenciales.email}`];
+      if (credenciales.password) lineas.push(`${t("personal.password")}: ${credenciales.password}`);
+      await navigator.clipboard.writeText(lineas.join("\n"));
       toast(t("personal.copied"), "success");
     } catch {
       toast(t("personal.copyError"), "error");
@@ -184,7 +237,7 @@ export default function PersonalPage() {
         <Toolbar>
           <SearchBox value={search} onChange={setSearch} placeholder={t("personal.searchPlaceholder")} />
           <ToolbarActions>
-            <Button onClick={() => setModalOpen(true)}>{t("personal.new")}</Button>
+            <Button onClick={abrirAlta}>{t("personal.new")}</Button>
           </ToolbarActions>
         </Toolbar>
 
@@ -199,8 +252,8 @@ export default function PersonalPage() {
                 <td>{p.sede}</td>
                 <td><b>{p.reservas}</b></td>
                 <td>
-                  <Badge kind={p.userId ? "activo" : "pendiente"}>
-                    {p.userId ? t("personal.hasAccess") : t("personal.noAccess")}
+                  <Badge kind={p.tieneAcceso ? "activo" : "pendiente"}>
+                    {p.tieneAcceso ? t("personal.hasAccess") : t("personal.noAccess")}
                   </Badge>
                 </td>
                 <td><Badge kind={p.activo ? "activo" : "inactivo"}>{p.activo ? t("personal.activeF") : t("personal.inactiveF")}</Badge></td>
@@ -210,7 +263,7 @@ export default function PersonalPage() {
                       <Icon name="edit" />
                     </IconButton>
                     <Button size="sm" variant="ghost" onClick={() => abrirAcceso(p)}>
-                      {p.userId ? t("personal.resetAccess") : t("personal.createAccess")}
+                      {p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess")}
                     </Button>
                     <IconButton danger aria-label={t("personal.deleteAria", { nombre: p.nombre })} onClick={() => eliminar(p.id, p.nombre)}>
                       <Icon name="trash" />
@@ -243,9 +296,23 @@ export default function PersonalPage() {
             ))}
           </select>
         </Field>
+        <Field label={t("personal.password")} htmlFor="np-pass">
+          <div className={styles.passRow}>
+            <input
+              id="np-pass"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t("personal.passwordPlaceholder")}
+            />
+            <Button size="sm" variant="ghost" type="button" onClick={() => setPassword(PersonalController.sugerirPassword())}>
+              {t("personal.generateShort")}
+            </Button>
+          </div>
+        </Field>
+        <p className={styles.credWarn}>{t("personal.createHint")}</p>
         <ModalActions>
-          <Button variant="ghost" onClick={() => setModalOpen(false)}>{t("common.cancel")}</Button>
-          <Button onClick={() => void agregar()}>{t("common.save")}</Button>
+          <Button variant="ghost" onClick={() => setModalOpen(false)} disabled={guardandoAlta}>{t("common.cancel")}</Button>
+          <Button onClick={() => void agregar()} disabled={guardandoAlta}>{t("common.save")}</Button>
         </ModalActions>
       </Modal>
 
@@ -285,16 +352,18 @@ export default function PersonalPage() {
         </ModalActions>
       </Modal>
 
-      {/* Acceso al panel: usuario + contraseña generada */}
+      {/* Acceso al panel: dar acceso / cambiar correo o contraseña */}
       <Modal open={!!accesoDe} onClose={cerrarAcceso}>
         <ModalTitle>
-          {accesoDe?.userId ? t("personal.resetAccessTitle") : t("personal.createAccessTitle")}
+          {accesoDe?.tieneAcceso ? t("personal.changeAccessTitle") : t("personal.createAccessTitle")}
         </ModalTitle>
-        <ModalText>
-          {accesoDe?.userId
-            ? t("personal.resetAccessSub", { nombre: accesoDe?.nombre || "" })
-            : t("personal.createAccessSub", { nombre: accesoDe?.nombre || "" })}
-        </ModalText>
+        {!credenciales && (
+          <ModalText>
+            {accesoDe?.tieneAcceso
+              ? t("personal.changeAccessSub", { nombre: accesoDe?.nombre || "" })
+              : t("personal.createAccessSub", { nombre: accesoDe?.nombre || "" })}
+          </ModalText>
+        )}
 
         {credenciales ? (
           <>
@@ -303,12 +372,16 @@ export default function PersonalPage() {
                 <label>{t("common.email")}</label>
                 <span className={styles.credValue}>{credenciales.email}</span>
               </div>
-              <div className={styles.credRow}>
-                <label>{t("personal.password")}</label>
-                <span className={styles.credValue}>{credenciales.password}</span>
-              </div>
+              {credenciales.password && (
+                <div className={styles.credRow}>
+                  <label>{t("personal.password")}</label>
+                  <span className={styles.credValue}>{credenciales.password}</span>
+                </div>
+              )}
             </div>
-            <p className={styles.credWarn}>{t("personal.credWarning")}</p>
+            <p className={styles.credWarn}>
+              {credenciales.password ? t("personal.credWarning") : t("personal.emailUpdated")}
+            </p>
             <ModalActions>
               <Button variant="ghost" block onClick={cerrarAcceso}>{t("common.close")}</Button>
               <Button block onClick={() => void copiarCredenciales()}>{t("personal.copyCred")}</Button>
@@ -320,16 +393,28 @@ export default function PersonalPage() {
               <input
                 id="pa-email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={!!accesoDe?.userId}
+                value={accesoEmail}
+                onChange={(e) => setAccesoEmail(e.target.value)}
                 placeholder="empleado@tunegocio.com"
               />
+            </Field>
+            <Field label={accesoDe?.tieneAcceso ? t("personal.newPassword") : t("personal.password")} htmlFor="pa-pass">
+              <div className={styles.passRow}>
+                <input
+                  id="pa-pass"
+                  value={accesoPassword}
+                  onChange={(e) => setAccesoPassword(e.target.value)}
+                  placeholder={accesoDe?.tieneAcceso ? t("personal.keepPasswordPlaceholder") : t("personal.passwordPlaceholder")}
+                />
+                <Button size="sm" variant="ghost" type="button" onClick={() => setAccesoPassword(PersonalController.sugerirPassword())}>
+                  {t("personal.generateShort")}
+                </Button>
+              </div>
             </Field>
             <p className={styles.credWarn}>{t("personal.accessHint")}</p>
             <ModalActions>
               <Button variant="ghost" block onClick={cerrarAcceso} disabled={generando}>{t("common.cancel")}</Button>
-              <Button block onClick={() => void generarAcceso()} disabled={generando || !email.trim()}>
+              <Button block onClick={() => void generarAcceso()} disabled={generando || !accesoEmail.trim()}>
                 {generando ? t("booking.loading") : t("personal.generate")}
               </Button>
             </ModalActions>

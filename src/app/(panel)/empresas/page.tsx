@@ -23,6 +23,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
 import ImageUpload from "@/components/ui/ImageUpload";
+import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
 import styles from "./empresas.module.css";
 
 export default function EmpresasPage() {
@@ -76,6 +77,9 @@ export default function EmpresasPage() {
     }
   };
 
+  /* ── Drill-down "Sedes" de una empresa (editar, profesionales, reseñas) ── */
+  const [viendoSedesDe, setViendoSedesDe] = useState<Negocio | null>(null);
+
   const elegirSede = (sede: Sede) => {
     if (!sedePick) return;
     booking.setEmpresaSede({
@@ -115,55 +119,67 @@ export default function EmpresasPage() {
   return (
     <>
       <Panel>
-        <PanelHead title={t("empresas.panelTitle")} sub={t("empresas.panelSub", { n: lista.length })} />
-        <Toolbar>
-          <SearchBox value={search} onChange={setSearch} placeholder={t("empresas.searchPlaceholder")} />
-          <ToolbarActions>
-            <Button onClick={() => setModalOpen(true)}>{t("empresas.new")}</Button>
-          </ToolbarActions>
-        </Toolbar>
-
-        {lista.length === 0 ? (
-          <EmptyState icon="shield" title={t("empresas.emptyTitle")} message={t("empresas.emptyMsg")} />
+        {viendoSedesDe ? (
+          <>
+            <PanelHead title={t("empresaSedes.panelTitle", { empresa: viendoSedesDe.nombre })} sub={t("empresaSedes.panelSub", { n: sedeCounts[viendoSedesDe.id] ?? 0 })} />
+            <EmpresaSedesPanel negocio={viendoSedesDe} onBack={() => setViendoSedesDe(null)} />
+          </>
         ) : (
-          <CardGrid>
-            {lista.map((n) => {
-              const activa = n.id === session.negocioId;
-              return (
-                <div key={n.id} className={activa ? styles.current : undefined}>
-                  <SimpleCard>
-                    {/* El logo solo se puede cambiar en la empresa que se
-                        administra; el superadmin puede en cualquiera. */}
-                    <ImageUpload
-                      value={n.logo}
-                      nombre={n.nombre}
-                      variant="card"
-                      label={t("imagen.logo")}
-                      disabled={!activa && session.role !== "superadmin"}
-                      onUpload={(file) => subirLogo(n, file)}
-                    />
-                    <h3>{n.nombre}</h3>
-                    <Muted>{n.rubro}</Muted>
-                    <TagRow>
-                      <Tag>{t("empresas.sedesCount", { n: sedeCounts[n.id] ?? 0 })}</Tag>
-                      <Badge kind={n.activo ? "activo" : "inactivo"}>
-                        {n.activo ? t("servicios.active") : t("servicios.inactive")}
-                      </Badge>
-                    </TagRow>
-                    <div style={{ marginTop: 12 }}>
-                      {activa ? (
-                        <Tag>{t("empresas.current")}</Tag>
-                      ) : (
-                        <Button variant="ghost" size="sm" onClick={() => seleccionar(n.id, n.nombre)}>
-                          {t("empresas.select")}
-                        </Button>
-                      )}
+          <>
+            <PanelHead title={t("empresas.panelTitle")} sub={t("empresas.panelSub", { n: lista.length })} />
+            <Toolbar>
+              <SearchBox value={search} onChange={setSearch} placeholder={t("empresas.searchPlaceholder")} />
+              <ToolbarActions>
+                <Button onClick={() => setModalOpen(true)}>{t("empresas.new")}</Button>
+              </ToolbarActions>
+            </Toolbar>
+
+            {lista.length === 0 ? (
+              <EmptyState icon="shield" title={t("empresas.emptyTitle")} message={t("empresas.emptyMsg")} />
+            ) : (
+              <CardGrid>
+                {lista.map((n) => {
+                  const activa = n.id === session.negocioId;
+                  return (
+                    <div key={n.id} className={activa ? styles.current : undefined}>
+                      <SimpleCard>
+                        {/* El logo solo se puede cambiar en la empresa que se
+                            administra; el superadmin puede en cualquiera. */}
+                        <ImageUpload
+                          value={n.logo}
+                          nombre={n.nombre}
+                          variant="card"
+                          label={t("imagen.logo")}
+                          disabled={!activa && session.role !== "superadmin"}
+                          onUpload={(file) => subirLogo(n, file)}
+                        />
+                        <h3>{n.nombre}</h3>
+                        <Muted>{n.rubro}</Muted>
+                        <TagRow>
+                          <Tag>{t("empresas.sedesCount", { n: sedeCounts[n.id] ?? 0 })}</Tag>
+                          <Badge kind={n.activo ? "activo" : "inactivo"}>
+                            {n.activo ? t("servicios.active") : t("servicios.inactive")}
+                          </Badge>
+                        </TagRow>
+                        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          {activa ? (
+                            <Tag>{t("empresas.current")}</Tag>
+                          ) : (
+                            <Button variant="ghost" size="sm" onClick={() => seleccionar(n.id, n.nombre)}>
+                              {t("empresas.select")}
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
+                            {t("empresas.viewSedes")}
+                          </Button>
+                        </div>
+                      </SimpleCard>
                     </div>
-                  </SimpleCard>
-                </div>
-              );
-            })}
-          </CardGrid>
+                  );
+                })}
+              </CardGrid>
+            )}
+          </>
         )}
       </Panel>
 
