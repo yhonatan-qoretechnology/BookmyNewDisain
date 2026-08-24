@@ -236,6 +236,9 @@ export const ResenasApi = {
    */
   aprobar: (id: number, aprobado = true) =>
     http.patch<ApiResena>(EP.resenaAprobar(id), { aprobado }),
+
+  /** DELETE /resenas/:id — borrado definitivo; responde 204 sin cuerpo. */
+  remove: (id: number) => http.delete<void>(EP.resenaById(id)),
 };
 
 /* ── ServiceModule (escritura) ──────────────────────────── */

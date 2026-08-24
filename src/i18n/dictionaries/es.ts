@@ -664,6 +664,12 @@ const es = {
     /* Aprobar */
     approve: "Aprobar",
     approved: "Reseña aprobada y publicada",
+    /* Eliminar */
+    deleteTitle: "Eliminar reseña",
+    deleteMsg:
+      "¿Seguro que quieres eliminar la reseña de {cliente}? Se borra de forma definitiva y no se puede recuperar. Si solo quieres que deje de verse en la web, usa «Rechazar».",
+    deleteConfirm: "Sí, eliminar",
+    deleted: "Reseña eliminada",
     /* Responder */
     replyTitle: "Responder a {cliente}",
     replyLabel: "Tu respuesta",

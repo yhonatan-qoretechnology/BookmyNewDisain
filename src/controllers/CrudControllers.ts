@@ -300,6 +300,16 @@ export const ResenasController = {
   async aprobar(id: number, aprobado = true): Promise<void> {
     await ResenasApi.aprobar(id, aprobado);
   },
+
+  /**
+   * Borra una reseña — DELETE /resenas/:id.
+   * Es definitivo: el backend no guarda un estado de borrada, quita
+   * la fila. Para retirarla de la web sin perderla, usar aprobar(id,
+   * false), que la deja en RECHAZADA.
+   */
+  async remove(id: number): Promise<void> {
+    await ResenasApi.remove(id);
+  },
 };
 
 /* ── Personal (ProfesionalModule + AuthModule) ───────────── */

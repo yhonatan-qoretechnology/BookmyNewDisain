@@ -33,7 +33,7 @@ const BADGE: Record<Resena["estado"], "atendida" | "pendiente" | "cancelado"> = 
 };
 
 export default function ResenasPage() {
-  const { toast } = useUi();
+  const { toast, confirm } = useUi();
   const { t } = useI18n();
   const { session } = useSession();
   const [search, setSearch] = useState("");
@@ -52,6 +52,30 @@ export default function ResenasPage() {
     } finally {
       setAprobandoId(null);
     }
+  };
+
+  /* ── Eliminar — DELETE /resenas/:id ──────────────────────
+     Es definitivo: el backend borra la fila, no la marca. Quien
+     solo quiera retirarla de la web tiene «Rechazar». */
+  const [borrandoId, setBorrandoId] = useState<number | null>(null);
+  const eliminar = (r: Resena) => {
+    confirm({
+      title: t("resenas.deleteTitle"),
+      message: t("resenas.deleteMsg", { cliente: r.cliente }),
+      confirmLabel: t("resenas.deleteConfirm"),
+      onConfirm: async () => {
+        setBorrandoId(r.id);
+        try {
+          await ResenasController.remove(r.id);
+          await reload();
+          toast(t("resenas.deleted"), "success");
+        } catch (e) {
+          toast(e instanceof Error ? e.message : t("common.error"), "error");
+        } finally {
+          setBorrandoId(null);
+        }
+      },
+    });
   };
 
   /* ── Responder — correo al autor de la reseña ────────────── */
@@ -121,6 +145,14 @@ export default function ResenasPage() {
                     title={r.email ? undefined : t("resenas.noEmail")}
                   >
                     {t("resenas.reply")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => eliminar(r)}
+                    disabled={borrandoId === r.id}
+                  >
+                    {borrandoId === r.id ? t("common.saving") : t("common.delete")}
                   </Button>
                 </div>
               </SimpleCard>
