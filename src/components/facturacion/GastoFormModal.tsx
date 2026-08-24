@@ -24,6 +24,7 @@ import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import { AnimatePresence } from "framer-motion";
 import Modal from "./Modal";
 import CategoriaFormModal from "./CategoriaFormModal";
 import styles from "./facturacion.module.css";
@@ -32,12 +33,10 @@ const hoy = () => new Date().toISOString().slice(0, 10);
 /** Mismo tope que el backend (GASTO_MAX_FILE_SIZE_BYTES) */
 const MAX_BYTES = 10 * 1024 * 1024;
 
-export default function GastoFormModal({
-  open,
+function Contenido({
   onClose,
   onSaved,
 }: {
-  open: boolean;
   onClose: () => void;
   onSaved: (g: Gasto) => void;
 }) {
@@ -63,15 +62,15 @@ export default function GastoFormModal({
 
   /* Categorías del API (base + propias); se recarga al crear una nueva */
   const { data: categorias } = useData<CategoriaGasto[]>(
-    () => (open ? CategoriasGastoController.list() : Promise.resolve([])),
-    [open, catVersion],
+    () => CategoriasGastoController.list(),
+    [catVersion],
     []
   );
 
   /* Sedes donde este usuario puede registrar el gasto */
   const { data: sedes } = useData<OpcionFiltro[]>(
-    () => (open ? GastosController.sedesDisponibles(session) : Promise.resolve([])),
-    [open, session?.id],
+    () => GastosController.sedesDisponibles(session),
+    [session?.id],
     []
   );
 
@@ -84,7 +83,6 @@ export default function GastoFormModal({
     if (!sedeId && sedes.length) setSedeId(sedes[0].id);
   }, [sedes, sedeId]);
 
-  if (!open) return null;
 
   const reset = () => {
     setGasto(""); setCategoriaId(null); setFecha(hoy());
@@ -343,5 +341,23 @@ export default function GastoFormModal({
         }}
       />
     </>
+  );
+}
+
+/* El AnimatePresence va aquí: retiene el formulario mientras se anima
+   su cierre en lugar de arrancarlo del árbol de golpe. */
+export default function GastoFormModal({
+  open,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSaved: (g: Gasto) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && <Contenido onClose={onClose} onSaved={onSaved} />}
+    </AnimatePresence>
   );
 }

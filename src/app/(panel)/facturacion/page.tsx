@@ -125,22 +125,22 @@ export default function FacturacionPage() {
       <StatGrid>
         <StatCard
           color="teal" icon={<Icon name="invoice" />}
-          label={t("facturacion.statEmitidas")} value={resumen.emitidas}
+          label={t("facturacion.statEmitidas")} count={resumen.emitidas}
           footer={t("facturacion.delPeriodo")}
         />
         <StatCard
           color="blue" icon={<Icon name="dollar" />}
-          label={t("facturacion.statFacturado")} value={fmtMoneda(resumen.total, "EUR")}
+          label={t("facturacion.statFacturado")} count={resumen.total} format={(n) => fmtMoneda(n, "EUR")}
           footer={t("facturacion.delPeriodo")}
         />
         <StatCard
           color="green" icon={<Icon name="circle-check" />}
-          label={t("facturacion.statCobrado")} value={fmtMoneda(resumen.cobrado, "EUR")}
+          label={t("facturacion.statCobrado")} count={resumen.cobrado} format={(n) => fmtMoneda(n, "EUR")}
           footer={t("facturacion.delPeriodo")}
         />
         <StatCard
           color="amber" icon={<Icon name="clock" />}
-          label={t("facturacion.statPendiente")} value={fmtMoneda(resumen.pendiente, "EUR")}
+          label={t("facturacion.statPendiente")} count={resumen.pendiente} format={(n) => fmtMoneda(n, "EUR")}
           footer={t("facturacion.delPeriodo")}
         />
       </StatGrid>

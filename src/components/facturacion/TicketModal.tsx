@@ -9,6 +9,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import EmptyState from "@/components/ui/EmptyState";
+import { AnimatePresence } from "framer-motion";
 import Modal from "./Modal";
 import styles from "./facturacion.module.css";
 
@@ -38,15 +39,14 @@ export async function descargarTicket(g: Gasto) {
   }
 }
 
-export default function TicketModal({
+function Contenido({
   gasto,
   onClose,
 }: {
-  gasto: Gasto | null;
+  gasto: Gasto;
   onClose: () => void;
 }) {
   const { t } = useI18n();
-  if (!gasto) return null;
 
   return (
     <Modal
@@ -86,5 +86,21 @@ export default function TicketModal({
         <EmptyState icon="image" title={t("gastos.sinTickete")} />
       )}
     </Modal>
+  );
+}
+
+/* El AnimatePresence va aquí: es quien retiene el nodo mientras el
+   modal se desvanece al cerrarse. */
+export default function TicketModal({
+  gasto,
+  onClose,
+}: {
+  gasto: Gasto | null;
+  onClose: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {gasto && <Contenido gasto={gasto} onClose={onClose} />}
+    </AnimatePresence>
   );
 }

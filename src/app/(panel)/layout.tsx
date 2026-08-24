@@ -8,6 +8,7 @@ import { ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import AppShell from "@/components/layout/AppShell";
+import PageTransition from "@/components/animations/PageTransition";
 import Icon from "@/components/ui/Icon";
 
 /** Ruta → clave del diccionario `pages.*` (título/acento del topbar) */
@@ -86,7 +87,9 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
         breadcrumb: t(`nav.${key}`),
       }}
     >
-      {children}
+      {/* El crossfade se ata a la ruta: al cambiar `pathname`, la vista
+          saliente se desvanece antes de montar la entrante. */}
+      <PageTransition routeKey={pathname}>{children}</PageTransition>
     </AppShell>
   );
 }

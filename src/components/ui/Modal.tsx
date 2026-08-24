@@ -1,5 +1,17 @@
 "use client";
+/* ============================================================
+   Modal — diálogo del design system
+   ------------------------------------------------------------
+   Con AnimatePresence el modal también anima al CERRARSE: antes
+   entraba con un keyframe CSS y desaparecía de golpe, que es lo
+   que hacía que se sintiera brusco.
+
+   El fondo se desvanece y la caja sube con muelle; al salir, ambos
+   con una curva corta para que no se quede "colgando".
+============================================================ */
 import { useEffect } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { EASE_OUT, SPRING_SOFT } from "@/components/animations";
 import styles from "./Modal.module.css";
 
 export default function Modal({
@@ -18,6 +30,8 @@ export default function Modal({
       botones se quedan fijos a la vista. */
   contentScroll?: boolean;
 }) {
+  const reduce = useReducedMotion();
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -25,16 +39,30 @@ export default function Modal({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
   return (
-    <div className={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div
-        className={`${styles.box} ${contentScroll ? styles.contenido : ""}`}
-        style={maxWidth ? { maxWidth } : undefined}
-      >
-        {children}
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className={styles.overlay}
+          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={EASE_OUT}
+        >
+          <motion.div
+            className={`${styles.box} ${contentScroll ? styles.contenido : ""}`}
+            style={maxWidth ? { maxWidth } : undefined}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.98 }}
+            transition={reduce ? EASE_OUT : SPRING_SOFT}
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

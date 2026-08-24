@@ -12,6 +12,8 @@
    descuadraba toda la fila.
 ============================================================ */
 import { memo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { SPRING } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
 import styles from "./booking.module.css";
 
@@ -33,12 +35,19 @@ interface ProgressHeaderProps {
 export const ProgressHeader = memo(function ProgressHeader({
   steps, activeIndex, maxReachable, onSelect,
 }: ProgressHeaderProps) {
+  const reduce = useReducedMotion();
   const pct = steps.length > 1 ? Math.round((activeIndex / (steps.length - 1)) * 100) : 0;
 
   return (
     <div className={styles.progressWrap}>
       <div className={styles.progressTrack} aria-hidden>
-        <span className={styles.progressFill} style={{ width: `${pct}%` }} />
+        {/* La barra crece con muelle: acompaña al paso en vez de saltar */}
+        <motion.span
+          className={styles.progressFill}
+          initial={false}
+          animate={{ width: `${pct}%` }}
+          transition={reduce ? { duration: 0 } : SPRING}
+        />
       </div>
 
       <div className={styles.trail}>
