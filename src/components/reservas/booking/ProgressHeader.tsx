@@ -1,10 +1,15 @@
 "use client";
 /* ============================================================
-   ProgressHeader — progreso discreto del flujo de reservas
+   ProgressHeader — línea de tiempo del flujo de reservas
    ------------------------------------------------------------
-   Sustituye al stepper numerado: una barra de avance y una fila
-   de chips con lo ya seleccionado (clicables para volver atrás).
-   Conserva la lógica de navegación secuencial validada.
+   Barra de avance + pasos numerados unidos por una línea.
+
+   Todos los pasos miden exactamente lo mismo (misma base flex y
+   sin encoger): es lo que permite que la línea que los une caiga
+   siempre sobre el centro de los círculos. Por eso el resumen de
+   lo elegido viaja en el `title` y no como texto del paso — un
+   nombre largo ("Glow Benalmádena") ensanchaba solo ese paso y
+   descuadraba toda la fila.
 ============================================================ */
 import { memo } from "react";
 import Icon from "@/components/ui/Icon";
@@ -13,7 +18,7 @@ import styles from "./booking.module.css";
 export interface ProgressStep {
   id: string;
   label: string;
-  /** Resumen de lo elegido en el paso (p. ej. nombre de la sede) */
+  /** Resumen de lo elegido en el paso; se muestra al pasar el ratón */
   resumen: string | null;
 }
 
@@ -35,31 +40,32 @@ export const ProgressHeader = memo(function ProgressHeader({
       <div className={styles.progressTrack} aria-hidden>
         <span className={styles.progressFill} style={{ width: `${pct}%` }} />
       </div>
+
       <div className={styles.trail}>
         {steps.map((s, i) => {
           const done = i < activeIndex;
+          const active = i === activeIndex;
           const cls = [
             styles.trailStep,
             done ? styles.done : "",
-            i === activeIndex ? styles.active : "",
+            active ? styles.active : "",
           ].filter(Boolean).join(" ");
           return (
             <button
               key={s.id}
               type="button"
               className={cls}
-              data-step={i + 1}
               disabled={i > maxReachable}
               onClick={() => onSelect(i)}
-              aria-current={i === activeIndex ? "step" : undefined}
+              aria-current={active ? "step" : undefined}
+              title={s.resumen ? `${s.label}: ${s.resumen}` : s.label}
             >
-              {done && (
-                <span className={styles.trailCheck} aria-hidden>
-                  <Icon name="check" width={13} height={13} strokeWidth={2.8} />
-                </span>
-              )}
-              <span>{s.label}</span>
-              {done && s.resumen && <span className={styles.trailValue}>· {s.resumen}</span>}
+              <span className={styles.trailMark} aria-hidden>
+                {done
+                  ? <Icon name="check" width={15} height={15} strokeWidth={3} />
+                  : i + 1}
+              </span>
+              <span className={styles.trailLabel}>{s.label}</span>
             </button>
           );
         })}
