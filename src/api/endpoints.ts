@@ -152,4 +152,12 @@ export const EP = {
   /* @Controller('categorias-gasto') — requiere JWT + rol admin */
   categoriasGasto: "/categorias-gasto",
   categoriaGastoById: (id: number) => `/categorias-gasto/${id}`,
+
+  /* @Controller('notifications') — requiere JWT (JwtAuthGuard).
+     Hoy solo BRANCH_ADMIN recibe (nueva reserva en su sede), pero el
+     endpoint es genérico por usuario autenticado. */
+  notifications: "/notifications",
+  notificationsUnreadCount: "/notifications/unread-count",
+  notificationRead: (id: number) => `/notifications/${id}/read`,
+  notificationsReadAll: "/notifications/read-all",
 } as const;

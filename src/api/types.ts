@@ -251,6 +251,25 @@ export interface ApiResena {
   usuario?: { id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string } | null };
 }
 
+/** GET /notifications, PATCH /notifications/:id/read (notification.service.ts) */
+export interface ApiNotification {
+  id: number;
+  userId: number;
+  type: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown> | null;
+  read: boolean;
+  createdAt: string;
+  readAt: string | null;
+}
+
+export interface ApiNotificationsListResponse {
+  items: ApiNotification[];
+  unreadCount: number;
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
 /** DTO exacto de POST /appointments (create-appointment.dto.ts) */
 export interface CreateAppointmentDto {
   fecha: string;        // ISO

@@ -10,6 +10,7 @@ import type {
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
+  ApiNotification, ApiNotificationsListResponse,
   ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiProfesionalAcceso,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiServicioAsignable, ApiUser,
@@ -470,4 +471,29 @@ export const CategoriasGastoApi = {
 
   /** DELETE /categorias-gasto/:id — solo propias y sin gastos asociados. */
   remove: (id: number) => http.delete(EP.categoriaGastoById(id)),
+};
+
+/* ── NotificationsModule ────────────────────────────────────
+   @Controller('notifications') — requiere JWT. Hoy solo BRANCH_ADMIN
+   recibe (nueva reserva en su sede); el resto de roles simplemente
+   ve la lista vacía. */
+export const NotificationsApi = {
+  /** GET /notifications?onlyUnread=&page=&limit= */
+  findAll: (params?: { onlyUnread?: boolean; page?: number; limit?: number }) =>
+    http.get<ApiNotificationsListResponse>(
+      `${EP.notifications}${qs({
+        onlyUnread: params?.onlyUnread ? "true" : undefined,
+        page: params?.page,
+        limit: params?.limit,
+      })}`,
+    ),
+
+  unreadCount: () =>
+    http.get<{ unreadCount: number }>(EP.notificationsUnreadCount),
+
+  markAsRead: (id: number) =>
+    http.patch<ApiNotification>(EP.notificationRead(id), {}),
+
+  markAllAsRead: () =>
+    http.patch<{ actualizadas: number }>(EP.notificationsReadAll, {}),
 };

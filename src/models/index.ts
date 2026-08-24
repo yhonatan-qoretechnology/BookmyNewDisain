@@ -397,3 +397,16 @@ export interface DemoAccount {
   av: string;
   cls: "" | "admin" | "emp";
 }
+
+/* ── Notificaciones (GET /notifications) ────────────────────
+   Hoy solo llegan de tipo "reserva_nueva" (BRANCH_ADMIN de la sede
+   donde se creó una reserva), pero el modelo queda genérico. */
+export interface Notificacion {
+  id: number;
+  tipo: string;
+  titulo: string;
+  cuerpo: string;
+  leida: boolean;
+  creadaEn: string;
+  datos: Record<string, unknown> | null;
+}
