@@ -40,9 +40,28 @@ export function useNotificationSocket(
 
     const socket = io(url, {
       transports: ["websocket"],
-      reconnectionAttempts: 5,
+      // Sin límite de intentos: en dev el backend se reinicia solo con
+      // cada guardado (nest start --watch) y corta el socket seguido.
+      // Con un tope bajo, el cliente se rendía después de un par de
+      // reinicios y la campana quedaba "muda" hasta recargar la página.
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
     socketRef.current = socket;
+
+    // Red de seguridad: si el socket quedó desconectado mientras la
+    // pestaña estaba en segundo plano (throttling del navegador, laptop
+    // suspendida, etc.), forzamos un reconnect apenas vuelve a primer
+    // plano en lugar de esperar a que el usuario recargue.
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && !socket.connected) {
+        // eslint-disable-next-line no-console
+        console.log("[notifications-socket] pestaña visible de nuevo, reconectando...");
+        socket.connect();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     socket.on("connect", () => {
       // eslint-disable-next-line no-console
@@ -72,7 +91,13 @@ export function useNotificationSocket(
       console.error("[notifications-socket] ERROR DE CONEXIÓN:", error.message, error);
     });
 
+    socket.io.on("reconnect", (attempt) => {
+      // eslint-disable-next-line no-console
+      console.log(`[notifications-socket] reconectado (intento ${attempt})`);
+    });
+
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       socket.disconnect();
     };
   }, [userId]);
