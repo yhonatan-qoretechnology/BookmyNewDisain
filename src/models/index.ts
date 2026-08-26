@@ -131,10 +131,14 @@ export interface Servicio {
   nombre: string;
   /** Nombre de la categoría ya traducido (CategoryTranslation) */
   categoria: string;
+  /** Id real de la categoría — hace falta para precargar el <select> al editar. */
+  categoryId: number | null;
   descripcion: string;
   duracion: number;
   precio: number;
   activo: boolean;
+  /** Rutas relativas ("uploads/bookmy/services/..."), resolver con fotoUrl(). */
+  imagenes: string[];
 }
 
 /** Servicios de una categoría, para la vista de catálogo en acordeón */

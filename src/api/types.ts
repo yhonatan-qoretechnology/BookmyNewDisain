@@ -171,6 +171,11 @@ export interface ApiService {
     translations?: Array<{ name: string; language?: string }>;
   } | null;
   categoryId?: number;
+  /** Rutas relativas ("uploads/bookmy/services/12/abc.jpg"), se resuelven
+      con fotoUrl() igual que las de sede. Presente en GET /services,
+      GET /services/:id, /services/category/:id, /services/by-sede/:id
+      y en las respuestas de create/update. */
+  imagenes?: string[];
 }
 
 export interface ApiAppointment {
@@ -355,6 +360,17 @@ export interface CreateServiceDto {
   categoryId: number;
   translations: Array<{ language: string; name: string; description?: string }>;
   prices: Array<{ amount: number; duration: number; currency?: string }>;
+  /** Opcional: sedes donde se ofrece. Si no se manda, el backend decide
+      su alcance por defecto (igual que hasta ahora, no rompe nada). */
+  sedeIds?: number[];
+}
+
+/** DTO de PUT /services/:id — todo opcional, se manda solo lo que cambia. */
+export interface UpdateServiceDto {
+  categoryId?: number;
+  translations?: Array<{ language: string; name: string; description?: string }>;
+  prices?: Array<{ amount: number; duration: number; currency?: string }>;
+  sedeIds?: number[];
 }
 
 /* ── ServiceSedeProfesional ──────────────────────────────────

@@ -61,6 +61,14 @@
 }
 .servCard:hover { border-color: var(--teal-400); }
 
+.servFoto {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--r-sm, 8px);
+  margin-bottom: 2px;
+}
+
 .servNombre { font-size: 14px; font-weight: 800; color: var(--navy-900); }
 :global([data-theme="dark"]) .servNombre { color: #e8edf5; }
 
@@ -82,7 +90,7 @@
 .servPrecio { font-weight: 800; font-size: 15px; color: var(--teal-700); }
 :global([data-theme="dark"]) .servPrecio { color: #0fcfae; }
 
-.servFoot { margin-top: auto; padding-top: 4px; }
+.servFoot { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; }
 
 /* Barra de utilidades del catálogo */
 .catToolbar {

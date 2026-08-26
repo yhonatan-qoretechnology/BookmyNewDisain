@@ -479,6 +479,7 @@ const es = {
     logo: "Logo de la empresa",
     fotoProfesional: "Foto del profesional",
     imagenSede: "Imagen de la sede",
+    imagenServicio: "Imágenes del servicio",
     errTipo: "El archivo debe ser una imagen (JPG, PNG, WEBP o GIF).",
     errPeso: "La imagen supera 10 MB. Elige una más liviana.",
     errSubida: "No se pudo subir la imagen.",
@@ -602,6 +603,10 @@ const es = {
     deleteTitle: "Eliminar servicio",
     deleteMsg: "¿Eliminar \u201c{nombre}\u201d? Se borrarán también sus precios y traducciones.",
     deleted: "Servicio eliminado",
+    editModalTitle: "Editar servicio",
+    updated: "Servicio actualizado",
+    imagesLabel: "Imágenes",
+    addImages: "Agregar imágenes",
   },
 
   calendario: {

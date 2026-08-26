@@ -16,7 +16,7 @@ import type {
   ApiServicioAsignable, ApiUser,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
-  RegisterUserDto, SendMessageDto, UpdateGastoDto,
+  RegisterUserDto, SendMessageDto, UpdateGastoDto, UpdateServiceDto,
 } from "./types";
 
 /* ── AuthModule ─────────────────────────────────────────── */
@@ -214,8 +214,14 @@ export const ProfesionalesApi = {
 /* ── ServiceModule ──────────────────────────────────────── */
 export const ServicesApi = {
   /** GET /services?language=es — el backend resuelve la traducción
-      y devuelve { id, name, description, prices, sedes } */
+      y devuelve { id, name, description, prices, sedes, imagenes } */
   findAll: (language: string) => http.get<ApiService[]>(EP.services + qs({ language })),
+  /** GET /services/:id?language= */
+  findOne: (id: number, language: string) =>
+    http.get<ApiService>(EP.serviceById(id) + qs({ language })),
+  /** GET /services/category/:id?language= */
+  findByCategory: (categoryId: number, language: string) =>
+    http.get<ApiService[]>(EP.servicesByCategory(categoryId) + qs({ language })),
   /** GET /services/by-sede/:sedeId?language= — servicios ofrecidos
       en una sede (tabla service_sede_profesional) */
   findBySede: (sedeId: number, language: string) =>
@@ -272,6 +278,25 @@ export const ResenasApi = {
     http.patch<ApiResena>(EP.resenaAprobar(id), { aprobado }),
 };
 
+/** Tope de FilesInterceptor('imagenes', 10) en service.controller.ts */
+export const MAX_ARCHIVOS_SERVICIO = 10;
+
+/** Arma el FormData de create/update con imágenes: los campos que en JSON
+    son array/objeto (translations, prices, sedeIds) viajan serializados
+    porque en multipart todo es texto — ver nota del backend. */
+function servicioFormData(
+  dto: CreateServiceDto | UpdateServiceDto,
+  files: File[],
+): FormData {
+  const form = new FormData();
+  if (dto.categoryId != null) form.append("categoryId", String(dto.categoryId));
+  if (dto.translations) form.append("translations", JSON.stringify(dto.translations));
+  if (dto.prices) form.append("prices", JSON.stringify(dto.prices));
+  if (dto.sedeIds) form.append("sedeIds", JSON.stringify(dto.sedeIds));
+  files.slice(0, MAX_ARCHIVOS_SERVICIO).forEach((f) => form.append("imagenes", f, f.name));
+  return form;
+}
+
 /* ── ServiceModule (escritura) ──────────────────────────── */
 export const ServicesWriteApi = {
   /**
@@ -280,7 +305,18 @@ export const ServicesWriteApi = {
    * @param dto categoryId + translations[] + prices[].
    */
   create: (dto: CreateServiceDto) => http.post<ApiService>(EP.services, dto),
-  /** DELETE /services/:id — elimina servicio, traducciones y precios. */
+  /** POST /services (multipart) — igual que create(), pero con hasta
+      MAX_ARCHIVOS_SERVICIO imágenes en el campo "imagenes". */
+  createConImagenes: (dto: CreateServiceDto, files: File[]) =>
+    http.postForm<ApiService>(EP.services, servicioFormData(dto, files)),
+  /** PUT /services/:id — actualiza solo los campos enviados. */
+  update: (id: number, dto: UpdateServiceDto) => http.put<ApiService>(EP.serviceById(id), dto),
+  /** PUT /services/:id (multipart) — las imágenes nuevas se SUMAN a la
+      galería existente, no la reemplazan. */
+  updateConImagenes: (id: number, dto: UpdateServiceDto, files: File[]) =>
+    http.putForm<ApiService>(EP.serviceById(id), servicioFormData(dto, files)),
+  /** DELETE /services/:id — elimina servicio, traducciones, precios e
+      imágenes (el backend limpia disco/SFTP solo). */
   remove: (id: number) => http.delete(EP.serviceById(id)),
 };
 
@@ -405,6 +441,25 @@ export const ImagenesApi = {
   /** PUT /sedes/:id/imagenes/:index — reemplaza la imagen de esa posición. */
   reemplazarSedeImagen: (id: number, index: number, file: File) =>
     http.putForm<ApiSede>(EP.sedeImagenPorIndice(id, index), formData("imagen", file)),
+
+  /** POST /services/:id/imagen — añade UNA imagen a service.imagenes. */
+  servicio: (id: number, file: File) =>
+    http.postForm<ApiService>(EP.serviceImagen(id), formData("imagen", file)),
+
+  /** POST /services/:id/imagenes — varias de una vez. Tope: MAX_ARCHIVOS_SERVICIO. */
+  servicioVarias: (id: number, files: File[]) => {
+    const form = new FormData();
+    files.slice(0, MAX_ARCHIVOS_SERVICIO).forEach((f) => form.append("imagenes", f, f.name));
+    return http.postForm<ApiService>(EP.serviceImagenes(id), form);
+  },
+
+  /** DELETE /services/:id/imagenes — borra por ruta (y el archivo físico). */
+  borrarServicioImagenes: (id: number, imagenes: string[]) =>
+    http.delete<ApiService>(EP.serviceImagenes(id), { imagenes }),
+
+  /** PUT /services/:id/imagenes/:index — reemplaza la imagen de esa posición. */
+  reemplazarServicioImagen: (id: number, index: number, file: File) =>
+    http.putForm<ApiService>(EP.serviceImagenPorIndice(id, index), formData("imagen", file)),
 };
 
 /* ── Disponibilidad ─────────────────────────────────────── */

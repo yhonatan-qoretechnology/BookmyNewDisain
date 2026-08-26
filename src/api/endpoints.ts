@@ -78,6 +78,11 @@ export const EP = {
   services: "/services",
   serviceById: (id: number) => `/services/${id}`,
   servicesBySede: (sedeId: number) => `/services/by-sede/${sedeId}`,
+  servicesByCategory: (categoryId: number) => `/services/category/${categoryId}`,
+  /* Imágenes de servicio — mismo esquema que /sedes/:id/imagen[es]. */
+  serviceImagen: (id: number) => `/services/${id}/imagen`,
+  serviceImagenes: (id: number) => `/services/${id}/imagenes`,
+  serviceImagenPorIndice: (id: number, index: number) => `/services/${id}/imagenes/${index}`,
 
   /* @Controller('service-sede-profesional') — qué servicio presta cada
      profesional en cada sede. Es la terna que valida crear una cita. */

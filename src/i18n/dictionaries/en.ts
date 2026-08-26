@@ -478,6 +478,7 @@ const en: Dictionary = {
     logo: "Company logo",
     fotoProfesional: "Staff photo",
     imagenSede: "Branch image",
+    imagenServicio: "Service images",
     errTipo: "The file must be an image (JPG, PNG, WEBP or GIF).",
     errPeso: "The image is over 10 MB. Choose a lighter one.",
     errSubida: "The image could not be uploaded.",
@@ -596,6 +597,10 @@ const en: Dictionary = {
     deleteTitle: "Delete service",
     deleteMsg: "Delete \u201c{nombre}\u201d? Its prices and translations will also be removed.",
     deleted: "Service deleted",
+    editModalTitle: "Edit service",
+    updated: "Service updated",
+    imagesLabel: "Images",
+    addImages: "Add images",
   },
 
   calendario: {

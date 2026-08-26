@@ -177,10 +177,12 @@ export const ServiciosController = {
         id: sv.id,
         nombre: sv.name,
         categoria: nombreCategoria(sv, porId, language),
+        categoryId: sv.category?.id ?? sv.categoryId ?? null,
         descripcion: sv.description || "",
         duracion: sv.prices?.[0]?.duration ?? 30,
         precio: sv.prices?.[0]?.amount ?? 0,
         activo: true,
+        imagenes: sv.imagenes ?? [],
       }))
       .filter((s) => (s.nombre + s.categoria + s.descripcion).toLowerCase().includes(q));
   },
@@ -210,7 +212,9 @@ export const ServiciosController = {
 
   /**
    * Crea un servicio — POST /services con el CreateServiceDto exacto
-   * (categoryId + translations[] + prices[]).
+   * (categoryId + translations[] + prices[]). Si se pasan `imagenes`,
+   * viaja como multipart (translations/prices serializados con
+   * JSON.stringify, tal como espera el backend en ese modo).
    */
   async create(input: {
     nombre: string;
@@ -219,14 +223,74 @@ export const ServiciosController = {
     duracion: number;
     precio: number;
     language: string;
+    imagenes?: File[];
   }): Promise<void> {
-    await ServicesWriteApi.create({
+    const dto = {
       categoryId: input.categoryId,
       translations: [
         { language: input.language, name: input.nombre, description: input.descripcion },
       ],
       prices: [{ amount: input.precio, duration: input.duracion, currency: "EUR" }],
-    });
+    };
+    if (input.imagenes?.length) {
+      await ServicesWriteApi.createConImagenes(dto, input.imagenes);
+    } else {
+      await ServicesWriteApi.create(dto);
+    }
+  },
+
+  /**
+   * Actualiza un servicio — PUT /services/:id. Solo manda los campos
+   * presentes; si hay `imagenes`, se SUMAN a la galería existente (el
+   * backend no la reemplaza).
+   */
+  async update(id: number, input: {
+    nombre?: string;
+    descripcion?: string;
+    categoryId?: number;
+    duracion?: number;
+    precio?: number;
+    language: string;
+    imagenes?: File[];
+  }): Promise<void> {
+    const dto = {
+      categoryId: input.categoryId,
+      translations: input.nombre
+        ? [{ language: input.language, name: input.nombre, description: input.descripcion }]
+        : undefined,
+      prices: input.precio != null || input.duracion != null
+        ? [{ amount: input.precio ?? 0, duration: input.duracion ?? 30, currency: "EUR" }]
+        : undefined,
+    };
+    if (input.imagenes?.length) {
+      await ServicesWriteApi.updateConImagenes(id, dto, input.imagenes);
+    } else {
+      await ServicesWriteApi.update(id, dto);
+    }
+  },
+
+  /** Añade una imagen — POST /services/:id/imagen. @returns galería actualizada. */
+  async subirImagen(id: number, file: File): Promise<string[]> {
+    const actualizado = await ImagenesApi.servicio(id, file);
+    return actualizado?.imagenes ?? [];
+  },
+
+  /** Añade varias — POST /services/:id/imagenes (tope MAX_ARCHIVOS_SERVICIO). */
+  async subirImagenes(id: number, files: File[]): Promise<string[]> {
+    const actualizado = await ImagenesApi.servicioVarias(id, files);
+    return actualizado?.imagenes ?? [];
+  },
+
+  /** Quita una imagen — DELETE /services/:id/imagenes { imagenes: [ruta] }. */
+  async borrarImagen(id: number, ruta: string): Promise<string[]> {
+    const actualizado = await ImagenesApi.borrarServicioImagenes(id, [ruta]);
+    return actualizado?.imagenes ?? [];
+  },
+
+  /** Reemplaza la imagen de una posición — PUT /services/:id/imagenes/:index. */
+  async reemplazarImagen(id: number, index: number, file: File): Promise<string[]> {
+    const actualizado = await ImagenesApi.reemplazarServicioImagen(id, index, file);
+    return actualizado?.imagenes ?? [];
   },
 
   /** Elimina un servicio y sus dependencias — DELETE /services/:id. */
