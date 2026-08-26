@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import { NAV_BY_ROLE, ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { EASE_OUT, SPRING, SPRING_SOFT, TAP_PRESS } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
 import styles from "./Chatbot.module.css";
@@ -54,6 +56,7 @@ export default function Chatbot() {
 
   const [state, setState] = useState<ChatState>("CLOSED");
   const [pregunta, setPregunta] = useState<string | null>(null);
+  const reduce = useReducedMotion();
 
   /* El saludo aparece solo la primera vez (evita desajuste de
      hidratación: el estado inicial siempre es CLOSED en el servidor) */
@@ -106,20 +109,39 @@ export default function Chatbot() {
   return (
     <div className={styles.wrap}>
       {/* ── Saludo inicial ── */}
+      <AnimatePresence>
       {state === "TOOLTIP" && (
-        <div className={styles.tooltip} role="dialog" aria-label={t("chatbot.title")}>
+        <motion.div
+          className={styles.tooltip}
+          role="dialog"
+          aria-label={t("chatbot.title")}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
+          transition={reduce ? EASE_OUT : SPRING}
+        >
           <span className={styles.tooltipAvatar} aria-hidden>
             <Icon name="bot" width={24} height={24} />
           </span>
           <div className={styles.tooltipTitle}>{t("chatbot.tooltipTitle")}</div>
           <p className={styles.tooltipText}>{t("chatbot.tooltipText")}</p>
           <Button size="sm" block onClick={abrir}>{t("chatbot.tooltipCta")}</Button>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ── Ventana de ayuda ── */}
+      <AnimatePresence>
       {state === "OPEN" && (
-        <section className={styles.window} role="dialog" aria-label={t("chatbot.title")}>
+        <motion.section
+          className={styles.window}
+          role="dialog"
+          aria-label={t("chatbot.title")}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.98 }}
+          transition={reduce ? EASE_OUT : SPRING_SOFT}
+        >
           <header className={styles.header}>
             <span className={styles.headerIcon} aria-hidden>
               <Icon name="bot" width={21} height={21} />
@@ -205,20 +227,26 @@ export default function Chatbot() {
               {t("chatbot.faqCta")}
             </button>
           </footer>
-        </section>
+        </motion.section>
       )}
+      </AnimatePresence>
 
       {/* ── Botón flotante ── */}
       {state !== "OPEN" && (
-        <button
+        <motion.button
           type="button"
           className={styles.fab}
           onClick={abrir}
           aria-label={t("chatbot.fab")}
           aria-expanded={false}
+          initial={reduce ? false : { scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={reduce ? undefined : { scale: 1.06, y: -2 }}
+          whileTap={reduce ? undefined : TAP_PRESS}
+          transition={SPRING}
         >
           <Icon name="bot" width={27} height={27} />
-        </button>
+        </motion.button>
       )}
     </div>
   );

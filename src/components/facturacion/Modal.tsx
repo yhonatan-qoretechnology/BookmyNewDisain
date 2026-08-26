@@ -2,10 +2,15 @@
 /* ============================================================
    Modal — popup del módulo de facturación (design system)
    · Cierra con Escape y con clic en el fondo
+   · Entra y sale animado: el AnimatePresence lo pone cada envoltorio
+     (FacturaViewModal, GastoFormModal…), que es quien decide cuándo
+     se monta; aquí solo se declaran las variantes
    · Pie fijo: las acciones quedan siempre visibles
    · El cuerpo solo hace scroll si el contenido no cabe
 ============================================================ */
 import { ReactNode, useEffect } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { EASE_OUT, SPRING_SOFT } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
 import styles from "./facturacion.module.css";
 
@@ -42,15 +47,28 @@ export default function Modal({
     };
   }, [onClose]);
 
+  const reduce = useReducedMotion();
+
   return (
-    <div
+    <motion.div
       className={styles.overlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={EASE_OUT}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div className={styles.box} style={{ maxWidth: ANCHO[size] }}>
+      <motion.div
+        className={styles.box}
+        style={{ maxWidth: ANCHO[size] }}
+        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+        transition={reduce ? EASE_OUT : SPRING_SOFT}
+      >
         <div className={styles.head}>
           <div className={styles.headText}>
             <h3 className={styles.title}>{title}</h3>
@@ -64,7 +82,7 @@ export default function Modal({
         <div className={styles.body}>{children}</div>
 
         {footer && <div className={styles.footer}>{footer}</div>}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

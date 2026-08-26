@@ -25,53 +25,80 @@
   background: var(--grad-teal); transition: width .3s ease;
 }
 .trail {
-  display: flex; align-items: center; gap: 0;
+  display: flex; align-items: flex-start; gap: 0;
   overflow-x: auto; padding-bottom: 4px;
   scrollbar-width: thin;
 }
+
+/* Todos los pasos comparten base y factor de crecimiento y NO encogen:
+   así miden lo mismo tanto si sobra sitio como si la fila desborda,
+   que es lo que mantiene la línea conectora sobre el centro de los
+   círculos. Cualquier contenido de ancho variable aquí rompería eso. */
 .trailStep {
-  flex: 1; min-width: 80px; display: flex; flex-direction: column;
-  align-items: center; gap: 10px;
-  padding-top: 2px; border: none; background: none;
-  font: inherit; font-size: 13px; font-weight: 700;
-  color: var(--slate-400); cursor: pointer; transition: all .2s ease;
+  flex: 1 0 84px;
+  min-width: 84px;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
   position: relative;
+  padding: 2px 4px 0;
+  border: none; background: none;
+  font-family: inherit; font-size: 12.5px; font-weight: 700;
+  line-height: 1.25;
+  color: var(--slate-400);
+  cursor: pointer;
+  transition: color .2s ease;
 }
+
+/* Tramo que une este círculo con el del paso anterior */
 .trailStep::before {
-  content: attr(data-step);
-  width: 36px; height: 36px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--surface); border: 3px solid var(--border);
-  font-weight: 800; font-size: 14px;
-  transition: all .25s ease;
-  position: relative; z-index: 1;
-}
-.trailStep::after {
   content: "";
-  position: absolute; top: 18px; left: -50%;
-  width: 100%; height: 2px; background: var(--border); z-index: 0;
+  position: absolute;
+  top: 17px; right: 50%;
+  width: 100%; height: 2px;
+  background: var(--border);
+  transition: background .25s ease;
+  z-index: 0;
 }
-.trailStep:first-child::after { display: none; }
-.trailStep:disabled { cursor: not-allowed; opacity: .4; }
-.trailStep.done::after { background: var(--teal-500); }
-.trailStep.done::before {
-  border-color: var(--teal-500); 
-  background: var(--teal-500);
-  color: #fff;
+.trailStep:first-child::before { display: none; }
+
+.trailMark {
+  position: relative; z-index: 1;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface);
+  border: 2.5px solid var(--border);
+  font-size: 13px; font-weight: 800;
+  color: var(--slate-400);
+  transition: all .22s ease;
 }
-.trailStep.active::before {
-  border-color: var(--teal-500); color: #fff;
-  background: var(--teal-500); 
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(15, 207, 174, 0.4);
+
+/* Una sola línea con puntos suspensivos: ningún paso puede crecer */
+.trailLabel {
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.trailStep.active::after { background: var(--teal-500); }
-.trailStep.done { color: var(--teal-600); }
+
+.trailStep:disabled { cursor: not-allowed; opacity: .45; }
+.trailStep:not(:disabled):hover .trailMark { border-color: var(--teal-400); }
+
+.trailStep.done { color: var(--teal-700); }
+.trailStep.done::before { background: var(--teal-500); }
+.trailStep.done .trailMark {
+  background: var(--teal-500); border-color: var(--teal-500); color: #fff;
+}
+
 .trailStep.active { color: var(--teal-700); }
-.trailCheck { display: none; }
-.trailValue {
-  font-weight: 700; color: inherit;
+.trailStep.active::before { background: var(--teal-500); }
+.trailStep.active .trailMark {
+  background: var(--grad-teal); border-color: var(--teal-500); color: #fff;
+  box-shadow: 0 4px 12px rgba(15, 207, 174, .35);
 }
+
+[data-theme="dark"] .trailMark { background: rgba(255, 255, 255, .04); border-color: #1e2640; }
+[data-theme="dark"] .trailStep::before { background: #1e2640; }
+[data-theme="dark"] .trailStep.done::before,
+[data-theme="dark"] .trailStep.active::before { background: #0fcfae; }
+[data-theme="dark"] .trailStep.done, [data-theme="dark"] .trailStep.active { color: #0fcfae; }
+
 .stepTitle {
   font-size: 16px; font-weight: 800; color: var(--navy-900);
   margin: 0 0 14px;

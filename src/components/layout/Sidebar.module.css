@@ -46,12 +46,24 @@
   padding-bottom: 2px;
 }
 .navItem {
+  position: relative;
   display: flex; align-items: center; gap: 11px;
   padding: 10px 10px; border-radius: var(--r-md);
   color: var(--slate-500); font-size: 13.5px; font-weight: 600;
   transition: all .16s ease; cursor: pointer;
   white-space: nowrap;
 }
+/* Fondo del ítem activo: nodo compartido que framer-motion desliza */
+.navActiveBg {
+  position: absolute; inset: 0;
+  border-radius: var(--r-md);
+  background: var(--hover-surface);
+  z-index: 0;
+}
+:global([data-theme="dark"]) .navActiveBg { background: rgba(255,255,255,.06); }
+
+.navItem > span:not(.navActiveBg) { position: relative; z-index: 1; }
+
 .navIcon {
   width: 32px; height: 32px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
@@ -73,7 +85,7 @@
 :global([data-theme="dark"]) .navItem:hover { color: #e8edf5; background: rgba(255,255,255,.04); }
 :global([data-theme="dark"]) .navItem:hover .navIcon { background: rgba(15,207,174,.12); }
 :global([data-theme="dark"]) .navItem:hover .navIcon svg { color: #0fcfae; }
-:global([data-theme="dark"]) .navItemActive { color: #e8edf5; background: rgba(255,255,255,.06); }
+:global([data-theme="dark"]) .navItemActive { color: #e8edf5; }
 
 @media (hover: none) { .navItem { min-height: 44px; } }
 

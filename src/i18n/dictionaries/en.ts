@@ -723,6 +723,12 @@ const en: Dictionary = {
     /* Approve */
     approve: "Approve",
     approved: "Review approved and published",
+    /* Delete */
+    deleteTitle: "Delete review",
+    deleteMsg:
+      "Are you sure you want to delete {cliente}'s review? It is removed permanently and cannot be recovered. To just hide it from the website, use \u201cReject\u201d.",
+    deleteConfirm: "Yes, delete it",
+    deleted: "Review deleted",
     /* Reply */
     replyTitle: "Reply to {cliente}",
     replyLabel: "Your reply",

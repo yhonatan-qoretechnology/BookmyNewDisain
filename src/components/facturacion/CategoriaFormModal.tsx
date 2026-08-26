@@ -16,15 +16,14 @@ import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import { AnimatePresence } from "framer-motion";
 import Modal from "./Modal";
 import styles from "./facturacion.module.css";
 
-export default function CategoriaFormModal({
-  open,
+function Contenido({
   onClose,
   onCreated,
 }: {
-  open: boolean;
   onClose: () => void;
   /** Devuelve la categoría creada para seleccionarla al vuelo */
   onCreated: (categoria: CategoriaGasto) => void;
@@ -36,14 +35,16 @@ export default function CategoriaFormModal({
   const [error, setError] = useState("");
   const [creando, setCreando] = useState(false);
 
+  /* Base + propias del API; `reload()` la refresca tras crear o borrar.
+     El contenido solo se monta cuando el modal está abierto, así que la
+     consulta ya no necesita el flag `open` que tenía antes. */
   const { data: categorias, reload } = useData(
-    () => (open ? CategoriasGastoController.list() : Promise.resolve([])),
-    [open], []
+    () => CategoriasGastoController.list(),
+    [], []
   );
   const base = categorias.filter((c) => c.esBase);
   const propias = categorias.filter((c) => !c.esBase);
 
-  if (!open) return null;
 
   const crear = async () => {
     const limpio = nombre.trim();
@@ -149,5 +150,23 @@ export default function CategoriaFormModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+/* El AnimatePresence va aquí: mantiene el modal en el árbol el tiempo
+   justo para animar su salida. */
+export default function CategoriaFormModal({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (categoria: CategoriaGasto) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && <Contenido onClose={onClose} onCreated={onCreated} />}
+    </AnimatePresence>
   );
 }

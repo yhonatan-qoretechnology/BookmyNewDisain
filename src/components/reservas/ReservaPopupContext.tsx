@@ -11,6 +11,8 @@ import { fmtFechaLarga } from "@/constants";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/context/SessionContext";
 import Icon, { WhatsAppIcon } from "@/components/ui/Icon";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { EASE_OUT, SPRING_SOFT } from "@/components/animations";
 import styles from "./ReservaPopup.module.css";
 
 const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
@@ -29,6 +31,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
   const { t, locale } = useI18n();
   const { session } = useSession();
   const [reserva, setReserva] = useState<Reserva | null>(null);
+  const reduce = useReducedMotion();
   const [loading, setLoading] = useState(false);
 
   const open = useCallback(async (idOrReserva: string | Reserva) => {
@@ -279,9 +282,23 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
     <ReservaPopupContext.Provider value={{ open, close }}>
       {children}
 
-      {reserva && (
-        <div className={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
-          <div className={styles.popup}>
+      <AnimatePresence>
+        {reserva && (
+        <motion.div
+          className={styles.overlay}
+          onClick={(e) => { if (e.target === e.currentTarget) close(); }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={EASE_OUT}
+        >
+          <motion.div
+            className={styles.popup}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 8 }}
+            transition={reduce ? EASE_OUT : SPRING_SOFT}
+          >
             {loading && (
               <div style={{ 
                 position: 'absolute', 
@@ -362,9 +379,10 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 {t("popup.print")}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
     </ReservaPopupContext.Provider>
   );
 }

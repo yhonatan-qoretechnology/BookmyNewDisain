@@ -26,10 +26,9 @@
   display: grid; place-items: center;
   cursor: pointer;
   box-shadow: 0 8px 22px rgba(15, 207, 174, .42);
-  transition: transform .18s ease, box-shadow .18s ease;
+  transition: box-shadow .18s ease;
 }
-.fab:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 26px rgba(15, 207, 174, .5); }
-.fab:active { transform: scale(.97); }
+.fab:hover { box-shadow: 0 12px 26px rgba(15, 207, 174, .5); }
 .fab:focus-visible { outline: 3px solid var(--teal-100); outline-offset: 3px; }
 
 /* ── Tarjeta de saludo ───────────────────────────────────── */
@@ -41,7 +40,6 @@
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-lg);
-  animation: bmPop .22s ease;
 }
 .tooltipAvatar {
   position: absolute;
@@ -75,12 +73,8 @@
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
-  animation: bmPop .22s ease;
 }
-@keyframes bmPop {
-  from { opacity: 0; transform: translateY(12px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
+/* Entrada y salida las anima AnimatePresence en Chatbot.tsx */
 
 .header {
   display: flex; align-items: center; gap: 11px;

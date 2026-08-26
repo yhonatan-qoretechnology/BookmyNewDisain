@@ -12,16 +12,17 @@ import { useUi } from "@/context/UiContext";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import { AnimatePresence } from "framer-motion";
 import Modal from "./Modal";
 import { descargarFacturaPdf } from "./facturaPdf";
 import styles from "./facturacion.module.css";
 
-export default function FacturaViewModal({
+function Contenido({
   factura,
   emisor,
   onClose,
 }: {
-  factura: Factura | null;
+  factura: Factura;
   emisor: Emisor | null;
   onClose: () => void;
 }) {
@@ -29,7 +30,6 @@ export default function FacturaViewModal({
   const { toast } = useUi();
   const [generando, setGenerando] = useState(false);
 
-  if (!factura) return null;
   const f = factura;
 
   /* Respaldo mínimo si aún no cargaron los datos de la empresa */
@@ -185,5 +185,27 @@ export default function FacturaViewModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+/**
+ * El AnimatePresence vive aquí y no dentro de `Modal`: es este
+ * envoltorio el que decide si hay factura que mostrar, así que es el
+ * único punto donde se puede retener el nodo mientras se anima la
+ * salida. Con el `return null` anterior, el modal desaparecía de golpe.
+ */
+export default function FacturaViewModal({
+  factura,
+  emisor,
+  onClose,
+}: {
+  factura: Factura | null;
+  emisor: Emisor | null;
+  onClose: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {factura && <Contenido factura={factura} emisor={emisor} onClose={onClose} />}
+    </AnimatePresence>
   );
 }

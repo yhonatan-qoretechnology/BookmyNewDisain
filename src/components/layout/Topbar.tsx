@@ -8,6 +8,8 @@ import { ROUTES, fotoUrl, initials } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useTheme } from "@/context/ThemeContext";
 import { LOCALES, useI18n, type LocaleCode } from "@/i18n";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { EASE_OUT, SPRING } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
 import NotificationBell from "./NotificationBell";
 import styles from "./Topbar.module.css";
@@ -19,6 +21,7 @@ export function LanguageToggle() {
   const { locale, setLocale, t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
 
   // Cierra el menú al hacer clic fuera
   useEffect(() => {
@@ -51,8 +54,18 @@ export function LanguageToggle() {
         <svg className={styles.langCaret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M6 9l6 6 6-6" /></svg>
       </button>
 
+      <AnimatePresence>
       {open && (
-        <div className={styles.langMenu} role="listbox" aria-label={t("topbar.language")}>
+        <motion.div
+          className={styles.langMenu}
+          role="listbox"
+          aria-label={t("topbar.language")}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: -4, scale: 0.98 }}
+          transition={reduce ? EASE_OUT : SPRING}
+          style={{ transformOrigin: "top right" }}
+        >
           {LOCALES.map((l) => (
             <button
               key={l.code}
@@ -68,8 +81,9 @@ export function LanguageToggle() {
               )}
             </button>
           ))}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -129,14 +143,17 @@ export default function Topbar({
         {/* Selector de idioma — junto al botón de tema */}
         <LanguageToggle />
 
-        <button
+        <motion.button
           className={styles.themeToggle}
           onClick={toggleTheme}
           aria-label={theme === "dark" ? t("topbar.lightMode") : t("topbar.darkMode")}
+          whileTap={{ scale: 0.92, rotate: -20 }}
+          whileHover={{ scale: 1.06 }}
+          transition={SPRING}
         >
           <Icon name="moon" className={styles.iconMoon} />
           <Icon name="sun" className={styles.iconSun} />
-        </button>
+        </motion.button>
 
         <NotificationBell />
 

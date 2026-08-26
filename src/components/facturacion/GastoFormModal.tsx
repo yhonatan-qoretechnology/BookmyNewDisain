@@ -19,6 +19,7 @@ import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import { AnimatePresence } from "framer-motion";
 import Modal from "./Modal";
 import CategoriaFormModal from "./CategoriaFormModal";
 import styles from "./facturacion.module.css";
@@ -28,12 +29,10 @@ const hoy = () => new Date().toISOString().slice(0, 10);
 const TICKET_TIPOS = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
 const MAX_BYTES = 10 * 1024 * 1024;
 
-export default function GastoFormModal({
-  open,
+function Contenido({
   onClose,
   onSaved,
 }: {
-  open: boolean;
   onClose: () => void;
   onSaved: (g: Gasto) => void;
 }) {
@@ -57,16 +56,16 @@ export default function GastoFormModal({
 
   /* Base + propias de la empresa de la sesión; se recarga al crear una nueva */
   const { data: categorias, reload: reloadCategorias } = useData(
-    () => (open ? CategoriasGastoController.list() : Promise.resolve([])),
-    [open], []
+    () => CategoriasGastoController.list(),
+    [], []
   );
   const categoriaActual = categoriaId || categorias[0]?.id || "";
 
   /* Empresa: solo superadmin elige (owner ya tiene la suya fija) */
   const esSuperadmin = session?.role === "superadmin";
   const { data: empresasOpt } = useData(
-    () => (open && esSuperadmin ? FiltroFacturasController.empresas(session) : Promise.resolve([] as OpcionFiltro[])),
-    [open, esSuperadmin, session?.id], []
+    () => (esSuperadmin ? FiltroFacturasController.empresas(session) : Promise.resolve([] as OpcionFiltro[])),
+    [esSuperadmin, session?.id], []
   );
 
   /* Sede a la que se factura: fija para admin de sede, elegible para owner/superadmin.
@@ -74,11 +73,11 @@ export default function GastoFormModal({
   const puedeElegirSede = session?.role === "owner" || esSuperadmin;
   const { data: sedesOpt } = useData(
     () => {
-      if (!open || !puedeElegirSede) return Promise.resolve([] as OpcionFiltro[]);
+      if (!puedeElegirSede) return Promise.resolve([] as OpcionFiltro[]);
       if (esSuperadmin && !empresaId) return Promise.resolve([] as OpcionFiltro[]);
       return FiltroFacturasController.sedes(session, esSuperadmin ? empresaId : undefined);
     },
-    [open, puedeElegirSede, esSuperadmin, empresaId, session?.id], []
+    [puedeElegirSede, esSuperadmin, empresaId, session?.id], []
   );
   useEffect(() => { setSedeId(""); }, [empresaId]);
   const sedeActual = puedeElegirSede ? (sedeId || sedesOpt[0]?.id || "") : (session?.sedeId || "");
@@ -96,7 +95,6 @@ export default function GastoFormModal({
   /* Libera el object URL del preview al cambiar de archivo o desmontar */
   useEffect(() => () => { if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl); }, [ticketPreviewUrl]);
 
-  if (!open) return null;
 
   const cerrar = () => { reset(); onClose(); };
 
@@ -352,5 +350,24 @@ export default function GastoFormModal({
         }}
       />
     </>
+  );
+}
+
+/* El AnimatePresence va aquí y no dentro de `Modal`: es este envoltorio
+   el que decide si el formulario se monta, así que es el único punto
+   donde se puede retener el nodo mientras se anima el cierre. */
+export default function GastoFormModal({
+  open,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSaved: (g: Gasto) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && <Contenido onClose={onClose} onSaved={onSaved} />}
+    </AnimatePresence>
   );
 }

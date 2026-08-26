@@ -144,9 +144,9 @@ export default function DashboardPage() {
     <>
       <ContextSelectors />
       <StatGrid>
-        <StatCard color="teal"  icon={<Icon name="user" />}  label={t("dashboard.totalClients")}  value={String(resumen.clientes)} footer={t("dashboard.fromApi")} />
-        <StatCard color="green" icon={<Icon name="chart" />} label={t("estadisticas.monthRevenue")} value={`${resumen.ingresosMes.toFixed(2)}€`} footer={t("estadisticas.thisMonth")} />
-        <StatCard color="coral" icon={<Icon name="clock" />} label={t("dashboard.totalBookings")} value={String(resumen.citas)} footer={t("dashboard.fromApi")} />
+        <StatCard color="teal"  icon={<Icon name="user" />}  label={t("dashboard.totalClients")}  count={resumen.clientes} footer={t("dashboard.fromApi")} />
+        <StatCard color="green" icon={<Icon name="chart" />} label={t("estadisticas.monthRevenue")} count={resumen.ingresosMes} format={(n) => `${n.toFixed(2)}€`} footer={t("estadisticas.thisMonth")} />
+        <StatCard color="coral" icon={<Icon name="clock" />} label={t("dashboard.totalBookings")} count={resumen.citas} footer={t("dashboard.fromApi")} />
         <StatCard color="amber" icon={<Icon name="chat" />}  label={t("estadisticas.rating")} value={resumen.valoracion != null ? `${resumen.valoracion.toFixed(1)} ★` : "—"} footer={t("estadisticas.fromReviews")} />
       </StatGrid>
 

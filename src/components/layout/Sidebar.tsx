@@ -12,6 +12,8 @@ import { NAV_BY_ROLE, ROUTES, initials } from "@/constants";
 import type { NavItem, Rol } from "@/models";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
+import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
+import { SPRING } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
 import { RoleBadge } from "@/components/ui/Badge";
 import styles from "./Sidebar.module.css";
@@ -31,6 +33,7 @@ export default function Sidebar({
   const router = useRouter();
   const { session, logout } = useSession();
   const { t } = useI18n();
+  const reduce = useReducedMotion();
 
   const role: Rol = session?.role || "superadmin";
   const items = NAV_BY_ROLE[role];
@@ -71,6 +74,7 @@ export default function Sidebar({
           <RoleBadge role={role} label={t(`roles.${role}`)} />
         </div>
 
+        <LayoutGroup id="sidebar-nav">
         <nav className={styles.navGroup}>
           {items.map((item) => {
             /* ── Ítem con submenú ───────────────────────────── */
@@ -132,12 +136,23 @@ export default function Sidebar({
                 className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
                 onClick={isLogout ? handleLogout : onClose}
               >
+                {/* Un único fondo con layoutId: al navegar se desliza
+                    desde la sección anterior en vez de parpadear. */}
+                {active && (
+                  <motion.span
+                    layoutId="nav-activo"
+                    className={styles.navActiveBg}
+                    transition={reduce ? { duration: 0 } : SPRING}
+                    aria-hidden
+                  />
+                )}
                 <span className={styles.navIcon}><Icon name={item.icon} /></span>
                 <span className={styles.navLabel}>{t(`nav.${item.id}`)}</span>
               </Link>
             );
           })}
         </nav>
+        </LayoutGroup>
 
         <div className={styles.help}>
           <div className={styles.helpIcon}><Icon name="help" /></div>

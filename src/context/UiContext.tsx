@@ -3,6 +3,8 @@
    UiContext — toast global y modal de confirmación
 ============================================================ */
 import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { SPRING, EASE_OUT } from "@/components/animations";
 import Modal, { ModalActions, ModalText, ModalTitle } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import toastStyles from "@/components/ui/Toast.module.css";
@@ -55,16 +57,30 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const closeConfirm = () => setConfirmState(null);
+  const reduce = useReducedMotion();
 
   return (
     <UiContext.Provider value={{ toast, confirm }}>
       {children}
 
-      {/* Toast */}
-      <div className={`${toastStyles.toast} ${toastState.show ? toastStyles.show : ""}`} role="status">
-        <span className={toastStyles.dot} style={{ background: DOT_COLOR[toastState.type] }} />
-        <span>{toastState.message}</span>
-      </div>
+      {/* Toast — entra con muelle y sale desvaneciéndose. Antes vivía
+          siempre en el DOM alternando una clase, así que al ocultarse
+          cortaba en seco. */}
+      <AnimatePresence>
+        {toastState.show && (
+          <motion.div
+            className={toastStyles.toast}
+            role="status"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.98 }}
+            transition={reduce ? EASE_OUT : SPRING}
+          >
+            <span className={toastStyles.dot} style={{ background: DOT_COLOR[toastState.type] }} />
+            <span>{toastState.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Confirm modal */}
       <Modal open={!!confirmState} onClose={closeConfirm}>

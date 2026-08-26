@@ -13,6 +13,8 @@
    aprueba → las unidades aprobadas entran al stock de esa sede.
 ============================================================ */
 import { useCallback, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { SPRING } from "@/components/animations";
 import type { Insumo, SolicitudInventario, StockItem } from "@/models";
 import { StockController, nivelDe } from "@/controllers/StockController";
 import { useData } from "@/hooks/useData";
@@ -39,13 +41,18 @@ const BADGE_SOLICITUD = {
 
 /* ── Barra de nivel de existencias ───────────────────────── */
 function NivelBar({ stock, max }: { stock: number; max: number }) {
+  const reduce = useReducedMotion();
   const nivel = nivelDe(stock, max);
   const pct = max > 0 ? Math.min((stock / max) * 100, 100) : 0;
   return (
     <div className={styles.barTrack}>
-      <div
+      {/* Al reponer, la barra crece hasta el nuevo nivel: el cambio de
+          existencias se ve, en lugar de aparecer ya hecho. */}
+      <motion.div
         className={`${styles.barFill} ${nivel !== "ok" ? styles[nivel] : ""}`}
-        style={{ width: `${pct}%` }}
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={reduce ? { duration: 0 } : SPRING}
       />
     </div>
   );

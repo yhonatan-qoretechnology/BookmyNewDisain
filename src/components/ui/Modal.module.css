@@ -9,7 +9,6 @@
 .box {
   background: var(--surface-2); border-radius: var(--r-xl);
   width: 100%; max-width: 440px; padding: 28px; box-shadow: var(--shadow-lg);
-  animation: fadeUp .2s ease;
   /* Sin este tope, cualquier modal más alto que la pantalla se salía por
      abajo en escritorio y sus botones quedaban fuera de alcance. */
   max-height: calc(100vh - 40px);
@@ -25,10 +24,7 @@
   overflow: hidden;
 }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+/* Entrada y salida las anima AnimatePresence en Modal.tsx */
 .box h3 { font-size: 19px; font-weight: 800; margin-bottom: 5px; color: var(--navy-900); }
 .muted { color: var(--slate-500); font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
 .actions { display: flex; gap: 10px; margin-top: 20px; }

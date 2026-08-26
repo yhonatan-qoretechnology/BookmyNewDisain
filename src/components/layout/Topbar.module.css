@@ -79,13 +79,12 @@
   box-shadow: var(--shadow-sm);
   color: var(--navy-700);
   flex: none;
-  transition: all .2s ease;
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
 }
 .themeToggle:hover {
   background: var(--teal-50);
   border-color: var(--teal-500);
   color: var(--teal-600);
-  transform: scale(1.06);
 }
 .themeToggle svg { width: 20px; height: 20px; }
 
@@ -173,12 +172,8 @@
   box-shadow: var(--shadow-lg);
   padding: 6px;
   z-index: 60;
-  animation: langIn .14s ease;
 }
-@keyframes langIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+/* Entrada y salida las anima AnimatePresence en Topbar.tsx */
 :global([data-theme="dark"]) .langMenu { background: #1a2035; border-color: #1e2640; }
 .langOption {
   display: flex; align-items: center; gap: 10px;
