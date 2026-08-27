@@ -1,6 +1,6 @@
 "use client";
 /* ============================================================
-   Topbar — título, buscador, idioma, tema y usuario
+   Topbar — título, idioma, tema y usuario
 ============================================================ */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -135,11 +135,6 @@ export default function Topbar({
       </div>
 
       <div className={styles.right}>
-        <div className={styles.search}>
-          <Icon name="search" />
-          <input type="text" placeholder={t("topbar.searchPlaceholder")} aria-label={t("common.search")} />
-        </div>
-
         {/* Selector de idioma — junto al botón de tema */}
         <LanguageToggle />
 

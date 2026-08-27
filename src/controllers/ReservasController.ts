@@ -9,7 +9,7 @@
 ============================================================ */
 import type { MetodoPago, Reserva, Session, SlotHora } from "@/models";
 import { AppointmentsApi, AuthApi, PaymentsApi, ProfesionalesApi, SedesApi, ServicesApi } from "@/api/modules";
-import { APPT_ESTADO_MAP, mapAppointment } from "@/api/mappers";
+import { APPT_ESTADO_MAP, ESTADO_APPT_MAP, mapAppointment } from "@/api/mappers";
 import type { ApiAppointment, ApiPayment, ApiPaymentMethod } from "@/api/types";
 import { madridYmd } from "@/lib/timezone";
 import { BookingController } from "./BookingController";
@@ -62,6 +62,41 @@ async function getServiceNames(language: string): Promise<Map<number, string>> {
   return map;
 }
 
+/** Tamaño de página al pedir citas: el backend acepta cualquier `limit`. */
+const CITAS_POR_PETICION = 200;
+/** Techo de seguridad: 10 páginas = 2.000 citas por sede. */
+const MAX_PAGINAS_CITAS = 10;
+
+/**
+ * Todas las citas de una sede, no las 50 primeras.
+ *
+ * `GET /appointments` pagina y, sin `limit`, el backend devuelve 50
+ * (appointment.service.ts → findAll). El panel pedía sin `limit` y tiraba
+ * `pagination`, así que a partir de la cita 51 de una sede el listado, el
+ * calendario, el KPI de reservas y el top de servicios trabajaban sobre una
+ * muestra parcial — y sin avisar de que faltaban datos.
+ */
+async function fetchCitasDeSede(sedeId: number): Promise<ApiAppointment[]> {
+  const primera = await AppointmentsApi.findAll({
+    sedeId, page: 1, limit: CITAS_POR_PETICION,
+  });
+  const items = primera.items || [];
+  const totalPaginas = primera.pagination?.totalPages ?? 1;
+  if (totalPaginas <= 1) return items;
+
+  /* Las páginas restantes en paralelo: son independientes entre sí. */
+  const restantes = Math.min(totalPaginas, MAX_PAGINAS_CITAS);
+  const paginas = await Promise.all(
+    Array.from({ length: restantes - 1 }, (_, i) =>
+      AppointmentsApi.findAll({ sedeId, page: i + 2, limit: CITAS_POR_PETICION })
+        .then((p) => p.items || [])
+        .catch(() => [])
+    )
+  );
+
+  return items.concat(paginas.flat());
+}
+
 export const ReservasController = {
   /**
    * Citas visibles según la sesión (aislamiento multi-tenant):
@@ -75,16 +110,14 @@ export const ReservasController = {
     if (!session) return [];
     const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
     if (session.sedeId) {
-      const page = await AppointmentsApi.findAll({ sedeId: Number(session.sedeId) });
-      return remember((page.items || []).map((a) => mapAppointment(withPayment(a, payments), names)));
+      const citas = await fetchCitasDeSede(Number(session.sedeId));
+      return remember(citas.map((a) => mapAppointment(withPayment(a, payments), names)));
     }
     const sedesEmp = session.negocioId
       ? await SedesApi.findByEmpresa(Number(session.negocioId))
       : await SedesApi.findAll();
     const porSede = await Promise.all(
-      sedesEmp.map((s) =>
-        AppointmentsApi.findAll({ sedeId: s.id }).then((p) => p.items || []).catch(() => [])
-      )
+      sedesEmp.map((s) => fetchCitasDeSede(s.id).catch(() => []))
     );
     return remember(porSede.flat().map((a) => mapAppointment(withPayment(a, payments), names)));
   },
@@ -269,6 +302,33 @@ export const ReservasController = {
     };
     cache.set(mapped.id, mapped);
     BookingController.invalidateAll();
+    return mapped;
+  },
+
+  /**
+   * Cambia el estado de una cita — PATCH /appointments/:id { estado }.
+   *
+   * Para "cancelado" se usa PATCH /appointments/:id/cancel, que además de
+   * marcar la cita libera la franja para que se pueda volver a reservar; el
+   * PATCH genérico solo cambiaría el campo y el hueco seguiría ocupado.
+   *
+   * @throws Error("SIN_ID") si la reserva no viene del API.
+   */
+  async cambiarEstado(reserva: Reserva, estado: Reserva["estado"]): Promise<Reserva> {
+    if (reserva.apiId == null) throw new Error("SIN_ID");
+
+    const actualizada = estado === "cancelado"
+      ? await AppointmentsApi.cancel(reserva.apiId)
+      : await AppointmentsApi.cambiarEstado(reserva.apiId, ESTADO_APPT_MAP[estado]);
+
+    const mapped: Reserva = {
+      ...reserva,
+      estado: APPT_ESTADO_MAP[actualizada.estado] ?? estado,
+    };
+    cache.set(mapped.id, mapped);
+    /* Cancelar devuelve la franja al calendario: hay que rehacer la
+       disponibilidad o el hueco seguiría apareciendo ocupado. */
+    if (estado === "cancelado") BookingController.invalidateAll();
     return mapped;
   },
 };

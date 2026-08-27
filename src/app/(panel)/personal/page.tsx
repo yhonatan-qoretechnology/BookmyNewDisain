@@ -61,6 +61,9 @@ export default function PersonalPage() {
   const [sede, setSede] = useState("");
   const [telefono, setTelefono] = useState("");
   const [password, setPassword] = useState("");
+  /* La foto se guarda aquí y se sube DESPUÉS de crear: hasta que el
+     profesional no existe no hay id al que asociarla. */
+  const [fotoAlta, setFotoAlta] = useState<File | null>(null);
   const [guardandoAlta, setGuardandoAlta] = useState(false);
 
   const { data: sedesOpc } = useData(() => NegociosController.getSedesForSession(session), [session?.negocioId], []);
@@ -93,10 +96,16 @@ export default function PersonalPage() {
     setGuardandoAlta(true);
     try {
       const nombreCreado = nombre.trim();
-      const { email } = await PersonalController.crear({ nombre, rol, telefono, sedeId: sede, password });
+      const { email, fotoFallida } = await PersonalController.crear({
+        nombre, rol, telefono, sedeId: sede, password, foto: fotoAlta,
+      });
       setModalOpen(false); setNombre(""); setRol(""); setSede(""); setTelefono(""); setPassword("");
+      setFotoAlta(null);
       await reload();
       toast(t("personal.added"), "success");
+      /* El alta salió bien; solo se quedó sin foto. Se avisa aparte para
+         que el admin sepa que tiene que volver a subirla en la edición. */
+      if (fotoFallida) toast(t("imagen.errSubida"), "error");
       /* Mostrar el correo que generó el backend + la contraseña que
          se envió, para que el admin se la entregue al profesional. */
       setAccesoDe({
@@ -277,8 +286,18 @@ export default function PersonalPage() {
       </Panel>
 
       {/* Alta de integrante */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setFotoAlta(null); }}>
         <ModalTitle>{t("personal.modalTitle")}</ModalTitle>
+        {/* Devolver null mantiene la vista previa local sin llamar al API:
+            el archivo se sube al crear, cuando ya hay id. */}
+        <ImageUpload
+          value={null}
+          nombre={nombre}
+          variant="avatar"
+          label={t("imagen.fotoProfesional")}
+          hint={t("imagen.hint")}
+          onUpload={async (file) => { setFotoAlta(file); return null; }}
+        />
         <Field label={t("common.fullName")} htmlFor="np-nombre">
           <input id="np-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("clientes.namePlaceholder")} />
         </Field>
@@ -311,7 +330,7 @@ export default function PersonalPage() {
         </Field>
         <p className={styles.credWarn}>{t("personal.createHint")}</p>
         <ModalActions>
-          <Button variant="ghost" onClick={() => setModalOpen(false)} disabled={guardandoAlta}>{t("common.cancel")}</Button>
+          <Button variant="ghost" onClick={() => { setModalOpen(false); setFotoAlta(null); }} disabled={guardandoAlta}>{t("common.cancel")}</Button>
           <Button onClick={() => void agregar()} disabled={guardandoAlta}>{t("common.save")}</Button>
         </ModalActions>
       </Modal>

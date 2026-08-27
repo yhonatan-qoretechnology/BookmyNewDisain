@@ -95,10 +95,16 @@ const es = {
     helpCtaEmployee: "Ver guía",
   },
 
+  paginacion: {
+    aria: "Paginación",
+    mostrando: "Mostrando {desde}–{hasta} de {total}",
+    anterior: "Página anterior",
+    siguiente: "Página siguiente",
+    irA: "Ir a la página {n}",
+  },
   topbar: {
     breadcrumbRoot: "Páginas",
     breadcrumbRootEmployee: "Panel",
-    searchPlaceholder: "Buscar…",
     notifications: "Notificaciones",
     darkMode: "Modo oscuro",
     lightMode: "Modo claro",
@@ -316,6 +322,9 @@ const es = {
   },
 
   reservas: {
+    cambiarEstado: "Cambiar estado",
+    estadoCambiado: "Reserva marcada como {estado}",
+    estadoError: "No se pudo cambiar el estado de la reserva",
     panelTitle: "Todas las reservas",
     subAll: "Todas las sedes de {negocio}",
     subBranch: "Sede {sede}",

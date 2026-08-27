@@ -6,7 +6,7 @@
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
-  ApiAdminCreateResponse, ApiAppointment, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
+  ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
@@ -247,6 +247,15 @@ export const AppointmentsApi = {
   /** POST /appointments — CreateAppointmentDto exacto del backend */
   create: (dto: CreateAppointmentDto) => http.post<ApiAppointment>(EP.appointments, dto),
   cancel: (id: number) => http.patch<ApiAppointment>(EP.appointmentCancel(id)),
+  /**
+   * PATCH /appointments/:id — cambia el estado de la cita.
+   * `UpdateAppointmentDto` es un PartialType de CreateAppointmentDto, que ya
+   * declara `estado?: AppointmentStatus`, así que mandar solo ese campo pasa
+   * el ValidationPipe (whitelist + forbidNonWhitelisted).
+   * Para CANCELLED conviene `cancel()`, que además libera la franja.
+   */
+  cambiarEstado: (id: number, estado: ApiAppointmentStatus) =>
+    http.patch<ApiAppointment>(EP.appointmentById(id), { estado }),
   /**
    * PATCH /appointments/:id/reschedule — nueva franja horaria.
    * ⚠️ El formato NO es el de POST /appointments: aquí la fecha y las horas

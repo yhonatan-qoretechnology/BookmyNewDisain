@@ -16,6 +16,7 @@ import {
   FiltroFacturasController,
 } from "@/controllers/FacturacionControllers";
 import { useData } from "@/hooks/useData";
+import { usePaginacion } from "@/hooks/usePaginacion";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
@@ -84,7 +85,16 @@ export default function FacturacionPage() {
     null
   );
 
+  /* Los KPIs y el PDF siguen mirando la lista COMPLETA: paginar es solo
+     cómo se pinta la tabla, no cuántas facturas hay. */
   const resumen = useMemo(() => FacturasController.resumen(lista), [lista]);
+
+  /* Facturación pasaba de cien filas en una sola página: scroll sin fin y,
+     con la entrada escalonada de DataTable, varios segundos hasta la última. */
+  const pagina = usePaginacion(lista, {
+    porPagina: 15,
+    resetKey: `${fQuery}|${fFecha}|${fEmpresaId}|${fSedeId}`,
+  });
 
   const textosPdf = () => ({
     factura: t("facturacion.panelTitle"),
@@ -199,6 +209,8 @@ export default function FacturacionPage() {
           />
         ) : (
           <DataTable
+            paginacion={pagina}
+            resetKey={`${fQuery}|${fFecha}|${fEmpresaId}|${fSedeId}|${pagina.pagina}`}
             headers={[
               t("facturacion.idFactura"),
               t("common.client"),
@@ -208,7 +220,7 @@ export default function FacturacionPage() {
               t("common.actions"),
             ]}
           >
-            {lista.map((f) => (
+            {pagina.visibles.map((f) => (
               <tr key={f.id}>
                 <td><b>{f.id}</b></td>
                 <td><PersonRow name={f.cliente} photo={f.clienteFoto} /></td>

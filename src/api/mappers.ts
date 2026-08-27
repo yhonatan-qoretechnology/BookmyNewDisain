@@ -29,6 +29,15 @@ export const APPT_ESTADO_MAP: Record<ApiAppointmentStatus, Reserva["estado"]> = 
   NO_SHOW: "noShow",
 };
 
+/** El inverso, para mandar al backend lo que el panel muestra. */
+export const ESTADO_APPT_MAP: Record<Reserva["estado"], ApiAppointmentStatus> = {
+  pendiente: "PENDING",
+  confirmada: "CONFIRMED",
+  atendida: "COMPLETED",
+  cancelado: "CANCELLED",
+  noShow: "NO_SHOW",
+};
+
 export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeName?: string }): Session | null {
   const role = ROLE_MAP[u.role];
   if (!role) return null; // CLIENT no entra al panel

@@ -1,0 +1,29 @@
+/* Selector de estado en la columna de acciones.
+   Compacto a propósito: convive con una fila de tabla, no con un formulario. */
+.estadoSelect {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--navy-900);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  max-width: 150px;
+  transition: border-color .12s, background .12s;
+}
+
+.estadoSelect:hover:not(:disabled) { border-color: var(--teal-600); }
+.estadoSelect:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 1px; }
+.estadoSelect:disabled { opacity: .55; cursor: progress; }
+
+:global([data-theme="dark"]) .estadoSelect {
+  background: rgba(255,255,255,.04);
+  border-color: #1e2640;
+  color: #e8edf5;
+}
+:global([data-theme="dark"]) .estadoSelect:hover:not(:disabled) { border-color: #0fcfae; }
+:global([data-theme="dark"]) .estadoSelect option { background: #131a2e; color: #e8edf5; }
+
+@media (prefers-reduced-motion: reduce) { .estadoSelect { transition: none; } }

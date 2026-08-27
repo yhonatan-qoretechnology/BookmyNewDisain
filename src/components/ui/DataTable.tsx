@@ -18,17 +18,22 @@
 import { Children, isValidElement } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { STAGGER, staggerChild, staggerParent } from "@/components/animations";
+import Pagination, { type PaginationProps } from "./Pagination";
 import styles from "./DataTable.module.css";
 
 export default function DataTable({
   headers,
   children,
   resetKey,
+  paginacion,
 }: {
   headers: React.ReactNode[];
   children: React.ReactNode;
   /** Cambia para repetir la animación (p. ej. el término buscado) */
   resetKey?: string | number;
+  /** Resultado de usePaginacion. Si se pasa, se pintan los controles
+      bajo la tabla; la página decide qué filas le entrega. */
+  paginacion?: PaginationProps;
 }) {
   const reduce = useReducedMotion();
 
@@ -47,32 +52,39 @@ export default function DataTable({
   });
 
   return (
-    <div className={styles.tableWrap}>
-      <table className={styles.dataTable}>
-        <thead>
-          <tr>{headers.map((h, i) => <th key={i}>{h}</th>)}</tr>
-        </thead>
-        <motion.tbody
-          key={resetKey}
-          initial="hidden"
-          animate="visible"
-          variants={{
-            ...staggerParent,
-            visible: {
-              transition: {
-                staggerChildren: reduce ? 0 : STAGGER,
-                delayChildren: reduce ? 0 : 0.02,
+    /* La paginación va FUERA de .tableWrap: ese contenedor tiene
+       overflow-x para que la tabla scrolle en horizontal, y dentro los
+       controles se irían de pantalla con ella. */
+    <>
+      <div className={styles.tableWrap}>
+        <table className={styles.dataTable}>
+          <thead>
+            <tr>{headers.map((h, i) => <th key={i}>{h}</th>)}</tr>
+          </thead>
+          <motion.tbody
+            key={resetKey}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              ...staggerParent,
+              visible: {
+                transition: {
+                  staggerChildren: reduce ? 0 : STAGGER,
+                  delayChildren: reduce ? 0 : 0.02,
+                },
               },
-            },
-          }}
-        >
-          {/* initial={false}: la entrada ya la orquesta el tbody; aquí
-              AnimatePresence solo se ocupa de que una fila eliminada se
-              desvanezca en vez de desaparecer de golpe. */}
-          <AnimatePresence initial={false}>{filas}</AnimatePresence>
-        </motion.tbody>
-      </table>
-    </div>
+            }}
+          >
+            {/* initial={false}: la entrada ya la orquesta el tbody; aquí
+                AnimatePresence solo se ocupa de que una fila eliminada se
+                desvanezca en vez de desaparecer de golpe. */}
+            <AnimatePresence initial={false}>{filas}</AnimatePresence>
+          </motion.tbody>
+        </table>
+      </div>
+
+      {paginacion && <Pagination {...paginacion} />}
+    </>
   );
 }
 

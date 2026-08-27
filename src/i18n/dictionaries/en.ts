@@ -94,10 +94,16 @@ const en: Dictionary = {
     helpCtaEmployee: "View guide",
   },
 
+  paginacion: {
+    aria: "Pagination",
+    mostrando: "Showing {desde}–{hasta} of {total}",
+    anterior: "Previous page",
+    siguiente: "Next page",
+    irA: "Go to page {n}",
+  },
   topbar: {
     breadcrumbRoot: "Pages",
     breadcrumbRootEmployee: "Panel",
-    searchPlaceholder: "Search…",
     notifications: "Notifications",
     darkMode: "Dark mode",
     lightMode: "Light mode",
@@ -317,6 +323,9 @@ const en: Dictionary = {
   },
 
   reservas: {
+    cambiarEstado: "Change status",
+    estadoCambiado: "Booking marked as {estado}",
+    estadoError: "The booking status could not be changed",
     panelTitle: "All bookings",
     subAll: "All {negocio} branches",
     subBranch: "{sede} branch",

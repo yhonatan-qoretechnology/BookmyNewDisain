@@ -465,10 +465,19 @@ export const PersonalController = {
    * obligatorio (login de profesionales, rol EMPLOYEE): el backend
    * genera solo el correo de acceso (patrón nombre@empresa.com) y lo
    * devuelve en `acceso.email`, para mostrárselo al admin.
+   *
+   * La foto va en una segunda petición (PATCH /profesionales/:id/imagen)
+   * en lugar de como multipart del POST. El backend admite las dos formas,
+   * pero así el alta usa exactamente el mismo camino de siempre: si la
+   * imagen falla, el profesional queda creado y solo se pierde la foto,
+   * que se puede volver a subir desde la edición.
+   *
+   * @returns `fotoFallida` en true si se creó pero la imagen no subió.
    */
   async crear(input: {
     nombre: string; rol: string; telefono: string; sedeId: string; password: string;
-  }): Promise<{ email: string }> {
+    foto?: File | null;
+  }): Promise<{ email: string; fotoFallida: boolean }> {
     const creado = await ProfesionalesApi.create({
       nombre: input.nombre.trim(),
       phone: input.telefono.trim(),
@@ -476,7 +485,17 @@ export const PersonalController = {
       biografia: input.rol.trim() || undefined,
       password: input.password,
     });
-    return { email: creado.acceso.email };
+
+    let fotoFallida = false;
+    if (input.foto) {
+      try {
+        await ImagenesApi.profesional(creado.id, input.foto);
+      } catch {
+        fotoFallida = true;
+      }
+    }
+
+    return { email: creado.acceso.email, fotoFallida };
   },
 
   /** Edita un profesional — PATCH /profesionales/:id. */

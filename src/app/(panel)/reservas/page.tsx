@@ -12,6 +12,8 @@ import { ReservasController } from "@/controllers/ReservasController";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { useData } from "@/hooks/useData";
+import { usePaginacion } from "@/hooks/usePaginacion";
+import { useUi } from "@/context/UiContext";
 import { useReservaPopup } from "@/components/reservas/ReservaPopupContext";
 import Panel, { PanelHead, SelectPill } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
@@ -20,6 +22,8 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
+import type { Reserva } from "@/models";
+import styles from "./reservas.module.css";
 
 function ReservasContent() {
   const params = useSearchParams();
@@ -28,8 +32,12 @@ function ReservasContent() {
   const { t, locale } = useI18n();
   const popup = useReservaPopup();
 
+  const { toast } = useUi();
+
   const [search, setSearch] = useState("");
   const [estadoIdx, setEstadoIdx] = useState(0);
+  /* id de la reserva cuyo estado se está guardando (bloquea su selector) */
+  const [guardando, setGuardando] = useState<string | null>(null);
   const estado = ESTADOS_RESERVA[estadoIdx];
 
   /* Enlaces históricos "?nueva=1" → asistente de creación */
@@ -38,7 +46,7 @@ function ReservasContent() {
   }, [params, router]);
 
   /* Listado según el rol (aislamiento multi-tenant) */
-  const { data: base } = useData(
+  const { data: base, reload } = useData(
     () => ReservasController.getForSession(session, locale),
     [session?.id, session?.negocioId, session?.sedeId, locale],
     []
@@ -58,6 +66,27 @@ function ReservasContent() {
       return matchQ && matchE;
     });
   }, [base, search, estado]);
+
+  /* El listado ya no se corta en 50 por sede, así que una sede activa puede
+     traer cientos de citas: se pagina igual que Facturación. */
+  const pagina = usePaginacion(lista, {
+    porPagina: 15,
+    resetKey: `${search}|${estado}`,
+  });
+
+  const cambiarEstado = async (reserva: Reserva, nuevo: Reserva["estado"]) => {
+    if (nuevo === reserva.estado) return;
+    setGuardando(reserva.id);
+    try {
+      await ReservasController.cambiarEstado(reserva, nuevo);
+      await reload();
+      toast(t("reservas.estadoCambiado", { estado: t(`estados.${nuevo}`) }), "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("reservas.estadoError"), "error");
+    } finally {
+      setGuardando(null);
+    }
+  };
 
   return (
     <Panel>
@@ -83,8 +112,12 @@ function ReservasContent() {
       {lista.length === 0 ? (
         <EmptyState icon="calendar" title={t("reservas.emptyTitle")} message={t("reservas.emptyMsg")} />
       ) : (
-        <DataTable headers={[t("common.id"), t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state")]}>
-          {lista.map((r) => (
+        <DataTable
+          paginacion={pagina}
+          resetKey={`${search}|${estado}|${pagina.pagina}`}
+          headers={[t("common.id"), t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state"), t("common.actions")]}
+        >
+          {pagina.visibles.map((r) => (
             <tr key={r.id} onClick={() => popup.open(r)} style={{ cursor: "pointer" }}>
               <td><b>{r.id}</b></td>
               <td>{r.servicio}</td>
@@ -93,6 +126,22 @@ function ReservasContent() {
               <td>{r.hora}</td>
               <PriceCell value={r.precio} />
               <td><Badge kind={r.estado}>{t(`estados.${r.estado}`)}</Badge></td>
+              {/* stopPropagation: la fila entera abre el detalle, y sin esto
+                  desplegar el selector abriría también el popup. */}
+              <td onClick={(e) => e.stopPropagation()}>
+                <select
+                  className={styles.estadoSelect}
+                  value={r.estado}
+                  disabled={guardando === r.id}
+                  aria-label={t("reservas.cambiarEstado")}
+                  title={t("reservas.cambiarEstado")}
+                  onChange={(e) => void cambiarEstado(r, e.target.value as Reserva["estado"])}
+                >
+                  {ESTADOS_RESERVA.filter((e) => e !== "todos").map((e) => (
+                    <option key={e} value={e}>{t(`estados.${e}`)}</option>
+                  ))}
+                </select>
+              </td>
             </tr>
           ))}
         </DataTable>
