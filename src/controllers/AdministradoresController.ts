@@ -12,14 +12,7 @@
 import type { Administrador, CredencialesEmpleado, Negocio, Sede } from "@/models";
 import { AdminApi } from "@/api/modules";
 import type { ApiUser } from "@/api/types";
-
-/** Contraseña temporal legible (sin caracteres ambiguos) — igual que Personal. */
-function generarPassword(largo = 12): string {
-  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-  const bytes = new Uint32Array(largo);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (n) => abc[n % abc.length]).join("");
-}
+import { generarPassword } from "@/lib/password";
 
 /**
  * Convierte un Users del API (con AdminProfile) al modelo del panel,

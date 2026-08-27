@@ -10,7 +10,7 @@
 ============================================================ */
 import { useEffect, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
-import { API_URL } from "@/api/config";
+import { API_URL, getToken } from "@/api/config";
 import type { ApiNotification } from "@/api/types";
 import { playNotificationSound } from "@/lib/notificationSound";
 
@@ -38,7 +38,10 @@ export function useNotificationSocket(
     // eslint-disable-next-line no-console
     console.log(`[notifications-socket] conectando a ${url} como userId=${userId}...`);
 
+    /* El backend autentica el handshake: sin token cierra la conexión.
+       La identidad sale del JWT, ya no del userId que emitíamos nosotros. */
     const socket = io(url, {
+      auth: { token: getToken() ?? "" },
       transports: ["websocket"],
       // Sin límite de intentos: en dev el backend se reinicia solo con
       // cada guardado (nest start --watch) y corta el socket seguido.
@@ -84,6 +87,11 @@ export function useNotificationSocket(
     socket.on("disconnect", (reason) => {
       // eslint-disable-next-line no-console
       console.warn(`[notifications-socket] desconectado: ${reason}`);
+    });
+
+    socket.on("unauthorized", (data) => {
+      // eslint-disable-next-line no-console
+      console.warn("[notifications-socket] rechazado por el backend:", data);
     });
 
     socket.on("connect_error", (error) => {

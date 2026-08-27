@@ -13,6 +13,7 @@ import {
 import type {
   ApiClient, ApiProfesional, ApiResena, ApiSede, ApiService, ApiServicioAsignable, ClientUpdatePayload,
 } from "@/api/types";
+import { generarPassword } from "@/lib/password";
 import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
@@ -388,13 +389,6 @@ export const ResenasController = {
 
 /* ── Personal (ProfesionalModule + AuthModule) ───────────── */
 
-/** Contraseña temporal legible (sin caracteres ambiguos) */
-function generarPassword(largo = 10): string {
-  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-  const bytes = new Uint32Array(largo);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (n) => abc[n % abc.length]).join("");
-}
 
 export const PersonalController = {
   /**

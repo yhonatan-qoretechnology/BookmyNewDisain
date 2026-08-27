@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { PasswordRecoveryApi } from "@/api/modules";
 import { useI18n } from "@/i18n";
 import styles from "./RecuperarPasswordModal.module.css";
+import { isStrongPassword } from "@/lib/password";
 
 /** Vigencia del OTP en el backend (otp.service.ts) */
 const VIGENCIA_SEGUNDOS = 5 * 60;
@@ -116,7 +117,7 @@ export default function RecuperarPasswordModal({
   };
 
   const guardarPassword = async () => {
-    if (nueva.length < 6) { setError(t("recuperar.errCorta")); return; }
+    if (!isStrongPassword(nueva)) { setError(t("recuperar.errCorta")); return; }
     if (nueva !== repetir) { setError(t("recuperar.errDistintas")); return; }
     setError(""); setCargando(true);
     try {

@@ -21,6 +21,7 @@ import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import styles from "./ClienteModal.module.css";
+import { isStrongPassword } from "@/lib/password";
 
 const ESTADOS: ApiClientState[] = ["enabled", "disabled", "blocked"];
 
@@ -141,7 +142,7 @@ export default function ClienteModal({
 
   const cambiarPassword = async () => {
     if (clienteId == null) return;
-    if (password.length < 6) { toast(t("clientes.passwordShort"), "error"); return; }
+    if (!isStrongPassword(password)) { toast(t("clientes.passwordShort"), "error"); return; }
     if (password !== password2) { toast(t("clientes.passwordMismatch"), "error"); return; }
 
     setCambiandoPass(true);
