@@ -23,13 +23,14 @@ import ServiciosSedeModal from "@/components/sedes/ServiciosSedeModal";
 
 export default function SedesPage() {
   const router = useRouter();
-  const { toast } = useUi();
+  const { toast, confirm } = useUi();
   const { t } = useI18n();
   const { session } = useSession();
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
+  const [guardando, setGuardando] = useState(false);
   /* Sede cuyo catálogo de servicios se está editando */
   const [serviciosDe, setServiciosDe] = useState<{ id: number; nombre: string } | null>(null);
 
@@ -40,15 +41,40 @@ export default function SedesPage() {
   );
 
   const agregar = async () => {
+    // Sin este candado, un doble clic en "Guardar" (fácil en una red
+    // lenta: el modal tarda en cerrarse y el segundo clic ya salió)
+    // mandaba dos POST /sedes y dejaba la sede duplicada.
+    if (guardando) return;
     if (!nombre.trim()) { toast(t("common.requiredName"), "error"); return; }
-    await SedesController.add({
-      nombre: nombre.trim(),
-      direccion: direccion.trim() || "—",
-      negocioId: session?.negocioId || "",
+    setGuardando(true);
+    try {
+      await SedesController.add({
+        nombre: nombre.trim(),
+        direccion: direccion.trim() || "—",
+        negocioId: session?.negocioId || "",
+      });
+      setModalOpen(false); setNombre(""); setDireccion("");
+      await reload();
+      toast(t("sedes.created"), "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const eliminar = (id: number, nombreSede: string) => {
+    confirm({
+      title: t("sedes.deleteTitle"),
+      message: t("sedes.deleteMsg", { nombre: nombreSede }),
+      confirmLabel: t("common.delete"),
+      onConfirm: () => {
+        SedesController.remove(id)
+          .then(reload)
+          .then(() => toast(t("sedes.deleted"), "success"))
+          .catch((e) => toast(e instanceof Error ? e.message : "Error", "error"));
+      },
     });
-    setModalOpen(false); setNombre(""); setDireccion("");
-    await reload();
-    toast(t("sedes.created"), "success");
   };
 
   return (
@@ -96,6 +122,13 @@ export default function SedesPage() {
                   >
                     <Icon name="tag" /> {t("serviciosSede.abrir")}
                   </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => eliminar(s.id, s.nombre)}
+                  >
+                    <Icon name="trash" /> {t("common.delete")}
+                  </Button>
                 </div>
               </SimpleCard>
             ))}
@@ -112,8 +145,8 @@ export default function SedesPage() {
           <input id="nsd-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder={t("sedes.addressPlaceholder")} />
         </Field>
         <ModalActions>
-          <Button variant="ghost" onClick={() => setModalOpen(false)}>{t("common.cancel")}</Button>
-          <Button onClick={agregar}>{t("common.save")}</Button>
+          <Button variant="ghost" onClick={() => setModalOpen(false)} disabled={guardando}>{t("common.cancel")}</Button>
+          <Button onClick={() => void agregar()} disabled={guardando}>{t("common.save")}</Button>
         </ModalActions>
       </Modal>
 

@@ -773,6 +773,9 @@ const es = {
     addressPlaceholder: "Calle, número, ciudad",
     teamSize: "Tamaño del equipo",
     created: "Sede creada",
+    deleteTitle: "Eliminar sede",
+    deleteMsg: "¿Eliminar “{nombre}”? Esta acción no se puede deshacer.",
+    deleted: "Sede eliminada",
   },
 
   /* ── Asistente de ayuda (widget flotante) ─────────────────

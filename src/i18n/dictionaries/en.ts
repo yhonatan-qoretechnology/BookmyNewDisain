@@ -768,6 +768,9 @@ const en: Dictionary = {
     addressPlaceholder: "Street, number, city",
     teamSize: "Team size",
     created: "Branch created",
+    deleteTitle: "Delete branch",
+    deleteMsg: "Delete “{nombre}”? This action cannot be undone.",
+    deleted: "Branch deleted",
   },
 
   /* ── Help assistant (floating widget) ─────────────────────

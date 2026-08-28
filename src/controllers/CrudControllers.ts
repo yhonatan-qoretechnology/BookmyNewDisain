@@ -619,6 +619,11 @@ export const SedesController = {
     });
   },
 
+  /** Elimina una sede — DELETE /sedes/:id (borra también sus imágenes). */
+  async remove(id: number): Promise<void> {
+    await SedesApi.remove(id);
+  },
+
   /**
    * Edita una sede — PATCH /sedes/:id. Incluye horario y días cerrado:
    * el backend los guarda como JSON en la fila de la sede (columnas
