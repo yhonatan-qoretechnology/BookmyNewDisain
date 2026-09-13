@@ -11,7 +11,8 @@ import type {
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
-  ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo, ApiProfesional, ApiProfesionalAcceso,
+  ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
+  ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiServicioAsignable, ApiUser,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
@@ -424,6 +425,27 @@ export const PaymentsApi = {
 };
 
 /* ── FestivoModule ───────────────────────────────────────── */
+/* ── EstadisticasModule ──────────────────────────────────── */
+export const EstadisticasApi = {
+  /** 2.9 — empresas con más reservas. Excluye canceladas y no-show. */
+  empresas: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingReservas[]>(EP.estEmpresas + qs(f as Record<string, string | number | undefined>)),
+  /** 2.10 — servicios con más reservas. */
+  servicios: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingReservas[]>(EP.estServicios + qs(f as Record<string, string | number | undefined>)),
+  /** 2.15 — reservas e ingresos por empleado. */
+  empleados: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingEmpleado[]>(EP.estEmpleados + qs(f as Record<string, string | number | undefined>)),
+  /** 2.8 — ciudades con más usuarios. */
+  ciudades: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingCiudad[]>(EP.estCiudades + qs(f as Record<string, string | number | undefined>)),
+  /** 2.2-2.5 y 2.7 — lo más visto de cada tipo. */
+  masVistos: (
+    tipo: "EMPRESA" | "SEDE" | "SERVICIO" | "PROFESIONAL" | "CATEGORIA",
+    f: EstadisticasFiltro = {},
+  ) => http.get<ApiRankingVistas[]>(EP.estMasVistos(tipo) + qs(f as Record<string, string | number | undefined>)),
+};
+
 export const FestivosApi = {
   /** GET /festivos?anio=&sedeId= — nacionales + de su comunidad + de su municipio. */
   findAll: (params: { anio?: number; sedeId?: number } = {}) =>

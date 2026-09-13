@@ -619,3 +619,36 @@ export interface ApiFestivo {
   ccaa: string | null;
   municipio: string | null;
 }
+
+/* ── Estadísticas ─────────────────────────────────────────── */
+
+/** Filtro común de todas las estadísticas (2.12). `hasta` es inclusivo. */
+export interface EstadisticasFiltro {
+  desde?: string;
+  hasta?: string;
+  empresaId?: number;
+  sedeId?: number;
+  limit?: number;
+}
+
+export interface ApiRankingReservas {
+  id: number;
+  nombre: string;
+  reservas: number;
+}
+
+export interface ApiRankingEmpleado extends ApiRankingReservas {
+  imagen: string | null;
+  ingresos: number;
+}
+
+export interface ApiRankingCiudad {
+  ciudad: string | null;
+  usuarios: number;
+}
+
+/** Lo más visto: el backend devuelve id y nº de vistas; el nombre se resuelve aparte. */
+export interface ApiRankingVistas {
+  entityId: number;
+  vistas: number;
+}

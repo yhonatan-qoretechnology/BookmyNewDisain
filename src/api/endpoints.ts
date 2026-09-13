@@ -150,6 +150,16 @@ export const EP = {
   /* @Controller('festivos') — publico; informativos, no bloquean el agendado */
   festivos: "/festivos",
 
+  /* @Controller('estadisticas') — rankings con filtro desde/hasta (2.12) */
+  estEmpresas: "/estadisticas/empresas-con-mas-reservas",
+  estServicios: "/estadisticas/servicios-con-mas-reservas",
+  estEmpleados: "/estadisticas/empleados",
+  estCiudades: "/estadisticas/ciudades",
+  estMasVistos: (tipo: string) => `/estadisticas/mas-vistos/${tipo}`,
+
+  /* @Controller('entity-views') — lo registra la app móvil al abrir una ficha */
+  entityViews: "/entity-views",
+
   /* Disponibilidad — las tres fuentes que valida el backend al agendar.
      Abiertas (sin guard) en lectura. Si devuelven [], appointment.service
      cae al JSON `sede.horario` / `sede.diasCerrado`. */
