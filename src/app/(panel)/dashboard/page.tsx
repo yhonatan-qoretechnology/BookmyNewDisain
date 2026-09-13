@@ -107,6 +107,8 @@ export default function DashboardPage() {
     () => ReservasController.getForSession(session, locale),
     [session?.id, session?.negocioId, session?.sedeId, locale], []
   );
+  /* Tras gestionar una cita desde el popup se refrescan ambos listados */
+  const recargarCitas = () => { void reloadUltimas(); void reloadTodas(); };
   /* KPIs calculados desde el API (payments, users, resenas, citas) */
   const { data: resumen } = useData(
     () => EstadisticasController.getResumen(session, locale),
@@ -174,7 +176,7 @@ export default function DashboardPage() {
         ) : (
           <DataTable headers={[t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state"), t("common.actions")]}>
             {ultimasFiltradas.map((r) => (
-              <tr key={r.id} onClick={() => popup.open(r)} style={{ cursor: "pointer" }}>
+              <tr key={r.id} onClick={() => popup.open(r, recargarCitas)} style={{ cursor: "pointer" }}>
                 <td><b>{r.servicio}</b></td>
                 <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
                 <td>{fmtFechaCorta(r.fecha)}</td>
@@ -203,7 +205,7 @@ export default function DashboardPage() {
           <div className={styles.dayList}>
             {fechaReservas.length === 0 && <span>{t("dashboard.noToday")}</span>}
             {fechaReservas.map((r) => (
-              <div key={r.id} className={styles.dayItem} onClick={() => popup.open(r)}>
+              <div key={r.id} className={styles.dayItem} onClick={() => popup.open(r, recargarCitas)}>
                 <span className={styles.dayHour}>{r.hora}</span>
                 <span className={styles.dayBody}>
                   <b>{r.servicio}</b>
@@ -219,7 +221,7 @@ export default function DashboardPage() {
           <CalendarGrid 
             events={calEvents} 
             maxPerCell={2} 
-            onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)} 
+            onEventClick={(id, data) => data ? popup.open(data, recargarCitas) : popup.open(id, recargarCitas)} 
             selectable={true}
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}

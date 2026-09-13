@@ -120,6 +120,18 @@ export interface ApiProfesional {
   acceso?: ApiProfesionalAcceso | null;
 }
 
+/** GET /profesionales/by-sede/:sedeId — profesional con los servicios que presta
+    en esa sede. Ojo: aquí `imagen` ya llega como URL absoluta. */
+export interface ApiProfesionalDeSede {
+  id: number;
+  nombre: string;
+  imagen: string | null;
+  telefono?: string | null;
+  state?: string;
+  sedeId: number;
+  servicios: Array<{ id: number; nombre: string }>;
+}
+
 /** Respuesta de POST /profesionales: además del profesional creado,
     trae el correo de acceso que generó el backend (patrón
     nombre@empresa.com) — la contraseña no vuelve, solo se envió. */
@@ -197,6 +209,10 @@ export interface ApiAppointment {
   profesional?: { id: number; nombre: string };
   user?: Partial<ApiUser>;
   Payment?: ApiPayment | null;
+  /** Si esta cita es la extensión de otra, el id de la original */
+  extensionDeId?: number | null;
+  /** Citas de extensión que cuelgan de esta (GET /appointments y /:id) */
+  extensiones?: Array<{ id: number; duracion: number; estado: ApiAppointmentStatus }>;
 }
 
 /** Resumen de cita que arma el backend (buildAppointmentSummary). Horas en ISO UTC. */
@@ -247,7 +263,8 @@ export interface ApiCitaEnConflicto {
 
 /** Respuesta de PATCH /appointments/:id/extend */
 export type ApiExtendResult =
-  | { status: "EXTENDED"; appointment: ApiAppointment }
+  /** `extension` es la cita NUEVA que registra el tiempo extra */
+  | { status: "EXTENDED"; appointment: ApiAppointment; extension: ApiAppointment }
   | {
       status: "CONFLICT";
       solicitud: { extraMinutes: number; nuevaHoraFin: string };

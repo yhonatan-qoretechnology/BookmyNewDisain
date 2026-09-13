@@ -22,6 +22,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
+import ExtensionTag from "@/components/reservas/ExtensionTag";
 import type { Reserva } from "@/models";
 import EditarReservaModal from "@/components/reservas/EditarReservaModal";
 import ExtenderCitaModal from "@/components/reservas/ExtenderCitaModal";
@@ -60,8 +61,8 @@ function ReservasContent() {
   /* Al volver del asistente, abre el detalle de la reserva creada */
   const creada = params.get("creada");
   useEffect(() => {
-    if (creada && base.some((r) => r.id === creada)) popup.open(creada);
-  }, [creada, base, popup]);
+    if (creada && base.some((r) => r.id === creada)) popup.open(creada, reload);
+  }, [creada, base, popup, reload]);
 
   const lista = useMemo(() => {
     const q = search.toLowerCase();
@@ -123,9 +124,9 @@ function ReservasContent() {
           headers={[t("common.id"), t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state"), t("common.actions")]}
         >
           {pagina.visibles.map((r) => (
-            <tr key={r.id} onClick={() => popup.open(r)} style={{ cursor: "pointer" }}>
+            <tr key={r.id} onClick={() => popup.open(r, reload)} style={{ cursor: "pointer" }}>
               <td><b>{r.id}</b></td>
-              <td>{r.servicio}</td>
+              <td>{r.servicio}<ExtensionTag reserva={r} /></td>
               <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
               <td>{fmtFechaCorta(r.fecha)}</td>
               <td>{r.hora}</td>

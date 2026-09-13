@@ -89,6 +89,8 @@ export interface Reserva {
   /** id numérico real en la BD (modo API) */
   apiId?: number;
   servicio: string;
+  /** id del servicio (Appointment.serviceId) — para saber quién puede atenderla */
+  servicioId?: number;
   cliente: string;
   /** id del usuario cliente (Appointment.userId), para cruzar con /clients */
   clienteId?: number;
@@ -102,6 +104,10 @@ export interface Reserva {
   /** Instantes reales (ISO UTC) de inicio y fin — para saber si está en curso */
   inicioISO?: string;
   finISO?: string;
+  /** Si es una cita de extensión, el id numérico de la cita original */
+  extensionDeId?: number;
+  /** Minutos añadidos a esta cita con extensiones (no canceladas) */
+  minutosExtendidos?: number;
   precio: number;
   estado: EstadoReserva;
   sedeId: string;

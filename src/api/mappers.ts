@@ -95,6 +95,7 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
       (a.service as { name?: string })?.name ||
       `#${a.serviceId}`,
     cliente: a.user?.UserData?.name || a.user?.email || `#${a.userId}`,
+    servicioId: a.serviceId,
     clienteId: a.userId,
     telefono: a.user?.UserData?.phone || "—",
     email: a.user?.email || "—",
@@ -107,6 +108,11 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
     horaFin: a.horaFin ? hhmm(a.horaFin) : undefined,
     inicioISO: a.horaInicio || undefined,
     finISO: a.horaFin || undefined,
+    extensionDeId: a.extensionDeId ?? undefined,
+    minutosExtendidos:
+      (a.extensiones || [])
+        .filter((e) => e.estado !== "CANCELLED")
+        .reduce((total, e) => total + e.duracion, 0) || undefined,
     precio: a.Payment?.totalAmount ?? 0,
     estado: APPT_ESTADO_MAP[a.estado] ?? "pendiente",
     sedeId: String(a.sedeId),

@@ -4,12 +4,16 @@
    (WhatsApp, Email, Imprimir). Se abre desde cualquier vista
    con useReservaPopup().open(id)
 ============================================================ */
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Reserva } from "@/models";
 import { ReservasController } from "@/controllers/ReservasController";
 import { fmtFechaLarga } from "@/constants";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/context/SessionContext";
+import { useUi } from "@/context/UiContext";
+import ReagendarModal from "./ReagendarModal";
+import CambiarProfesionalModal from "./CambiarProfesionalModal";
+import ExtenderCitaModal from "./ExtenderCitaModal";
 import Icon, { WhatsAppIcon } from "@/components/ui/Icon";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { EASE_OUT, SPRING_SOFT } from "@/components/animations";
@@ -18,7 +22,11 @@ import styles from "./ReservaPopup.module.css";
 const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
 
 interface ReservaPopupValue {
-  open: (idOrReserva: string | Reserva) => Promise<void>;
+  /**
+   * @param onCambio Se llama cuando desde el popup se cancela, reprograma,
+   *   reasigna o extiende la cita, para que la vista recargue su listado.
+   */
+  open: (idOrReserva: string | Reserva, onCambio?: () => void) => Promise<void>;
   close: () => void;
 }
 
@@ -33,8 +41,17 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
   const [reserva, setReserva] = useState<Reserva | null>(null);
   const reduce = useReducedMotion();
   const [loading, setLoading] = useState(false);
+  const { toast, confirm } = useUi();
+  const onCambioRef = useRef<(() => void) | null>(null);
+  /* Acción de gestión abierta. El popup se cierra al abrirla para que el
+     modal (o la confirmación) no quede por debajo de su overlay. */
+  const [accion, setAccion] = useState<{
+    tipo: "reprogramar" | "profesional" | "extender";
+    reserva: Reserva;
+  } | null>(null);
 
-  const open = useCallback(async (idOrReserva: string | Reserva) => {
+  const open = useCallback(async (idOrReserva: string | Reserva, onCambio?: () => void) => {
+    onCambioRef.current = onCambio ?? null;
     setLoading(true);
     try {
       let apiId: number;
@@ -278,6 +295,40 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
     }
   };
 
+  /* ── Gestión de la cita: reprogramar, cambiar profesional, cancelar ── */
+  const gestionable =
+    !!reserva && reserva.apiId != null &&
+    (reserva.estado === "pendiente" || reserva.estado === "confirmada");
+  const enCurso = !!reserva && ReservasController.citaEnCurso([reserva]) !== null;
+  const avisarCambio = () => onCambioRef.current?.();
+
+  const abrirAccion = (tipo: "reprogramar" | "profesional" | "extender") => {
+    if (!reserva) return;
+    setAccion({ tipo, reserva });
+    setReserva(null);
+  };
+
+  const cancelarCita = () => {
+    if (!reserva) return;
+    const r = reserva;
+    setReserva(null);
+    confirm({
+      title: t("popup.cancelarTitle"),
+      message: t("popup.cancelarMsg", { cliente: r.cliente, fecha: fmtFechaLarga(r.fecha), hora: r.hora }),
+      confirmLabel: t("popup.cancelarConfirm"),
+      onConfirm: async () => {
+        try {
+          /* Usa PATCH /appointments/:id/cancel: libera la franja y avisa al cliente */
+          await ReservasController.cambiarEstado(r, "cancelado");
+          toast(t("popup.cancelada"), "success");
+          avisarCambio();
+        } catch (e) {
+          toast(e instanceof Error ? e.message : t("common.error"), "error");
+        }
+      },
+    });
+  };
+
   return (
     <ReservaPopupContext.Provider value={{ open, close }}>
       {children}
@@ -319,7 +370,21 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 <div>
                   <div className={styles.headerSede}>{sedeNombre || "—"}</div>
                   <div className={styles.service}>{reserva.servicio}</div>
-                  <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
+                  <div className={styles.badges}>
+                    <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
+                    {reserva.extensionDeId != null && (
+                      <span className={styles.badge}>
+                        <Icon name="clock" width={13} height={13} />
+                        {t("popup.chipExtension", { id: `R-${reserva.extensionDeId}` })}
+                      </span>
+                    )}
+                    {!!reserva.minutosExtendidos && (
+                      <span className={styles.badge}>
+                        <Icon name="clock" width={13} height={13} />
+                        {t("popup.chipExtendida", { n: reserva.minutosExtendidos })}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button className={styles.close} onClick={close} aria-label={t("popup.close")}>
                   <Icon name="close" strokeWidth={2.2} width={16} height={16} />
@@ -351,7 +416,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 <div className={styles.field}><label>{t("common.email")}</label><span style={{ wordBreak: "break-all" }}>{reserva.email || "—"}</span></div>
                 <div className={styles.field}><label>{t("common.price")}</label><span className={styles.price}>{reserva.precio.toFixed(2)}€</span></div>
                 <div className={styles.field}><label>{t("common.date")}</label><span>{fmtFechaLarga(reserva.fecha)}</span></div>
-                <div className={styles.field}><label>{t("common.time")}</label><span>{reserva.hora || "—"}</span></div>
+                <div className={styles.field}><label>{t("common.time")}</label><span>{reserva.hora || "—"}{reserva.horaFin ? ` – ${reserva.horaFin}` : ""}</span></div>
                 <div className={styles.field}><label>{t("common.duration")}</label><span>{reserva.duracion} min</span></div>
                 <div className={styles.field}><label>{t("common.branch")}</label><span>{sedeNombre || "—"}</span></div>
                 <div className={styles.field}><label>{t("common.specialist")}</label><span>{espNombre}</span></div>
@@ -364,6 +429,32 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
               </div>
               <div className={styles.notes}>{reserva.notas || t("popup.noNotes")}</div>
             </div>
+
+            {gestionable && (
+              <div className={styles.gestion}>
+                {enCurso && (
+                  <button
+                    className={`${styles.gestionBtn} ${styles.gestionDestacada}`}
+                    onClick={() => abrirAccion("extender")}
+                  >
+                    <Icon name="clock" width={18} height={18} />
+                    {t("extender.boton")}
+                  </button>
+                )}
+                <button className={styles.gestionBtn} onClick={() => abrirAccion("reprogramar")}>
+                  <Icon name="calendar" width={18} height={18} />
+                  {t("popup.reprogramar")}
+                </button>
+                <button className={styles.gestionBtn} onClick={() => abrirAccion("profesional")}>
+                  <Icon name="users" width={18} height={18} />
+                  {t("popup.cambiarProfesional")}
+                </button>
+                <button className={`${styles.gestionBtn} ${styles.gestionPeligro}`} onClick={cancelarCita}>
+                  <Icon name="circle-x" width={18} height={18} />
+                  {t("popup.cancelarCita")}
+                </button>
+              </div>
+            )}
 
             <div className={styles.actions}>
               <button className={`${styles.actionBtn} ${styles.whatsapp}`} onClick={onWhatsApp}>
@@ -383,6 +474,22 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
         </motion.div>
         )}
       </AnimatePresence>
+
+      <ReagendarModal
+        reserva={accion?.tipo === "reprogramar" ? accion.reserva : null}
+        onClose={() => setAccion(null)}
+        onReagendada={avisarCambio}
+      />
+      <CambiarProfesionalModal
+        reserva={accion?.tipo === "profesional" ? accion.reserva : null}
+        onClose={() => setAccion(null)}
+        onReasignada={avisarCambio}
+      />
+      <ExtenderCitaModal
+        reserva={accion?.tipo === "extender" ? accion.reserva : null}
+        onClose={() => setAccion(null)}
+        onCambios={avisarCambio}
+      />
     </ReservaPopupContext.Provider>
   );
 }

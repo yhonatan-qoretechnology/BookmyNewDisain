@@ -1,0 +1,15 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: rgba(255, 167, 38, .14);
+  color: #b86e00;
+}
+:global([data-theme="dark"]) .tag { color: #ffb74d; }

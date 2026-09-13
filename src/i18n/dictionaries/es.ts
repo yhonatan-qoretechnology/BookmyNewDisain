@@ -45,6 +45,7 @@ const es = {
     download: "Descargar",
     edit: "Editar",
     add: "Agregar",
+    duration: "Duración",
   },
 
   roles: {
@@ -1145,7 +1146,9 @@ const es = {
     confirmar: "Extender cita",
     rangoError: "Indica entre 1 y 240 minutos.",
     error: "No se pudo completar la acción. Inténtalo de nuevo.",
-    extendida: "Cita extendida hasta las {hora}",
+    extendida: "Se registró una extensión de {n} min ({inicio} – {fin})",
+    tagExtension: "Extensión",
+    tagExtendida: "+{n} min",
     conflictoTitulo: "Hay otra reserva en ese horario",
     conflictoSub: "Para sumar {n} min (hasta las {hora}) primero hay que resolver esta(s) cita(s). Cuando estén resueltas, la extensión se aplica sola.",
     queHacer: "Qué hacer con esta cita",
@@ -1183,6 +1186,24 @@ const es = {
   },
 
   popup: {
+    /* Gestión de la cita */
+    reprogramar: "Reprogramar",
+    cambiarProfesional: "Cambiar profesional",
+    cancelarCita: "Cancelar cita",
+    cancelarTitle: "Cancelar la cita",
+    cancelarMsg: "¿Cancelar la cita de {cliente} del {fecha} a las {hora}? La franja queda libre y se avisa al cliente.",
+    cancelarConfirm: "Sí, cancelar",
+    cancelada: "Cita cancelada",
+    reasignarTitle: "Cambiar de profesional",
+    reasignarSub: "{servicio} · {fecha}, {hora}. Ahora la atiende {actual}.",
+    reasignarMotivoPlaceholder: "Ej. la profesional no llega a tiempo",
+    reasignarNota: "Solo aparecen profesionales activos de la sede que hacen este servicio. Si alguno está ocupado a esa hora, se avisará al elegirlo.",
+    reasignarVacioTitle: "Nadie más hace este servicio",
+    reasignarVacioMsg: "No hay otro profesional activo en la sede que ofrezca este servicio.",
+    reasignarLoadError: "No se pudo cargar la lista de profesionales.",
+    reasignada: "Cita reasignada a {nombre}",
+    chipExtension: "Extensión de {id}",
+    chipExtendida: "Extendida +{n} min",
     close: "Cerrar",
     print: "PDF",
     email: "Correo",

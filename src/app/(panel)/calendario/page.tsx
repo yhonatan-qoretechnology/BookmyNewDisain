@@ -24,29 +24,18 @@ export default function CalendarioPage() {
   const popup = useReservaPopup();
 
   /* Festivos del año en curso, acotados a la sede de la sesión: el backend
-
      resuelve su comunidad y su municipio. Son informativos — pintan la
-
      celda en rojo pero NO impiden agendar. */
-
   const { data: diasFestivos } = useData(
-
     () => FestivosApi.findAll({
-
       anio: new Date().getFullYear(),
-
       sedeId: session?.sedeId ? Number(session.sedeId) : undefined,
-
     }).catch(() => []),
-
     [session?.sedeId],
-
     [],
-
   );
 
-
-  const { data: lista } = useData(
+  const { data: lista, reload } = useData(
     () => ReservasController.getForSession(session, locale),
     [session?.id, session?.negocioId, locale], []
   );
@@ -59,15 +48,10 @@ export default function CalendarioPage() {
   );
 
   const festivos = useMemo(
-
     () => Object.fromEntries(
-
       (diasFestivos || []).map((f) => [f.fecha.slice(0, 10), f.nombre]),
-
     ),
-
     [diasFestivos],
-
   );
 
 
@@ -89,7 +73,7 @@ export default function CalendarioPage() {
       <CalendarGrid
         events={events}
         festivos={festivos}
-        onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)}
+        onEventClick={(id, data) => data ? popup.open(data, reload) : popup.open(id, reload)}
         onViewChange={(v) => toast(t("common.comingSoon", { view: v }), "default")}
       />
     </Panel>
