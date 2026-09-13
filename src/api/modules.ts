@@ -203,7 +203,7 @@ export const ProfesionalesApi = {
   /** POST /profesionales — `password` es obligatorio (login de
       profesionales, rol EMPLOYEE): el backend genera el correo de
       acceso solo (nombre@empresa.com) y lo devuelve en `acceso.email`. */
-  create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string; password: string }) =>
+  create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string; password: string; emailPersonal?: string }) =>
     http.post<ApiProfesionalCreateResponse>(EP.profesionales, data),
   /** PATCH /profesionales/:id — edición y vínculo con su usuario (user_id) */
   update: (id: number, data: Partial<ApiProfesional>) =>

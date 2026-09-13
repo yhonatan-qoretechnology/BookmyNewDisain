@@ -61,6 +61,8 @@ export default function PersonalPage() {
   const [sede, setSede] = useState("");
   const [telefono, setTelefono] = useState("");
   const [password, setPassword] = useState("");
+  /* Correo real del empleado: a él va el enlace para que fije su contraseña. */
+  const [emailPersonal, setEmailPersonal] = useState("");
   /* La foto se guarda aquí y se sube DESPUÉS de crear: hasta que el
      profesional no existe no hay id al que asociarla. */
   const [fotoAlta, setFotoAlta] = useState<File | null>(null);
@@ -98,8 +100,9 @@ export default function PersonalPage() {
       const nombreCreado = nombre.trim();
       const { email, fotoFallida } = await PersonalController.crear({
         nombre, rol, telefono, sedeId: sede, password, foto: fotoAlta,
+        emailPersonal,
       });
-      setModalOpen(false); setNombre(""); setRol(""); setSede(""); setTelefono(""); setPassword("");
+      setModalOpen(false); setNombre(""); setRol(""); setSede(""); setTelefono(""); setPassword(""); setEmailPersonal("");
       setFotoAlta(null);
       await reload();
       toast(t("personal.added"), "success");
@@ -315,7 +318,7 @@ export default function PersonalPage() {
       </Panel>
 
       {/* Alta de integrante */}
-      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setFotoAlta(null); }}>
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setFotoAlta(null); setEmailPersonal(""); }}>
         <ModalTitle>{t("personal.modalTitle")}</ModalTitle>
         {/* Devolver null mantiene la vista previa local sin llamar al API:
             el archivo se sube al crear, cuando ya hay id. */}
@@ -344,6 +347,16 @@ export default function PersonalPage() {
             ))}
           </select>
         </Field>
+        <Field label={t("personal.emailPersonal")} htmlFor="np-mail">
+          <input
+            id="np-mail"
+            type="email"
+            value={emailPersonal}
+            onChange={(e) => setEmailPersonal(e.target.value)}
+            placeholder={t("personal.emailPersonalPlaceholder")}
+          />
+        </Field>
+        <p className={styles.credWarn}>{t("personal.emailPersonalAyuda")}</p>
         <Field label={t("personal.password")} htmlFor="np-pass">
           <div className={styles.passRow}>
             <input
@@ -359,7 +372,7 @@ export default function PersonalPage() {
         </Field>
         <p className={styles.credWarn}>{t("personal.createHint")}</p>
         <ModalActions>
-          <Button variant="ghost" onClick={() => { setModalOpen(false); setFotoAlta(null); }} disabled={guardandoAlta}>{t("common.cancel")}</Button>
+          <Button variant="ghost" onClick={() => { setModalOpen(false); setFotoAlta(null); setEmailPersonal(""); }} disabled={guardandoAlta}>{t("common.cancel")}</Button>
           <Button onClick={() => void agregar()} disabled={guardandoAlta}>{t("common.save")}</Button>
         </ModalActions>
       </Modal>

@@ -477,6 +477,9 @@ export const PersonalController = {
   async crear(input: {
     nombre: string; rol: string; telefono: string; sedeId: string; password: string;
     foto?: File | null;
+    /** Correo REAL del empleado. Si se indica, el backend le manda el enlace
+        para que fije su propia contraseña; el de login es sintético. */
+    emailPersonal?: string;
   }): Promise<{ email: string; fotoFallida: boolean }> {
     const creado = await ProfesionalesApi.create({
       nombre: input.nombre.trim(),
@@ -484,6 +487,7 @@ export const PersonalController = {
       sedeId: Number(input.sedeId),
       biografia: input.rol.trim() || undefined,
       password: input.password,
+      emailPersonal: input.emailPersonal?.trim() || undefined,
     });
 
     let fotoFallida = false;

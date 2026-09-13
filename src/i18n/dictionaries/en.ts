@@ -664,6 +664,9 @@ const en: Dictionary = {
   },
 
   personal: {
+    emailPersonal: "Employee's personal email",
+    emailPersonalPlaceholder: "ana.perez@gmail.com",
+    emailPersonalAyuda: "If you fill this in, they get a link to choose their own password. The login address the system generates is not a real mailbox, so without this you will have to dictate the credentials.",
     panelTitle: "{negocio} team",
     countSub: "{n} member(s)",
     searchPlaceholder: "Search by name or role…",

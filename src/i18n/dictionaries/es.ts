@@ -670,6 +670,9 @@ const es = {
   },
 
   personal: {
+    emailPersonal: "Correo personal del empleado",
+    emailPersonalPlaceholder: "ana.perez@gmail.com",
+    emailPersonalAyuda: "Si lo rellenas, le llega un enlace para que elija su propia contraseña. El correo de acceso que genera el sistema no es un buzón real, así que sin esto habrá que dictarle las credenciales.",
     panelTitle: "Equipo de {negocio}",
     countSub: "{n} integrante(s)",
     searchPlaceholder: "Buscar por nombre o rol…",

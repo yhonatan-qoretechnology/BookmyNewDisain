@@ -35,6 +35,10 @@ export function loadGoogleMaps(): Promise<void> {
     script.src =
       "https://maps.googleapis.com/maps/api/js" +
       `?key=${encodeURIComponent(GOOGLE_MAPS_API_KEY)}` +
+      /* `places` lo necesita el autocompletado de direcciones del alta de
+         sedes. Va aqui y no en una segunda carga porque el SDK solo se
+         inyecta una vez: pedirlo despues no anadiria la libreria. */
+      `&libraries=places` +
       `&loading=async&callback=${CALLBACK_NAME}`;
     script.onerror = () => {
       loaderPromise = null;
