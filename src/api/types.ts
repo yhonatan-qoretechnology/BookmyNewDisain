@@ -185,6 +185,8 @@ export interface ApiAppointment {
   horaFin: string;
   duracion: number;
   estado: ApiAppointmentStatus;
+  /** Nota del cliente que espera a ser atendido (PATCH :id/observacion-espera). */
+  observacionEspera?: string | null;
   notas?: string | null;
   sedeId: number;
   serviceId: number;
@@ -220,6 +222,8 @@ export interface ApiPaymentServiceRef {
  * rol del usuario. El backend no valida token/rol en este endpoint.
  */
 export interface ApiPaymentFiltered {
+  /** Adicionales de la factura (payment_items). */
+  items?: ApiPaymentItem[];
   id: number;
   userId: number;
   totalAmount: number;

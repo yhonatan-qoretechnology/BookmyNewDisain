@@ -23,6 +23,7 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
 import type { Reserva } from "@/models";
+import EditarReservaModal from "@/components/reservas/EditarReservaModal";
 import styles from "./reservas.module.css";
 
 function ReservasContent() {
@@ -38,6 +39,8 @@ function ReservasContent() {
   const [estadoIdx, setEstadoIdx] = useState(0);
   /* id de la reserva cuyo estado se está guardando (bloquea su selector) */
   const [guardando, setGuardando] = useState<string | null>(null);
+  /* Reserva abierta en el modal de edición (horario / detalles). */
+  const [editando, setEditando] = useState<Reserva | null>(null);
   const estado = ESTADOS_RESERVA[estadoIdx];
 
   /* Enlaces históricos "?nueva=1" → asistente de creación */
@@ -129,6 +132,7 @@ function ReservasContent() {
               {/* stopPropagation: la fila entera abre el detalle, y sin esto
                   desplegar el selector abriría también el popup. */}
               <td onClick={(e) => e.stopPropagation()}>
+                <div className={styles.accionesCell}>
                 <select
                   className={styles.estadoSelect}
                   value={r.estado}
@@ -141,11 +145,26 @@ function ReservasContent() {
                     <option key={e} value={e}>{t(`estados.${e}`)}</option>
                   ))}
                 </select>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditando(r)}
+                  disabled={guardando === r.id}
+                >
+                  {t("reservas.editar")}
+                </Button>
+                </div>
               </td>
             </tr>
           ))}
         </DataTable>
       )}
+
+      <EditarReservaModal
+        reserva={editando}
+        onClose={() => setEditando(null)}
+        onActualizada={(r) => { setEditando(r); void reload(); }}
+      />
     </Panel>
   );
 }

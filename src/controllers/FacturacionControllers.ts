@@ -155,7 +155,16 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
     estado: estadoDesdePago(p.status),
     sedeId: p.appointment?.sedeId != null ? String(p.appointment.sedeId) : undefined,
     metodoPago: metodoPagoDesdePago(p),
-    items: [{ concepto: servicio, cantidad: 1, precio: total }],
+    /* Si el backend devuelve adicionales (payment_items) se pintan como
+       lineas propias; si no, se cae a la unica linea del servicio, que es lo
+       que habia antes. El servicio va SIEMPRE primero: el total de la factura
+       es su tarifa mas los adicionales. */
+    items: (p.items && p.items.length > 0)
+      ? [
+          { concepto: servicio, cantidad: 1, precio: Number((total - p.items.reduce((s2, it) => s2 + it.cantidad * it.precioUnitario, 0)).toFixed(2)) },
+          ...p.items.map((it) => ({ concepto: it.concepto, cantidad: it.cantidad, precio: it.precioUnitario })),
+        ]
+      : [{ concepto: servicio, cantidad: 1, precio: total }],
   };
 }
 

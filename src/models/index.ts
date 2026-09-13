@@ -108,6 +108,9 @@ export interface Reserva {
   sedeImagenes?: string[];
   empleadoName?: string;
   notas: string;
+  /** Nota sobre el cliente que espera a ser atendido. Distinta de `notas`,
+      que es del cliente y la machaca el reagendado. */
+  observacionEspera?: string | null;
   /** Método de pago elegido al agendar */
   metodoPago?: MetodoPago;
 }

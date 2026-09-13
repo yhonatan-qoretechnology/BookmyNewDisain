@@ -314,6 +314,38 @@ export const ReservasController = {
    *
    * @throws Error("SIN_ID") si la reserva no viene del API.
    */
+  /**
+   * Alarga una cita — PATCH /appointments/:id/extend.
+   * `duracion` es la duracion TOTAL nueva, no los minutos que se anaden.
+   * El backend rechaza con 400 si pisa otra cita del mismo profesional.
+   */
+  async extenderHorario(reserva: Reserva, duracion: number, motivo?: string): Promise<Reserva> {
+    if (reserva.apiId == null) throw new Error("SIN_ID");
+    const actualizada = await AppointmentsApi.extender(reserva.apiId, { duracion, motivo });
+    const mapped: Reserva = {
+      ...reserva,
+      duracion: actualizada.duracion ?? duracion,
+      observacionEspera: actualizada.observacionEspera ?? reserva.observacionEspera ?? null,
+    };
+    cache.set(mapped.id, mapped);
+    /* La franja ocupada cambia: hay que rehacer la disponibilidad. */
+    BookingController.invalidateAll();
+    return mapped;
+  },
+
+  /** Nota sobre el cliente que espera — PATCH /appointments/:id/observacion-espera. */
+  async guardarObservacionEspera(reserva: Reserva, texto: string): Promise<Reserva> {
+    if (reserva.apiId == null) throw new Error("SIN_ID");
+    const limpio = texto.trim();
+    const actualizada = await AppointmentsApi.observacionEspera(reserva.apiId, limpio || null);
+    const mapped: Reserva = {
+      ...reserva,
+      observacionEspera: actualizada.observacionEspera ?? (limpio || null),
+    };
+    cache.set(mapped.id, mapped);
+    return mapped;
+  },
+
   async cambiarEstado(reserva: Reserva, estado: Reserva["estado"]): Promise<Reserva> {
     if (reserva.apiId == null) throw new Error("SIN_ID");
 
