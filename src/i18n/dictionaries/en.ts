@@ -424,6 +424,13 @@ const en: Dictionary = {
     dangerHistorial:
       "They have {citas} appointment(s), {pagos} payment(s) and {resenas} review(s). Those are kept for billing; their personal details will be erased and they will lose access.",
     deleteAccount: "Delete account",
+    sectionDisable: "Disable account",
+    disableHint: "Only the superadmin can delete accounts. Disabling removes their access and keeps all their data.",
+    disableAccount: "Disable account",
+    disableTitle: "Disable account",
+    disableMsg: "Disable {nombre}? They won't be able to sign in until you set the status back to “Active”.",
+    disabledOk: "Account disabled",
+    alreadyDisabled: "This account is already disabled. To reactivate it, set the status to “Active” and save.",
   },
 
   facturacion: {
@@ -636,6 +643,12 @@ const en: Dictionary = {
     deleteMsg: "Are you sure you want to remove {nombre} from the team?",
     deleted: "Member removed",
     deleteAria: "Remove {nombre}",
+    disable: "Disable",
+    enable: "Enable",
+    disableTitle: "Disable team member",
+    disableMsg: "Disable {nombre}? Their history is kept and you can enable them again at any time.",
+    disabled: "Team member disabled",
+    enabled: "Team member enabled",
     fillApi: "The backend requires a unique phone and a branch to create a professional.",
     passwordRequired: "A password is required to create the professional.",
     createHint: "The backend generates the login email from the name; you set the password here.",

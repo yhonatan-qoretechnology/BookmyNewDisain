@@ -49,23 +49,23 @@ src/
 
 ## Pantalla → Endpoints oficiales
 
-| Pantalla | Endpoints |
-|---|---|
-| Login | `POST /auth/login` (token + cookie; idioma de `user_data.idioma`) |
-| Empresas (solo superadmin) | `GET/POST /empresas` |
-| Dashboard | `GET /appointments/branches/:sedeId/latest`, `GET /appointments?sedeId`, KPIs de `/payments`, `/auth/users`, `/resenas` |
-| Reservas | `GET /appointments?sedeId` (`{items,pagination}`), `POST /appointments` (DTO exacto con `paymentMethod CARD|CASH`, tarjeta si CARD, `paymentAmount` = precio del servicio) |
-| Flujo de agendado | clientes `GET /auth/users` (CLIENT) · sedes `GET /sedes/empresa/:id` · empleados `GET /profesionales/by-sede/:id` · servicios `GET /services/by-sede/:id?language=` (precio de `Price.amount`) |
-| Calendario | Mismas citas agrupadas por fecha (mes actual real) |
-| Clientes | `GET /auth/users` (solo lectura; el alta es `POST /auth/register` desde la app de clientes) |
-| Servicios | `GET /services?language=`, `GET /categories?language=`, `POST /services` (translations + prices), `DELETE /services/:id` |
-| Personal | `GET /profesionales`, `POST /profesionales` (phone único + sedeId), `DELETE /profesionales/:id` |
-| Sedes | `GET /sedes/empresa/:empresaId`, `POST /sedes` |
-| Reseñas | `GET /resenas`, `PATCH /resenas/:id/aprobar` |
-| Facturación | `GET /payments` (estados mapeados) |
-| Comunicación | `GET /ChatMessage/contacts/:userId`, `GET /ChatMessage/messages/:a/:b`, `POST /ChatMessage/messages`, `POST /ChatMessage/messages/read` (REST con sondeo; el backend también expone Socket.IO) |
-| Estadísticas | Agregados calculados de `/payments`, `/auth/users`, `/resenas` y citas |
-| Configuración | `PATCH /auth/users/:id` (nombre e **idioma** — parámetro de BD), `PATCH /auth/users/:id/password` |
+| Pantalla                   | Endpoints                                                                                                                                                                                      |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Login                      | `POST /auth/login` (token + cookie; idioma de `user_data.idioma`)                                                                                                                              |
+| Empresas (solo superadmin) | `GET/POST /empresas`                                                                                                                                                                           |
+| Dashboard                  | `GET /appointments/branches/:sedeId/latest`, `GET /appointments?sedeId`, KPIs de `/payments`, `/auth/users`, `/resenas`                                                                        |
+| Reservas                   | `GET /appointments?sedeId` (`{items,pagination}`), `POST /appointments` (DTO exacto con `paymentMethod CARD                                                                                    | CASH`, tarjeta si CARD, `paymentAmount` = precio del servicio) |
+| Flujo de agendado          | clientes `GET /auth/users` (CLIENT) · sedes `GET /sedes/empresa/:id` · empleados `GET /profesionales/by-sede/:id` · servicios `GET /services/by-sede/:id?language=` (precio de `Price.amount`) |
+| Calendario                 | Mismas citas agrupadas por fecha (mes actual real)                                                                                                                                             |
+| Clientes                   | `GET /auth/users` (solo lectura; el alta es `POST /auth/register` desde la app de clientes)                                                                                                    |
+| Servicios                  | `GET /services?language=`, `GET /categories?language=`, `POST /services` (translations + prices), `DELETE /services/:id`                                                                       |
+| Personal                   | `GET /profesionales`, `POST /profesionales` (phone único + sedeId), `DELETE /profesionales/:id`                                                                                                |
+| Sedes                      | `GET /sedes/empresa/:empresaId`, `POST /sedes`                                                                                                                                                 |
+| Reseñas                    | `GET /resenas`, `PATCH /resenas/:id/aprobar`                                                                                                                                                   |
+| Facturación                | `GET /payments` (estados mapeados)                                                                                                                                                             |
+| Comunicación               | `GET /ChatMessage/contacts/:userId`, `GET /ChatMessage/messages/:a/:b`, `POST /ChatMessage/messages`, `POST /ChatMessage/messages/read` (REST con sondeo; el backend también expone Socket.IO) |
+| Estadísticas               | Agregados calculados de `/payments`, `/auth/users`, `/resenas` y citas                                                                                                                         |
+| Configuración              | `PATCH /auth/users/:id` (nombre e **idioma** — parámetro de BD), `PATCH /auth/users/:id/password`                                                                                              |
 
 ## Roles e i18n
 
@@ -76,3 +76,8 @@ src/
 
 - **Stock/insumos** se eliminó del panel: el backend no tiene módulo de inventario (sin endpoint = sin pantalla, cero datos inventados).
 - La comunicación usa la vía REST del chat con sondeo de 5 s; migrar al gateway Socket.IO del backend es el siguiente paso natural.
+
+---
+
+gh auth login
+gh auth switch

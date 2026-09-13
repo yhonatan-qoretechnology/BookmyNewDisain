@@ -227,6 +227,30 @@ export default function PersonalPage() {
     }
   };
 
+  /* Eliminar es exclusivo del superadmin; el resto de administradores
+     inhabilita (el backend también lo exige en DELETE). */
+  const puedeEliminar = session?.role === "superadmin";
+
+  const cambiarEstado = (p: Empleado) => {
+    const inhabilitar = p.activo;
+    const aplicar = async () => {
+      try {
+        await PersonalController.cambiarEstado(p.id, !inhabilitar);
+        await reload();
+        toast(inhabilitar ? t("personal.disabled") : t("personal.enabled"), "success");
+      } catch (e) {
+        toast(e instanceof Error ? e.message : "Error", "error");
+      }
+    };
+    if (!inhabilitar) { void aplicar(); return; }
+    confirm({
+      title: t("personal.disableTitle"),
+      message: t("personal.disableMsg", { nombre: p.nombre }),
+      confirmLabel: t("personal.disable"),
+      onConfirm: aplicar,
+    });
+  };
+
   const eliminar = (id: number, nombreEmp: string) => {
     confirm({
       title: t("personal.deleteTitle"),
@@ -274,9 +298,14 @@ export default function PersonalPage() {
                     <Button size="sm" variant="ghost" onClick={() => abrirAcceso(p)}>
                       {p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess")}
                     </Button>
-                    <IconButton danger aria-label={t("personal.deleteAria", { nombre: p.nombre })} onClick={() => eliminar(p.id, p.nombre)}>
-                      <Icon name="trash" />
-                    </IconButton>
+                    <Button size="sm" variant="ghost" onClick={() => cambiarEstado(p)}>
+                      {p.activo ? t("personal.disable") : t("personal.enable")}
+                    </Button>
+                    {puedeEliminar && (
+                      <IconButton danger aria-label={t("personal.deleteAria", { nombre: p.nombre })} onClick={() => eliminar(p.id, p.nombre)}>
+                        <Icon name="trash" />
+                      </IconButton>
+                    )}
                   </div>
                 </td>
               </tr>

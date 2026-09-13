@@ -84,6 +84,8 @@ export default function ServiciosPage() {
      catálogo. El backend ya lo exige igual vía guard; esto es para no
      mostrar acciones que van a terminar en 403. */
   const puedeGestionar = session?.role === "owner" || session?.role === "superadmin";
+  /* Eliminar es exclusivo del superadmin (el backend lo exige en DELETE). */
+  const puedeEliminar = session?.role === "superadmin";
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   /** Servicio que se está editando; null = el modal está en modo alta. */
@@ -263,9 +265,11 @@ export default function ServiciosPage() {
                                   <Button variant="ghost" size="sm" block onClick={() => abrirEditar(s)}>
                                     {t("common.edit")}
                                   </Button>
-                                  <Button variant="danger" size="sm" block onClick={() => eliminar(s.id, s.nombre)}>
-                                    {t("common.delete")}
-                                  </Button>
+                                  {puedeEliminar && (
+                                    <Button variant="danger" size="sm" block onClick={() => eliminar(s.id, s.nombre)}>
+                                      {t("common.delete")}
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </article>

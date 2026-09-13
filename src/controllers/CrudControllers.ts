@@ -539,7 +539,16 @@ export const PersonalController = {
     return { email: res.email || payload.email || "", password: cambios.password };
   },
 
-  /** Elimina un profesional — DELETE /profesionales/:id. */
+  /**
+   * Inhabilita o vuelve a habilitar — PATCH /profesionales/:id { state }.
+   * Es la "baja" de los administradores que no son superadmin: el
+   * profesional se conserva con su historial de citas.
+   */
+  async cambiarEstado(id: number, activo: boolean): Promise<void> {
+    await ProfesionalesApi.update(id, { state: activo ? "enabled" : "disabled" });
+  },
+
+  /** Elimina un profesional — DELETE /profesionales/:id (solo superadmin). */
   async remove(id: number): Promise<void> {
     await ProfesionalesApi.remove(id);
   },

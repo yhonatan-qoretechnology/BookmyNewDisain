@@ -17,6 +17,7 @@ import { ClientesController } from "@/controllers/CrudControllers";
 import { fotoUrl, initials } from "@/constants";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
+import { useSession } from "@/context/SessionContext";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
@@ -69,6 +70,9 @@ export default function ClienteModal({
 }) {
   const { t } = useI18n();
   const { toast, confirm } = useUi();
+  const { session } = useSession();
+  /* Eliminar es exclusivo del superadmin; el resto inhabilita la cuenta. */
+  const puedeEliminar = session?.role === "superadmin";
 
   const [cliente, setCliente] = useState<ApiClient | null>(null);
   const [form, setForm] = useState<Formulario>(VACIO);
@@ -194,6 +198,27 @@ export default function ClienteModal({
     });
   };
 
+  /** Baja para administradores que no son superadmin: PATCH { state: "disabled" }. */
+  const inhabilitar = () => {
+    if (clienteId == null || !cliente) return;
+    const nombre = cliente.userData?.name || cliente.email;
+    confirm({
+      title: t("clientes.disableTitle"),
+      message: t("clientes.disableMsg", { nombre }),
+      confirmLabel: t("clientes.disableAccount"),
+      onConfirm: async () => {
+        try {
+          await ClientesController.update(clienteId, { state: "disabled" });
+          toast(t("clientes.disabledOk"), "success");
+          await onGuardado();
+          onClose();
+        } catch (e) {
+          toast(e instanceof Error ? e.message : t("common.error"), "error");
+        }
+      },
+    });
+  };
+
   const foto = fotoUrl(cliente?.fotoPerfil);
 
   return (
@@ -301,6 +326,19 @@ export default function ClienteModal({
               </Button>
             </section>
 
+            {!puedeEliminar ? (
+              <section className={`${styles.bloque} ${styles.peligro}`}>
+                <h4>{t("clientes.sectionDisable")}</h4>
+                <p className={styles.nota}>
+                  {cliente.state === "disabled" ? t("clientes.alreadyDisabled") : t("clientes.disableHint")}
+                </p>
+                {cliente.state !== "disabled" && (
+                  <Button size="sm" variant="danger" onClick={inhabilitar}>
+                    {t("clientes.disableAccount")}
+                  </Button>
+                )}
+              </section>
+            ) : (
             <section className={`${styles.bloque} ${styles.peligro}`}>
               <h4>{t("clientes.sectionDanger")}</h4>
               {conservaHistorial ? (
@@ -319,6 +357,7 @@ export default function ClienteModal({
                 {t("clientes.deleteAccount")}
               </Button>
             </section>
+            )}
           </>
         )}
       </div>

@@ -348,13 +348,16 @@ export default function StockPage() {
                     <td>{i.unidad}</td>
                     <PriceCell value={i.precioRef} />
                     <td className={styles.rowEnd}>
-                      <IconButton
-                        danger
-                        aria-label={t("stock.deleteAria", { nombre: i.nombre })}
-                        onClick={() => eliminarInsumo(i)}
-                      >
-                        <Icon name="trash" />
-                      </IconButton>
+                      {/* Eliminar es exclusivo del superadmin */}
+                      {session?.role === "superadmin" && (
+                        <IconButton
+                          danger
+                          aria-label={t("stock.deleteAria", { nombre: i.nombre })}
+                          onClick={() => eliminarInsumo(i)}
+                        >
+                          <Icon name="trash" />
+                        </IconButton>
+                      )}
                     </td>
                   </tr>
                 ))}

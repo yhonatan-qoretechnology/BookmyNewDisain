@@ -423,6 +423,13 @@ const es = {
     dangerHistorial:
       "Tiene {citas} cita(s), {pagos} pago(s) y {resenas} reseña(s). Esos registros se conservan por facturación; se borrarán sus datos personales y perderá el acceso.",
     deleteAccount: "Eliminar cuenta",
+    sectionDisable: "Inhabilitar cuenta",
+    disableHint: "Solo el superadmin puede eliminar cuentas. Inhabilitarla le quita el acceso y conserva todos sus datos.",
+    disableAccount: "Inhabilitar cuenta",
+    disableTitle: "Inhabilitar cuenta",
+    disableMsg: "¿Inhabilitar a {nombre}? No podrá iniciar sesión hasta que vuelvas a ponerla en «Activo».",
+    disabledOk: "Cuenta inhabilitada",
+    alreadyDisabled: "Esta cuenta ya está inhabilitada. Para reactivarla cambia el estado a «Activo» y guarda.",
   },
 
   facturacion: {
@@ -642,6 +649,12 @@ const es = {
     deleteMsg: "¿Seguro que quieres eliminar a {nombre} del equipo?",
     deleted: "Integrante eliminada",
     deleteAria: "Eliminar {nombre}",
+    disable: "Inhabilitar",
+    enable: "Habilitar",
+    disableTitle: "Inhabilitar integrante",
+    disableMsg: "¿Inhabilitar a {nombre}? Se conserva su historial y podrás volver a habilitarla cuando quieras.",
+    disabled: "Integrante inhabilitada",
+    enabled: "Integrante habilitada",
     fillApi: "El backend exige teléfono único y sede para crear un profesional.",
     passwordRequired: "La contraseña es obligatoria para dar de alta al profesional.",
     createHint: "El correo de acceso lo genera el backend a partir del nombre; la contraseña la defines aquí.",
