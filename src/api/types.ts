@@ -595,3 +595,23 @@ export interface SendMessageDto {
   message?: string;
   fileUrl?: string;
 }
+
+/** Concepto adicional de una factura (payment_items). */
+export interface ApiPaymentItem {
+  id: number;
+  paymentId: number;
+  concepto: string;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+/** Festivo devuelto por GET /festivos. Es informativo: no bloquea el agendado. */
+export interface ApiFestivo {
+  id: number;
+  fecha: string;
+  nombre: string;
+  ambito: "NACIONAL" | "AUTONOMICO" | "LOCAL";
+  pais: string;
+  ccaa: string | null;
+  municipio: string | null;
+}

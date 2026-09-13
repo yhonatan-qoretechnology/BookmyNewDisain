@@ -11,7 +11,7 @@ import type {
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
-  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiProfesionalAcceso,
+  ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo, ApiProfesional, ApiProfesionalAcceso,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiServicioAsignable, ApiUser,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
@@ -256,6 +256,13 @@ export const AppointmentsApi = {
    */
   cambiarEstado: (id: number, estado: ApiAppointmentStatus) =>
     http.patch<ApiAppointment>(EP.appointmentById(id), { estado }),
+  /** PATCH /appointments/:id/extend — `duracion` es la TOTAL nueva, no los
+      minutos que se anaden. El backend valida solapamiento. */
+  extender: (id: number, data: { duracion: number; motivo?: string }) =>
+    http.patch<ApiAppointment>(EP.appointmentExtend(id), data),
+  /** PATCH /appointments/:id/observacion-espera */
+  observacionEspera: (id: number, observacionEspera: string | null) =>
+    http.patch<ApiAppointment>(EP.appointmentObservacionEspera(id), { observacionEspera }),
   /**
    * PATCH /appointments/:id/reschedule — nueva franja horaria.
    * ⚠️ El formato NO es el de POST /appointments: aquí la fecha y las horas
@@ -391,6 +398,22 @@ export const PaymentsApi = {
     http.get<ApiPaymentFiltered[]>(EP.paymentsFilter + qs({ userId: params.userId, sedeId: params.sedeId })),
   confirm: (id: number) => http.patch<ApiPayment>(EP.paymentConfirm(id)),
   cancel: (id: number, data?: { reason?: string }) => http.patch<ApiPayment>(EP.paymentCancel(id), data),
+
+  /* ── Adicionales de factura ── */
+  /** GET /payments/:id/items */
+  items: (id: number) => http.get<ApiPaymentItem[]>(EP.paymentItems(id)),
+  /** POST /payments/:id/items — devuelve la factura con el total ya recalculado. */
+  addItem: (id: number, data: { concepto: string; cantidad: number; precioUnitario: number }) =>
+    http.post<ApiPayment>(EP.paymentItems(id), data),
+  /** DELETE /payments/items/:itemId — devuelve la factura con el total recalculado. */
+  removeItem: (itemId: number) => http.delete<ApiPayment>(EP.paymentItemById(itemId)),
+};
+
+/* ── FestivoModule ───────────────────────────────────────── */
+export const FestivosApi = {
+  /** GET /festivos?anio=&sedeId= — nacionales + de su comunidad + de su municipio. */
+  findAll: (params: { anio?: number; sedeId?: number } = {}) =>
+    http.get<ApiFestivo[]>(EP.festivos + qs(params)),
 };
 
 /* ── Subida de imágenes ─────────────────────────────────────
