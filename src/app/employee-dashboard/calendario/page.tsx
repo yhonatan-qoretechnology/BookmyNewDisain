@@ -16,7 +16,7 @@ export default function EmployeeCalendarioPage() {
   const { t, locale } = useI18n();
   const popup = useReservaPopup();
 
-  const { data: mias } = useData(
+  const { data: mias, reload } = useData(
     () => ReservasController.getByEmpleado(session, locale),
     [session?.id, session?.sedeId, session?.profesionalId, locale], []
   );
@@ -38,7 +38,7 @@ export default function EmployeeCalendarioPage() {
       <CalendarGrid
         events={events}
         maxPerCell={3}
-        onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)}
+        onEventClick={(id, data) => data ? popup.open(data, reload) : popup.open(id, reload)}
       />
     </Panel>
   );

@@ -124,7 +124,7 @@ export default function EmployeeDashboardPage() {
         ) : (
           <DataTable headers={[t("common.id"), t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state")]}>
             {lista.map((r) => (
-              <tr key={r.id} onClick={() => popup.open(r)} style={{ cursor: "pointer" }}>
+              <tr key={r.id} onClick={() => popup.open(r, reload)} style={{ cursor: "pointer" }}>
                 <td><b>{r.id}</b></td>
                 <td>{r.servicio}</td>
                 <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>

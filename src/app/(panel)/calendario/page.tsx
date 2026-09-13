@@ -21,7 +21,7 @@ export default function CalendarioPage() {
   const { toast } = useUi();
   const popup = useReservaPopup();
 
-  const { data: lista } = useData(
+  const { data: lista, reload } = useData(
     () => ReservasController.getForSession(session, locale),
     [session?.id, session?.negocioId, locale], []
   );
@@ -50,7 +50,7 @@ export default function CalendarioPage() {
       />
       <CalendarGrid
         events={events}
-        onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)}
+        onEventClick={(id, data) => data ? popup.open(data, reload) : popup.open(id, reload)}
         onViewChange={(v) => toast(t("common.comingSoon", { view: v }), "default")}
       />
     </Panel>

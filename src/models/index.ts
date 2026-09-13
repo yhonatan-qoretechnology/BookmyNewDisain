@@ -89,6 +89,8 @@ export interface Reserva {
   /** id numérico real en la BD (modo API) */
   apiId?: number;
   servicio: string;
+  /** id del servicio (Appointment.serviceId) — para saber quién puede atenderla */
+  servicioId?: number;
   cliente: string;
   /** id del usuario cliente (Appointment.userId), para cruzar con /clients */
   clienteId?: number;

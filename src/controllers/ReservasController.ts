@@ -105,6 +105,13 @@ export type ResultadoExtension =
   | { status: "EXTENDED"; reserva: Reserva }
   | { status: "CONFLICT"; mensaje: string; nuevaHoraFin: string; citasEnConflicto: ApiCitaEnConflicto[] };
 
+/** Profesional al que se puede pasar una cita. */
+export interface ProfesionalReasignable {
+  id: number;
+  nombre: string;
+  imagen: string | null;
+}
+
 /** Tras la hora de fin prevista, todavía se puede pedir más tiempo durante este margen. */
 const MARGEN_EN_CURSO_MS = 60 * 60000;
 
@@ -399,6 +406,21 @@ export const ReservasController = {
   },
 
   /**
+   * Candidatos para cambiar el profesional de una cita — GET /profesionales/by-sede/:id.
+   * Solo activos de la misma sede que prestan ese servicio, sin el actual.
+   * No se sabe aquí si están libres a esa hora: lo valida reassign con un 400.
+   */
+  async getProfesionalesParaReasignar(reserva: Reserva, language = "es"): Promise<ProfesionalReasignable[]> {
+    /* El backend responde 404 cuando la sede no tiene profesionales */
+    const lista = await ProfesionalesApi.bySedeConServicios(Number(reserva.sedeId), language).catch(() => []);
+    return lista
+      .filter((p) => String(p.id) !== reserva.empleadoId)
+      .filter((p) => (p.state ?? "enabled") === "enabled")
+      .filter((p) => reserva.servicioId == null || (p.servicios || []).some((s) => s.id === reserva.servicioId))
+      .map((p) => ({ id: p.id, nombre: p.nombre, imagen: p.imagen }));
+  },
+
+  /**
    * Mueve una cita a otro especialista — PATCH /appointments/:id/reassign.
    * @throws ApiError 400 con el motivo si ese especialista no puede atenderla.
    */
@@ -440,6 +462,7 @@ export const ReservasController = {
       id: `R-${a.appointmentId}`,
       apiId: a.appointmentId,
       servicio: a.serviceName || "—",
+      servicioId: a.serviceId,
       cliente: a.userNombre || a.userEmail || "—",
       clienteId: a.userId ?? undefined,
       telefono: a.userTelefono || "—",

@@ -89,7 +89,36 @@
 .print:hover { background: var(--navy-900); color: #fff; border-color: var(--navy-900); }
 :global([data-theme="dark"]) .print { background: rgba(255,255,255,.04); border-color: #1e2640; color: #8392ab; }
 
+/* Gestión de la cita: reprogramar / cambiar profesional / cancelar */
+.gestion {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px; padding: 0 24px 12px;
+}
+.gestionBtn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 10px 8px; text-align: center;
+  border-radius: var(--r-md); font-size: 12.5px; font-weight: 700;
+  cursor: pointer; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--navy-900);
+  transition: all .15s ease;
+}
+.gestionBtn svg { flex: none; }
+.gestionBtn:hover { border-color: var(--teal-500); color: var(--teal-600); }
+.gestionDestacada {
+  grid-column: 1 / -1;
+  background: var(--grad-teal); border-color: transparent; color: #fff;
+}
+.gestionDestacada:hover { color: #fff; border-color: transparent; filter: brightness(1.05); }
+.gestionPeligro { border-color: rgba(229,72,77,.45); color: #e5484d; }
+.gestionPeligro:hover { background: #e5484d; border-color: #e5484d; color: #fff; }
+:global([data-theme="dark"]) .gestionBtn { background: rgba(255,255,255,.04); border-color: #1e2640; color: #8392ab; }
+:global([data-theme="dark"]) .gestionDestacada { background: var(--grad-teal); color: #fff; }
+:global([data-theme="dark"]) .gestionPeligro { color: #ff6b6f; border-color: rgba(229,72,77,.45); }
+
 @media (max-width: 1024px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) {
+  .gestion { grid-template-columns: 1fr; }
+}
 @media (max-width: 600px) {
   .overlay { padding: 0; align-items: flex-end; }
   .popup { border-radius: var(--r-xl) var(--r-xl) 0 0; max-height: 92vh; max-width: 100%; }

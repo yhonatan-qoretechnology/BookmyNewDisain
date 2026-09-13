@@ -11,7 +11,7 @@ import type {
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
-  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiProfesionalAcceso,
+  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiServicioAsignable, ApiUser,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
@@ -187,6 +187,9 @@ export const ProfesionalesApi = {
   findAll: () => http.get<ApiProfesional[]>(EP.profesionales),
   /** GET /profesionales/by-sede/:sedeId — para el flujo de agendado */
   findBySede: (sedeId: number) => http.get<ApiProfesional[]>(EP.profesionalesBySede(sedeId)),
+  /** Mismo endpoint, tipado con los servicios que presta cada uno (para reasignar citas). */
+  bySedeConServicios: (sedeId: number, lang = "es") =>
+    http.get<ApiProfesionalDeSede[]>(EP.profesionalesBySede(sedeId) + qs({ lang })),
   /** GET /profesionales/:id/detalle?lang= — profesional + sede + servicios
       (fuente única del paso de selección de servicio en reservas) */
   detalle: (id: number, lang: string) =>

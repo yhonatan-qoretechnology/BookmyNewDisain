@@ -120,6 +120,18 @@ export interface ApiProfesional {
   acceso?: ApiProfesionalAcceso | null;
 }
 
+/** GET /profesionales/by-sede/:sedeId — profesional con los servicios que presta
+    en esa sede. Ojo: aquí `imagen` ya llega como URL absoluta. */
+export interface ApiProfesionalDeSede {
+  id: number;
+  nombre: string;
+  imagen: string | null;
+  telefono?: string | null;
+  state?: string;
+  sedeId: number;
+  servicios: Array<{ id: number; nombre: string }>;
+}
+
 /** Respuesta de POST /profesionales: además del profesional creado,
     trae el correo de acceso que generó el backend (patrón
     nombre@empresa.com) — la contraseña no vuelve, solo se envió. */

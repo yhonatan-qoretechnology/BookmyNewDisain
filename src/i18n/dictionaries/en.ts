@@ -44,6 +44,7 @@ const en: Dictionary = {
     download: "Download",
     edit: "Edit",
     add: "Add",
+    duration: "Duration",
   },
 
   roles: {
@@ -1115,6 +1116,22 @@ const en: Dictionary = {
   },
 
   popup: {
+    /* Managing the appointment */
+    reprogramar: "Reschedule",
+    cambiarProfesional: "Change specialist",
+    cancelarCita: "Cancel appointment",
+    cancelarTitle: "Cancel the appointment",
+    cancelarMsg: "Cancel {cliente}'s appointment on {fecha} at {hora}? The slot is freed and the client is notified.",
+    cancelarConfirm: "Yes, cancel",
+    cancelada: "Appointment cancelled",
+    reasignarTitle: "Change specialist",
+    reasignarSub: "{servicio} · {fecha}, {hora}. Currently with {actual}.",
+    reasignarMotivoPlaceholder: "e.g. the specialist is running late",
+    reasignarNota: "Only active specialists at this branch who offer this service are listed. If one is busy at that time you'll be told when you pick them.",
+    reasignarVacioTitle: "Nobody else offers this service",
+    reasignarVacioMsg: "No other active specialist at this branch offers this service.",
+    reasignarLoadError: "The list of specialists could not be loaded.",
+    reasignada: "Appointment reassigned to {nombre}",
     close: "Close",
     print: "PDF",
     email: "Email",

@@ -95,6 +95,7 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
       (a.service as { name?: string })?.name ||
       `#${a.serviceId}`,
     cliente: a.user?.UserData?.name || a.user?.email || `#${a.userId}`,
+    servicioId: a.serviceId,
     clienteId: a.userId,
     telefono: a.user?.UserData?.phone || "—",
     email: a.user?.email || "—",
