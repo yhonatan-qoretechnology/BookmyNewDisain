@@ -6,7 +6,7 @@
 ============================================================ */
 import { useState } from "react";
 import { fmtFechaLarga, fmtMoneda, initials } from "@/constants";
-import type { Emisor, Factura } from "@/controllers/FacturacionControllers";
+import { FacturasController, type Emisor, type Factura } from "@/controllers/FacturacionControllers";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Badge from "@/components/ui/Badge";
@@ -21,14 +21,25 @@ function Contenido({
   factura,
   emisor,
   onClose,
+  onActualizada,
 }: {
   factura: Factura;
   emisor: Emisor | null;
   onClose: () => void;
+  /** Se llama tras añadir un adicional, para recargar la lista y el total. */
+  onActualizada?: () => void;
 }) {
   const { t } = useI18n();
   const { toast } = useUi();
   const [generando, setGenerando] = useState(false);
+
+  /* Alta de un concepto adicional. El total NO se toca aquí: lo recalcula el
+     backend (tarifa del servicio + adicionales) y la lista se recarga. */
+  const [anadiendo, setAnadiendo] = useState(false);
+  const [concepto, setConcepto] = useState("");
+  const [cantidad, setCantidad] = useState("1");
+  const [precio, setPrecio] = useState("");
+  const [guardandoItem, setGuardandoItem] = useState(false);
 
   const f = factura;
 
@@ -36,6 +47,28 @@ function Contenido({
   const em: Emisor = emisor ?? {
     nombre: "—", nit: null, telefono: null, email: null, web: null, logo: null,
     sedeNombre: f.sedeNombre ?? null, sedeDireccion: null, sedeTelefono: null,
+  };
+
+  const guardarAdicional = async () => {
+    const importe = Number(precio);
+    const uds = Number(cantidad);
+    if (!concepto.trim() || !Number.isFinite(importe) || importe < 0 || !Number.isFinite(uds) || uds < 1) {
+      toast(t("facturacion.adicionalInvalido"), "error");
+      return;
+    }
+    setGuardandoItem(true);
+    try {
+      await FacturasController.anadirAdicional(f.apiId as number, {
+        concepto: concepto.trim(), cantidad: uds, precioUnitario: importe,
+      });
+      setConcepto(""); setCantidad("1"); setPrecio(""); setAnadiendo(false);
+      toast(t("facturacion.adicionalAnadido"), "success");
+      onActualizada?.();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("facturacion.adicionalError"), "error");
+    } finally {
+      setGuardandoItem(false);
+    }
   };
 
   const descargar = async () => {
@@ -178,6 +211,40 @@ function Contenido({
         </tbody>
       </table>
 
+      {f.apiId != null && (
+        anadiendo ? (
+          <div className={styles.adicionalForm}>
+            <input
+              value={concepto}
+              onChange={(e) => setConcepto(e.target.value)}
+              placeholder={t("facturacion.adicionalConcepto")}
+              aria-label={t("facturacion.adicionalConcepto")}
+            />
+            <input
+              type="number" min={1} value={cantidad}
+              onChange={(e) => setCantidad(e.target.value)}
+              aria-label={t("facturacion.cantidad")}
+            />
+            <input
+              type="number" min={0} step="0.01" value={precio}
+              onChange={(e) => setPrecio(e.target.value)}
+              placeholder={t("facturacion.precio")}
+              aria-label={t("facturacion.precio")}
+            />
+            <Button size="sm" disabled={guardandoItem} onClick={() => void guardarAdicional()}>
+              {guardandoItem ? t("booking.loading") : t("common.save")}
+            </Button>
+            <Button size="sm" variant="ghost" disabled={guardandoItem} onClick={() => setAnadiendo(false)}>
+              {t("common.cancel")}
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => setAnadiendo(true)}>
+            <Icon name="plus" /> {t("facturacion.anadirAdicionales")}
+          </Button>
+        )
+      )}
+
       <div className={styles.totales}>
         <div className={styles.totalGrande}>
           <span>{t("gastos.total")}</span>
@@ -198,10 +265,13 @@ export default function FacturaViewModal({
   factura,
   emisor,
   onClose,
+  onActualizada,
 }: {
   factura: Factura | null;
   emisor: Emisor | null;
   onClose: () => void;
+  /** Recarga la lista tras añadir un adicional (el total lo recalcula el backend). */
+  onActualizada?: () => void;
 }) {
   return (
     <AnimatePresence>

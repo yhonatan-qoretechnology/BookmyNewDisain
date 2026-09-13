@@ -63,7 +63,7 @@ export default function FacturacionPage() {
   }, [fEmpresaId]);
 
   /* Una factura por cada pago real (PaymentModule), acotado por rol */
-  const { data: lista, loading } = useData(
+  const { data: lista, loading, reload } = useData(
     () =>
       FacturasController.search(
         session,
@@ -249,7 +249,7 @@ export default function FacturacionPage() {
       </Panel>
 
       {/* Popup: ver factura, imprimir y descargar PDF */}
-      <FacturaViewModal factura={ver} emisor={emisor} onClose={() => setVer(null)} />
+      <FacturaViewModal factura={ver} emisor={emisor} onClose={() => setVer(null)} onActualizada={() => void reload()} />
     </>
   );
 }

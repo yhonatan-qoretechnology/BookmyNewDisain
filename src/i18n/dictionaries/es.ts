@@ -466,6 +466,11 @@ const es = {
   },
 
   facturacion: {
+    anadirAdicionales: "Añadir adicionales",
+    adicionalConcepto: "Concepto (ej. recubrimiento en gel)",
+    adicionalAnadido: "Adicional añadido y total actualizado",
+    adicionalInvalido: "Escribe un concepto, una cantidad y un precio válidos",
+    adicionalError: "No se pudo añadir el adicional",
     panelTitle: "Facturación",
     panelSub: "Cada reserva queda registrada como una factura",
     idFactura: "ID Factura",

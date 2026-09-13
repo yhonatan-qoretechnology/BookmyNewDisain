@@ -1,4 +1,5 @@
 "use client";
+import { useMemo } from "react";
 /* ============================================================
    Calendario — vista mensual de todas las reservas (View)
 ============================================================ */
@@ -13,6 +14,7 @@ import { useReservaPopup } from "@/components/reservas/ReservaPopupContext";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import CalendarGrid from "@/components/ui/CalendarGrid";
+import { FestivosApi } from "@/api/modules";
 
 export default function CalendarioPage() {
   const router = useRouter();
@@ -20,6 +22,29 @@ export default function CalendarioPage() {
   const { t, locale } = useI18n();
   const { toast } = useUi();
   const popup = useReservaPopup();
+
+  /* Festivos del año en curso, acotados a la sede de la sesión: el backend
+
+     resuelve su comunidad y su municipio. Son informativos — pintan la
+
+     celda en rojo pero NO impiden agendar. */
+
+  const { data: diasFestivos } = useData(
+
+    () => FestivosApi.findAll({
+
+      anio: new Date().getFullYear(),
+
+      sedeId: session?.sedeId ? Number(session.sedeId) : undefined,
+
+    }).catch(() => []),
+
+    [session?.sedeId],
+
+    [],
+
+  );
+
 
   const { data: lista } = useData(
     () => ReservasController.getForSession(session, locale),
@@ -32,6 +57,19 @@ export default function CalendarioPage() {
       rs.map((r) => ({ id: r.id, label: `${r.hora} ${r.servicio}`, data: r })),
     ])
   );
+
+  const festivos = useMemo(
+
+    () => Object.fromEntries(
+
+      (diasFestivos || []).map((f) => [f.fecha.slice(0, 10), f.nombre]),
+
+    ),
+
+    [diasFestivos],
+
+  );
+
 
   return (
     <Panel>
@@ -50,6 +88,7 @@ export default function CalendarioPage() {
       />
       <CalendarGrid
         events={events}
+        festivos={festivos}
         onEventClick={(id, data) => data ? popup.open(data) : popup.open(id)}
         onViewChange={(v) => toast(t("common.comingSoon", { view: v }), "default")}
       />

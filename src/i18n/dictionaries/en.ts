@@ -467,6 +467,11 @@ const en: Dictionary = {
   },
 
   facturacion: {
+    anadirAdicionales: "Add extras",
+    adicionalConcepto: "Item (e.g. gel coating)",
+    adicionalAnadido: "Extra added and total updated",
+    adicionalInvalido: "Enter a valid item, quantity and price",
+    adicionalError: "The extra could not be added",
     panelTitle: "Billing",
     panelSub: "Each reservation is registered as an invoice",
     idFactura: "Invoice ID",

@@ -29,6 +29,13 @@ interface CalendarGridProps {
   onSelectDate?: (fecha: string) => void;
   /** Fechas YYYY-MM-DD que no se pueden elegir (pasado, sin cupo…) */
   isDateDisabled?: (fecha: string) => boolean;
+  /* ── Festivos ────────────────────────────────────────────
+     Mapa fecha (YYYY-MM-DD) → nombre del festivo. Son SOLO
+     informativos: pintan la celda en rojo y ponen el nombre en
+     el tooltip, pero NO bloquean el agendado. Si una sede no
+     trabaja ese día, se cierra con los días cerrados de sede,
+     que es lo que de verdad impide reservar. */
+  festivos?: Record<string, string>;
 }
 
 export default function CalendarGrid({
@@ -40,6 +47,7 @@ export default function CalendarGrid({
   selectedDate = null,
   onSelectDate,
   isDateDisabled,
+  festivos,
 }: CalendarGridProps) {
   const { t, tList } = useI18n();
   const MESES = tList("calendar.months");
@@ -94,17 +102,21 @@ export default function CalendarGrid({
     const hidden = evts.length - visible.length;
     const disabled = selectable ? (isDateDisabled?.(key) ?? false) : false;
     const clickable = selectable && !disabled;
+    /* El festivo NO entra en `disabled`: es un aviso visual, no un bloqueo. */
+    const festivo = festivos?.[key];
     const cellCls = [
       styles.calCell,
       selectable ? styles.cellSelectable : "",
       disabled ? styles.cellDisabled : "",
       selectable && selectedDate === key ? styles.cellSelected : "",
       selectable && todayKey === key ? styles.cellToday : "",
+      festivo ? styles.cellFestivo : "",
     ].filter(Boolean).join(" ");
     cells.push(
       <div
         key={key}
         className={cellCls}
+        title={festivo || undefined}
         role={clickable ? "button" : undefined}
         tabIndex={clickable ? 0 : undefined}
         aria-pressed={clickable ? selectedDate === key : undefined}
@@ -119,6 +131,7 @@ export default function CalendarGrid({
         }
       >
         <span className={styles.dayNum}>{day}</span>
+        {festivo && <span className={styles.festivoNombre} title={festivo}>{festivo}</span>}
         {visible.map((e, i) => (
           <div
             key={`${e.id}-${i}`}

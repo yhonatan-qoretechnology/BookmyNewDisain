@@ -46,6 +46,8 @@ export interface FacturaItem {
 
 export interface Factura {
   id: string;            // ID Factura (ej. F-0001)
+  /** id numérico real del pago, para añadir o quitar adicionales */
+  apiId?: number;
   reservaId: string;     // reserva que la originó
   cliente: string;
   clienteEmail?: string;
@@ -151,6 +153,7 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
     fecha: (p.createdAt || "").slice(0, 10) || "—",
     hora: p.createdAt ? p.createdAt.slice(11, 16) : undefined,
     total,
+    apiId: p.id,
     moneda: "EUR",
     estado: estadoDesdePago(p.status),
     sedeId: p.appointment?.sedeId != null ? String(p.appointment.sedeId) : undefined,
@@ -263,6 +266,28 @@ export const EmisorController = {
    el endpoint no valida token/rol por sí mismo.
 ============================================================ */
 export const FacturasController = {
+  /**
+   * Añade un concepto adicional a la factura — POST /payments/:id/items.
+   * El total lo recalcula SIEMPRE el backend (tarifa del servicio + adicionales),
+   * así que aquí no se suma nada a mano.
+   */
+  async anadirAdicional(
+    apiId: number,
+    datos: { concepto: string; cantidad: number; precioUnitario: number },
+  ): Promise<void> {
+    await PaymentsApi.addItem(apiId, datos);
+  },
+
+  /** Quita un adicional — DELETE /payments/items/:itemId. */
+  async quitarAdicional(itemId: number): Promise<void> {
+    await PaymentsApi.removeItem(itemId);
+  },
+
+  /** Adicionales actuales de una factura — GET /payments/:id/items. */
+  async adicionales(apiId: number) {
+    return PaymentsApi.items(apiId);
+  },
+
   /**
    * Facturas de la sesión — una por pago, de la más reciente a la
    * más antigua. El alcance de sedes a consultar depende del rol:
