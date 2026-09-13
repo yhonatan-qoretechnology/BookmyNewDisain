@@ -70,6 +70,15 @@ export const AdminApi = {
 /* ── Recuperación de contraseña por OTP ─────────────────────
    Flujo de tres pasos contra AuthModule. Son endpoints públicos:
    quien ha olvidado la contraseña no tiene token. */
+export const PasswordSetupApi = {
+  /** GET — comprueba el enlace sin gastarlo. */
+  validar: (token: string) =>
+    http.get<{ valido: true; email: string }>(EP.passwordSetupValidate + qs({ token })),
+  /** PATCH — fija la contrasena y gasta el token. */
+  completar: (token: string, password: string) =>
+    http.patch<{ message: string }>(EP.passwordSetupComplete, { token, password }),
+};
+
 export const PasswordRecoveryApi = {
   /**
    * Paso 1 — POST /auth/users/password/otp/request { email }.

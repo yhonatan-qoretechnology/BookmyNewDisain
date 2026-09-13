@@ -20,6 +20,11 @@ export const EP = {
   passwordOtpValidate: "/auth/users/password/otp/validate",
   /** PATCH, no POST */
   passwordOtpChange: "/auth/users/password/otp/change",
+
+  /* Enlace de alta del empleado. Publicos: quien los usa aun no tiene
+     contrasena, asi que no puede tener sesion; los protege el token. */
+  passwordSetupValidate: "/auth/password-setup/validate",
+  passwordSetupComplete: "/auth/password-setup/complete",
   /** PATCH multipart — campo "fotoPerfil". Devuelve el Users actualizado. */
   userFoto: (id: number) => `/auth/users/${id}/foto`,
 
