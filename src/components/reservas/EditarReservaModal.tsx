@@ -2,11 +2,10 @@
 /* ============================================================
    EditarReservaModal — ajustes sobre una reserva ya creada
    ------------------------------------------------------------
-   Dos bloques independientes, cada uno con su propio guardado:
-
-   · Horario  → PATCH /appointments/:id/extend. Alarga la cita sin
-                moverla de hora. El backend rechaza la ampliacion si
-                pisa la cita siguiente del mismo profesional.
+   · Horario  → abre ExtenderCitaModal, el mismo flujo que usa la
+                especialista en su agenda: minutos extra y, si chocan
+                con la siguiente cita, reasignarla, moverla o
+                cancelarla. Este modal se cierra para no apilar dos.
    · Detalles → PATCH /appointments/:id/observacion-espera, la nota
                 del cliente que esta esperando. Va aparte de `notas`
                 porque esas son del cliente y el reagendado las
@@ -28,47 +27,26 @@ interface Props {
   reserva: Reserva | null;
   onClose: () => void;
   onActualizada: (r: Reserva) => void;
+  /** Pide abrir ExtenderCitaModal para esta reserva */
+  onExtender: (r: Reserva) => void;
 }
 
-export default function EditarReservaModal({ reserva, onClose, onActualizada }: Props) {
+export default function EditarReservaModal({ reserva, onClose, onActualizada, onExtender }: Props) {
   const { t } = useI18n();
   const { toast } = useUi();
 
-  const [duracion, setDuracion] = useState("");
-  const [motivo, setMotivo] = useState("");
   const [observacion, setObservacion] = useState("");
-  const [guardando, setGuardando] = useState<"horario" | "detalles" | null>(null);
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     if (!reserva) return;
-    setDuracion(String(reserva.duracion ?? 30));
-    setMotivo("");
     setObservacion(reserva.observacionEspera ?? "");
   }, [reserva]);
 
   if (!reserva) return null;
 
-  const guardarHorario = async () => {
-    const minutos = Number(duracion);
-    if (!Number.isFinite(minutos) || minutos <= reserva.duracion) {
-      toast(t("reservas.extenderMayor", { actual: reserva.duracion }), "error");
-      return;
-    }
-    setGuardando("horario");
-    try {
-      const r = await ReservasController.extenderHorario(reserva, minutos, motivo.trim() || undefined);
-      onActualizada(r);
-      toast(t("reservas.extendida", { minutos }), "success");
-      setMotivo("");
-    } catch (e) {
-      toast(e instanceof Error ? e.message : t("reservas.extenderError"), "error");
-    } finally {
-      setGuardando(null);
-    }
-  };
-
   const guardarDetalles = async () => {
-    setGuardando("detalles");
+    setGuardando(true);
     try {
       const r = await ReservasController.guardarObservacionEspera(reserva, observacion);
       onActualizada(r);
@@ -76,7 +54,7 @@ export default function EditarReservaModal({ reserva, onClose, onActualizada }: 
     } catch (e) {
       toast(e instanceof Error ? e.message : t("reservas.observacionError"), "error");
     } finally {
-      setGuardando(null);
+      setGuardando(false);
     }
   };
 
@@ -94,31 +72,13 @@ export default function EditarReservaModal({ reserva, onClose, onActualizada }: 
       <div className={styles.seccion}>
         <p className={styles.seccionTitulo}>{t("reservas.extenderHorario")}</p>
         <div className={styles.fila}>
-          <Field label={t("reservas.duracionTotal")} htmlFor="er-dur">
-            <input
-              id="er-dur"
-              type="number"
-              min={reserva.duracion + 1}
-              step={15}
-              value={duracion}
-              onChange={(e) => setDuracion(e.target.value)}
-            />
-          </Field>
-          <Field label={t("reservas.motivoOpcional")} htmlFor="er-motivo">
-            <input
-              id="er-motivo"
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-              placeholder={t("reservas.motivoPlaceholder")}
-            />
-          </Field>
+          <p className={styles.ayuda}>{t("reservas.extenderAyuda", { actual: reserva.duracion })}</p>
           <div className={styles.acciones}>
-            <Button size="sm" onClick={() => void guardarHorario()} disabled={guardando !== null}>
-              {guardando === "horario" ? t("booking.loading") : t("common.save")}
+            <Button size="sm" onClick={() => onExtender(reserva)} disabled={guardando}>
+              {t("extender.boton")}
             </Button>
           </div>
         </div>
-        <p className={styles.ayuda}>{t("reservas.extenderAyuda", { actual: reserva.duracion })}</p>
       </div>
 
       {/* ── Detalles ── */}
@@ -136,8 +96,8 @@ export default function EditarReservaModal({ reserva, onClose, onActualizada }: 
         </Field>
         <div className={styles.fila}>
           <div className={styles.acciones}>
-            <Button size="sm" onClick={() => void guardarDetalles()} disabled={guardando !== null}>
-              {guardando === "detalles" ? t("booking.loading") : t("common.save")}
+            <Button size="sm" onClick={() => void guardarDetalles()} disabled={guardando}>
+              {guardando ? t("booking.loading") : t("common.save")}
             </Button>
           </div>
         </div>
@@ -151,7 +111,7 @@ export default function EditarReservaModal({ reserva, onClose, onActualizada }: 
       </div>
 
       <ModalActions>
-        <Button variant="ghost" onClick={onClose} disabled={guardando !== null}>
+        <Button variant="ghost" onClick={onClose} disabled={guardando}>
           {t("common.close")}
         </Button>
       </ModalActions>

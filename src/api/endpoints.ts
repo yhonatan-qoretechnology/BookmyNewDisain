@@ -122,9 +122,10 @@ export const EP = {
   appointmentsLatest: (sedeId: number) => `/appointments/branches/${sedeId}/latest`,
   appointmentCancel: (id: number) => `/appointments/${id}/cancel`,
   appointmentReschedule: (id: number) => `/appointments/${id}/reschedule`,
-  /** PATCH { duracion, motivo? } — alarga la cita sin mover la hora de inicio.
-      Rechaza con 400 si pisa otra cita del mismo profesional. */
+  /** PATCH { extraMinutes, motivo? } → EXTENDED | CONFLICT */
   appointmentExtend: (id: number) => `/appointments/${id}/extend`,
+  /** PATCH { nuevoProfesionalId, motivo? } → cita actualizada */
+  appointmentReassign: (id: number) => `/appointments/${id}/reassign`,
   /** PATCH { observacionEspera } — nota del cliente que espera. Vacio la borra. */
   appointmentObservacionEspera: (id: number) => `/appointments/${id}/observacion-espera`,
   profesionalReservations: (profesionalId: number) =>

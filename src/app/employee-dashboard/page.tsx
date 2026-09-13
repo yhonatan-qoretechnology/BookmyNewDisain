@@ -2,7 +2,8 @@
 /* ============================================================
    Employee dashboard — agenda de la especialista (View)
 ============================================================ */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { Reserva } from "@/models";
 import { useData } from "@/hooks/useData";
 import { ESTADOS_RESERVA, fmtFechaCorta } from "@/constants";
 import { ReservasController } from "@/controllers/ReservasController";
@@ -16,7 +17,12 @@ import Badge from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import { PersonRow } from "@/components/ui/People";
+import Button from "@/components/ui/Button";
+import ExtenderCitaModal from "@/components/reservas/ExtenderCitaModal";
 import styles from "./employee.module.css";
+
+/** Cada cuánto se revisa qué cita está en curso */
+const TICK_EN_CURSO_MS = 30_000;
 
 export default function EmployeeDashboardPage() {
   const { session } = useSession();
@@ -29,10 +35,21 @@ export default function EmployeeDashboardPage() {
 
   /* Citas propias del profesional — GET /appointments?sedeId, filtradas
      por profesionalId (ver ReservasController.getByEmpleado) */
-  const { data: mias } = useData(
+  const { data: mias, reload } = useData(
     () => ReservasController.getByEmpleado(session, locale),
     [session?.id, session?.sedeId, session?.profesionalId, locale], []
   );
+
+  /* Cita en curso — se recalcula con el reloj para que aparezca y
+     desaparezca sola sin recargar la agenda */
+  const [ahora, setAhora] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setAhora(Date.now()), TICK_EN_CURSO_MS);
+    return () => clearInterval(id);
+  }, []);
+  const enCurso = useMemo(() => ReservasController.citaEnCurso(mias, ahora), [mias, ahora]);
+  const sePaso = !!enCurso?.finISO && Date.parse(enCurso.finISO) < ahora;
+  const [extendiendo, setExtendiendo] = useState<Reserva | null>(null);
 
   const lista = useMemo(() => {
     const q = search.toLowerCase();
@@ -51,6 +68,28 @@ export default function EmployeeDashboardPage() {
 
   return (
     <>
+      {enCurso && (
+        <section className={`${styles.enCurso} ${sePaso ? styles.enCursoPasada : ""}`} aria-live="polite">
+          <span className={`${styles.empIcon} ${sePaso ? styles.amber : styles.teal}`}><Icon name="clock" /></span>
+          <div className={styles.enCursoBody}>
+            <span className={styles.enCursoLabel}>{t("extender.enCurso")}</span>
+            <b>{enCurso.servicio} · {enCurso.cliente}</b>
+            <span>
+              {sePaso
+                ? t("extender.pasada", { fin: enCurso.horaFin || "—" })
+                : t("extender.horario", { inicio: enCurso.hora, fin: enCurso.horaFin || "—" })}
+            </span>
+          </div>
+          <Button onClick={() => setExtendiendo(enCurso)}>{t("extender.boton")}</Button>
+        </section>
+      )}
+
+      <ExtenderCitaModal
+        reserva={extendiendo}
+        onClose={() => setExtendiendo(null)}
+        onCambios={() => void reload()}
+      />
+
       <div className={styles.empStats}>
         <div className={styles.empCard}>
           <span className={`${styles.empIcon} ${styles.teal}`}><Icon name="calendar-check" /></span>

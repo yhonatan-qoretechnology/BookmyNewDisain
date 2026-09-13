@@ -10,8 +10,11 @@
 import type { MetodoPago, Reserva, Session, SlotHora } from "@/models";
 import { AppointmentsApi, AuthApi, PaymentsApi, ProfesionalesApi, SedesApi, ServicesApi } from "@/api/modules";
 import { APPT_ESTADO_MAP, ESTADO_APPT_MAP, mapAppointment } from "@/api/mappers";
-import type { ApiAppointment, ApiPayment, ApiPaymentMethod } from "@/api/types";
-import { madridYmd } from "@/lib/timezone";
+import type {
+  ApiAppointment, ApiAppointmentSummary, ApiCitaEnConflicto, ApiHuecoSugerido,
+  ApiPayment, ApiPaymentMethod,
+} from "@/api/types";
+import { madridHHmm, madridWallToUtc, madridYmd, minutesOfHHmm } from "@/lib/timezone";
 import { BookingController } from "./BookingController";
 
 /** Opción unificada para los selects del flujo de agendado */
@@ -97,6 +100,41 @@ async function fetchCitasDeSede(sedeId: number): Promise<ApiAppointment[]> {
   return items.concat(paginas.flat());
 }
 
+/** Resultado de pedir más tiempo para una cita en curso. */
+export type ResultadoExtension =
+  | { status: "EXTENDED"; reserva: Reserva }
+  | { status: "CONFLICT"; mensaje: string; nuevaHoraFin: string; citasEnConflicto: ApiCitaEnConflicto[] };
+
+/** Tras la hora de fin prevista, todavía se puede pedir más tiempo durante este margen. */
+const MARGEN_EN_CURSO_MS = 60 * 60000;
+
+/**
+ * Los huecos de `huecosSugeridosMismoDia` llegan con la hora de PARED de
+ * Madrid disfrazada de UTC: el backend los arma con Date.UTC(...) sobre
+ * minutos de Madrid (una cita que acaba a las 21:00 de Madrid sugiere
+ * "…T21:00:00.000Z"). Se pasan a instantes reales para que la vista
+ * (madridHHmm) y reprogramarAHueco (componentes UTC) acierten.
+ * Si el backend empieza a mandar instantes reales, hay que quitar esto.
+ */
+function conHuecosEnInstantes(c: ApiCitaEnConflicto): ApiCitaEnConflicto {
+  const aInstante = (iso: string) =>
+    madridWallToUtc(iso.slice(0, 10), minutesOfHHmm(iso.slice(11, 16))).toISOString();
+  const { reprogramar } = c.opciones;
+  return {
+    ...c,
+    opciones: {
+      ...c.opciones,
+      reprogramar: {
+        ...reprogramar,
+        huecosSugeridosMismoDia: reprogramar.huecosSugeridosMismoDia.map((h) => ({
+          horaInicio: aInstante(h.horaInicio),
+          horaFin: aInstante(h.horaFin),
+        })),
+      },
+    },
+  };
+}
+
 export const ReservasController = {
   /**
    * Citas visibles según la sesión (aislamiento multi-tenant):
@@ -148,11 +186,15 @@ export const ReservasController = {
    */
   async getByEmpleado(session: Session | null, language = "es"): Promise<Reserva[]> {
     if (!session?.sedeId) return [];
-    const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
-    const page = await AppointmentsApi.findAll({ sedeId: Number(session.sedeId) });
+    const [names, payments, citas] = await Promise.all([
+      getServiceNames(language),
+      getPaymentsByAppointment(),
+      /* Todas las páginas: con el corte de 50 la cita en curso podía no llegar */
+      fetchCitasDeSede(Number(session.sedeId)),
+    ]);
     const items = session.profesionalId
-      ? (page.items || []).filter((a) => String(a.profesionalId) === session.profesionalId)
-      : (page.items || []);
+      ? citas.filter((a) => String(a.profesionalId) === session.profesionalId)
+      : citas;
     return remember(items.map((a) => mapAppointment(withPayment(a, payments), names)));
   },
 
@@ -305,34 +347,6 @@ export const ReservasController = {
     return mapped;
   },
 
-  /**
-   * Cambia el estado de una cita — PATCH /appointments/:id { estado }.
-   *
-   * Para "cancelado" se usa PATCH /appointments/:id/cancel, que además de
-   * marcar la cita libera la franja para que se pueda volver a reservar; el
-   * PATCH genérico solo cambiaría el campo y el hueco seguiría ocupado.
-   *
-   * @throws Error("SIN_ID") si la reserva no viene del API.
-   */
-  /**
-   * Alarga una cita — PATCH /appointments/:id/extend.
-   * `duracion` es la duracion TOTAL nueva, no los minutos que se anaden.
-   * El backend rechaza con 400 si pisa otra cita del mismo profesional.
-   */
-  async extenderHorario(reserva: Reserva, duracion: number, motivo?: string): Promise<Reserva> {
-    if (reserva.apiId == null) throw new Error("SIN_ID");
-    const actualizada = await AppointmentsApi.extender(reserva.apiId, { duracion, motivo });
-    const mapped: Reserva = {
-      ...reserva,
-      duracion: actualizada.duracion ?? duracion,
-      observacionEspera: actualizada.observacionEspera ?? reserva.observacionEspera ?? null,
-    };
-    cache.set(mapped.id, mapped);
-    /* La franja ocupada cambia: hay que rehacer la disponibilidad. */
-    BookingController.invalidateAll();
-    return mapped;
-  },
-
   /** Nota sobre el cliente que espera — PATCH /appointments/:id/observacion-espera. */
   async guardarObservacionEspera(reserva: Reserva, texto: string): Promise<Reserva> {
     if (reserva.apiId == null) throw new Error("SIN_ID");
@@ -346,6 +360,15 @@ export const ReservasController = {
     return mapped;
   },
 
+  /**
+   * Cambia el estado de una cita — PATCH /appointments/:id { estado }.
+   *
+   * Para "cancelado" se usa PATCH /appointments/:id/cancel, que además de
+   * marcar la cita libera la franja para que se pueda volver a reservar; el
+   * PATCH genérico solo cambiaría el campo y el hueco seguiría ocupado.
+   *
+   * @throws Error("SIN_ID") si la reserva no viene del API.
+   */
   async cambiarEstado(reserva: Reserva, estado: Reserva["estado"]): Promise<Reserva> {
     if (reserva.apiId == null) throw new Error("SIN_ID");
 
@@ -362,5 +385,118 @@ export const ReservasController = {
        disponibilidad o el hueco seguiría apareciendo ocupado. */
     if (estado === "cancelado") BookingController.invalidateAll();
     return mapped;
+  },
+
+  /* ── Extender una cita en curso y resolver conflictos ───── */
+
+  /**
+   * La cita que el profesional está atendiendo ahora: ya empezó y no
+   * terminó hace más de MARGEN_EN_CURSO_MS (quien se pasa de hora es
+   * justo quien necesita el botón). Si hay varias, la última en empezar.
+   */
+  citaEnCurso(lista: Reserva[], ahora = Date.now()): Reserva | null {
+    const candidatas = lista.filter((r) => {
+      if (r.estado !== "pendiente" && r.estado !== "confirmada") return false;
+      if (!r.inicioISO || !r.finISO) return false;
+      return Date.parse(r.inicioISO) <= ahora && ahora <= Date.parse(r.finISO) + MARGEN_EN_CURSO_MS;
+    });
+    candidatas.sort((a, b) => Date.parse(b.inicioISO!) - Date.parse(a.inicioISO!));
+    return candidatas[0] ?? null;
+  },
+
+  /**
+   * Pide más minutos — PATCH /appointments/:id/extend.
+   * EXTENDED: el backend ya estiró la cita; se devuelve con la nueva hora de fin.
+   * CONFLICT: no se cambió nada; se devuelven las citas afectadas y sus opciones.
+   * @throws ApiError 403 si la sesión no gestiona esa cita, 400 si ya terminó.
+   */
+  async extender(reserva: Reserva, extraMinutes: number, motivo?: string): Promise<ResultadoExtension> {
+    if (reserva.apiId == null) throw new Error("SIN_ID");
+    const res = await AppointmentsApi.extend(reserva.apiId, {
+      extraMinutes,
+      ...(motivo?.trim() ? { motivo: motivo.trim() } : {}),
+    });
+
+    if (res.status === "CONFLICT") {
+      return {
+        status: "CONFLICT",
+        mensaje: res.mensaje,
+        nuevaHoraFin: res.solicitud.nuevaHoraFin,
+        citasEnConflicto: res.citasEnConflicto.map(conHuecosEnInstantes),
+      };
+    }
+
+    const fin = res.appointment.horaFin;
+    const mapped: Reserva = {
+      ...reserva,
+      horaFin: madridHHmm(new Date(fin)),
+      finISO: fin,
+      duracion: res.appointment.duracion ?? reserva.duracion + extraMinutes,
+    };
+    cache.set(mapped.id, mapped);
+    BookingController.invalidateAll();
+    return { status: "EXTENDED", reserva: mapped };
+  },
+
+  /**
+   * Mueve una cita a otro especialista — PATCH /appointments/:id/reassign.
+   * @throws ApiError 400 con el motivo si ese especialista no puede atenderla.
+   */
+  async reasignarCita(appointmentId: number, nuevoProfesionalId: number, motivo?: string): Promise<void> {
+    await AppointmentsApi.reassign(appointmentId, {
+      nuevoProfesionalId,
+      ...(motivo?.trim() ? { motivo: motivo.trim() } : {}),
+    });
+    BookingController.invalidateAll();
+  },
+
+  /**
+   * Reprograma una cita a uno de los huecos que sugirió el backend —
+   * PATCH /appointments/:id/reschedule. Mismo formato que reagendar():
+   * fecha y horas con los componentes UTC del instante.
+   */
+  async reprogramarAHueco(appointmentId: number, hueco: ApiHuecoSugerido): Promise<void> {
+    await AppointmentsApi.reschedule(appointmentId, {
+      fecha: hueco.horaInicio.slice(0, 10),
+      horaInicio: hueco.horaInicio.slice(11, 19),
+      horaFin: hueco.horaFin.slice(11, 19),
+    });
+    BookingController.invalidateAll();
+  },
+
+  /** Cancela una cita y libera su franja — PATCH /appointments/:id/cancel. */
+  async cancelarCita(appointmentId: number): Promise<void> {
+    await AppointmentsApi.cancel(appointmentId);
+    BookingController.invalidateAll();
+  },
+
+  /**
+   * Reserva mínima a partir del resumen de una cita en conflicto, para
+   * abrir ReagendarModal (necesita profesional, sede, duración e id).
+   */
+  reservaDeConflicto(a: ApiAppointmentSummary): Reserva {
+    const inicio = a.horaInicio ? new Date(a.horaInicio) : null;
+    return {
+      id: `R-${a.appointmentId}`,
+      apiId: a.appointmentId,
+      servicio: a.serviceName || "—",
+      cliente: a.userNombre || a.userEmail || "—",
+      clienteId: a.userId ?? undefined,
+      telefono: a.userTelefono || "—",
+      email: a.userEmail || "—",
+      fecha: inicio ? madridYmd(inicio) : "",
+      hora: inicio ? madridHHmm(inicio) : "—",
+      horaFin: a.horaFin ? madridHHmm(new Date(a.horaFin)) : undefined,
+      inicioISO: a.horaInicio ?? undefined,
+      finISO: a.horaFin ?? undefined,
+      precio: 0,
+      estado: APPT_ESTADO_MAP[a.estado] ?? "pendiente",
+      sedeId: String(a.sedeId),
+      empleadoId: String(a.profesionalId),
+      duracion: a.duracion ?? 30,
+      sedeName: a.sedeNombre ?? undefined,
+      empleadoName: a.profesionalNombre ?? undefined,
+      notas: a.notas || "",
+    };
   },
 };

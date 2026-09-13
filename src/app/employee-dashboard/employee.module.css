@@ -25,4 +25,26 @@
 .empBody b { font-size: 22px; color: var(--navy-900); font-weight: 800; }
 :global([data-theme="dark"]) .empBody b { color: #e8edf5; }
 
+/* Cita en curso — con el botón "Necesito más tiempo" */
+.enCurso {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  background: var(--surface);
+  border: 1.5px solid rgba(15,207,174,.45);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.enCursoPasada { border-color: rgba(255,167,38,.6); }
+.enCursoBody { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 2px; }
+.enCursoBody b { color: var(--navy-900); font-weight: 800; }
+.enCursoBody span { font-size: 13px; color: var(--slate-500); }
+.enCursoBody .enCursoLabel {
+  font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--teal-500);
+}
+.enCursoPasada .enCursoLabel { color: #d98a00; }
+:global([data-theme="dark"]) .enCursoBody b { color: #e8edf5; }
+
 @media (max-width: 860px) { .empStats { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .enCurso > button { width: 100%; } }

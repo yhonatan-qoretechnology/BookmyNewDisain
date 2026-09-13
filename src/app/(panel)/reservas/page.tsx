@@ -24,6 +24,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
 import type { Reserva } from "@/models";
 import EditarReservaModal from "@/components/reservas/EditarReservaModal";
+import ExtenderCitaModal from "@/components/reservas/ExtenderCitaModal";
 import styles from "./reservas.module.css";
 
 function ReservasContent() {
@@ -41,6 +42,7 @@ function ReservasContent() {
   const [guardando, setGuardando] = useState<string | null>(null);
   /* Reserva abierta en el modal de edición (horario / detalles). */
   const [editando, setEditando] = useState<Reserva | null>(null);
+  const [extendiendo, setExtendiendo] = useState<Reserva | null>(null);
   const estado = ESTADOS_RESERVA[estadoIdx];
 
   /* Enlaces históricos "?nueva=1" → asistente de creación */
@@ -164,6 +166,12 @@ function ReservasContent() {
         reserva={editando}
         onClose={() => setEditando(null)}
         onActualizada={(r) => { setEditando(r); void reload(); }}
+        onExtender={(r) => { setEditando(null); setExtendiendo(r); }}
+      />
+      <ExtenderCitaModal
+        reserva={extendiendo}
+        onClose={() => setExtendiendo(null)}
+        onCambios={() => void reload()}
       />
     </Panel>
   );

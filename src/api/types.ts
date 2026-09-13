@@ -199,6 +199,62 @@ export interface ApiAppointment {
   Payment?: ApiPayment | null;
 }
 
+/** Resumen de cita que arma el backend (buildAppointmentSummary). Horas en ISO UTC. */
+export interface ApiAppointmentSummary {
+  appointmentId: number;
+  serviceId: number;
+  serviceName: string | null;
+  profesionalId: number;
+  profesionalNombre: string | null;
+  sedeId: number;
+  sedeNombre: string | null;
+  userId: number | null;
+  userEmail: string | null;
+  userNombre: string | null;
+  userTelefono: string | null;
+  estado: ApiAppointmentStatus;
+  fecha: string | null;
+  horaInicio: string | null;
+  horaFin: string | null;
+  duracion: number | null;
+  notas: string | null;
+}
+
+/** Especialista libre que ofrece el mismo servicio en la misma sede. */
+export interface ApiEspecialistaLibre {
+  id: number;
+  nombre: string;
+  phone: string | null;
+  imagen: string | null;
+}
+
+/** Hueco del mismo profesional ese día, con la misma duración. Ojo: el backend manda la
+    hora de pared de Madrid con sufijo Z; ReservasController.extender la pasa a instantes reales. */
+export interface ApiHuecoSugerido {
+  horaInicio: string;
+  horaFin: string;
+}
+
+/** Cita que choca con la extensión, con las tres salidas posibles. */
+export interface ApiCitaEnConflicto {
+  appointment: ApiAppointmentSummary;
+  opciones: {
+    reasignarEspecialista: { endpoint: string; especialistasDisponibles: ApiEspecialistaLibre[] };
+    reprogramar: { endpoint: string; huecosSugeridosMismoDia: ApiHuecoSugerido[] };
+    cancelar: { endpoint: string };
+  };
+}
+
+/** Respuesta de PATCH /appointments/:id/extend */
+export type ApiExtendResult =
+  | { status: "EXTENDED"; appointment: ApiAppointment }
+  | {
+      status: "CONFLICT";
+      solicitud: { extraMinutes: number; nuevaHoraFin: string };
+      mensaje: string;
+      citasEnConflicto: ApiCitaEnConflicto[];
+    };
+
 export interface ApiPayment {
   id: number;
   appointmentId: number;
