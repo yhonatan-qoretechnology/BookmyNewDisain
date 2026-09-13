@@ -15,6 +15,7 @@ import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import Badge, { Tag } from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
+import DireccionAutocomplete, { type DatosDireccion } from "@/components/sedes/DireccionAutocomplete";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
 import ImageGallery from "@/components/ui/ImageGallery";
@@ -29,7 +30,10 @@ export default function SedesPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
-  const [direccion, setDireccion] = useState("");
+  /* Direccion + geografia. La rellena Google Places, pero queda editable. */
+  const [dir, setDir] = useState<DatosDireccion>({
+    direccion: "", pais: "", provincia: "", municipio: "", localidad: "",
+  });
   const [guardando, setGuardando] = useState(false);
   /* Sede cuyo catálogo de servicios se está editando */
   const [serviciosDe, setServiciosDe] = useState<{ id: number; nombre: string } | null>(null);
@@ -50,10 +54,14 @@ export default function SedesPage() {
     try {
       await SedesController.add({
         nombre: nombre.trim(),
-        direccion: direccion.trim() || "—",
+        direccion: dir.direccion.trim() || "—",
         negocioId: session?.negocioId || "",
+        pais: dir.pais, provincia: dir.provincia,
+        municipio: dir.municipio, localidad: dir.localidad,
+        latitud: dir.latitud, longitud: dir.longitud,
       });
-      setModalOpen(false); setNombre(""); setDireccion("");
+      setModalOpen(false); setNombre("");
+        setDir({ direccion: "", pais: "", provincia: "", municipio: "", localidad: "" });
       await reload();
       toast(t("sedes.created"), "success");
     } catch (e) {
@@ -141,9 +149,7 @@ export default function SedesPage() {
         <Field label={t("common.name")} htmlFor="nsd-nombre">
           <input id="nsd-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("sedes.namePlaceholder")} />
         </Field>
-        <Field label={t("sedes.address")} htmlFor="nsd-dir">
-          <input id="nsd-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder={t("sedes.addressPlaceholder")} />
-        </Field>
+        <DireccionAutocomplete valor={dir} onChange={setDir} />
         <ModalActions>
           <Button variant="ghost" onClick={() => setModalOpen(false)} disabled={guardando}>{t("common.cancel")}</Button>
           <Button onClick={() => void agregar()} disabled={guardando}>{t("common.save")}</Button>

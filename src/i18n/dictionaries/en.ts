@@ -807,6 +807,13 @@ const en: Dictionary = {
   },
 
   sedes: {
+    pais: "Country",
+    provincia: "Province",
+    municipio: "Municipality / City",
+    localidad: "Locality",
+    autocompletaAyuda: "Type the address and the country, province, municipality and locality fill in automatically. You can correct them by hand.",
+    cargandoMapas: "Loading the address finder…",
+    mapsError: "The address finder could not load. Type the fields by hand.",
     panelTitle: "{negocio} branches",
     panelSub: "{n} branch(es) in your business",
     searchPlaceholder: "Search by name or address…",

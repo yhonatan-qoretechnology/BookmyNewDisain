@@ -185,7 +185,12 @@ export const SedesApi = {
   /** GET /sedes/empresa/:empresaId — sedes de una empresa (tenant) */
   findByEmpresa: (empresaId: number) => http.get<ApiSede[]>(EP.sedesByEmpresa(empresaId)),
   findOne: (id: number) => http.get<ApiSede>(EP.sedeById(id)),
-  create: (data: { nombre: string; direccion: string; telefono?: string; empresaId: number }) =>
+  /** POST /sedes. Los campos geográficos los rellena Google Places en el alta. */
+  create: (data: {
+    nombre: string; direccion: string; telefono?: string; empresaId: number;
+    pais?: string; provincia?: string; municipio?: string; localidad?: string;
+    latitud?: number; longitud?: number;
+  }) =>
     http.post<ApiSede>(EP.sedes, data),
   update: (id: number, data: Partial<ApiSede>) => http.patch<ApiSede>(EP.sedeById(id), data),
   remove: (id: number) => http.delete(EP.sedeById(id)),

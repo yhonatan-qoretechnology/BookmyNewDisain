@@ -812,6 +812,13 @@ const es = {
   },
 
   sedes: {
+    pais: "País",
+    provincia: "Provincia",
+    municipio: "Municipio / Ciudad",
+    localidad: "Localidad",
+    autocompletaAyuda: "Escribe la dirección y se rellenan solos el país, la provincia, el municipio y la localidad. Puedes corregirlos a mano.",
+    cargandoMapas: "Cargando el buscador de direcciones…",
+    mapsError: "No se pudo cargar el buscador de direcciones. Escribe los campos a mano.",
     panelTitle: "Sedes de {negocio}",
     panelSub: "{n} sede(s) de tu negocio",
     searchPlaceholder: "Buscar por nombre o dirección…",

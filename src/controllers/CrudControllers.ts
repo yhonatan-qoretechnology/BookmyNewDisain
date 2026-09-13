@@ -623,12 +623,26 @@ export const SedesController = {
     return mapSedeDetalle(s, s.profesionales?.length ?? 0);
   },
 
-  /** Crea una sede — POST /sedes { nombre, direccion, empresaId }. */
-  async add(input: { nombre: string; direccion: string; negocioId: string }): Promise<void> {
+  /**
+   * Crea una sede — POST /sedes.
+   * Los campos geográficos son opcionales: si Places no los resolvió, la sede
+   * se crea igual y se pueden completar después desde la edición.
+   */
+  async add(input: {
+    nombre: string; direccion: string; negocioId: string;
+    pais?: string; provincia?: string; municipio?: string; localidad?: string;
+    latitud?: number; longitud?: number;
+  }): Promise<void> {
     await SedesApi.create({
       nombre: input.nombre,
       direccion: input.direccion,
       empresaId: Number(input.negocioId),
+      pais: input.pais?.trim() || undefined,
+      provincia: input.provincia?.trim() || undefined,
+      municipio: input.municipio?.trim() || undefined,
+      localidad: input.localidad?.trim() || undefined,
+      latitud: input.latitud,
+      longitud: input.longitud,
     });
   },
 
