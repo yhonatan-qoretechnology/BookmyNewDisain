@@ -97,6 +97,11 @@ export interface Reserva {
   clienteFoto?: string | null;
   fecha: string; // YYYY-MM-DD
   hora: string;  // HH:mm
+  /** Hora de fin "HH:mm" en Madrid */
+  horaFin?: string;
+  /** Instantes reales (ISO UTC) de inicio y fin — para saber si está en curso */
+  inicioISO?: string;
+  finISO?: string;
   precio: number;
   estado: EstadoReserva;
   sedeId: string;

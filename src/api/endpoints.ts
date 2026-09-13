@@ -117,6 +117,10 @@ export const EP = {
   appointmentsLatest: (sedeId: number) => `/appointments/branches/${sedeId}/latest`,
   appointmentCancel: (id: number) => `/appointments/${id}/cancel`,
   appointmentReschedule: (id: number) => `/appointments/${id}/reschedule`,
+  /** PATCH { extraMinutes, motivo? } → EXTENDED | CONFLICT */
+  appointmentExtend: (id: number) => `/appointments/${id}/extend`,
+  /** PATCH { nuevoProfesionalId, motivo? } → cita actualizada */
+  appointmentReassign: (id: number) => `/appointments/${id}/reassign`,
   profesionalReservations: (profesionalId: number) =>
     `/appointments/professionals/${profesionalId}/reservations`,
 

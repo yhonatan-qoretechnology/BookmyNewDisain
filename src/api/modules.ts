@@ -6,7 +6,7 @@
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
-  ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
+  ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
@@ -268,6 +268,21 @@ export const AppointmentsApi = {
     id: number,
     dto: { fecha: string; horaInicio: string; horaFin?: string; motivo?: string },
   ) => http.patch<ApiAppointment>(EP.appointmentReschedule(id), dto),
+  /**
+   * PATCH /appointments/:id/extend — la cita en curso necesita más minutos.
+   * EXTENDED si el tramo extra estaba libre (ya aplicado); CONFLICT si choca
+   * con otra reserva del mismo profesional (no cambia nada y devuelve las
+   * opciones para resolverla). 403 si quien llama no gestiona esa cita.
+   * @param dto extraMinutes entre 1 y 240.
+   */
+  extend: (id: number, dto: { extraMinutes: number; motivo?: string }) =>
+    http.patch<ApiExtendResult>(EP.appointmentExtend(id), dto),
+  /**
+   * PATCH /appointments/:id/reassign — mueve la cita a otro especialista.
+   * 400 si no ofrece ese servicio en la sede o ya está ocupado a esa hora.
+   */
+  reassign: (id: number, dto: { nuevoProfesionalId: number; motivo?: string }) =>
+    http.patch<ApiAppointment>(EP.appointmentReassign(id), dto),
   /** GET /appointments/:id — obtiene una cita con todos los detalles */
   findOne: (id: number) => http.get<ApiAppointment>(EP.appointmentById(id)),
   remove: (id: number) => http.delete(EP.appointmentById(id)),

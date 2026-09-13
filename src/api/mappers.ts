@@ -104,6 +104,9 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
        anterior para las citas de primera hora. */
     fecha: a.horaInicio ? diaMadrid(a.horaInicio) : (a.fecha || "").slice(0, 10),
     hora: a.horaInicio ? hhmm(a.horaInicio) : "—",
+    horaFin: a.horaFin ? hhmm(a.horaFin) : undefined,
+    inicioISO: a.horaInicio || undefined,
+    finISO: a.horaFin || undefined,
     precio: a.Payment?.totalAmount ?? 0,
     estado: APPT_ESTADO_MAP[a.estado] ?? "pendiente",
     sedeId: String(a.sedeId),
