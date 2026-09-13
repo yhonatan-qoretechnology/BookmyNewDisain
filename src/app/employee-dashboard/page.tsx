@@ -17,6 +17,7 @@ import Badge from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import { PersonRow } from "@/components/ui/People";
+import ExtensionTag from "@/components/reservas/ExtensionTag";
 import Button from "@/components/ui/Button";
 import ExtenderCitaModal from "@/components/reservas/ExtenderCitaModal";
 import styles from "./employee.module.css";
@@ -126,7 +127,7 @@ export default function EmployeeDashboardPage() {
             {lista.map((r) => (
               <tr key={r.id} onClick={() => popup.open(r, reload)} style={{ cursor: "pointer" }}>
                 <td><b>{r.id}</b></td>
-                <td>{r.servicio}</td>
+                <td>{r.servicio}<ExtensionTag reserva={r} /></td>
                 <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
                 <td>{fmtFechaCorta(r.fecha)}</td>
                 <td>{r.hora}</td>

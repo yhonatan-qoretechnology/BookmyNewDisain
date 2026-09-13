@@ -207,6 +207,10 @@ export interface ApiAppointment {
   profesional?: { id: number; nombre: string };
   user?: Partial<ApiUser>;
   Payment?: ApiPayment | null;
+  /** Si esta cita es la extensión de otra, el id de la original */
+  extensionDeId?: number | null;
+  /** Citas de extensión que cuelgan de esta (GET /appointments y /:id) */
+  extensiones?: Array<{ id: number; duracion: number; estado: ApiAppointmentStatus }>;
 }
 
 /** Resumen de cita que arma el backend (buildAppointmentSummary). Horas en ISO UTC. */
@@ -256,7 +260,8 @@ export interface ApiCitaEnConflicto {
 
 /** Respuesta de PATCH /appointments/:id/extend */
 export type ApiExtendResult =
-  | { status: "EXTENDED"; appointment: ApiAppointment }
+  /** `extension` es la cita NUEVA que registra el tiempo extra */
+  | { status: "EXTENDED"; appointment: ApiAppointment; extension: ApiAppointment }
   | {
       status: "CONFLICT";
       solicitud: { extraMinutes: number; nuevaHoraFin: string };

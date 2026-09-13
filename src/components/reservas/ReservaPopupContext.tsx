@@ -370,7 +370,21 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 <div>
                   <div className={styles.headerSede}>{sedeNombre || "—"}</div>
                   <div className={styles.service}>{reserva.servicio}</div>
-                  <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
+                  <div className={styles.badges}>
+                    <span className={styles.badge}>{t(`estados.${reserva.estado}`)}</span>
+                    {reserva.extensionDeId != null && (
+                      <span className={styles.badge}>
+                        <Icon name="clock" width={13} height={13} />
+                        {t("popup.chipExtension", { id: `R-${reserva.extensionDeId}` })}
+                      </span>
+                    )}
+                    {!!reserva.minutosExtendidos && (
+                      <span className={styles.badge}>
+                        <Icon name="clock" width={13} height={13} />
+                        {t("popup.chipExtendida", { n: reserva.minutosExtendidos })}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button className={styles.close} onClick={close} aria-label={t("popup.close")}>
                   <Icon name="close" strokeWidth={2.2} width={16} height={16} />
@@ -402,7 +416,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 <div className={styles.field}><label>{t("common.email")}</label><span style={{ wordBreak: "break-all" }}>{reserva.email || "—"}</span></div>
                 <div className={styles.field}><label>{t("common.price")}</label><span className={styles.price}>{reserva.precio.toFixed(2)}€</span></div>
                 <div className={styles.field}><label>{t("common.date")}</label><span>{fmtFechaLarga(reserva.fecha)}</span></div>
-                <div className={styles.field}><label>{t("common.time")}</label><span>{reserva.hora || "—"}</span></div>
+                <div className={styles.field}><label>{t("common.time")}</label><span>{reserva.hora || "—"}{reserva.horaFin ? ` – ${reserva.horaFin}` : ""}</span></div>
                 <div className={styles.field}><label>{t("common.duration")}</label><span>{reserva.duracion} min</span></div>
                 <div className={styles.field}><label>{t("common.branch")}</label><span>{sedeNombre || "—"}</span></div>
                 <div className={styles.field}><label>{t("common.specialist")}</label><span>{espNombre}</span></div>

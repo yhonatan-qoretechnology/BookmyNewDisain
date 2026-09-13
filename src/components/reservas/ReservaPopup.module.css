@@ -34,6 +34,10 @@
   padding: 4px 13px; border-radius: 999px;
   font-size: 12px; font-weight: 700;
 }
+/* Estado + marcas de extensión en la cabecera */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.badges .badge { gap: 5px; }
+
 .close {
   position: absolute; top: 14px; right: 14px;
   width: 32px; height: 32px; border-radius: 50%;

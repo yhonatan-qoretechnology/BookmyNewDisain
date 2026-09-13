@@ -102,7 +102,8 @@ async function fetchCitasDeSede(sedeId: number): Promise<ApiAppointment[]> {
 
 /** Resultado de pedir más tiempo para una cita en curso. */
 export type ResultadoExtension =
-  | { status: "EXTENDED"; reserva: Reserva }
+  /** `extension`: la cita nueva que registra el tiempo extra */
+  | { status: "EXTENDED"; extension: Reserva }
   | { status: "CONFLICT"; mensaje: string; nuevaHoraFin: string; citasEnConflicto: ApiCitaEnConflicto[] };
 
 /** Profesional al que se puede pasar una cita. */
@@ -393,16 +394,21 @@ export const ReservasController = {
       };
     }
 
-    const fin = res.appointment.horaFin;
-    const mapped: Reserva = {
-      ...reserva,
-      horaFin: madridHHmm(new Date(fin)),
-      finISO: fin,
-      duracion: res.appointment.duracion ?? reserva.duracion + extraMinutes,
+    /* El backend registra el tiempo extra como OTRA cita enlazada a la
+       original. Llega sin includes, así que cliente y servicio se copian. */
+    const extension: Reserva = {
+      ...mapAppointment(res.extension),
+      servicio: reserva.servicio,
+      cliente: reserva.cliente,
+      clienteFoto: reserva.clienteFoto,
+      telefono: reserva.telefono,
+      email: reserva.email,
+      sedeName: reserva.sedeName,
+      empleadoName: reserva.empleadoName,
     };
-    cache.set(mapped.id, mapped);
+    cache.set(extension.id, extension);
     BookingController.invalidateAll();
-    return { status: "EXTENDED", reserva: mapped };
+    return { status: "EXTENDED", extension };
   },
 
   /**

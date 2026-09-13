@@ -3,7 +3,8 @@
    ExtenderCitaModal — "Necesito más tiempo" en la cita en curso
    ------------------------------------------------------------
    PATCH /appointments/:id/extend. Si el tramo extra está libre, el
-   backend estira la cita y aquí solo se actualiza la hora de fin.
+   backend registra el tiempo extra como OTRA cita enlazada a la
+   original (extensionDeId), con cobro proporcional.
 
    Si choca con otra reserva del mismo profesional, el backend NO
    cambia nada y devuelve las citas afectadas con tres salidas:
@@ -94,7 +95,10 @@ export default function ExtenderCitaModal({ reserva, onClose, onCambios }: Exten
     try {
       const r = await ReservasController.extender(reserva, minutos, motivo);
       if (r.status === "EXTENDED") {
-        toast(t("extender.extendida", { hora: r.reserva.horaFin || "—" }), "success");
+        toast(
+          t("extender.extendida", { n: minutos, inicio: r.extension.hora, fin: r.extension.horaFin || "—" }),
+          "success",
+        );
         onCambios();
         cerrar();
       } else {
