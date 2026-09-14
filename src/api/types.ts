@@ -724,4 +724,6 @@ export interface ApiRankingCiudad {
 export interface ApiRankingVistas {
   entityId: number;
   vistas: number;
+  /** Nombre ya resuelto por el backend (empresa, sede, servicio, profesional o categoría). */
+  nombre?: string;
 }

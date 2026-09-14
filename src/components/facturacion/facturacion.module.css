@@ -322,3 +322,7 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
 .adicionalForm input[type="number"] { width: 88px; }
 :global([data-theme="dark"]) .adicionalForm input {
   background: rgba(255,255,255,.04); border-color: #1e2640; color: #e8edf5; }
+
+/* Botón "Quitar" de los adicionales: columna estrecha que no sale al imprimir */
+.quitarCol { width: 1%; white-space: nowrap; text-align: right; }
+@media print { .quitarCol { display: none; } }

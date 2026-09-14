@@ -466,6 +466,10 @@ const es = {
     adicionalAnadido: "Adicional añadido y total actualizado",
     adicionalInvalido: "Escribe un concepto, una cantidad y un precio válidos",
     adicionalError: "No se pudo añadir el adicional",
+    adicionalQuitar: "Quitar",
+    adicionalQuitarSi: "Sí, quitar",
+    adicionalQuitado: "Adicional quitado y total actualizado",
+    adicionalQuitarError: "No se pudo quitar el adicional",
     panelTitle: "Facturación",
     panelSub: "Cada reserva queda registrada como una factura",
     idFactura: "ID Factura",
@@ -643,6 +647,17 @@ const es = {
     fromReviews: "según reseñas",
     topTitle: "Servicios más vendidos",
     topSub: "Reservas acumuladas",
+    masVistosTitle: "Lo más visto",
+    masVistosSub: "Visitas registradas desde la app móvil",
+    vistas: "Visitas",
+    sinVistas: "Aún no hay visitas registradas: las envía la app móvil al abrir empresas y profesionales",
+    vistos: {
+      EMPRESA: "Empresas",
+      SEDE: "Sedes",
+      SERVICIO: "Servicios",
+      PROFESIONAL: "Profesionales",
+      CATEGORIA: "Categorías",
+    },
   },
 
   servicios: {

@@ -42,6 +42,8 @@ export interface FacturaItem {
   concepto: string;
   cantidad: number;
   precio: number;
+  /** id del payment_item cuando la línea es un adicional; la del servicio no lo lleva y no se puede quitar. */
+  itemId?: number;
 }
 
 export interface Factura {
@@ -165,7 +167,7 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
     items: (p.items && p.items.length > 0)
       ? [
           { concepto: servicio, cantidad: 1, precio: Number((total - p.items.reduce((s2, it) => s2 + it.cantidad * it.precioUnitario, 0)).toFixed(2)) },
-          ...p.items.map((it) => ({ concepto: it.concepto, cantidad: it.cantidad, precio: it.precioUnitario })),
+          ...p.items.map((it) => ({ concepto: it.concepto, cantidad: it.cantidad, precio: it.precioUnitario, itemId: it.id })),
         ]
       : [{ concepto: servicio, cantidad: 1, precio: total }],
   };

@@ -4,17 +4,23 @@
 ============================================================ */
 import { useMemo, useState } from "react";
 import { EstadisticasApi } from "@/api/modules";
+import type { ApiRankingVistas } from "@/api/types";
 import { EstadisticasController } from "@/controllers/EstadisticasController";
 import { useSession } from "@/context/SessionContext";
 import { useData } from "@/hooks/useData";
 import { useI18n } from "@/i18n";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
-import Panel, { PanelHead } from "@/components/ui/Panel";
+import Panel, { PanelHead, SelectPill } from "@/components/ui/Panel";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
 import Toolbar, { FilterDate, FilterGroup, ToolbarActions } from "@/components/ui/Toolbar";
 import { exportarCsv, exportarPdf } from "./exportar";
 import styles from "./estadisticas.module.css";
+
+/** Tipos de GET /estadisticas/mas-vistos/:tipo que la app móvil registra hoy.
+    El backend admite también SEDE, SERVICIO y CATEGORIA, pero ningún cliente
+    los envía todavía: se añaden aquí cuando la app los registre. */
+const TIPOS_VISTOS = ["EMPRESA", "PROFESIONAL"] as const;
 
 export default function EstadisticasPage() {
   const { t, locale } = useI18n();
@@ -56,11 +62,26 @@ export default function EstadisticasPage() {
   const { data: ciudades } = useData(() => EstadisticasApi.ciudades({ ...filtro, limit: 8 }).catch(() => []), [clave], []);
   const { data: servicios } = useData(() => EstadisticasApi.servicios({ ...filtro, limit: 8 }).catch(() => []), [clave], []);
 
+  /* Lo más visto: todos los tipos de una vez, así el selector no espera y la
+     exportación los incluye. Las vistas las registra la app móvil. */
+  const { data: vistos } = useData(
+    () =>
+      Promise.all(
+        TIPOS_VISTOS.map((tipo) =>
+          EstadisticasApi.masVistos(tipo, { ...filtro, limit: 8 }).catch(() => [] as ApiRankingVistas[]),
+        ),
+      ),
+    [clave],
+    TIPOS_VISTOS.map(() => [] as ApiRankingVistas[]),
+  );
+  const [tipoVisto, setTipoVisto] = useState(0);
+  const nombreVisto = (v: ApiRankingVistas) => v.nombre ?? `#${v.entityId}`;
+
   const periodo = desde || hasta
     ? `${desde || "…"} → ${hasta || "…"}`
     : t("estadisticas.periodoTodo");
 
-  /* Las cuatro tablas que se imprimen o exportan, en un solo sitio. */
+  /* Las tablas que se imprimen o exportan, en un solo sitio. */
   const tablas = () => [
     { titulo: t("estadisticas.empresasTitle"), cabeceras: [t("common.name"), t("estadisticas.reservas")],
       filas: empresas.map((e) => [e.nombre, String(e.reservas)]) },
@@ -70,6 +91,11 @@ export default function EstadisticasPage() {
       filas: empleados.map((e) => [e.nombre, String(e.reservas), `${e.ingresos.toFixed(2)}€`]) },
     { titulo: t("estadisticas.ciudadesTitle"), cabeceras: [t("estadisticas.ciudad"), t("estadisticas.usuarios")],
       filas: ciudades.map((c) => [c.ciudad ?? "—", String(c.usuarios)]) },
+    ...TIPOS_VISTOS.map((tipo, i) => ({
+      titulo: `${t("estadisticas.masVistosTitle")} · ${t(`estadisticas.vistos.${tipo}`)}`,
+      cabeceras: [t("common.name"), t("estadisticas.vistas")],
+      filas: (vistos[i] ?? []).map((v) => [nombreVisto(v), String(v.vistas)]),
+    })),
   ];
 
   const max = Math.max(1, ...ventas.map((v) => v.valor));
@@ -163,14 +189,31 @@ export default function EstadisticasPage() {
           <Ranking filas={servicios.map((e) => ({ nombre: e.nombre, valor: e.reservas }))} />
         </Panel>
       </div>
+
+      {/* ── Lo más visto (vistas registradas por la app móvil) ── */}
+      <Panel>
+        <PanelHead
+          title={t("estadisticas.masVistosTitle")}
+          sub={t("estadisticas.masVistosSub")}
+          right={
+            <SelectPill onClick={() => setTipoVisto((i) => (i + 1) % TIPOS_VISTOS.length)}>
+              {t(`estadisticas.vistos.${TIPOS_VISTOS[tipoVisto]}`)}
+            </SelectPill>
+          }
+        />
+        <Ranking
+          filas={(vistos[tipoVisto] ?? []).map((v) => ({ nombre: nombreVisto(v), valor: v.vistas }))}
+          vacio={t("estadisticas.sinVistas")}
+        />
+      </Panel>
     </>
   );
 }
 
 /** Lista simple ordenada con barra proporcional. */
-function Ranking({ filas }: { filas: { nombre: string; valor: number; extra?: string }[] }) {
+function Ranking({ filas, vacio }: { filas: { nombre: string; valor: number; extra?: string }[]; vacio?: string }) {
   const tope = Math.max(1, ...filas.map((f) => f.valor));
-  if (filas.length === 0) return <p className={styles.vacio}>—</p>;
+  if (filas.length === 0) return <p className={styles.vacio}>{vacio ?? "—"}</p>;
   return (
     <div className={styles.legend}>
       {filas.map((f, i) => (
