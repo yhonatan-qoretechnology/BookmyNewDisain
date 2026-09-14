@@ -20,6 +20,11 @@ export const EP = {
   passwordOtpValidate: "/auth/users/password/otp/validate",
   /** PATCH, no POST */
   passwordOtpChange: "/auth/users/password/otp/change",
+
+  /* Enlace de alta del empleado. Publicos: quien los usa aun no tiene
+     contrasena, asi que no puede tener sesion; los protege el token. */
+  passwordSetupValidate: "/auth/password-setup/validate",
+  passwordSetupComplete: "/auth/password-setup/complete",
   /** PATCH multipart — campo "fotoPerfil". Devuelve el Users actualizado. */
   userFoto: (id: number) => `/auth/users/${id}/foto`,
 
@@ -121,6 +126,8 @@ export const EP = {
   appointmentExtend: (id: number) => `/appointments/${id}/extend`,
   /** PATCH { nuevoProfesionalId, motivo? } → cita actualizada */
   appointmentReassign: (id: number) => `/appointments/${id}/reassign`,
+  /** PATCH { observacionEspera } — nota del cliente que espera. Vacio la borra. */
+  appointmentObservacionEspera: (id: number) => `/appointments/${id}/observacion-espera`,
   profesionalReservations: (profesionalId: number) =>
     `/appointments/professionals/${profesionalId}/reservations`,
 
@@ -137,6 +144,22 @@ export const EP = {
   paymentsFilter: "/payments/filter",
   paymentConfirm: (id: number) => `/payments/${id}/confirm`,
   paymentCancel: (id: number) => `/payments/${id}/cancel`,
+  /* Adicionales de una factura. El total lo recalcula el backend. */
+  paymentItems: (id: number) => `/payments/${id}/items`,
+  paymentItemById: (itemId: number) => `/payments/items/${itemId}`,
+
+  /* @Controller('festivos') — publico; informativos, no bloquean el agendado */
+  festivos: "/festivos",
+
+  /* @Controller('estadisticas') — rankings con filtro desde/hasta (2.12) */
+  estEmpresas: "/estadisticas/empresas-con-mas-reservas",
+  estServicios: "/estadisticas/servicios-con-mas-reservas",
+  estEmpleados: "/estadisticas/empleados",
+  estCiudades: "/estadisticas/ciudades",
+  estMasVistos: (tipo: string) => `/estadisticas/mas-vistos/${tipo}`,
+
+  /* @Controller('entity-views') — lo registra la app móvil al abrir una ficha */
+  entityViews: "/entity-views",
 
   /* Disponibilidad — las tres fuentes que valida el backend al agendar.
      Abiertas (sin guard) en lectura. Si devuelven [], appointment.service

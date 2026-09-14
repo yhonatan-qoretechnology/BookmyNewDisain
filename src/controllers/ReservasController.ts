@@ -14,7 +14,7 @@ import type {
   ApiAppointment, ApiAppointmentSummary, ApiCitaEnConflicto, ApiHuecoSugerido,
   ApiPayment, ApiPaymentMethod,
 } from "@/api/types";
-import { madridHHmm, madridToday, madridYmd } from "@/lib/timezone";
+import { madridHHmm, madridWallToUtc, madridToday, madridYmd, minutesOfHHmm } from "@/lib/timezone";
 import { BookingController } from "./BookingController";
 
 /** Opción unificada para los selects del flujo de agendado */
@@ -115,6 +115,33 @@ export interface ProfesionalReasignable {
 
 /** Tras la hora de fin prevista, todavía se puede pedir más tiempo durante este margen. */
 const MARGEN_EN_CURSO_MS = 60 * 60000;
+
+/**
+ * Los huecos de `huecosSugeridosMismoDia` llegan con la hora de PARED de
+ * Madrid disfrazada de UTC: el backend los arma con Date.UTC(...) sobre
+ * minutos de Madrid (una cita que acaba a las 21:00 de Madrid sugiere
+ * "…T21:00:00.000Z"). Se pasan a instantes reales para que la vista
+ * (madridHHmm) y reprogramarAHueco (componentes UTC) acierten.
+ * Si el backend empieza a mandar instantes reales, hay que quitar esto.
+ */
+function conHuecosEnInstantes(c: ApiCitaEnConflicto): ApiCitaEnConflicto {
+  const aInstante = (iso: string) =>
+    madridWallToUtc(iso.slice(0, 10), minutesOfHHmm(iso.slice(11, 16))).toISOString();
+  const { reprogramar } = c.opciones;
+  return {
+    ...c,
+    opciones: {
+      ...c.opciones,
+      reprogramar: {
+        ...reprogramar,
+        huecosSugeridosMismoDia: reprogramar.huecosSugeridosMismoDia.map((h) => ({
+          horaInicio: aInstante(h.horaInicio),
+          horaFin: aInstante(h.horaFin),
+        })),
+      },
+    },
+  };
+}
 
 export const ReservasController = {
   /**
@@ -328,6 +355,19 @@ export const ReservasController = {
     return mapped;
   },
 
+  /** Nota sobre el cliente que espera — PATCH /appointments/:id/observacion-espera. */
+  async guardarObservacionEspera(reserva: Reserva, texto: string): Promise<Reserva> {
+    if (reserva.apiId == null) throw new Error("SIN_ID");
+    const limpio = texto.trim();
+    const actualizada = await AppointmentsApi.observacionEspera(reserva.apiId, limpio || null);
+    const mapped: Reserva = {
+      ...reserva,
+      observacionEspera: actualizada.observacionEspera ?? (limpio || null),
+    };
+    cache.set(mapped.id, mapped);
+    return mapped;
+  },
+
   /**
    * Cambia el estado de una cita — PATCH /appointments/:id { estado }.
    *
@@ -424,7 +464,7 @@ export const ReservasController = {
         status: "CONFLICT",
         mensaje: res.mensaje,
         nuevaHoraFin: res.solicitud.nuevaHoraFin,
-        citasEnConflicto: res.citasEnConflicto,
+        citasEnConflicto: res.citasEnConflicto.map(conHuecosEnInstantes),
       };
     }
 

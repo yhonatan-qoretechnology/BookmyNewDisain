@@ -60,6 +60,38 @@ declare global {
       setMap(map: Map | null): void;
       addListener(eventName: string, handler: () => void): MapsEventListener;
     }
+
+    /* Solo lo que consume el autocompletado de direcciones del alta de sedes. */
+    namespace places {
+      interface AddressComponent {
+        long_name: string;
+        short_name: string;
+        types: string[];
+      }
+
+      interface PlaceGeometry {
+        location?: { lat(): number; lng(): number };
+      }
+
+      interface PlaceResult {
+        address_components?: AddressComponent[];
+        formatted_address?: string;
+        name?: string;
+        geometry?: PlaceGeometry;
+      }
+
+      interface AutocompleteOptions {
+        types?: string[];
+        fields?: string[];
+        componentRestrictions?: { country?: string | string[] };
+      }
+
+      class Autocomplete {
+        constructor(input: HTMLInputElement, opts?: AutocompleteOptions);
+        getPlace(): PlaceResult;
+        addListener(eventName: string, handler: () => void): MapsEventListener;
+      }
+    }
   }
 
   interface Window {

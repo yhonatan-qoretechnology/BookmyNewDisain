@@ -27,3 +27,6 @@
 :global([data-theme="dark"]) .estadoSelect option { background: #131a2e; color: #e8edf5; }
 
 @media (prefers-reduced-motion: reduce) { .estadoSelect { transition: none; } }
+
+/* La celda de acciones lleva el selector de estado y el botón Editar. */
+.accionesCell { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }

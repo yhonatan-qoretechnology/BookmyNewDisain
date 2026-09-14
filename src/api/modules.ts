@@ -11,7 +11,8 @@ import type {
   ApiDisponibilidadProfesional, ApiEmpresa,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
-  ApiPayment, ApiPaymentFiltered, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
+  ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
+  ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiServicioAsignable, ApiUser,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
@@ -70,6 +71,15 @@ export const AdminApi = {
 /* ── Recuperación de contraseña por OTP ─────────────────────
    Flujo de tres pasos contra AuthModule. Son endpoints públicos:
    quien ha olvidado la contraseña no tiene token. */
+export const PasswordSetupApi = {
+  /** GET — comprueba el enlace sin gastarlo. */
+  validar: (token: string) =>
+    http.get<{ valido: true; email: string }>(EP.passwordSetupValidate + qs({ token })),
+  /** PATCH — fija la contrasena y gasta el token. */
+  completar: (token: string, password: string) =>
+    http.patch<{ message: string }>(EP.passwordSetupComplete, { token, password }),
+};
+
 export const PasswordRecoveryApi = {
   /**
    * Paso 1 — POST /auth/users/password/otp/request { email }.
@@ -176,7 +186,12 @@ export const SedesApi = {
   /** GET /sedes/empresa/:empresaId — sedes de una empresa (tenant) */
   findByEmpresa: (empresaId: number) => http.get<ApiSede[]>(EP.sedesByEmpresa(empresaId)),
   findOne: (id: number) => http.get<ApiSede>(EP.sedeById(id)),
-  create: (data: { nombre: string; direccion: string; telefono?: string; empresaId: number }) =>
+  /** POST /sedes. Los campos geográficos los rellena Google Places en el alta. */
+  create: (data: {
+    nombre: string; direccion: string; telefono?: string; empresaId: number;
+    pais?: string; provincia?: string; municipio?: string; localidad?: string;
+    latitud?: number; longitud?: number;
+  }) =>
     http.post<ApiSede>(EP.sedes, data),
   update: (id: number, data: Partial<ApiSede>) => http.patch<ApiSede>(EP.sedeById(id), data),
   remove: (id: number) => http.delete(EP.sedeById(id)),
@@ -197,7 +212,7 @@ export const ProfesionalesApi = {
   /** POST /profesionales — `password` es obligatorio (login de
       profesionales, rol EMPLOYEE): el backend genera el correo de
       acceso solo (nombre@empresa.com) y lo devuelve en `acceso.email`. */
-  create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string; password: string }) =>
+  create: (data: { nombre: string; phone: string; sedeId: number; biografia?: string; password: string; emailPersonal?: string }) =>
     http.post<ApiProfesionalCreateResponse>(EP.profesionales, data),
   /** PATCH /profesionales/:id — edición y vínculo con su usuario (user_id) */
   update: (id: number, data: Partial<ApiProfesional>) =>
@@ -259,6 +274,9 @@ export const AppointmentsApi = {
    */
   cambiarEstado: (id: number, estado: ApiAppointmentStatus) =>
     http.patch<ApiAppointment>(EP.appointmentById(id), { estado }),
+  /** PATCH /appointments/:id/observacion-espera */
+  observacionEspera: (id: number, observacionEspera: string | null) =>
+    http.patch<ApiAppointment>(EP.appointmentObservacionEspera(id), { observacionEspera }),
   /**
    * PATCH /appointments/:id/reschedule — nueva franja horaria.
    * ⚠️ El formato NO es el de POST /appointments: aquí la fecha y las horas
@@ -409,6 +427,43 @@ export const PaymentsApi = {
     http.get<ApiPaymentFiltered[]>(EP.paymentsFilter + qs({ userId: params.userId, sedeId: params.sedeId })),
   confirm: (id: number) => http.patch<ApiPayment>(EP.paymentConfirm(id)),
   cancel: (id: number, data?: { reason?: string }) => http.patch<ApiPayment>(EP.paymentCancel(id), data),
+
+  /* ── Adicionales de factura ── */
+  /** GET /payments/:id/items */
+  items: (id: number) => http.get<ApiPaymentItem[]>(EP.paymentItems(id)),
+  /** POST /payments/:id/items — devuelve la factura con el total ya recalculado. */
+  addItem: (id: number, data: { concepto: string; cantidad: number; precioUnitario: number }) =>
+    http.post<ApiPayment>(EP.paymentItems(id), data),
+  /** DELETE /payments/items/:itemId — devuelve la factura con el total recalculado. */
+  removeItem: (itemId: number) => http.delete<ApiPayment>(EP.paymentItemById(itemId)),
+};
+
+/* ── FestivoModule ───────────────────────────────────────── */
+/* ── EstadisticasModule ──────────────────────────────────── */
+export const EstadisticasApi = {
+  /** 2.9 — empresas con más reservas. Excluye canceladas y no-show. */
+  empresas: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingReservas[]>(EP.estEmpresas + qs(f as Record<string, string | number | undefined>)),
+  /** 2.10 — servicios con más reservas. */
+  servicios: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingReservas[]>(EP.estServicios + qs(f as Record<string, string | number | undefined>)),
+  /** 2.15 — reservas e ingresos por empleado. */
+  empleados: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingEmpleado[]>(EP.estEmpleados + qs(f as Record<string, string | number | undefined>)),
+  /** 2.8 — ciudades con más usuarios. */
+  ciudades: (f: EstadisticasFiltro = {}) =>
+    http.get<ApiRankingCiudad[]>(EP.estCiudades + qs(f as Record<string, string | number | undefined>)),
+  /** 2.2-2.5 y 2.7 — lo más visto de cada tipo. */
+  masVistos: (
+    tipo: "EMPRESA" | "SEDE" | "SERVICIO" | "PROFESIONAL" | "CATEGORIA",
+    f: EstadisticasFiltro = {},
+  ) => http.get<ApiRankingVistas[]>(EP.estMasVistos(tipo) + qs(f as Record<string, string | number | undefined>)),
+};
+
+export const FestivosApi = {
+  /** GET /festivos?anio=&sedeId= — nacionales + de su comunidad + de su municipio. */
+  findAll: (params: { anio?: number; sedeId?: number } = {}) =>
+    http.get<ApiFestivo[]>(EP.festivos + qs(params)),
 };
 
 /* ── Subida de imágenes ─────────────────────────────────────

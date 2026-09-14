@@ -477,6 +477,9 @@ export const PersonalController = {
   async crear(input: {
     nombre: string; rol: string; telefono: string; sedeId: string; password: string;
     foto?: File | null;
+    /** Correo REAL del empleado. Si se indica, el backend le manda el enlace
+        para que fije su propia contraseña; el de login es sintético. */
+    emailPersonal?: string;
   }): Promise<{ email: string; fotoFallida: boolean }> {
     const creado = await ProfesionalesApi.create({
       nombre: input.nombre.trim(),
@@ -484,6 +487,7 @@ export const PersonalController = {
       sedeId: Number(input.sedeId),
       biografia: input.rol.trim() || undefined,
       password: input.password,
+      emailPersonal: input.emailPersonal?.trim() || undefined,
     });
 
     let fotoFallida = false;
@@ -619,12 +623,26 @@ export const SedesController = {
     return mapSedeDetalle(s, s.profesionales?.length ?? 0);
   },
 
-  /** Crea una sede — POST /sedes { nombre, direccion, empresaId }. */
-  async add(input: { nombre: string; direccion: string; negocioId: string }): Promise<void> {
+  /**
+   * Crea una sede — POST /sedes.
+   * Los campos geográficos son opcionales: si Places no los resolvió, la sede
+   * se crea igual y se pueden completar después desde la edición.
+   */
+  async add(input: {
+    nombre: string; direccion: string; negocioId: string;
+    pais?: string; provincia?: string; municipio?: string; localidad?: string;
+    latitud?: number; longitud?: number;
+  }): Promise<void> {
     await SedesApi.create({
       nombre: input.nombre,
       direccion: input.direccion,
       empresaId: Number(input.negocioId),
+      pais: input.pais?.trim() || undefined,
+      provincia: input.provincia?.trim() || undefined,
+      municipio: input.municipio?.trim() || undefined,
+      localidad: input.localidad?.trim() || undefined,
+      latitud: input.latitud,
+      longitud: input.longitud,
     });
   },
 

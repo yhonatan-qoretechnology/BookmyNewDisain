@@ -122,6 +122,7 @@ export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, str
     sedeImagenes: a.sede?.imagenes,
     empleadoName: a.profesional?.nombre,
     notas: a.notas || "",
+    observacionEspera: a.observacionEspera ?? null,
     metodoPago: metodo,
   };
 }

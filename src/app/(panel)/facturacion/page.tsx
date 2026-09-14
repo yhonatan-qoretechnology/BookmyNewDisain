@@ -63,7 +63,7 @@ export default function FacturacionPage() {
   }, [fEmpresaId]);
 
   /* Una factura por cada pago real (PaymentModule), acotado por rol */
-  const { data: lista, loading } = useData(
+  const { data: lista, loading, reload } = useData(
     () =>
       FacturasController.search(
         session,
@@ -73,6 +73,12 @@ export default function FacturacionPage() {
     [session?.id, session?.negocioId, session?.sedeId, locale, fQuery, fFecha, fEmpresaId, fSedeId],
     []
   );
+
+  /* Tras añadir o quitar un adicional la lista se recarga con el total nuevo,
+     pero la factura abierta en el popup es la copia anterior: se sustituye. */
+  useEffect(() => {
+    setVer((actual) => (actual ? lista.find((x) => x.id === actual.id) ?? actual : actual));
+  }, [lista]);
 
   /* ¿El rol puede acotar por empresa/sede? (define qué selectores salen) */
   const hayFiltroEmpresa = session?.role === "superadmin" && empresasOpt.length > 0;
@@ -249,7 +255,7 @@ export default function FacturacionPage() {
       </Panel>
 
       {/* Popup: ver factura, imprimir y descargar PDF */}
-      <FacturaViewModal factura={ver} emisor={emisor} onClose={() => setVer(null)} />
+      <FacturaViewModal factura={ver} emisor={emisor} onClose={() => setVer(null)} onActualizada={() => reload()} />
     </>
   );
 }

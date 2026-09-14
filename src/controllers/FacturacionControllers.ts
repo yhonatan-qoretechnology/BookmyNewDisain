@@ -42,10 +42,14 @@ export interface FacturaItem {
   concepto: string;
   cantidad: number;
   precio: number;
+  /** id del payment_item cuando la línea es un adicional; la del servicio no lo lleva y no se puede quitar. */
+  itemId?: number;
 }
 
 export interface Factura {
   id: string;            // ID Factura (ej. F-0001)
+  /** id numérico real del pago, para añadir o quitar adicionales */
+  apiId?: number;
   reservaId: string;     // reserva que la originó
   cliente: string;
   clienteEmail?: string;
@@ -151,11 +155,21 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
     fecha: (p.createdAt || "").slice(0, 10) || "—",
     hora: p.createdAt ? p.createdAt.slice(11, 16) : undefined,
     total,
+    apiId: p.id,
     moneda: "EUR",
     estado: estadoDesdePago(p.status),
     sedeId: p.appointment?.sedeId != null ? String(p.appointment.sedeId) : undefined,
     metodoPago: metodoPagoDesdePago(p),
-    items: [{ concepto: servicio, cantidad: 1, precio: total }],
+    /* Si el backend devuelve adicionales (payment_items) se pintan como
+       lineas propias; si no, se cae a la unica linea del servicio, que es lo
+       que habia antes. El servicio va SIEMPRE primero: el total de la factura
+       es su tarifa mas los adicionales. */
+    items: (p.items && p.items.length > 0)
+      ? [
+          { concepto: servicio, cantidad: 1, precio: Number((total - p.items.reduce((s2, it) => s2 + it.cantidad * it.precioUnitario, 0)).toFixed(2)) },
+          ...p.items.map((it) => ({ concepto: it.concepto, cantidad: it.cantidad, precio: it.precioUnitario, itemId: it.id })),
+        ]
+      : [{ concepto: servicio, cantidad: 1, precio: total }],
   };
 }
 
@@ -254,6 +268,28 @@ export const EmisorController = {
    el endpoint no valida token/rol por sí mismo.
 ============================================================ */
 export const FacturasController = {
+  /**
+   * Añade un concepto adicional a la factura — POST /payments/:id/items.
+   * El total lo recalcula SIEMPRE el backend (tarifa del servicio + adicionales),
+   * así que aquí no se suma nada a mano.
+   */
+  async anadirAdicional(
+    apiId: number,
+    datos: { concepto: string; cantidad: number; precioUnitario: number },
+  ): Promise<void> {
+    await PaymentsApi.addItem(apiId, datos);
+  },
+
+  /** Quita un adicional — DELETE /payments/items/:itemId. */
+  async quitarAdicional(itemId: number): Promise<void> {
+    await PaymentsApi.removeItem(itemId);
+  },
+
+  /** Adicionales actuales de una factura — GET /payments/:id/items. */
+  async adicionales(apiId: number) {
+    return PaymentsApi.items(apiId);
+  },
+
   /**
    * Facturas de la sesión — una por pago, de la más reciente a la
    * más antigua. El alcance de sedes a consultar depende del rol:

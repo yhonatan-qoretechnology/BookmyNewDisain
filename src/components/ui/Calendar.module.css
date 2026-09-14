@@ -104,3 +104,16 @@
   border-radius: 50%; background: var(--teal-500);
   margin-left: 5px; vertical-align: middle;
 }
+
+/* Festivo: aviso visual. NO bloquea el agendado — de eso se ocupan
+   los días cerrados de sede. Por eso no reutiliza .cellDisabled. */
+.cellFestivo { background: #fdecea; }
+.cellFestivo .dayNum { color: #c0392b; font-weight: 800; }
+.festivoNombre {
+  display: block; font-size: 10px; line-height: 1.25; color: #c0392b;
+  font-weight: 600; margin-top: 2px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+:global([data-theme="dark"]) .cellFestivo { background: rgba(192,57,43,.14); }
+:global([data-theme="dark"]) .cellFestivo .dayNum,
+:global([data-theme="dark"]) .festivoNombre { color: #f0837a; }

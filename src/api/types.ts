@@ -197,6 +197,8 @@ export interface ApiAppointment {
   horaFin: string;
   duracion: number;
   estado: ApiAppointmentStatus;
+  /** Nota del cliente que espera a ser atendido (PATCH :id/observacion-espera). */
+  observacionEspera?: string | null;
   notas?: string | null;
   sedeId: number;
   serviceId: number;
@@ -242,7 +244,8 @@ export interface ApiEspecialistaLibre {
   imagen: string | null;
 }
 
-/** Hueco del mismo profesional ese día, con la misma duración (ISO UTC). */
+/** Hueco del mismo profesional ese día, con la misma duración. Ojo: el backend manda la
+    hora de pared de Madrid con sufijo Z; ReservasController.extender la pasa a instantes reales. */
 export interface ApiHuecoSugerido {
   horaInicio: string;
   horaFin: string;
@@ -292,6 +295,8 @@ export interface ApiPaymentServiceRef {
  * rol del usuario. El backend no valida token/rol en este endpoint.
  */
 export interface ApiPaymentFiltered {
+  /** Adicionales de la factura (payment_items). */
+  items?: ApiPaymentItem[];
   id: number;
   userId: number;
   totalAmount: number;
@@ -666,4 +671,59 @@ export interface SendMessageDto {
   messageType: "TEXT" | "IMAGE" | "FILE" | "AUDIO";
   message?: string;
   fileUrl?: string;
+}
+
+/** Concepto adicional de una factura (payment_items). */
+export interface ApiPaymentItem {
+  id: number;
+  paymentId: number;
+  concepto: string;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+/** Festivo devuelto por GET /festivos. Es informativo: no bloquea el agendado. */
+export interface ApiFestivo {
+  id: number;
+  fecha: string;
+  nombre: string;
+  ambito: "NACIONAL" | "AUTONOMICO" | "LOCAL";
+  pais: string;
+  ccaa: string | null;
+  municipio: string | null;
+}
+
+/* ── Estadísticas ─────────────────────────────────────────── */
+
+/** Filtro común de todas las estadísticas (2.12). `hasta` es inclusivo. */
+export interface EstadisticasFiltro {
+  desde?: string;
+  hasta?: string;
+  empresaId?: number;
+  sedeId?: number;
+  limit?: number;
+}
+
+export interface ApiRankingReservas {
+  id: number;
+  nombre: string;
+  reservas: number;
+}
+
+export interface ApiRankingEmpleado extends ApiRankingReservas {
+  imagen: string | null;
+  ingresos: number;
+}
+
+export interface ApiRankingCiudad {
+  ciudad: string | null;
+  usuarios: number;
+}
+
+/** Lo más visto: el backend devuelve id y nº de vistas; el nombre se resuelve aparte. */
+export interface ApiRankingVistas {
+  entityId: number;
+  vistas: number;
+  /** Nombre ya resuelto por el backend (empresa, sede, servicio, profesional o categoría). */
+  nombre?: string;
 }
