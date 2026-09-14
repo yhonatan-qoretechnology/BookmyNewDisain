@@ -113,6 +113,28 @@
   background: var(--grad-teal); border-color: transparent; color: #fff;
 }
 .gestionDestacada:hover { color: #fff; border-color: transparent; filter: brightness(1.05); }
+/* "Necesito más tiempo": minutos proporcionales, un toque = extensión */
+.extRow {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px; border-radius: var(--r-md);
+  background: rgba(15,207,174,.08); border: 1.5px solid rgba(15,207,174,.35);
+}
+.extLabel { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--teal-600); }
+.extChips { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 6px; }
+.extChip {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  padding: 8px 6px; border-radius: 10px; cursor: pointer; font-size: 13px;
+  border: 1.5px solid var(--teal-500); background: var(--surface); color: var(--navy-900);
+  transition: all .15s ease;
+}
+.extChip small { font-size: 11px; font-weight: 600; color: var(--slate-500); }
+.extChip:hover:not(:disabled) { background: var(--teal-500); color: #fff; }
+.extChip:hover:not(:disabled) small { color: #fff; }
+.extChip:disabled { opacity: .55; cursor: default; }
+:global([data-theme="dark"]) .extChip { background: rgba(255,255,255,.04); color: #e8edf5; }
+:global([data-theme="dark"]) .extLabel { color: #0fcfae; }
+
 .gestionPeligro { border-color: rgba(229,72,77,.45); color: #e5484d; }
 .gestionPeligro:hover { background: #e5484d; border-color: #e5484d; color: #fff; }
 :global([data-theme="dark"]) .gestionBtn { background: rgba(255,255,255,.04); border-color: #1e2640; color: #8392ab; }

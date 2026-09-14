@@ -1075,6 +1075,8 @@ const es = {
     horario: "{inicio} – {fin}",
     pasada: "Tenía que terminar a las {fin}",
     boton: "Necesito más tiempo",
+    otro: "Otro",
+    aplicando: "Extendiendo…",
     titulo: "Necesito más tiempo",
     sub: "¿Cuántos minutos más necesitas con {cliente}? Ahora termina a las {fin}.",
     minutosLabel: "Minutos extra (1–240)",

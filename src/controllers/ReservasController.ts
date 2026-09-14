@@ -14,7 +14,7 @@ import type {
   ApiAppointment, ApiAppointmentSummary, ApiCitaEnConflicto, ApiHuecoSugerido,
   ApiPayment, ApiPaymentMethod,
 } from "@/api/types";
-import { madridHHmm, madridYmd } from "@/lib/timezone";
+import { madridHHmm, madridToday, madridYmd } from "@/lib/timezone";
 import { BookingController } from "./BookingController";
 
 /** Opción unificada para los selects del flujo de agendado */
@@ -370,6 +370,40 @@ export const ReservasController = {
     });
     candidatas.sort((a, b) => Date.parse(b.inicioISO!) - Date.parse(a.inicioISO!));
     return candidatas[0] ?? null;
+  },
+
+  /**
+   * Si se puede pedir más tiempo desde el detalle: cita pendiente o
+   * confirmada de HOY (día de Madrid), a cualquier hora del día.
+   * No se exige que esté en curso: las horas del panel son de Madrid y
+   * quien opera desde otro huso veía la cita "terminada hace horas"
+   * aunque en su reloj fuera la hora de la cita. El backend no pone
+   * restricción horaria a /extend.
+   */
+  /**
+   * Minutos rápidos proporcionales a la duración de la cita: 25, 50, 75 y
+   * 100 %, redondeados hacia arriba a múltiplos de 5 (mín. 5, máx. 240).
+   * Cita de 10 min → [5, 10] · de 135 min → [35, 70, 105, 135].
+   */
+  opcionesMinutos(duracion: number): number[] {
+    const base = duracion > 0 ? duracion : 30;
+    const opciones = new Set(
+      [0.25, 0.5, 0.75, 1].map((p) => Math.min(240, Math.max(5, Math.ceil((base * p) / 5) * 5))),
+    );
+    return [...opciones].sort((a, b) => a - b);
+  },
+
+  /** Importe estimado del tiempo extra, con la misma regla que el backend: precio × minutos / duración. */
+  importeExtension(reserva: Reserva, minutos: number): number {
+    return reserva.duracion > 0
+      ? Math.round(((reserva.precio * minutos) / reserva.duracion) * 100) / 100
+      : 0;
+  },
+
+  puedeExtender(reserva: Reserva): boolean {
+    if (reserva.apiId == null || !reserva.inicioISO) return false;
+    if (reserva.estado !== "pendiente" && reserva.estado !== "confirmada") return false;
+    return madridYmd(new Date(reserva.inicioISO)) === madridToday();
   },
 
   /**

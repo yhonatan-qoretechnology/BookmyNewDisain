@@ -7,7 +7,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Reserva } from "@/models";
 import { ReservasController } from "@/controllers/ReservasController";
-import { fmtFechaLarga } from "@/constants";
+import { fmtFechaLarga, fmtMoneda } from "@/constants";
+import type { ApiCitaEnConflicto } from "@/api/types";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
@@ -48,7 +49,12 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
   const [accion, setAccion] = useState<{
     tipo: "reprogramar" | "profesional" | "extender";
     reserva: Reserva;
+    /** Solo "extender" desde un botón rápido que chocó con otra reserva */
+    minutos?: number;
+    conflicto?: { nuevaHoraFin: string; citas: ApiCitaEnConflicto[] };
   } | null>(null);
+  /** Minutos que se están extendiendo desde un botón rápido (bloquea los demás) */
+  const [extendiendoMin, setExtendiendoMin] = useState<number | null>(null);
 
   const open = useCallback(async (idOrReserva: string | Reserva, onCambio?: () => void) => {
     onCambioRef.current = onCambio ?? null;
@@ -299,13 +305,42 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
   const gestionable =
     !!reserva && reserva.apiId != null &&
     (reserva.estado === "pendiente" || reserva.estado === "confirmada");
-  const enCurso = !!reserva && ReservasController.citaEnCurso([reserva]) !== null;
+  const enCurso = !!reserva && ReservasController.puedeExtender(reserva);
   const avisarCambio = () => onCambioRef.current?.();
 
   const abrirAccion = (tipo: "reprogramar" | "profesional" | "extender") => {
     if (!reserva) return;
     setAccion({ tipo, reserva });
     setReserva(null);
+  };
+
+  /* Un toque = extensión aplicada. Solo si choca con otra reserva se abre
+     el modal, ya directamente en la pantalla de resolver el conflicto. */
+  const extenderRapido = async (minutos: number) => {
+    if (!reserva) return;
+    const r = reserva;
+    setExtendiendoMin(minutos);
+    try {
+      const res = await ReservasController.extender(r, minutos);
+      if (res.status === "EXTENDED") {
+        toast(
+          t("extender.extendida", { n: minutos, inicio: res.extension.hora, fin: res.extension.horaFin || "—" }),
+          "success",
+        );
+        setReserva(null);
+        avisarCambio();
+      } else {
+        setAccion({
+          tipo: "extender", reserva: r, minutos,
+          conflicto: { nuevaHoraFin: res.nuevaHoraFin, citas: res.citasEnConflicto },
+        });
+        setReserva(null);
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("extender.error"), "error");
+    } finally {
+      setExtendiendoMin(null);
+    }
   };
 
   const cancelarCita = () => {
@@ -433,13 +468,34 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
             {gestionable && (
               <div className={styles.gestion}>
                 {enCurso && (
-                  <button
-                    className={`${styles.gestionBtn} ${styles.gestionDestacada}`}
-                    onClick={() => abrirAccion("extender")}
-                  >
-                    <Icon name="clock" width={18} height={18} />
-                    {t("extender.boton")}
-                  </button>
+                  <div className={styles.extRow}>
+                    <span className={styles.extLabel}>
+                      <Icon name="clock" width={16} height={16} />
+                      {t("extender.boton")}
+                    </span>
+                    <div className={styles.extChips}>
+                      {ReservasController.opcionesMinutos(reserva.duracion).map((m) => (
+                        <button
+                          key={m}
+                          className={styles.extChip}
+                          disabled={extendiendoMin !== null}
+                          onClick={() => void extenderRapido(m)}
+                        >
+                          <b>{extendiendoMin === m ? t("extender.aplicando") : `+${m} min`}</b>
+                          {reserva.precio > 0 && (
+                            <small>{fmtMoneda(ReservasController.importeExtension(reserva, m), "EUR")}</small>
+                          )}
+                        </button>
+                      ))}
+                      <button
+                        className={styles.extChip}
+                        disabled={extendiendoMin !== null}
+                        onClick={() => abrirAccion("extender")}
+                      >
+                        <b>{t("extender.otro")}</b>
+                      </button>
+                    </div>
+                  </div>
                 )}
                 <button className={styles.gestionBtn} onClick={() => abrirAccion("reprogramar")}>
                   <Icon name="calendar" width={18} height={18} />
@@ -487,6 +543,8 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
       />
       <ExtenderCitaModal
         reserva={accion?.tipo === "extender" ? accion.reserva : null}
+        minutosIniciales={accion?.minutos}
+        conflictoInicial={accion?.conflicto}
         onClose={() => setAccion(null)}
         onCambios={avisarCambio}
       />
