@@ -20,11 +20,14 @@ export const metadata: Metadata = {
   description: "Panel de administración para equipos de belleza y bienestar",
 };
 
-/** Aplica el tema antes de pintar para evitar el flash */
+/** Aplica el tema antes de pintar para evitar el flash.
+    La clave tiene que ser la misma que guarda ThemeContext
+    (THEME_STORAGE_KEY = "bookmy-theme"); con "bm_theme" este script nunca
+    encontraba nada y cada recarga volvía al tema del sistema. */
 const themeInitScript = `
 (function () {
   try {
-    var t = localStorage.getItem("bm_theme") ||
+    var t = localStorage.getItem("bookmy-theme") ||
       (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     document.documentElement.setAttribute("data-theme", t);
   } catch (e) {}
