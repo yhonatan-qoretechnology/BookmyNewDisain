@@ -116,7 +116,15 @@ input:focus-visible, [tabindex]:focus-visible {
 #bmPrintArea { display: none; }
 
 @media print {
-  body > *:not(#bmPrintArea) { display: none !important; }
+  /* Ojo: esta regla solo debe actuar cuando el chat ha creado su propia área
+     de impresión. Sin el :has, ocultaba TODO el panel y cualquier "Imprimir"
+     (facturas, estadísticas) salía en blanco. */
+  body:has(#bmPrintArea) > *:not(#bmPrintArea) { display: none !important; }
+
+  /* Impresión normal de una página del panel: fuera el menú y la barra
+     superior, que no aportan nada en papel. */
+  body:not(:has(#bmPrintArea)) aside,
+  body:not(:has(#bmPrintArea)) header { display: none !important; }
   #bmPrintArea {
     display: block !important;
     position: fixed; inset: 0; z-index: 99999;
