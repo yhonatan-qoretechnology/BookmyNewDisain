@@ -38,7 +38,8 @@ export const NegociosController = {
 
   /** Sedes visibles para la sesión (aislamiento por tenant). */
   async getSedesForSession(session: Session | null): Promise<Sede[]> {
-    if (!session?.negocioId) return [];
+    /* El superadmin sin empresa elegida lleva negocioId "0": no hay sedes que pedir. */
+    if (!session?.negocioId || !Number(session.negocioId)) return [];
     return this.getSedes(session.negocioId);
   },
 

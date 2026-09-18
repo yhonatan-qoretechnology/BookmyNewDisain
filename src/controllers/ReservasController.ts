@@ -178,7 +178,9 @@ export const ReservasController = {
     const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
     const sedeId = session.sedeId
       ? Number(session.sedeId)
-      : (await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => []))[0]?.id;
+      : Number(session.negocioId)
+        ? (await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => []))[0]?.id
+        : undefined;
     if (!sedeId) return [];
     const r = await AppointmentsApi.latestBySede(sedeId, n).catch(() => []);
     const lista = Array.isArray(r) ? r : [];

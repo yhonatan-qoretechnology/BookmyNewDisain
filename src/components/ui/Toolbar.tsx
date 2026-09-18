@@ -66,16 +66,19 @@ export function FilterDate({
   value,
   onChange,
   label,
+  clearable = true,
 }: {
   value: string;
   onChange: (v: string) => void;
   label: string;
+  /** false: sin la X de limpiar (p. ej. un rango que siempre necesita las dos fechas) */
+  clearable?: boolean;
 }) {
   return (
     <div className={`${styles.control} ${styles.dateControl}`}>
       <Icon name="calendar" />
       <input type="date" value={value} onChange={(e) => onChange(e.target.value)} aria-label={label} />
-      {value && (
+      {clearable && value && (
         <button
           type="button"
           className={styles.clear}

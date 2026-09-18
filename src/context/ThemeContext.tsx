@@ -28,6 +28,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (attr === "dark" || attr === "light") setThemeState(attr);
   }, []);
 
+  /* En papel siempre modo claro: los navegadores no imprimen fondos por
+     defecto y el tema oscuro dejaba texto casi blanco sobre la hoja. Se
+     cambia solo el atributo, sin tocar la preferencia guardada. */
+  useEffect(() => {
+    let previo: string | null = null;
+    const antes = () => {
+      previo = document.documentElement.getAttribute("data-theme");
+      if (previo === "dark") document.documentElement.setAttribute("data-theme", "light");
+    };
+    const despues = () => {
+      if (previo === "dark") document.documentElement.setAttribute("data-theme", "dark");
+      previo = null;
+    };
+    window.addEventListener("beforeprint", antes);
+    window.addEventListener("afterprint", despues);
+    return () => {
+      window.removeEventListener("beforeprint", antes);
+      window.removeEventListener("afterprint", despues);
+    };
+  }, []);
+
   const apply = useCallback((t: Theme) => {
     setThemeState(t);
     document.documentElement.setAttribute("data-theme", t);

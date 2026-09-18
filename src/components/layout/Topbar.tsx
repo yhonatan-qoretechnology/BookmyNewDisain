@@ -115,7 +115,7 @@ export default function Topbar({
       : session?.sedeName || session?.negocioName || t(`roles.${role}`);
 
   return (
-    <header className={styles.topbar}>
+    <header className={styles.topbar} data-app-chrome>
       <div className={styles.left}>
         <button className={styles.menuToggle} onClick={onMenuToggle} aria-label={t("topbar.menu")}>
           <Icon name="menu" />

@@ -15,6 +15,7 @@ import Icon from "@/components/ui/Icon";
 const PAGE_KEY: Record<string, string> = {
   [ROUTES.dashboard]: "dashboard",
   [ROUTES.empresas]: "empresas",
+  [ROUTES.administradores]: "administradores",
   [ROUTES.reservas]: "reservas",
   [ROUTES.reservaNueva]: "reservas",
   [ROUTES.clientes]: "clientes",

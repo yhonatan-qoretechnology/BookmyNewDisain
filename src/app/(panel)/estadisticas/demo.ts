@@ -13,15 +13,15 @@
 ============================================================ */
 import type { EstadoReserva } from "@/models";
 
-/** Meses del eje, terminando en el mes en curso. */
-export const MESES_EJE = ["May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic", "Ene", "Feb", "Mar", "Abr"];
-
 export interface PuntoSerie {
-  mes: string;
+  /** Mes del año, 0 = enero. La vista lo traduce al idioma activo. */
+  mes: number;
   reservas: number;
   reservasPrev: number;
   ingresos: number;
   ingresosPrev: number;
+  /** Reservas del mes con algún cobro: el divisor del ticket medio. */
+  pagadas: number;
 }
 
 export interface Ranking {
@@ -47,19 +47,20 @@ export interface FilaReserva {
   estado: EstadoReserva;
 }
 
+/** Doce meses de ejemplo; datos.ts les pone los meses reales del eje. */
 export const DEMO_SERIE: PuntoSerie[] = [
-  { mes: "May", reservas: 686, reservasPrev: 560, ingresos: 10200, ingresosPrev: 8400 },
-  { mes: "Jun", reservas: 1004, reservasPrev: 646, ingresos: 14800, ingresosPrev: 9600 },
-  { mes: "Jul", reservas: 986, reservasPrev: 694, ingresos: 14600, ingresosPrev: 10300 },
-  { mes: "Ago", reservas: 1032, reservasPrev: 712, ingresos: 15300, ingresosPrev: 10600 },
-  { mes: "Sep", reservas: 1284, reservasPrev: 880, ingresos: 19000, ingresosPrev: 13100 },
-  { mes: "Oct", reservas: 1156, reservasPrev: 902, ingresos: 17100, ingresosPrev: 13400 },
-  { mes: "Nov", reservas: 1198, reservasPrev: 968, ingresos: 17700, ingresosPrev: 14300 },
-  { mes: "Dic", reservas: 1344, reservasPrev: 1024, ingresos: 19900, ingresosPrev: 15200 },
-  { mes: "Ene", reservas: 1412, reservasPrev: 1102, ingresos: 20900, ingresosPrev: 16300 },
-  { mes: "Feb", reservas: 1268, reservasPrev: 1148, ingresos: 18800, ingresosPrev: 17000 },
-  { mes: "Mar", reservas: 1396, reservasPrev: 1186, ingresos: 20700, ingresosPrev: 17600 },
-  { mes: "Abr", reservas: 1420, reservasPrev: 1204, ingresos: 21000, ingresosPrev: 17800 },
+  { mes: 4, reservas: 686, reservasPrev: 560, ingresos: 10200, ingresosPrev: 8400, pagadas: 604 },
+  { mes: 5, reservas: 1004, reservasPrev: 646, ingresos: 14800, ingresosPrev: 9600, pagadas: 884 },
+  { mes: 6, reservas: 986, reservasPrev: 694, ingresos: 14600, ingresosPrev: 10300, pagadas: 868 },
+  { mes: 7, reservas: 1032, reservasPrev: 712, ingresos: 15300, ingresosPrev: 10600, pagadas: 908 },
+  { mes: 8, reservas: 1284, reservasPrev: 880, ingresos: 19000, ingresosPrev: 13100, pagadas: 1130 },
+  { mes: 9, reservas: 1156, reservasPrev: 902, ingresos: 17100, ingresosPrev: 13400, pagadas: 1017 },
+  { mes: 10, reservas: 1198, reservasPrev: 968, ingresos: 17700, ingresosPrev: 14300, pagadas: 1054 },
+  { mes: 11, reservas: 1344, reservasPrev: 1024, ingresos: 19900, ingresosPrev: 15200, pagadas: 1183 },
+  { mes: 0, reservas: 1412, reservasPrev: 1102, ingresos: 20900, ingresosPrev: 16300, pagadas: 1243 },
+  { mes: 1, reservas: 1268, reservasPrev: 1148, ingresos: 18800, ingresosPrev: 17000, pagadas: 1116 },
+  { mes: 2, reservas: 1396, reservasPrev: 1186, ingresos: 20700, ingresosPrev: 17600, pagadas: 1228 },
+  { mes: 3, reservas: 1420, reservasPrev: 1204, ingresos: 21000, ingresosPrev: 17800, pagadas: 1250 },
 ];
 
 export const DEMO = {

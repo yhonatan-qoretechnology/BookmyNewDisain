@@ -34,7 +34,7 @@ import {
   Sparkline,
   type Segmento,
 } from "./Graficos";
-import { DIAS, FRANJAS, cargarPanel, rangoPorDefecto, type PanelDatos } from "./datos";
+import { DIAS, FRANJAS, cargarPanel, rangoAtajo, rangoPorDefecto, type PanelDatos } from "./datos";
 import { exportarCsv, exportarPdf } from "./exportar";
 import styles from "./estadisticas.module.css";
 
@@ -75,7 +75,7 @@ const CHIP_ESTADO: Record<string, string> = {
 };
 
 export default function EstadisticasPage() {
-  const { t, locale } = useI18n();
+  const { t, tList, locale } = useI18n();
   const { session } = useSession();
 
   /* ── Rango de fechas (2.12) ───────────────────────────────
@@ -89,27 +89,32 @@ export default function EstadisticasPage() {
   const [atajo, setAtajo] = useState<"hoy" | "mes" | "anio" | null>("mes");
 
   const aplicarAtajo = (cual: "hoy" | "mes" | "anio") => {
-    const fin = new Date();
-    const ini = new Date();
-    if (cual === "mes") ini.setDate(ini.getDate() - 29);
-    else if (cual === "anio") ini.setFullYear(ini.getFullYear() - 1);
-    setDesde(ini.toISOString().slice(0, 10));
-    setHasta(fin.toISOString().slice(0, 10));
+    /* "Hoy" es el día de Madrid, como el resto del panel, no el de UTC. */
+    const r = rangoAtajo(cual);
+    setDesde(r.desde);
+    setHasta(r.hasta);
     setAtajo(cual);
     setAbrirRango(false);
   };
 
   const cambiarFecha = (cual: "desde" | "hasta", valor: string) => {
+    /* Al teclear el año, el campo pasa por 0002, 0020, 0202…: esos valores
+       intermedios se ignoran, igual que un campo vacío. */
+    if (!valor || Number(valor.slice(0, 4)) < 1900) return;
     if (cual === "desde") setDesde(valor);
     else setHasta(valor);
     /* Una fecha a mano deja de ser un atajo: se apaga el resaltado. */
     setAtajo(null);
   };
 
-  const clave = `${desde}|${hasta}`;
-  const { data: d, loading } = useData(
-    () => cargarPanel(session, locale, { desde, hasta }),
-    [session?.id, locale, clave],
+  /* Si "desde" queda después de "hasta" se consulta el rango al derecho,
+     sin reescribir el campo que la persona está tecleando. */
+  const [ini, fin] = desde <= hasta ? [desde, hasta] : [hasta, desde];
+  const clave = `${ini}|${fin}`;
+  const { data: d, loading, error, reload } = useData(
+    () => cargarPanel(session, locale, { desde: ini, hasta: fin }),
+    /* Empresa y sede elegidas acotan todas las cifras: cambiarlas recarga. */
+    [session?.id, session?.negocioId, session?.sedeId, locale, clave],
     null as PanelDatos | null,
   );
 
@@ -118,7 +123,7 @@ export default function EstadisticasPage() {
     () =>
       Promise.all(
         TIPOS_VISTOS.map((tipo) =>
-          EstadisticasApi.masVistos(tipo, { desde, hasta, limit: 5 }).catch(() => [] as ApiRankingVistas[]),
+          EstadisticasApi.masVistos(tipo, { desde: ini, hasta: fin, limit: 5 }).catch(() => [] as ApiRankingVistas[]),
         ),
       ),
     [clave],
@@ -131,13 +136,27 @@ export default function EstadisticasPage() {
   const num = (n: number) => nf.format(Math.round(n));
   const dinero = (n: number) => fmtMoneda(n, "EUR");
   const pct = (n: number) => `${n.toFixed(1).replace(".", ",")}%`;
-  const signo = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(1).replace(".", ",")}%`;
+  const signo = (n: number, unidad = "%") => `${n > 0 ? "+" : ""}${n.toFixed(1).replace(".", ",")}${unidad}`;
+  /* Eje de ingresos: "k" solo cuando hay miles de verdad; con importes
+     pequeños redondear a miles dejaba el eje en "1k 1k 0k 0k". */
+  const dineroEje = (n: number) =>
+    n >= 10000 ? `${num(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(".", ",")}k` : num(n);
+  const mesesCortos = tList("calendar.monthsShort");
+  const mesTxt = (i: number) => {
+    const m = mesesCortos[i] ?? "";
+    return m.charAt(0).toUpperCase() + m.slice(1);
+  };
   const fechaCorta = (ymd: string) => {
     const [y, m, dd] = ymd.split("-");
     return `${dd}/${m}/${y.slice(2)}`;
   };
 
-  const periodo = `${fechaCorta(desde)} – ${fechaCorta(hasta)}`;
+  /* El botón enseña lo elegido; cabeceras, subtítulos y exportación, el
+     rango con el que se calcularon las cifras (difieren mientras carga o
+     si la recarga falla). */
+  const periodoElegido = `${fechaCorta(ini)} – ${fechaCorta(fin)}`;
+  const periodo = d ? `${fechaCorta(d.rango.desde)} – ${fechaCorta(d.rango.hasta)}` : periodoElegido;
+  const sinPeriodo = <p className={styles.vacio}>{t("estadisticas.sinPeriodo")}</p>;
   const diasEje = DIAS.map((k) => t(`estadisticas.dias.${k}`));
 
   /* Etiqueta de "datos de ejemplo" en la cabecera de los paneles que
@@ -147,29 +166,43 @@ export default function EstadisticasPage() {
 
   const tablas = () => {
     if (!d) return [];
+    /* Lo que en pantalla lleva la etiqueta de ejemplo también la lleva en
+       el fichero: un CSV no debe hacer pasar el relleno por datos reales. */
+    const tit = (texto: string, esDemo: boolean) =>
+      esDemo ? `${texto} (${t("estadisticas.datosEjemplo")})` : texto;
     return [
       {
-        titulo: t("estadisticas.estadoReservas"),
+        titulo: t("estadisticas.indicadores"),
+        cabeceras: [t("estadisticas.indicador"), t("estadisticas.valor"), t("estadisticas.variacion")],
+        /* La ★ no existe en la fuente del PDF: en los ficheros la valoración va "sobre 5". */
+        filas: kpis.map((k) => [
+          k.esDemo ? `${k.label} (${t("estadisticas.datosEjemplo")})` : k.label,
+          k.valor.replace(" ★", " / 5"),
+          !k.esDemo && k.delta != null ? signo(k.delta, k.unidad === " ★" ? "" : k.unidad) : "—",
+        ]),
+      },
+      {
+        titulo: tit(t("estadisticas.estadoReservas"), d.demo.estados),
         cabeceras: [t("common.state"), t("estadisticas.reservas")],
         filas: d.estados.map((e) => [t(`estados.${e.clave}`), num(e.valor)]),
       },
       {
-        titulo: t("estadisticas.topEmpresas"),
+        titulo: tit(t("estadisticas.topEmpresas"), d.demo.empresas),
         cabeceras: [t("common.name"), t("estadisticas.reservas")],
         filas: d.empresas.map((e) => [e.nombre, num(e.valor)]),
       },
       {
-        titulo: t("estadisticas.topServicios"),
+        titulo: tit(t("estadisticas.topServicios"), d.demo.servicios),
         cabeceras: [t("common.service"), t("estadisticas.reservas")],
         filas: d.servicios.map((e) => [e.nombre, num(e.valor)]),
       },
       {
-        titulo: t("estadisticas.topProfesionales"),
+        titulo: tit(t("estadisticas.topProfesionales"), d.demo.profesionales),
         cabeceras: [t("estadisticas.colProfesional"), t("estadisticas.reservas"), t("estadisticas.ingresos")],
         filas: d.profesionales.map((p) => [p.nombre, num(p.reservas), dinero(p.ingresos)]),
       },
       {
-        titulo: t("estadisticas.distribucion"),
+        titulo: tit(t("estadisticas.distribucion"), d.demo.sedes),
         cabeceras: [t("common.branch"), t("estadisticas.reservas")],
         filas: d.sedes.map((s) => [s.nombre, num(s.valor)]),
       },
@@ -182,7 +215,13 @@ export default function EstadisticasPage() {
   };
 
   if (!d) {
-    return <p className={styles.vacio}>{loading ? t("booking.loading") : t("estadisticas.sinDatos")}</p>;
+    if (loading) return <p className={styles.vacio}>{t("booking.loading")}</p>;
+    return (
+      <div className={styles.aviso} role="alert">
+        <span>{error ? t("estadisticas.errorCarga") : t("estadisticas.sinDatos")}</span>
+        <Button size="sm" variant="ghost" onClick={() => void reload()}>{t("estadisticas.reintentar")}</Button>
+      </div>
+    );
   }
 
   const demo = d.demo;
@@ -198,23 +237,31 @@ export default function EstadisticasPage() {
     { clave: "canceladas", nombre: t("estadisticas.plural.cancelado"), color: "var(--red)" },
     { clave: "noShow", nombre: t("estadisticas.plural.noShow"), color: "#ab47bc" },
   ];
-  const ingresosProfesionales = d.profesionales.reduce((a, x) => a + x.ingresos, 0) || 1;
+  /* % sobre lo facturado por todos los profesionales, no solo por los cinco de la tabla. */
+  const ingresosProfesionales = d.ingresosProfesionales || 1;
 
   const kpis = [
     { k: "reservas", clase: styles.kpiTeal, icono: "calendar", label: t("estadisticas.kpiReservas"),
-      valor: num(d.kpis.reservas), delta: d.deltas.reservas, spark: d.sparks.reservas, color: "var(--teal-500)", buenoSiSube: true },
+      valor: num(d.kpis.reservas), delta: d.deltas.reservas, unidad: "%", spark: d.sparks.reservas,
+      color: "var(--teal-500)", buenoSiSube: true, esDemo: demo.kpis },
     { k: "ingresos", clase: styles.kpiPurple, icono: "dollar", label: t("estadisticas.kpiIngresos"),
-      valor: dinero(d.kpis.ingresos), delta: d.deltas.ingresos, spark: d.sparks.ingresos, color: "#ab47bc", buenoSiSube: true },
+      valor: dinero(d.kpis.ingresos), delta: d.deltas.ingresos, unidad: "%", spark: d.sparks.ingresos,
+      color: "#ab47bc", buenoSiSube: true, esDemo: demo.kpis },
     { k: "clientes", clase: styles.kpiBlue, icono: "user", label: t("estadisticas.kpiClientes"),
-      valor: num(d.kpis.clientesNuevos), delta: d.deltas.clientesNuevos, spark: d.sparks.clientes, color: "var(--blue)", buenoSiSube: true },
+      valor: num(d.kpis.clientesNuevos), delta: d.deltas.clientesNuevos, unidad: "%", spark: d.sparks.clientes,
+      color: "var(--blue)", buenoSiSube: true, esDemo: demo.kpis },
     { k: "ticket", clase: styles.kpiAmber, icono: "receipt", label: t("estadisticas.kpiTicket"),
-      valor: dinero(d.kpis.ticketMedio), delta: d.deltas.ticketMedio, spark: d.sparks.ticket, color: "var(--amber)", buenoSiSube: true },
+      valor: dinero(d.kpis.ticketMedio), delta: d.deltas.ticketMedio, unidad: "%", spark: d.sparks.ticket,
+      color: "var(--amber)", buenoSiSube: true, esDemo: demo.kpis },
+    /* La cancelación ya es un porcentaje: su cambio va en puntos (pp). */
     { k: "cancelacion", clase: styles.kpiRed, icono: "close", label: t("estadisticas.kpiCancelacion"),
-      valor: pct(d.kpis.cancelacion), delta: d.deltas.cancelacion, spark: d.sparks.cancelacion, color: "var(--red)", buenoSiSube: false },
+      valor: pct(d.kpis.cancelacion), delta: d.deltas.cancelacion, unidad: " pp", spark: d.sparks.cancelacion,
+      color: "var(--red)", buenoSiSube: false, esDemo: demo.kpis },
+    /* La valoración va aparte: puede ser real aunque no haya reservas y al revés. */
     { k: "valoracion", clase: styles.kpiPurple, icono: "star", label: t("estadisticas.kpiValoracion"),
       valor: d.kpis.valoracion != null ? `${d.kpis.valoracion.toFixed(1).replace(".", ",")} ★` : "—",
-      delta: d.deltas.valoracion, spark: d.sparks.valoracion, color: "#ab47bc", buenoSiSube: true,
-      esDemo: demo.valoracion },
+      delta: d.deltas.valoracion, unidad: " ★",
+      spark: d.sparks.valoracion, color: "#ab47bc", buenoSiSube: true, esDemo: demo.valoracion },
   ];
 
   return (
@@ -224,13 +271,13 @@ export default function EstadisticasPage() {
         <div className={styles.rangoCaja}>
           <button type="button" className={styles.rangoPill} onClick={() => setAbrirRango((v) => !v)}>
             <Icon name="calendar" />
-            {periodo}
+            {periodoElegido}
             <Icon name="chevron" />
           </button>
           {abrirRango && (
             <div className={styles.rangoPop}>
-              <FilterDate value={desde} onChange={(v) => cambiarFecha("desde", v)} label={t("estadisticas.desde")} />
-              <FilterDate value={hasta} onChange={(v) => cambiarFecha("hasta", v)} label={t("estadisticas.hasta")} />
+              <FilterDate value={desde} onChange={(v) => cambiarFecha("desde", v)} label={t("estadisticas.desde")} clearable={false} />
+              <FilterDate value={hasta} onChange={(v) => cambiarFecha("hasta", v)} label={t("estadisticas.hasta")} clearable={false} />
             </div>
           )}
         </div>
@@ -249,20 +296,34 @@ export default function EstadisticasPage() {
           </div>
           <span className={styles.sep} />
           <span className={styles.expLabel}><Icon name="download" /> {t("estadisticas.exportar")}</span>
-          <Button size="sm" variant="ghost" onClick={() => exportarCsv(tablas(), periodo)}>CSV</Button>
-          <Button size="sm" variant="ghost" onClick={() => void exportarPdf(tablas(), periodo, t("estadisticas.informe"))}>PDF</Button>
-          <Button size="sm" variant="ghost" onClick={() => window.print()}>
+          {/* Mientras carga un rango nuevo (o si su carga falló), lo pintado
+              no es lo elegido: exportarlo o imprimirlo confundiría. */}
+          <Button size="sm" variant="ghost" disabled={loading || !!error} onClick={() => exportarCsv(tablas(), periodo)}>CSV</Button>
+          <Button size="sm" variant="ghost" disabled={loading || !!error} onClick={() => void exportarPdf(tablas(), periodo, t("estadisticas.informe"))}>PDF</Button>
+          <Button size="sm" variant="ghost" disabled={loading || !!error} onClick={() => window.print()}>
             <Icon name="printer" /> {t("estadisticas.imprimir")}
           </Button>
         </div>
       </div>
 
-      <p className={styles.periodo}>{t("estadisticas.periodo", { periodo })}</p>
+      {/* En papel no sale la barra superior: el informe lleva su propio título. */}
+      <h1 className={styles.tituloPrint}>{t("estadisticas.informe")}</h1>
+      <p className={styles.periodo}>
+        {t("estadisticas.periodo", { periodo })}
+        {loading && <span className={styles.actualizando}> · {t("estadisticas.actualizando")}</span>}
+      </p>
+
+      {error && (
+        <div className={`${styles.aviso} ${styles.noPrint}`} role="alert">
+          <span>{t("estadisticas.errorRecarga")}</span>
+          <Button size="sm" variant="ghost" onClick={() => void reload()}>{t("estadisticas.reintentar")}</Button>
+        </div>
+      )}
 
       {/* ── KPIs ── */}
       <section className={styles.kpiGrid}>
         {kpis.map((k) => {
-          const sube = k.delta > 0;
+          const sube = (k.delta ?? 0) > 0;
           const bueno = k.buenoSiSube ? sube : !sube;
           return (
             <article key={k.k} className={styles.kpi}>
@@ -272,12 +333,13 @@ export default function EstadisticasPage() {
               </div>
               <span className={styles.kpiValor}>{k.valor}</span>
               <div className={styles.kpiPie}>
-                {k.delta !== 0 ? (
-                  <span className={bueno ? styles.deltaPos : styles.deltaNeg}>
-                    {sube ? "▲" : "▼"} {signo(k.delta)}
-                  </span>
-                ) : (k.esDemo || demo.kpis) ? (
+                {/* Primero la etiqueta de ejemplo: una cifra de relleno no lleva flecha. */}
+                {k.esDemo ? (
                   <span className={styles.kpiDemo}>{t("estadisticas.datosEjemplo")}</span>
+                ) : k.delta != null && Math.abs(k.delta) >= 0.05 ? (
+                  <span className={`${styles.delta} ${bueno ? styles.deltaPos : styles.deltaNeg}`}>
+                    {sube ? "▲" : "▼"} {signo(k.delta, k.unidad)}
+                  </span>
                 ) : <span />}
                 <Sparkline valores={k.spark} color={k.color} />
               </div>
@@ -313,13 +375,13 @@ export default function EstadisticasPage() {
           <LineasComparadas
             actual={d.serie.map((p) => (serieTab === "reservas" ? p.reservas : p.ingresos))}
             previo={d.serie.map((p) => (serieTab === "reservas" ? p.reservasPrev : p.ingresosPrev))}
-            etiquetas={d.serie.map((p) => p.mes)}
-            formatoEje={(n) => (serieTab === "reservas" ? num(n) : `${num(n / 1000)}k`)}
+            etiquetas={d.serie.map((p) => mesTxt(p.mes))}
+            formatoEje={(n) => (serieTab === "reservas" ? num(n) : dineroEje(n))}
           />
         </Panel>
 
         <Panel className={styles.panel}>
-          <PanelHead title={t("estadisticas.estadoReservas")} sub={t("estadisticas.ultimos12")} right={marca(demo.estados)} />
+          <PanelHead title={t("estadisticas.estadoReservas")} sub={periodo} right={marca(demo.estados)} />
           <Donut segmentos={segmentosEstado} total={totalEstados} etiqueta={t("estadisticas.totalReservas")} formatoValor={num} />
         </Panel>
       </div>
@@ -337,13 +399,13 @@ export default function EstadisticasPage() {
           </div>
           <BarrasAgrupadas
             datos={d.serie.map((p) => ({ actual: p.ingresos, previo: p.ingresosPrev }))}
-            etiquetas={d.serie.map((p) => p.mes)}
+            etiquetas={d.serie.map((p) => mesTxt(p.mes))}
             formatoValor={dinero}
           />
         </Panel>
 
         <Panel className={styles.panel}>
-          <PanelHead title={t("estadisticas.reservasDia")} sub={t("estadisticas.ultimos12")} right={marca(demo.porDia)} />
+          <PanelHead title={t("estadisticas.reservasDia")} sub={periodo} right={marca(demo.porDia)} />
           <div className={styles.leyendaLinea}>
             {seriesDia.map((s) => (
               <span key={s.clave} className={styles.legItem}>
@@ -361,7 +423,7 @@ export default function EstadisticasPage() {
         </Panel>
 
         <Panel className={styles.panel}>
-          <PanelHead title={t("estadisticas.horasDemanda")} sub={t("estadisticas.ultimos12")} right={marca(demo.horas)} />
+          <PanelHead title={t("estadisticas.horasDemanda")} sub={periodo} right={marca(demo.horas)} />
           <MapaCalor
             filas={FRANJAS.map((f, i) => `${f} - ${FRANJAS[i + 1] ?? "22:00"}`)}
             columnas={diasEje}
@@ -376,38 +438,40 @@ export default function EstadisticasPage() {
       <div className={`${styles.fila} ${styles.fila3}`}>
         <Panel className={styles.panel}>
           <PanelHead title={t("estadisticas.topEmpresas")} sub={t("estadisticas.topPorReservas")} right={marca(demo.empresas)} />
-          <RankingLista filas={d.empresas} colores={COLORES_RANK} formatoValor={num} />
+          {d.empresas.length ? <RankingLista filas={d.empresas} colores={COLORES_RANK} formatoValor={num} /> : sinPeriodo}
         </Panel>
 
         <Panel className={styles.panel}>
           <PanelHead title={t("estadisticas.topServicios")} sub={t("estadisticas.topPorReservas")} right={marca(demo.servicios)} />
-          <RankingLista filas={d.servicios} colores={COLORES_RANK} formatoValor={num} />
+          {d.servicios.length ? <RankingLista filas={d.servicios} colores={COLORES_RANK} formatoValor={num} /> : sinPeriodo}
         </Panel>
 
         <Panel className={styles.panel}>
           <PanelHead title={t("estadisticas.topProfesionales")} sub={t("estadisticas.topPorIngresos")} right={marca(demo.profesionales)} />
-          <div className={styles.tablaWrap}>
-            <table className={`${styles.tabla} ${styles.tablaCompacta}`}>
-              <thead>
-                <tr>
-                  <th>{t("estadisticas.colProfesional")}</th>
-                  <th className={styles.num}>{t("estadisticas.reservas")}</th>
-                  <th className={styles.num}>{t("estadisticas.ingresos")}</th>
-                  <th className={styles.num}>%</th>
-                </tr>
-              </thead>
-              <tbody>
-                {d.profesionales.map((p) => (
-                  <tr key={p.nombre}>
-                    <td><span className={styles.celdaNombre}>{p.nombre}</span></td>
-                    <td className={styles.num}>{num(p.reservas)}</td>
-                    <td className={styles.num}>{dinero(p.ingresos)}</td>
-                    <td className={`${styles.num} ${styles.subeDelta}`}>{pct((p.ingresos / ingresosProfesionales) * 100)}</td>
+          {d.profesionales.length ? (
+            <div className={styles.tablaWrap}>
+              <table className={`${styles.tabla} ${styles.tablaCompacta}`}>
+                <thead>
+                  <tr>
+                    <th>{t("estadisticas.colProfesional")}</th>
+                    <th className={styles.num}>{t("estadisticas.reservas")}</th>
+                    <th className={styles.num}>{t("estadisticas.ingresos")}</th>
+                    <th className={styles.num}>%</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {d.profesionales.map((p) => (
+                    <tr key={p.nombre}>
+                      <td><span className={styles.celdaNombre}>{p.nombre}</span></td>
+                      <td className={styles.num}>{num(p.reservas)}</td>
+                      <td className={styles.num}>{dinero(p.ingresos)}</td>
+                      <td className={`${styles.num} ${styles.subeDelta}`}>{pct((p.ingresos / ingresosProfesionales) * 100)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : sinPeriodo}
         </Panel>
       </div>
 
@@ -432,46 +496,48 @@ export default function EstadisticasPage() {
               { nombre: t("estadisticas.recurrentes"), valor: d.clientes.recurrentes, color: "var(--blue)" },
             ]}
             total={d.clientes.nuevos + d.clientes.recurrentes}
-            etiqueta={t("estadisticas.kpiClientes")}
+            etiqueta={t("estadisticas.totalClientes")}
             formatoValor={num}
           />
         </Panel>
 
         <Panel className={styles.panel}>
           <PanelHead title={t("estadisticas.distribucion")} sub={t("estadisticas.distribucionSub")} right={marca(demo.sedes)} />
-          <BarrasHorizontales filas={d.sedes} colores={COLORES_RANK} />
+          {d.sedes.length ? <BarrasHorizontales filas={d.sedes} colores={COLORES_RANK} /> : sinPeriodo}
         </Panel>
       </div>
 
       <div className={`${styles.fila} ${styles.fila1}`}>
         <Panel className={styles.panel}>
           <PanelHead title={t("estadisticas.ultimasReservas")} sub={t("estadisticas.ultimasSub")} right={marca(demo.ultimas)} />
-          <div className={styles.tablaWrap}>
-            <table className={styles.tabla}>
-              <thead>
-                <tr>
-                  <th>{t("estadisticas.colEmpresa")}</th>
-                  <th>{t("common.service")}</th>
-                  <th>{t("common.client")}</th>
-                  <th>{t("common.date")}</th>
-                  <th className={styles.num}>{t("estadisticas.colImporte")}</th>
-                  <th>{t("common.state")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {d.ultimas.map((r, i) => (
-                  <tr key={`${r.cliente}-${i}`}>
-                    <td>{r.empresa}</td>
-                    <td>{r.servicio}</td>
-                    <td>{r.cliente}</td>
-                    <td>{fechaCorta(r.fecha)}, {r.hora}</td>
-                    <td className={styles.num}>{dinero(r.importe)}</td>
-                    <td><span className={`${styles.chip} ${CHIP_ESTADO[r.estado] ?? ""}`}>{t(`estados.${r.estado}`)}</span></td>
+          {d.ultimas.length ? (
+            <div className={styles.tablaWrap}>
+              <table className={styles.tabla}>
+                <thead>
+                  <tr>
+                    <th>{t("estadisticas.colEmpresa")}</th>
+                    <th>{t("common.service")}</th>
+                    <th>{t("common.client")}</th>
+                    <th>{t("common.date")}</th>
+                    <th className={styles.num}>{t("estadisticas.colImporte")}</th>
+                    <th>{t("common.state")}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {d.ultimas.map((r, i) => (
+                    <tr key={`${r.cliente}-${i}`}>
+                      <td>{r.empresa}</td>
+                      <td>{r.servicio}</td>
+                      <td>{r.cliente}</td>
+                      <td>{fechaCorta(r.fecha)}, {r.hora}</td>
+                      <td className={styles.num}>{dinero(r.importe)}</td>
+                      <td><span className={`${styles.chip} ${CHIP_ESTADO[r.estado] ?? ""}`}>{t(`estados.${r.estado}`)}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : sinPeriodo}
         </Panel>
       </div>
 

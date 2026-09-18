@@ -206,7 +206,7 @@ export function BarrasAgrupadas({
 }) {
   const max = tope(datos.flatMap((d) => [d.actual, d.previo]));
   return (
-    <div className={styles.barras}>
+    <div className={`${styles.barras} ${styles.barrasMeses}`}>
       {datos.map((d, i) => (
         <div key={i} className={styles.barraCol}>
           <div className={styles.barraGrupo}>

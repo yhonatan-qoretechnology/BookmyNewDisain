@@ -62,7 +62,7 @@ export default function Sidebar({
 
   return (
     <>
-      <aside className={`${styles.sidebar} ${open ? styles.open : ""}`}>
+      <aside className={`${styles.sidebar} ${open ? styles.open : ""}`} data-app-chrome>
         <div className={styles.brand}>
           <div className={styles.brandMark}>{initials(negocio).slice(0, 1)}</div>
           <div className={styles.brandText}>

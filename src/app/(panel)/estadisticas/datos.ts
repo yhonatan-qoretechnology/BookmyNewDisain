@@ -1,27 +1,35 @@
 /* ============================================================
    Estadísticas · cálculo del panel
    ------------------------------------------------------------
-   Reúne en un solo modelo todo lo que pinta la vista. Las cifras
-   salen de los endpoints que ya existen:
+   Reúne en un solo modelo todo lo que pinta la vista. Todas las
+   cifras salen del MISMO universo: las reservas que la sesión puede
+   ver (empresa o sede elegida; toda la plataforma para un superadmin
+   sin empresa). Así reservas, ingresos y rankings siempre cuadran:
 
      · reservas visibles de la sesión  → ReservasController
-     · pagos (/payments)              → ingresos y ticket medio
-     · reseñas (/resenas)             → valoración media
-     · rankings del servidor          → /estadisticas/*
+     · pagos (/payments)              → solo los PAID de esas reservas
+     · reseñas (/resenas)             → aprobadas, de sus sedes, del periodo
+     · rankings                       → contados aquí sobre esas reservas
 
-   Bloque a bloque, si la cuenta todavía no tiene datos se cae a las
-   cifras de demo.ts y se marca en `demo` para que el panel lo diga
-   en pantalla. Así la vista nunca aparece vacía en una demo, pero
-   tampoco presenta como real algo inventado.
+   Los ingresos se imputan a la fecha de la cita, no a la del cobro:
+   así el ticket medio divide cosas del mismo periodo. Los días son los
+   de Madrid y las extensiones de cita no cuentan como reservas nuevas.
+
+   Solo si la CUENTA todavía no tiene reservas se cae a las cifras de
+   demo.ts, y cada bloque que las usa se marca en `demo` para que el
+   panel lo diga en pantalla. Una cuenta con datos y un periodo vacío
+   (un domingo cerrado, "Hoy" a primera hora) muestra ceros reales.
+   Si falla la carga de reservas o pagos se lanza el error: rellenar con
+   la demo haría pasar un fallo por datos reales.
 
    El backend no tiene analítica de navegación, así que el embudo de
    conversión es siempre de ejemplo.
 ============================================================ */
 import type { EstadoReserva, Reserva, Session } from "@/models";
-import { EstadisticasApi, PaymentsApi, ResenasApi } from "@/api/modules";
-import type { EstadisticasFiltro } from "@/api/types";
-import { MESES_CORTOS } from "@/constants";
+import { EmpresasApi, PaymentsApi, ResenasApi, SedesApi } from "@/api/modules";
+import type { ApiEmpresa, ApiResena, ApiSede } from "@/api/types";
 import { ReservasController } from "@/controllers/ReservasController";
+import { madridToday, madridYmd } from "@/lib/timezone";
 import {
   DEMO,
   type FilaProfesional,
@@ -43,6 +51,8 @@ export interface DiaReservas {
   noShow: number;
 }
 
+type ClaveKpi = "reservas" | "ingresos" | "clientesNuevos" | "ticketMedio" | "cancelacion" | "valoracion";
+
 export interface PanelDatos {
   kpis: {
     reservas: number;
@@ -50,9 +60,15 @@ export interface PanelDatos {
     clientesNuevos: number;
     ticketMedio: number;
     cancelacion: number;
+    /** null: hay reseñas en la cuenta, pero ninguna en el periodo. */
     valoracion: number | null;
   };
-  deltas: Record<"reservas" | "ingresos" | "clientesNuevos" | "ticketMedio" | "cancelacion" | "valoracion", number>;
+  /**
+   * Cambio frente al periodo anterior de la misma duración. null cuando no
+   * hay con qué comparar (la tarjeta no pinta flecha). Porcentaje, salvo la
+   * cancelación (puntos porcentuales) y la valoración (estrellas).
+   */
+  deltas: Record<ClaveKpi, number | null>;
   sparks: Record<"reservas" | "ingresos" | "clientes" | "ticket" | "cancelacion" | "valoracion", number[]>;
   serie: PuntoSerie[];
   estados: { clave: EstadoReserva; valor: number }[];
@@ -65,6 +81,10 @@ export interface PanelDatos {
   clientes: { nuevos: number; recurrentes: number };
   sedes: Ranking[];
   ultimas: FilaReserva[];
+  /** Ingresos de TODOS los profesionales del periodo (base del % de la tabla). */
+  ingresosProfesionales: number;
+  /** Rango con el que se calcularon estas cifras. */
+  rango: RangoPanel;
   /** Bloques que se están pintando con cifras de ejemplo. */
   demo: {
     kpis: boolean;
@@ -85,12 +105,8 @@ export interface PanelDatos {
 
 const ESTADOS_DONUT: EstadoReserva[] = ["confirmada", "atendida", "cancelado", "noShow", "pendiente"];
 
-/** "YYYY-MM-DD" del día de hoy, sin arrastrar la zona horaria del navegador. */
-function hoyYmd(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function restarDias(ymd: string, dias: number): string {
+/** "YYYY-MM-DD" desplazado `dias` hacia atrás. */
+export function restarDias(ymd: string, dias: number): string {
   const d = new Date(`${ymd}T00:00:00.000Z`);
   d.setUTCDate(d.getUTCDate() - dias);
   return d.toISOString().slice(0, 10);
@@ -125,14 +141,38 @@ function suma(ns: number[]): number {
   return ns.reduce((a, b) => a + b, 0);
 }
 
-/** Variación porcentual entre dos periodos; 0 si no había base con la que comparar. */
-function variacion(actual: number, previo: number): number {
-  if (!previo) return actual ? 100 : 0;
+function media(ns: number[]): number | null {
+  return ns.length ? suma(ns) / ns.length : null;
+}
+
+/** Variación porcentual entre dos periodos; null si no había base con la que comparar. */
+function variacion(actual: number, previo: number): number | null {
+  if (!previo) return null;
   return ((actual - previo) / previo) * 100;
 }
 
-function esPagado(estado?: string | null): boolean {
-  return estado === "PAID";
+/** Suma las filas con el mismo nombre: dos servicios distintos que se
+    llaman igual (uno por sede) se leían como dos puestos del ranking. */
+function fusionarPorNombre(filas: Ranking[]): Ranking[] {
+  const porNombre = new Map<string, number>();
+  for (const f of filas) {
+    const k = f.nombre.trim();
+    porNombre.set(k, (porNombre.get(k) || 0) + f.valor);
+  }
+  return [...porNombre.entries()]
+    .map(([nombre, valor]) => ({ nombre, valor }))
+    .sort((a, b) => b.valor - a.valor);
+}
+
+/** Cliente de una cita: el id de usuario si lo hay; si no, email o nombre. */
+function claveCliente(c: Reserva): string {
+  return c.clienteId != null ? String(c.clienteId) : c.email || c.cliente;
+}
+
+/** Fecha de Madrid de una reseña (createdAt viene en UTC). */
+function fechaResena(r: ApiResena): string {
+  const d = new Date(r.createdAt);
+  return Number.isNaN(d.getTime()) ? "" : madridYmd(d);
 }
 
 export interface RangoPanel {
@@ -142,8 +182,36 @@ export interface RangoPanel {
 
 /** Rango por defecto: el último mes, que es el atajo activo al entrar. */
 export function rangoPorDefecto(): RangoPanel {
-  const hasta = hoyYmd();
+  const hasta = madridToday();
   return { desde: restarDias(hasta, 29), hasta };
+}
+
+/** Rango de un atajo, calculado sobre el día de hoy en Madrid. */
+export function rangoAtajo(cual: "hoy" | "mes" | "anio"): RangoPanel {
+  const hasta = madridToday();
+  if (cual === "hoy") return { desde: hasta, hasta };
+  if (cual === "mes") return { desde: restarDias(hasta, 29), hasta };
+  /* Doce meses exactos: del día siguiente al de hoy hace un año, hasta hoy. */
+  const [y, m, d] = hasta.split("-").map(Number);
+  const haceUnAnio = new Date(Date.UTC(y - 1, m - 1, d));
+  haceUnAnio.setUTCDate(haceUnAnio.getUTCDate() + 1);
+  return { desde: haceUnAnio.toISOString().slice(0, 10), hasta };
+}
+
+/**
+ * Sedes que abarca la sesión, para acotar las reseñas. null = todas
+ * (superadmin sin empresa elegida).
+ */
+function sedesDeSesion(session: Session | null, sedes: ApiSede[]): Set<number> | null {
+  if (session?.sedeId) return new Set([Number(session.sedeId)]);
+  const empresaId = Number(session?.negocioId);
+  if (!empresaId) return null;
+  return new Set(sedes.filter((s) => s.empresaId === empresaId).map((s) => s.id));
+}
+
+/** Cuenta por nombre y deja los cinco primeros. */
+function top5(claves: string[]): Ranking[] {
+  return fusionarPorNombre(claves.map((nombre) => ({ nombre, valor: 1 }))).slice(0, 5);
 }
 
 /**
@@ -157,84 +225,128 @@ export async function cargarPanel(
   locale: string,
   rango: RangoPanel,
 ): Promise<PanelDatos> {
-  const filtro: EstadisticasFiltro = { desde: rango.desde, hasta: rango.hasta, limit: 5 };
-
-  const [citas, pagos, resenas, empresasApi, serviciosApi, empleadosApi] = await Promise.all([
-    ReservasController.getForSession(session, locale).catch(() => [] as Reserva[]),
-    PaymentsApi.findAll().catch(() => []),
-    ResenasApi.findAll().catch(() => []),
-    EstadisticasApi.empresas(filtro).catch(() => []),
-    EstadisticasApi.servicios(filtro).catch(() => []),
-    EstadisticasApi.empleados(filtro).catch(() => []),
+  const [citasTodas, pagos, resenas, sedesTodas, empresasTodas] = await Promise.all([
+    ReservasController.getForSession(session, locale),
+    PaymentsApi.findAll(),
+    ResenasApi.findAll().catch(() => [] as ApiResena[]),
+    /* Solo para poner nombre de empresa a cada sede y acotar reseñas. */
+    SedesApi.findAll().catch(() => [] as ApiSede[]),
+    EmpresasApi.findAll().catch(() => [] as ApiEmpresa[]),
   ]);
+  const sedesVisibles = sedesDeSesion(session, sedesTodas);
 
   const largo = longitudRango(rango.desde, rango.hasta);
   const previoHasta = restarDias(rango.desde, 1);
   const previoDesde = restarDias(previoHasta, largo - 1);
 
-  const enRango = citas.filter((c) => dentro(c.fecha, rango.desde, rango.hasta));
-  const enPrevio = citas.filter((c) => dentro(c.fecha, previoDesde, previoHasta));
-  const hayCitas = enRango.length > 0;
+  /* ── Cobros de las reservas visibles ────────────────────────
+     Una extensión de cita ("necesito más tiempo") es otra cita con su
+     propio pago: su dinero cuenta en los ingresos de la cita original,
+     pero no es una reserva nueva. */
+  const cobradoPorCita = new Map<number, number>();
+  for (const p of pagos || []) {
+    if (p.status !== "PAID") continue;
+    cobradoPorCita.set(p.appointmentId, (cobradoPorCita.get(p.appointmentId) || 0) + (p.totalAmount || 0));
+  }
+  const cobradoDe = (c: Reserva) => (c.apiId != null ? cobradoPorCita.get(c.apiId) || 0 : 0);
+
+  const reservas = citasTodas.filter((c) => c.extensionDeId == null);
+  const cobroReserva = new Map<string, number>();
+  for (const c of reservas) cobroReserva.set(c.id, cobradoDe(c));
+  const porApiId = new Map(reservas.filter((c) => c.apiId != null).map((c) => [c.apiId as number, c]));
+  for (const ext of citasTodas) {
+    if (ext.extensionDeId == null) continue;
+    const original = porApiId.get(ext.extensionDeId);
+    if (original) cobroReserva.set(original.id, (cobroReserva.get(original.id) || 0) + cobradoDe(ext));
+  }
+  const cobrado = (c: Reserva) => cobroReserva.get(c.id) || 0;
+
+  /* La demo depende de la cuenta, no del periodo elegido. */
+  const cuentaVacia = reservas.length === 0;
+  const enRango = reservas.filter((c) => dentro(c.fecha, rango.desde, rango.hasta));
+  const enPrevio = reservas.filter((c) => dentro(c.fecha, previoDesde, previoHasta));
 
   /* ── KPIs ──────────────────────────────────────────────── */
-  const pagosPagados = (pagos || []).filter((p) => esPagado(p.status) && p.createdAt);
-  const ingresosDe = (desde: string, hasta: string) =>
-    suma(pagosPagados.filter((p) => dentro((p.createdAt || "").slice(0, 10), desde, hasta)).map((p) => p.totalAmount || 0));
-  const ingresos = ingresosDe(rango.desde, rango.hasta);
-  const ingresosPrev = ingresosDe(previoDesde, previoHasta);
+  const ingresosDe = (lista: Reserva[]) => suma(lista.map(cobrado));
+  const pagadasDe = (lista: Reserva[]) => lista.filter((c) => cobrado(c) > 0).length;
+  const ingresos = ingresosDe(enRango);
+  const ingresosPrev = ingresosDe(enPrevio);
+  const pagadas = pagadasDe(enRango);
+  const pagadasPrev = pagadasDe(enPrevio);
+  const ticket = pagadas ? ingresos / pagadas : 0;
+  const ticketPrev = pagadasPrev ? ingresosPrev / pagadasPrev : 0;
 
-  const canceladas = enRango.filter((c) => c.estado === "cancelado").length;
-  const canceladasPrev = enPrevio.filter((c) => c.estado === "cancelado").length;
-  const tasa = hayCitas ? (canceladas / enRango.length) * 100 : 0;
-  const tasaPrev = enPrevio.length ? (canceladasPrev / enPrevio.length) * 100 : 0;
+  const tasaDe = (lista: Reserva[]) =>
+    lista.length ? (lista.filter((c) => c.estado === "cancelado").length / lista.length) * 100 : 0;
+  const tasa = tasaDe(enRango);
+  const tasaPrev = tasaDe(enPrevio);
 
   /* Cliente "nuevo" = su primera reserva de todo el histórico cae dentro del
      rango. No hay endpoint de altas por fecha, así que se deduce de las citas. */
   const primeraCita = new Map<string, string>();
-  for (const c of citas) {
-    const clave = c.clienteId != null ? String(c.clienteId) : c.email || c.cliente;
-    const actual = primeraCita.get(clave);
-    if (!actual || c.fecha < actual) primeraCita.set(clave, c.fecha);
+  for (const c of reservas) {
+    const k = claveCliente(c);
+    const actual = primeraCita.get(k);
+    if (!actual || c.fecha < actual) primeraCita.set(k, c.fecha);
   }
-  const clientesRango = new Set(
-    enRango.map((c) => (c.clienteId != null ? String(c.clienteId) : c.email || c.cliente)),
+  const nuevosEn = (lista: Reserva[], desde: string, hasta: string) => {
+    const unicos = new Set(lista.map(claveCliente));
+    const nuevos = [...unicos].filter((k) => {
+      const p = primeraCita.get(k);
+      return !!p && dentro(p, desde, hasta);
+    }).length;
+    return { unicos: unicos.size, nuevos };
+  };
+  const clientesRango = nuevosEn(enRango, rango.desde, rango.hasta);
+  const nuevos = clientesRango.nuevos;
+  const recurrentes = clientesRango.unicos - nuevos;
+  const nuevosPrev = nuevosEn(enPrevio, previoDesde, previoHasta).nuevos;
+
+  /* Valoración: reseñas aprobadas (las pendientes o rechazadas no son la
+     opinión publicada) de las sedes de la sesión, dentro del periodo. */
+  const resenasVisibles = (resenas || []).filter(
+    (r) =>
+      r.aprobado === true &&
+      typeof r.calificacion === "number" &&
+      (sedesVisibles == null || (r.sedeId != null && sedesVisibles.has(r.sedeId))),
   );
-  const nuevos = [...clientesRango].filter((k) => {
-    const p = primeraCita.get(k);
-    return !!p && dentro(p, rango.desde, rango.hasta);
-  }).length;
-  const recurrentes = clientesRango.size - nuevos;
+  const sinResenas = resenasVisibles.length === 0;
+  const notasEn = (desde: string, hasta: string) =>
+    resenasVisibles.filter((r) => dentro(fechaResena(r), desde, hasta)).map((r) => r.calificacion);
+  const valoracion = media(notasEn(rango.desde, rango.hasta));
+  const valoracionPrev = media(notasEn(previoDesde, previoHasta));
 
-  const clientesPrev = new Set(
-    enPrevio.map((c) => (c.clienteId != null ? String(c.clienteId) : c.email || c.cliente)),
-  );
-  const nuevosPrev = [...clientesPrev].filter((k) => {
-    const p = primeraCita.get(k);
-    return !!p && dentro(p, previoDesde, previoHasta);
-  }).length;
-
-  const ticket = enRango.length ? ingresos / enRango.length : 0;
-  const ticketPrev = enPrevio.length ? ingresosPrev / enPrevio.length : 0;
-
-  const notas = (resenas || []).map((r) => r.calificacion).filter((n): n is number => typeof n === "number");
-  const valoracion = notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null;
-
-  /* ── Serie de doce meses ───────────────────────────────── */
-  const hoy = new Date();
+  /* ── Serie de doce meses, terminando en el mes en curso ─── */
+  const [anioHoy, mesHoy] = madridToday().split("-").map(Number);
   const serieReal: PuntoSerie[] = [];
+  const sparkClientes: number[] = [];
+  const sparkCancelacion: number[] = [];
+  const sparkValoracion: number[] = [];
   for (let i = 11; i >= 0; i--) {
-    const d = new Date(Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth() - i, 1));
-    const prefijo = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-    const prefijoPrev = `${d.getUTCFullYear() - 1}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    const d = new Date(Date.UTC(anioHoy, mesHoy - 1 - i, 1));
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const prefijo = `${d.getUTCFullYear()}-${mm}`;
+    const prefijoPrev = `${d.getUTCFullYear() - 1}-${mm}`;
+    const delMes = reservas.filter((c) => c.fecha.startsWith(prefijo));
+    const delMesPrev = reservas.filter((c) => c.fecha.startsWith(prefijoPrev));
     serieReal.push({
-      mes: MESES_CORTOS[d.getUTCMonth()],
-      reservas: citas.filter((c) => c.fecha.startsWith(prefijo)).length,
-      reservasPrev: citas.filter((c) => c.fecha.startsWith(prefijoPrev)).length,
-      ingresos: Math.round(suma(pagosPagados.filter((p) => (p.createdAt || "").startsWith(prefijo)).map((p) => p.totalAmount || 0))),
-      ingresosPrev: Math.round(suma(pagosPagados.filter((p) => (p.createdAt || "").startsWith(prefijoPrev)).map((p) => p.totalAmount || 0))),
+      mes: d.getUTCMonth(),
+      reservas: delMes.length,
+      reservasPrev: delMesPrev.length,
+      ingresos: Math.round(ingresosDe(delMes)),
+      ingresosPrev: Math.round(ingresosDe(delMesPrev)),
+      pagadas: pagadasDe(delMes),
     });
+    sparkClientes.push([...primeraCita.values()].filter((f) => f.startsWith(prefijo)).length);
+    sparkCancelacion.push(tasaDe(delMes));
+    const notasMes = resenasVisibles.filter((r) => fechaResena(r).startsWith(prefijo)).map((r) => r.calificacion);
+    const m = media(notasMes);
+    if (m != null) sparkValoracion.push(m);
   }
-  const haySerie = serieReal.some((p) => p.reservas > 0 || p.ingresos > 0);
+
+  /* Si se cae a la demo, sus doce puntos se reetiquetan con los meses
+     reales para que el eje no diga "May…Abr" en septiembre. */
+  const serieDemo: PuntoSerie[] = DEMO.serie.map((p, i) => ({ ...p, mes: serieReal[i].mes }));
 
   /* ── Estado de las reservas ────────────────────────────── */
   const estadosReales = ESTADOS_DONUT.map((clave) => ({
@@ -256,18 +368,9 @@ export async function cargarPanel(
       if (f >= 0) horasReales[f][d] += 1;
     }
   }
-  const hayHoras = horasReales.some((fila) => fila.some((v) => v > 0));
 
   /* ── Sedes y últimas reservas ──────────────────────────── */
-  const porSede = new Map<string, number>();
-  for (const c of enRango) {
-    const nombre = c.sedeName || `#${c.sedeId}`;
-    porSede.set(nombre, (porSede.get(nombre) || 0) + 1);
-  }
-  const sedes: Ranking[] = [...porSede.entries()]
-    .map(([nombre, valor]) => ({ nombre, valor }))
-    .sort((a, b) => b.valor - a.valor)
-    .slice(0, 5);
+  const sedes = top5(enRango.map((c) => c.sedeName || `#${c.sedeId}`));
 
   const ultimas: FilaReserva[] = [...enRango]
     .sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`))
@@ -282,81 +385,108 @@ export async function cargarPanel(
       estado: c.estado,
     }));
 
-  /* ── Rankings del servidor ─────────────────────────────── */
-  const empresas: Ranking[] = (empresasApi || []).map((e) => ({ nombre: e.nombre, valor: e.reservas }));
-  const servicios: Ranking[] = (serviciosApi || []).map((e) => ({ nombre: e.nombre, valor: e.reservas }));
-  const profesionales: FilaProfesional[] = (empleadosApi || []).map((e) => ({
-    nombre: e.nombre,
-    reservas: e.reservas,
-    ingresos: e.ingresos,
-    delta: 0,
-  }));
+  /* ── Rankings ──────────────────────────────────────────────
+     Se cuentan aquí, sobre las mismas reservas que los KPI y con la misma
+     regla que el servidor (sin canceladas ni no-show). Los endpoints
+     /estadisticas/* contaban las extensiones como reservas, cortaban los
+     días en UTC y agrupaban por id: dos servicios que se llaman igual en
+     dos sedes salían como dos puestos. */
+  const validas = enRango.filter((c) => c.estado !== "cancelado" && c.estado !== "noShow");
+  const empresaDeSede = new Map(sedesTodas.map((s) => [String(s.id), s.empresaId]));
+  const nombreEmpresa = new Map(empresasTodas.map((e) => [e.id, e.nombre]));
+  const empresas = top5(
+    validas.map((c) => {
+      const empresaId = empresaDeSede.get(c.sedeId);
+      return (empresaId != null && nombreEmpresa.get(empresaId)) || session?.negocioName || "—";
+    }),
+  );
+  const servicios = top5(validas.map((c) => c.servicio || "—"));
 
-  const hayIngresos = ingresos > 0;
+  const porProfesional = new Map<string, FilaProfesional>();
+  for (const c of validas) {
+    if (!c.empleadoId) continue;
+    const fila = porProfesional.get(c.empleadoId) ?? {
+      nombre: c.empleadoName || `#${c.empleadoId}`,
+      reservas: 0,
+      ingresos: 0,
+      delta: 0,
+    };
+    fila.reservas += 1;
+    fila.ingresos += cobrado(c);
+    porProfesional.set(c.empleadoId, fila);
+  }
+  const todosProfesionales = [...porProfesional.values()];
+  const profesionales = todosProfesionales
+    .sort((a, b) => b.ingresos - a.ingresos || b.reservas - a.reservas)
+    .slice(0, 5);
+
+  const demo = cuentaVacia;
 
   return {
-    kpis: hayCitas
-      ? {
-          reservas: enRango.length,
-          ingresos,
-          clientesNuevos: nuevos,
-          ticketMedio: ticket,
-          cancelacion: tasa,
-          valoracion: valoracion ?? DEMO.kpis.valoracion,
-        }
-      : { ...DEMO.kpis, valoracion: valoracion ?? DEMO.kpis.valoracion },
-    deltas: hayCitas
-      ? {
-          reservas: variacion(enRango.length, enPrevio.length),
-          ingresos: variacion(ingresos, ingresosPrev),
-          clientesNuevos: variacion(nuevos, nuevosPrev),
-          ticketMedio: variacion(ticket, ticketPrev),
-          /* En cancelaciones, bajar es bueno: se guarda la diferencia en puntos. */
-          cancelacion: tasa - tasaPrev,
-          valoracion: 0,
-        }
-      : DEMO.deltas,
-    sparks: haySerie
-      ? {
-          reservas: serieReal.map((p) => p.reservas),
-          ingresos: serieReal.map((p) => p.ingresos),
-          clientes: serieReal.map((p) => p.reservas),
-          ticket: serieReal.map((p) => (p.reservas ? p.ingresos / p.reservas : 0)),
-          cancelacion: DEMO.sparks.cancelacion,
-          valoracion: DEMO.sparks.valoracion,
-        }
-      : DEMO.sparks,
-    serie: haySerie ? serieReal : DEMO.serie,
-    estados: hayCitas ? estadosReales : DEMO.estados,
-    porDia: hayCitas ? porDiaReal : DEMO.porDia,
-    horas: hayHoras ? horasReales : DEMO.horas,
-    empresas: empresas.length ? empresas : DEMO.empresas,
-    servicios: servicios.length ? servicios : DEMO.servicios,
-    profesionales: profesionales.length ? profesionales : DEMO.profesionales,
+    kpis: {
+      ...(demo
+        ? DEMO.kpis
+        : { reservas: enRango.length, ingresos, clientesNuevos: nuevos, ticketMedio: ticket, cancelacion: tasa }),
+      valoracion: sinResenas ? DEMO.kpis.valoracion : valoracion,
+    },
+    deltas: {
+      reservas: demo ? null : variacion(enRango.length, enPrevio.length),
+      ingresos: demo ? null : variacion(ingresos, ingresosPrev),
+      clientesNuevos: demo ? null : variacion(nuevos, nuevosPrev),
+      ticketMedio: demo ? null : variacion(ticket, ticketPrev),
+      /* En cancelaciones se compara en puntos: pasar de 5 % a 6 % es +1 pp. */
+      cancelacion: demo || !enPrevio.length ? null : tasa - tasaPrev,
+      valoracion: valoracion != null && valoracionPrev != null ? valoracion - valoracionPrev : null,
+    },
+    sparks: {
+      ...(demo
+        ? {
+            reservas: DEMO.sparks.reservas,
+            ingresos: DEMO.sparks.ingresos,
+            clientes: DEMO.sparks.clientes,
+            ticket: DEMO.sparks.ticket,
+            cancelacion: DEMO.sparks.cancelacion,
+          }
+        : {
+            reservas: serieReal.map((p) => p.reservas),
+            ingresos: serieReal.map((p) => p.ingresos),
+            clientes: sparkClientes,
+            ticket: serieReal.map((p) => (p.pagadas ? p.ingresos / p.pagadas : 0)),
+            cancelacion: sparkCancelacion,
+          }),
+      valoracion: sinResenas ? DEMO.sparks.valoracion : sparkValoracion.length > 1 ? sparkValoracion : [],
+    },
+    serie: demo ? serieDemo : serieReal,
+    estados: demo ? DEMO.estados : estadosReales,
+    porDia: demo ? DEMO.porDia : porDiaReal,
+    horas: demo ? DEMO.horas : horasReales,
+    empresas: demo ? DEMO.empresas : empresas,
+    servicios: demo ? DEMO.servicios : servicios,
+    profesionales: demo ? DEMO.profesionales : profesionales,
+    ingresosProfesionales: demo
+      ? suma(DEMO.profesionales.map((x) => x.ingresos))
+      : suma(todosProfesionales.map((x) => x.ingresos)),
     /* Sin analítica de navegación en el backend, el embudo es siempre de ejemplo. */
     embudo: DEMO.embudo,
-    clientes: hayCitas ? { nuevos, recurrentes } : DEMO.clientes,
-    sedes: sedes.length ? sedes : DEMO.sedes,
-    ultimas: ultimas.length ? ultimas : DEMO.ultimas,
+    clientes: demo ? DEMO.clientes : { nuevos, recurrentes },
+    sedes: demo ? DEMO.sedes : sedes,
+    /* Las de ejemplo se fechan hoy: con su fecha fija parecían de hace meses. */
+    ultimas: demo ? DEMO.ultimas.map((u) => ({ ...u, fecha: madridToday() })) : ultimas,
+    rango,
     demo: {
-      kpis: !hayCitas,
-      valoracion: valoracion == null,
-      serie: !haySerie,
-      estados: !hayCitas,
-      porDia: !hayCitas,
-      horas: !hayHoras,
-      empresas: !empresas.length,
-      servicios: !servicios.length,
-      profesionales: !profesionales.length,
+      kpis: demo,
+      valoracion: sinResenas,
+      serie: demo,
+      estados: demo,
+      porDia: demo,
+      horas: demo,
+      empresas: demo,
+      servicios: demo,
+      profesionales: demo,
       embudo: true,
-      clientes: !hayCitas,
-      sedes: !sedes.length,
-      ultimas: !ultimas.length,
+      clientes: demo,
+      sedes: demo,
+      ultimas: demo,
     },
   };
-}
-
-/** Ingresos del periodo sin datos reales: se usa para el aviso del KPI. */
-export function ingresosSonDemo(d: PanelDatos): boolean {
-  return d.demo.kpis;
 }
