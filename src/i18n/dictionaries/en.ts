@@ -1202,6 +1202,8 @@ const en: Dictionary = {
     horario: "{inicio} – {fin}",
     pasada: "Was due to end at {fin}",
     boton: "I need more time",
+    otro: "Other",
+    aplicando: "Extending…",
     titulo: "I need more time",
     sub: "How many more minutes do you need with {cliente}? It currently ends at {fin}.",
     minutosLabel: "Extra minutes (1–240)",

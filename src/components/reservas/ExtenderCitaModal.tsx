@@ -30,7 +30,6 @@ import { ErrorBox } from "@/components/reservas/booking/Feedback";
 import ReagendarModal from "./ReagendarModal";
 import styles from "./ExtenderCitaModal.module.css";
 
-const MINUTOS_RAPIDOS = [10, 15, 30, 45];
 const OPCIONES = ["reasignar", "reprogramar", "cancelar"] as const;
 type Opcion = (typeof OPCIONES)[number];
 
@@ -49,9 +48,15 @@ interface ExtenderCitaModalProps {
   onClose: () => void;
   /** Se llama tras cada cambio aplicado para refrescar la agenda */
   onCambios: () => void;
+  /** Minutos ya elegidos (p. ej. desde los botones rápidos del detalle) */
+  minutosIniciales?: number;
+  /** Conflicto ya devuelto por /extend: el modal abre directo en resolverlo */
+  conflictoInicial?: Conflicto;
 }
 
-export default function ExtenderCitaModal({ reserva, onClose, onCambios }: ExtenderCitaModalProps) {
+export default function ExtenderCitaModal({
+  reserva, onClose, onCambios, minutosIniciales, conflictoInicial,
+}: ExtenderCitaModalProps) {
   const { t } = useI18n();
   const { toast, confirm } = useUi();
 
@@ -67,11 +72,14 @@ export default function ExtenderCitaModal({ reserva, onClose, onCambios }: Exten
   const [ocupada, setOcupada] = useState<number | null>(null);
   const [reagendando, setReagendando] = useState<Reserva | null>(null);
 
+  /* Opciones proporcionales a la duración de la cita */
+  const opcionesMin = ReservasController.opcionesMinutos(reserva?.duracion ?? 30);
+
   const reiniciar = () => {
-    setMinutos(15);
+    setMinutos(minutosIniciales ?? opcionesMin[Math.min(1, opcionesMin.length - 1)]);
     setMotivo("");
     setError(null);
-    setConflicto(null);
+    setConflicto(conflictoInicial ?? null);
     setResueltas({});
     setOpcion({});
     setOcupada(null);
@@ -179,7 +187,7 @@ export default function ExtenderCitaModal({ reserva, onClose, onCambios }: Exten
             {error && <ErrorBox>{error}</ErrorBox>}
 
             <div className={styles.chips} role="group" aria-label={t("extender.minutosLabel")}>
-              {MINUTOS_RAPIDOS.map((m) => (
+              {opcionesMin.map((m) => (
                 <button
                   key={m}
                   type="button"
