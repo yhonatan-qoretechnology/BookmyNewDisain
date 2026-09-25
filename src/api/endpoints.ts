@@ -47,6 +47,11 @@ export const EP = {
   /* @Controller('empresas') */
   empresas: "/empresas",
   empresaById: (id: number) => `/empresas/${id}`,
+  /** POST público — alta de un negocio desde bookmy.es */
+  registroNegocio: "/empresas/registro",
+  /** GET plan y prueba · POST activa los 30 días · PATCH cambia el contratado */
+  empresaPlan: (id: number) => `/empresas/${id}/plan`,
+  empresaPrueba: (id: number) => `/empresas/${id}/prueba`,
   /** PATCH multipart — campo "logo". Devuelve la Empresa actualizada. */
   empresaLogo: (id: number) => `/empresas/${id}/logo`,
 

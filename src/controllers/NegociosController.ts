@@ -16,6 +16,10 @@ const mapEmpresa = (e: ApiEmpresa): Negocio => ({
   rubro: e.descripcion || "—",
   activo: true,
   logo: e.logo ?? null,
+  plan: e.plan ?? "FREE",
+  trialEndsAt: e.trialEndsAt ?? null,
+  /* Una prueba viva vale como Pro aunque el plan contratado sea FREE. */
+  enPrueba: !!e.trialEndsAt && new Date(e.trialEndsAt).getTime() > Date.now(),
 });
 
 export const NegociosController = {

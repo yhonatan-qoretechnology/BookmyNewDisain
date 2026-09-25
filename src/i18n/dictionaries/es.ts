@@ -145,6 +145,48 @@ const es = {
     more: "+{n} más",
   },
 
+  plan: {
+    /* Pantalla que sustituye a un módulo de pago cuando el negocio no lo tiene */
+    badge: "Bookmy CRM Pro",
+    lockTitle: "Desbloquea {modulo} con Bookmy CRM Pro",
+    lockLead: "Tu plan gratuito cubre la agenda del día a día. Este módulo entra en Pro, junto con todo lo que hace que el negocio se administre solo.",
+    tryTitle: "Pruébalo 30 días gratis",
+    tryLead: "Se activa al instante, sin tarjeta y sin compromiso. Cuando termine, tu cuenta vuelve al plan gratuito y no pierdes ningún dato.",
+    tryCta: "Empezar mis 30 días gratis",
+    trying: "Activando…",
+    tryDone: "¡Listo! Ya tienes Bookmy CRM Pro durante 30 días.",
+    salesCta: "Hablar con ventas",
+    backCta: "Volver al panel",
+    modules: {
+      facturacion: "la facturación",
+      estadisticas: "las estadísticas",
+      stock: "el stock e insumos",
+      comunicacion: "la comunicación",
+    },
+    /* Lo que incluye Pro, para vender la prueba */
+    f1: "Facturación y cobros con su historial",
+    f2: "Estadísticas en tiempo real de tu negocio",
+    f3: "Control de stock e insumos por sede",
+    f4: "Chat con tu equipo y con tus clientes",
+    f5: "Varias sedes bajo un mismo panel",
+    f6: "Todo lo del plan gratuito, sin límites",
+    /* Aviso de la prueba en el panel */
+    trialBanner: "Te quedan {n} días de prueba de Bookmy CRM Pro",
+    trialBannerOne: "Hoy es el último día de tu prueba de Bookmy CRM Pro",
+    trialBannerCta: "Quiero seguir con Pro",
+    trialOverTitle: "Tu prueba de Bookmy CRM Pro ha terminado",
+    trialOverText: "Sigues teniendo todo el plan gratuito y tus datos intactos. Para recuperar facturación, estadísticas, stock y comunicación, habla con nosotros.",
+    offerTitle: "Prueba Bookmy CRM Pro 30 días gratis",
+    offerText: "Facturación, estadísticas, stock y comunicación. Sin tarjeta.",
+    offerCta: "Probar gratis",
+    /* Estado del plan en Configuración y en Empresas */
+    current: "Plan actual",
+    free: "Bookmy Free",
+    pro: "Bookmy CRM Pro",
+    trialUntil: "De prueba hasta el {fecha}",
+    changeTo: "Cambiar a {plan}",
+    changed: "Plan actualizado",
+  },
   login: {
     backToSite: "Volver a bookmy.es",
     showPassword: "Mostrar contraseña",

@@ -9,6 +9,7 @@ import { useData } from "@/hooks/useData";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants";
 import { NegociosController } from "@/controllers/NegociosController";
+import { EmpresasApi } from "@/api/modules";
 import type { Negocio, Sede } from "@/models";
 import { ImagenesApi } from "@/api/modules";
 import { useSession } from "@/context/SessionContext";
@@ -31,9 +32,11 @@ export default function EmpresasPage() {
   const { session, updateSession } = useSession();
   const booking = useBooking();
   const { toast } = useUi();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const [search, setSearch] = useState("");
+  /** Empresa cuyo plan se está cambiando (para bloquear su botón) */
+  const [cambiandoPlan, setCambiandoPlan] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [rubro, setRubro] = useState("");
@@ -46,6 +49,25 @@ export default function EmpresasPage() {
 
   /* MODO API: GET /empresas */
   const { data: todas, reload } = useData(() => NegociosController.getAll(), [], []);
+
+  /**
+   * Marca la empresa como Pro (ha pagado) o la devuelve a Free.
+   * Es lo único que hace falta mientras el cobro se cierre a mano.
+   */
+  const cambiarPlan = async (n: { id: string; plan?: "FREE" | "PRO" }) => {
+    if (cambiandoPlan) return;
+    setCambiandoPlan(n.id);
+    try {
+      await EmpresasApi.cambiarPlan(Number(n.id), n.plan === "PRO" ? "FREE" : "PRO");
+      toast(t("plan.changed"), "success");
+      await reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setCambiandoPlan(null);
+    }
+  };
+
   const { data: sedeCounts } = useData(async () => {
     const counts: Record<string, number> = {};
     await Promise.all(todas.map(async (n) => { counts[n.id] = await NegociosController.countSedes(n.id); }));
@@ -163,9 +185,13 @@ export default function EmpresasPage() {
                         </div>
                         <TagRow>
                           <Tag>{t("empresas.sedesCount", { n: sedeCounts[n.id] ?? 0 })}</Tag>
-                          <Badge kind={n.activo ? "activo" : "inactivo"}>
-                            {n.activo ? t("servicios.active") : t("servicios.inactive")}
+                          {/* Plan del negocio: lo que decide qué módulos ve */}
+                          <Badge kind={n.plan === "PRO" || n.enPrueba ? "activo" : "inactivo"}>
+                            {n.plan === "PRO" ? t("plan.pro") : n.enPrueba ? t("plan.pro") : t("plan.free")}
                           </Badge>
+                          {n.enPrueba && n.trialEndsAt && (
+                            <Tag>{t("plan.trialUntil", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale) })}</Tag>
+                          )}
                         </TagRow>
                         <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
                           {activa ? (
@@ -177,6 +203,17 @@ export default function EmpresasPage() {
                           )}
                           <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
                             {t("empresas.viewSedes")}
+                          </Button>
+                          {/* El superadmin marca aquí quién ha pagado Pro */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={cambiandoPlan === n.id}
+                            onClick={() => cambiarPlan(n)}
+                          >
+                            {t("plan.changeTo", {
+                              plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro"),
+                            })}
                           </Button>
                         </div>
                       </SimpleCard>

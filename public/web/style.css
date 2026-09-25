@@ -1555,3 +1555,30 @@ textarea:focus-visible,
   .chip-2 { top: 13%; right: 0; }
   .chip-3 { bottom: 1%; left: 0; }
 }
+
+/* ── Alta de negocio (/crear-cuenta) ──────────────────────
+   Hereda la sección de las páginas de plan; solo necesita aire
+   bajo la cabecera para el formulario. */
+.signup-section .plan-title { margin-bottom: 14px; }
+.signup-section .plan-hero-text { margin-bottom: 34px; max-width: 62ch; }
+
+/* Empujón a la prueba bajo el botón de cada plan */
+.price-trial {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--muted);
+}
+.price-card-highlight .price-trial { color: var(--accent-2); font-weight: 600; }
+
+.plan-cta-trial {
+  margin-top: 14px;
+  font-size: 12.5px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* El enlace de volver es en línea: junto a un `eyebrow` (que también lo
+   es) se quedaban pegados en la misma fila. En el alta se separa. */
+.signup-section .plan-back-link { display: flex; width: fit-content; }

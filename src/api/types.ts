@@ -85,6 +85,44 @@ export interface ApiEmpresa {
   descripcion?: string | null;
   descripcionLarga?: string | null;
   webUrl?: string | null;
+  /** Plan contratado (FREE/PRO) y prueba de 30 días. */
+  plan?: "FREE" | "PRO";
+  trialEndsAt?: string | null;
+  trialUsed?: boolean;
+}
+
+/** GET /empresas/:id/plan — plan del negocio y estado de la prueba. */
+export interface ApiEstadoPlan {
+  plan: "FREE" | "PRO";
+  planEfectivo: "FREE" | "PRO";
+  trialEndsAt: string | null;
+  enPrueba: boolean;
+  diasDePrueba: number;
+  pruebaCaducada: boolean;
+  puedeProbar: boolean;
+}
+
+/** POST /empresas/registro — alta de un negocio desde la web. */
+export interface RegistroNegocioDto {
+  empresaNombre: string;
+  telefono: string;
+  rubro?: string;
+  sedeNombre: string;
+  direccion: string;
+  pais?: string;
+  provincia?: string;
+  municipio?: string;
+  localidad?: string;
+  latitud?: number;
+  longitud?: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  countryId?: number;
+  idioma?: string;
+  plan: "free" | "pro";
+  acepta: boolean;
 }
 
 export interface ApiSede {

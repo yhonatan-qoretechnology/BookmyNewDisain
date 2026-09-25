@@ -11,7 +11,6 @@ import { ROUTES } from "@/constants";
 import Reveal from "@/components/web/Reveal";
 import FaqList from "@/components/web/FaqList";
 import StepsSection from "@/components/web/StepsSection";
-import { useLeadModal } from "@/components/web/LeadModal";
 import { useWebT } from "@/components/web/useWebT";
 
 const MARCAS = ["Glow", "Rituals by Glow", "Qore Technology", "Lash by Glow", "Ink Nova"];
@@ -19,7 +18,6 @@ const CIUDADES = ["Benalmádena", "Fuengirola", "Marbella", "Málaga", "Torremol
 
 export default function HomePage() {
   const { w, locale } = useWebT();
-  const { abrir: abrirSolicitud } = useLeadModal();
 
   const faq = [1, 2, 3, 4, 5].map((n) => ({ q: w(`faq.q${n}`), a: w(`faq.a${n}`) }));
 
@@ -227,9 +225,10 @@ export default function HomePage() {
                   <li key={n}><span className="check-icon" aria-hidden>✓</span><span>{w(`pricing.free.f${n}`)}</span></li>
                 ))}
               </ul>
-              <button className="btn btn-dark btn-block open-modal-btn" type="button" onClick={() => abrirSolicitud("Bookmy Free")}>
+              <Link href="/crear-cuenta?plan=free" className="btn btn-dark btn-block">
                 {w("pricing.free.cta")}
-              </button>
+              </Link>
+              <p className="price-trial">{w("pricing.freeTrialNudge")}</p>
               <Link href="/bookmy-free" className="price-more">{w("planpage.free.moreLink")}</Link>
             </Reveal>
 
@@ -244,9 +243,10 @@ export default function HomePage() {
                   <li key={n}><span className="check-icon" aria-hidden>✓</span><span>{w(`pricing.pro.f${n}`)}</span></li>
                 ))}
               </ul>
-              <button className="btn btn-primary btn-block open-modal-btn" type="button" onClick={() => abrirSolicitud("Bookmy CRM Pro")}>
+              <Link href="/crear-cuenta?plan=pro" className="btn btn-primary btn-block">
                 {w("pricing.pro.cta")}
-              </button>
+              </Link>
+              <p className="price-trial">{w("pricing.proTrial")}</p>
               <Link href="/bookmy-crm-pro" className="price-more">{w("planpage.pro.moreLink")}</Link>
             </Reveal>
           </div>
@@ -271,9 +271,9 @@ export default function HomePage() {
               </ul>
               <div className="hero-cta-row">
                 <Link href={ROUTES.login} className="btn btn-primary">{w("panelAccess.cta")}</Link>
-                <button type="button" className="btn btn-ghost" onClick={() => abrirSolicitud("Bookmy Free")}>
+                <Link href="/crear-cuenta?plan=pro" className="btn btn-ghost">
                   {w("panelAccess.secondary")}
-                </button>
+                </Link>
               </div>
             </div>
             <div className="panel-access-visual" aria-hidden>

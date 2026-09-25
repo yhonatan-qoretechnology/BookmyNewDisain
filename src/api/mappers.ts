@@ -8,7 +8,7 @@
      EMPLOYEE     → employee    (usuario empleado)
      CLIENT       → sin acceso al panel (usa la app de clientes)
 ============================================================ */
-import type { MetodoPago, Reserva, Rol, Session } from "@/models";
+import type { EstadoPlan, MetodoPago, Reserva, Rol, Session } from "@/models";
 import { madridHHmm, madridYmd } from "@/lib/timezone";
 import type { ApiAppointment, ApiAppointmentStatus, ApiRole, ApiUser } from "./types";
 
@@ -38,7 +38,10 @@ export const ESTADO_APPT_MAP: Record<Reserva["estado"], ApiAppointmentStatus> = 
   noShow: "NO_SHOW",
 };
 
-export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeName?: string }): Session | null {
+export function mapUserToSession(
+  u: ApiUser,
+  opts: { negocioName?: string; sedeName?: string; plan?: EstadoPlan | null }
+): Session | null {
   const role = ROLE_MAP[u.role];
   if (!role) return null; // CLIENT no entra al panel
   return {
@@ -65,6 +68,8 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
     /* ⚙️ PARÁMETRO DE BD: user_data.idioma viaja del login a la
        sesión; el I18nProvider lo aplica automáticamente. */
     idioma: u.UserData?.idioma?.slice(0, 2).toLowerCase() || "es",
+    /* Plan del negocio: de él dependen los módulos visibles. */
+    plan: opts.plan ?? null,
   };
 }
 

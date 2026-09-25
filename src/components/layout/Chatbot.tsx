@@ -15,7 +15,7 @@
 ============================================================ */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { NAV_BY_ROLE, ROUTES } from "@/constants";
+import { navParaSesion, ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -99,12 +99,12 @@ export default function Chatbot() {
   /* Secciones que el rol activo tiene en su menú */
   const seccionesVisibles = useMemo(() => {
     const set = new Set<string>();
-    for (const item of NAV_BY_ROLE[session?.role || ""] ?? []) {
+    for (const item of navParaSesion(session?.role || "", session?.plan?.planEfectivo === "PRO")) {
       set.add(item.id);
       for (const hijo of item.children ?? []) set.add(hijo.id);
     }
     return set;
-  }, [session?.role]);
+  }, [session?.role, session?.plan?.planEfectivo]);
 
   const ids = tList("chatbot.faq.ids").filter((id) => {
     const seccion = FAQ_SECCION[id];

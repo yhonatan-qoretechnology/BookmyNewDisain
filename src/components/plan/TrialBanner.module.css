@@ -1,0 +1,93 @@
+/* ============================================================
+   Aviso del plan sobre el contenido del panel. Una sola línea,
+   con el verde de la marca; cuando la prueba aprieta o ya
+   terminó, cambia de color sin cambiar de sitio.
+============================================================ */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px 12px 16px;
+  margin-bottom: 18px;
+  border-radius: var(--r-lg);
+  color: #eaf6ef;
+  background: linear-gradient(120deg, #0d9d6d, #0a4434 78%);
+  box-shadow: var(--shadow-md);
+  animation: entrarAviso .4s var(--ease) both;
+}
+@keyframes entrarAviso {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.urgente { background: linear-gradient(120deg, #f59e0b, #b45309 78%); }
+.caducada { background: linear-gradient(120deg, #475569, #1e293b 78%); }
+.oferta { background: linear-gradient(120deg, #12b981, #0a4434 78%); }
+
+.icono {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .16);
+}
+.icono svg { width: 16px; height: 16px; }
+
+.texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.texto b { font-weight: 800; }
+.texto span { opacity: .82; font-size: 12.5px; }
+
+.cta {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #06140f;
+  background: #fff;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.cta:hover:not(:disabled) { transform: translateY(-1px); background: #dcfbec; }
+.cta:disabled { opacity: .7; cursor: default; }
+
+.cerrar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, .75);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.cerrar:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+.cerrar svg { width: 13px; height: 13px; }
+
+@media (max-width: 720px) {
+  .banner { flex-wrap: wrap; padding: 12px; }
+  .texto { flex: 1 1 100%; order: 2; }
+  .cta { order: 3; width: 100%; justify-content: center; }
+  .cerrar { order: 1; margin-left: auto; }
+  .icono { order: 0; }
+}
+
+/* En papel no pinta nada */
+@media print { .banner { display: none !important; } }

@@ -5,10 +5,10 @@
    despliega al hacer clic y se auto-abre cuando la ruta activa
    pertenece al grupo (p. ej. Facturación → Facturas · Gastos).
 ============================================================ */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { NAV_BY_ROLE, ROUTES, initials } from "@/constants";
+import { navParaSesion, ROUTES, initials } from "@/constants";
 import type { NavItem, Rol } from "@/models";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
@@ -36,7 +36,10 @@ export default function Sidebar({
   const reduce = useReducedMotion();
 
   const role: Rol = session?.role || "superadmin";
-  const items = NAV_BY_ROLE[role];
+  /* El menú depende del plan del negocio: con Pro (contratado o de
+     prueba) aparecen facturación, estadísticas, stock y comunicación. */
+  const pro = session?.plan?.planEfectivo === "PRO";
+  const items = useMemo(() => navParaSesion(role, pro), [role, pro]);
   // Multi-tenant: la marca muestra el negocio del usuario
   const negocio = session?.negocioName || "BookMy";
 

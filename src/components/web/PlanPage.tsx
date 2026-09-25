@@ -59,9 +59,9 @@ export default function PlanPage({ plan }: { plan: Plan }) {
               </h1>
               <p className="plan-hero-text">{w(`planpage.${plan}.text`)}</p>
               <div className="plan-hero-actions">
-                <button type="button" className="btn btn-primary open-modal-btn" onClick={() => abrir(NOMBRE[plan])}>
+                <Link href={`/crear-cuenta?plan=${plan}`} className="btn btn-primary">
                   {w(`planpage.${plan}.cta`)}
-                </button>
+                </Link>
                 <Link href={otro} className="plan-compare-link">
                   {plan === "free" ? w("planpage.compareLink") : w("planpage.compareLinkFree")}
                 </Link>
@@ -117,11 +117,16 @@ export default function PlanPage({ plan }: { plan: Plan }) {
             <h2>{w(`planpage.${plan}.title2`)}</h2>
             <p>{w("planpage.ctaText")}</p>
             <div className="plan-cta-actions">
-              <button type="button" className="btn btn-dark open-modal-btn" onClick={() => abrir(NOMBRE[plan])}>
+              <Link href={`/crear-cuenta?plan=${plan}`} className="btn btn-dark">
                 {w(`planpage.${plan}.cta`)}
+              </Link>
+              <button type="button" className="btn btn-ghost" onClick={() => abrir(NOMBRE[plan])}>
+                {w("planpage.salesCta")}
               </button>
-              <Link href="/login" className="btn btn-ghost">{w("nav.panel")}</Link>
             </div>
+            <p className="plan-cta-trial">
+              {plan === "free" ? w("pricing.freeTrialNudge") : w("pricing.proTrial")}
+            </p>
           </Reveal>
         </div>
       </section>
