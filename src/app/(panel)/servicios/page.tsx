@@ -266,7 +266,7 @@ export default function ServiciosPage() {
                                     {t("common.edit")}
                                   </Button>
                                   {puedeEliminar && (
-                                    <Button variant="danger" size="sm" block onClick={() => eliminar(s.id, s.nombre)}>
+                                    <Button variant="dangerGhost" size="sm" block onClick={() => eliminar(s.id, s.nombre)}>
                                       {t("common.delete")}
                                     </Button>
                                   )}

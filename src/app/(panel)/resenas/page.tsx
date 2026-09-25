@@ -148,7 +148,7 @@ export default function ResenasPage() {
                   </Button>
                   <Button
                     size="sm"
-                    variant="danger"
+                    variant="dangerGhost"
                     onClick={() => eliminar(r)}
                     disabled={borrandoId === r.id}
                   >

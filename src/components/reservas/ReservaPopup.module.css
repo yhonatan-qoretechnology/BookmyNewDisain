@@ -59,8 +59,8 @@
 }
 .field span { font-size: 14px; font-weight: 600; color: var(--navy-900); }
 .price { color: var(--teal-600) !important; font-size: 18px !important; font-weight: 800 !important; }
-:global([data-theme="dark"]) .field span { color: #8392ab; }
-:global([data-theme="dark"]) .price { color: #0fcfae !important; }
+:global([data-theme="dark"]) .field span { color: var(--slate-500); }
+:global([data-theme="dark"]) .price { color: var(--teal-500) !important; }
 
 .notes {
   background: var(--hover-surface);
@@ -88,10 +88,10 @@
 .whatsapp:hover { background: #25d366; color: #fff; }
 .email { border-color: var(--teal-500); color: var(--teal-600); }
 .email:hover { background: var(--teal-500); color: #fff; }
-:global([data-theme="dark"]) .email { color: #0fcfae; }
+:global([data-theme="dark"]) .email { color: var(--teal-500); }
 .print { border-color: var(--slate-300); color: var(--slate-500); }
-.print:hover { background: var(--navy-900); color: #fff; border-color: var(--navy-900); }
-:global([data-theme="dark"]) .print { background: rgba(255,255,255,.04); border-color: #1e2640; color: #8392ab; }
+.print:hover { background: var(--teal-600); color: #fff; border-color: var(--teal-600); }
+:global([data-theme="dark"]) .print { background: rgba(255,255,255,.04); border-color: var(--border); color: var(--slate-500); }
 
 /* Gestión de la cita: reprogramar / cambiar profesional / cancelar */
 .gestion {
@@ -132,12 +132,12 @@
 .extChip:hover:not(:disabled) { background: var(--teal-500); color: #fff; }
 .extChip:hover:not(:disabled) small { color: #fff; }
 .extChip:disabled { opacity: .55; cursor: default; }
-:global([data-theme="dark"]) .extChip { background: rgba(255,255,255,.04); color: #e8edf5; }
-:global([data-theme="dark"]) .extLabel { color: #0fcfae; }
+:global([data-theme="dark"]) .extChip { background: rgba(255,255,255,.04); color: var(--navy-900); }
+:global([data-theme="dark"]) .extLabel { color: var(--teal-500); }
 
-.gestionPeligro { border-color: rgba(229,72,77,.45); color: #e5484d; }
-.gestionPeligro:hover { background: #e5484d; border-color: #e5484d; color: #fff; }
-:global([data-theme="dark"]) .gestionBtn { background: rgba(255,255,255,.04); border-color: #1e2640; color: #8392ab; }
+.gestionPeligro { border-color: rgba(229,72,77,.45); color: var(--red); }
+.gestionPeligro:hover { background: var(--red); border-color: var(--red); color: #fff; }
+:global([data-theme="dark"]) .gestionBtn { background: rgba(255,255,255,.04); border-color: var(--border); color: var(--slate-500); }
 :global([data-theme="dark"]) .gestionDestacada { background: var(--grad-teal); color: #fff; }
 :global([data-theme="dark"]) .gestionPeligro { color: #ff6b6f; border-color: rgba(229,72,77,.45); }
 

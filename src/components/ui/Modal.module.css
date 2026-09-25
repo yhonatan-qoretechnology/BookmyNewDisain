@@ -1,6 +1,6 @@
 .overlay {
   position: fixed; inset: 0;
-  background: rgba(27,37,89,.45); backdrop-filter: blur(4px);
+  background: rgba(16, 26, 36, .5); backdrop-filter: blur(6px) saturate(120%);
   display: flex; align-items: center; justify-content: center;
   z-index: 50; padding: 20px;
 }
@@ -8,7 +8,8 @@
 
 .box {
   background: var(--surface-2); border-radius: var(--r-xl);
-  width: 100%; max-width: 440px; padding: 28px; box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 460px; padding: 28px; box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
   /* Sin este tope, cualquier modal más alto que la pantalla se salía por
      abajo en escritorio y sus botones quedaban fuera de alcance. */
   max-height: calc(100vh - 40px);
@@ -43,19 +44,20 @@
   margin-bottom: 6px; color: var(--navy-900);
 }
 .field input, .field textarea, .field select {
-  width: 100%; padding: 11px 13px; border-radius: var(--r-sm);
+  width: 100%; min-height: 44px; padding: 11px 13px; border-radius: var(--r-sm);
   border: 1.5px solid var(--border); font-size: 13.5px;
   background: var(--input-bg); color: var(--navy-900);
-  transition: border-color .15s, box-shadow .15s;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 }
+.field input::placeholder, .field textarea::placeholder { color: var(--slate-300); }
 .field input:focus, .field textarea:focus, .field select:focus {
   border-color: var(--teal-500);
-  box-shadow: 0 0 0 3px var(--teal-50);
+  box-shadow: var(--ring);
   outline: none;
 }
-:global([data-theme="dark"]) .field label { color: #8392ab; }
+:global([data-theme="dark"]) .field label { color: var(--slate-500); }
 :global([data-theme="dark"]) .field input,
 :global([data-theme="dark"]) .field textarea {
-  border-color: #1e2640; color: #e8edf5;
+  border-color: var(--border); color: var(--navy-900);
 }
-:global([data-theme="dark"]) .field input::placeholder { color: #4a5670; }
+:global([data-theme="dark"]) .field input::placeholder { color: var(--slate-300); }

@@ -7,7 +7,11 @@
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r-md); padding: 10px 14px;
   min-width: 260px; box-shadow: var(--shadow-sm);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 }
+/* El buscador reacciona igual que el resto de controles al recibir el foco */
+.searchBox:focus-within { border-color: var(--teal-500); box-shadow: var(--ring); }
+.searchBox:focus-within svg { color: var(--teal-600); }
 .searchBox svg { width: 14px; height: 14px; color: var(--slate-300); flex: none; }
 .searchBox input {
   border: none; outline: none; font-size: 13px;
@@ -18,10 +22,10 @@
 
 :global([data-theme="dark"]) .searchBox {
   background: rgba(255,255,255,.04);
-  border-color: #1e2640;
+  border-color: var(--border);
 }
-:global([data-theme="dark"]) .searchBox input { color: #e8edf5; }
-:global([data-theme="dark"]) .searchBox input::placeholder { color: #4a5670; }
+:global([data-theme="dark"]) .searchBox input { color: var(--navy-900); }
+:global([data-theme="dark"]) .searchBox input::placeholder { color: var(--slate-300); }
 
 @media (max-width: 600px) {
   .toolbar { flex-direction: column; align-items: stretch; }
@@ -46,7 +50,9 @@
   position: relative;
 }
 .control > svg { width: 14px; height: 14px; color: var(--slate-300); flex: none; }
-.control:focus-within { border-color: var(--teal-500); box-shadow: 0 0 0 3px var(--teal-50); }
+.control { transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease); }
+.control:focus-within { border-color: var(--teal-500); box-shadow: var(--ring); }
+.control:focus-within > svg { color: var(--teal-600); }
 
 .control select,
 .control input {
@@ -80,11 +86,11 @@
 
 :global([data-theme="dark"]) .control {
   background: rgba(255,255,255,.04);
-  border-color: #1e2640;
+  border-color: var(--border);
 }
 :global([data-theme="dark"]) .control select,
-:global([data-theme="dark"]) .control input { color: #e8edf5; }
-:global([data-theme="dark"]) .control select option { background: #1a2035; color: #e8edf5; }
+:global([data-theme="dark"]) .control input { color: var(--navy-900); }
+:global([data-theme="dark"]) .control select option { background: var(--surface-2); color: var(--navy-900); }
 :global([data-theme="dark"]) .control input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }

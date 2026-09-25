@@ -16,6 +16,6 @@
   margin-bottom: 16px;
 }
 .quote b { display: block; color: var(--navy-900); margin-bottom: 4px; }
-:global([data-theme="dark"]) .quote b { color: #e8edf5; }
+:global([data-theme="dark"]) .quote b { color: var(--navy-900); }
 
 .replyArea { min-height: 120px; resize: vertical; font-family: inherit; }

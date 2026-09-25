@@ -143,18 +143,24 @@ export default function EmpresasPage() {
                   return (
                     <div key={n.id} className={activa ? styles.current : undefined}>
                       <SimpleCard>
-                        {/* El logo solo se puede cambiar en la empresa que se
-                            administra; el superadmin puede en cualquiera. */}
-                        <ImageUpload
-                          value={n.logo}
-                          nombre={n.nombre}
-                          variant="card"
-                          label={t("imagen.logo")}
-                          disabled={!activa && session.role !== "superadmin"}
-                          onUpload={(file) => subirLogo(n, file)}
-                        />
-                        <h3>{n.nombre}</h3>
-                        <Muted>{n.rubro}</Muted>
+                        {/* Cabecera: el logo como avatar cuadrado junto al
+                            nombre. Antes ocupaba un banner entero y, sin logo
+                            subido, la tarjeta era casi todo hueco gris.
+                            Cambiarlo solo se puede en la empresa que se
+                            administra; el superadmin, en cualquiera. */}
+                        <div className={styles.cardHead}>
+                          <ImageUpload
+                            value={n.logo}
+                            nombre={n.nombre}
+                            variant="avatar"
+                            disabled={!activa && session.role !== "superadmin"}
+                            onUpload={(file) => subirLogo(n, file)}
+                          />
+                          <div className={styles.cardHeadText}>
+                            <h3>{n.nombre}</h3>
+                            <Muted>{n.rubro}</Muted>
+                          </div>
+                        </div>
                         <TagRow>
                           <Tag>{t("empresas.sedesCount", { n: sedeCounts[n.id] ?? 0 })}</Tag>
                           <Badge kind={n.activo ? "activo" : "inactivo"}>

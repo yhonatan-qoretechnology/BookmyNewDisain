@@ -1170,6 +1170,12 @@ const en: Dictionary = {
   },
 
   comunicacion: {
+    searchUsers: "Search people…",
+    addContact: "Add contact",
+    emptyTitle: "No conversations yet",
+    emptyMsg: "Search for someone on your team or add a contact to start talking.",
+    pickChat: "Pick a conversation",
+    pickChatMsg: "Select a contact from the list to see the messages.",
     writeTo: "Message {canal}…",
     message: "Message",
     /* History download (business owner) */

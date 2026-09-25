@@ -1,26 +1,51 @@
+/* El botón se levanta un punto al pasar por encima y se hunde al
+   pulsarlo: sin ese gesto la pulsación no se siente en pantallas
+   táctiles ni con el ratón. */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   gap: 7px; padding: 11px 20px;
   border-radius: var(--r-sm); font-size: 13.5px; font-weight: 700;
-  border: none; cursor: pointer; transition: box-shadow .12s, background .12s;
+  letter-spacing: -.005em;
+  border: none; cursor: pointer;
+  transition: box-shadow var(--t-fast) var(--ease),
+              background var(--t-fast) var(--ease),
+              transform var(--t-fast) var(--ease),
+              color var(--t-fast) var(--ease);
 }
+/* El hundido al pulsar y el levantado al pasar por encima los aplica
+   framer-motion en Button.tsx: aqui solo la sombra y el color. */
+.btn:disabled { opacity: .55; cursor: not-allowed; }
 .btn svg { width: 15px; height: 15px; }
 
-.primary { background: var(--grad-teal); color: #fff; box-shadow: 0 7px 18px rgba(15,207,174,.35); }
-.primary:hover { box-shadow: 0 10px 22px rgba(15,207,174,.45); }
+.primary { background: var(--grad-teal); color: #fff; box-shadow: 0 6px 16px rgba(13, 157, 109, .28); }
+.primary:hover:not(:disabled) { box-shadow: 0 10px 24px rgba(13, 157, 109, .38); }
 
 .ghost { background: var(--surface); color: var(--slate-500); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-.ghost:hover { background: var(--hover-surface); }
+.ghost:hover:not(:disabled) { background: var(--hover-surface); color: var(--navy-900); border-color: var(--slate-300); }
 
-.danger { background: var(--grad-red); color: #fff; }
+.danger { background: var(--grad-red); color: #fff; box-shadow: 0 6px 16px rgba(220, 38, 38, .25); }
+.danger:hover:not(:disabled) { box-shadow: 0 10px 24px rgba(220, 38, 38, .34); }
+
+/* Borrado secundario: el rojo lleno pesaba demasiado cuando la accion
+   principal de la tarjeta era otra (aprobar una resena, editar una sede). */
+.dangerGhost {
+  background: var(--surface);
+  color: var(--red);
+  border: 1px solid color-mix(in srgb, var(--red) 28%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+.dangerGhost:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--red) 9%, var(--surface));
+  border-color: var(--red);
+}
 
 .block { width: 100%; }
 .sm { padding: 7px 13px; font-size: 12.5px; }
 
 :global([data-theme="dark"]) .ghost {
   background: rgba(255,255,255,.06);
-  border-color: #1e2640;
-  color: #8392ab;
+  border-color: var(--border);
+  color: var(--slate-500);
 }
 :global([data-theme="dark"]) .ghost:hover { background: rgba(255,255,255,.1); }
 
@@ -37,16 +62,17 @@
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all .14s ease;
 }
-.iconBtn svg { width: 14px; height: 14px; color: var(--slate-500); }
-.iconBtn:hover { background: var(--hover-surface); }
+.iconBtn svg { width: 14px; height: 14px; color: var(--slate-500); transition: color var(--t-fast) var(--ease); }
+.iconBtn:hover { background: var(--hover-surface); border-color: var(--slate-300); }
+.iconBtn:hover svg { color: var(--navy-900); }
 .iconBtnDanger:hover { background: #fdecea; border-color: var(--red); }
 .iconBtnDanger:hover svg { color: var(--red); }
 
 :global([data-theme="dark"]) .iconBtn {
   background: rgba(255,255,255,.05);
-  border-color: #1e2640;
+  border-color: var(--border);
 }
-:global([data-theme="dark"]) .iconBtn svg { color: #8392ab; }
+:global([data-theme="dark"]) .iconBtn svg { color: var(--slate-500); }
 :global([data-theme="dark"]) .iconBtnDanger:hover { background: rgba(245,54,92,.15); }
 
 @media (hover: none) { .iconBtn { width: 40px; height: 40px; } }

@@ -1177,6 +1177,12 @@ const es = {
   },
 
   comunicacion: {
+    searchUsers: "Buscar usuarios…",
+    addContact: "Agregar contacto",
+    emptyTitle: "Todavía no hay conversaciones",
+    emptyMsg: "Busca a alguien de tu equipo o añade un contacto para empezar a hablar.",
+    pickChat: "Elige una conversación",
+    pickChatMsg: "Selecciona un contacto de la lista para ver los mensajes.",
     writeTo: "Escribe a {canal}…",
     message: "Mensaje",
     /* Descarga del histórico (dueño del negocio) */

@@ -12,10 +12,10 @@
   border-bottom: 1px dashed var(--border);
 }
 .switchRow:last-child { border-bottom: none; }
-:global([data-theme="dark"]) .switchRow { border-color: #1e2640; }
+:global([data-theme="dark"]) .switchRow { border-color: var(--border); }
 .switchBody b { display: block; font-size: 13.5px; color: var(--navy-900); }
 .switchBody span { font-size: 12px; color: var(--slate-500); }
-:global([data-theme="dark"]) .switchBody b { color: #e8edf5; }
+:global([data-theme="dark"]) .switchBody b { color: var(--navy-900); }
 
 /* Toggle switch */
 .switch { position: relative; width: 44px; height: 24px; flex: none; }
@@ -35,7 +35,7 @@
 .switch input:checked + .slider { background: var(--teal-500); }
 .switch input:checked + .slider::before { transform: translateX(20px); }
 :global([data-theme="dark"]) .slider { background: #2a3350; }
-:global([data-theme="dark"]) .switch input:checked + .slider { background: #0fcfae; }
+:global([data-theme="dark"]) .switch input:checked + .slider { background: var(--teal-500); }
 
 .formCol { display: flex; flex-direction: column; gap: 14px; }
 .formCol label { font-size: 12.5px; font-weight: 700; color: var(--navy-700); display: block; margin-bottom: 6px; }
@@ -47,8 +47,8 @@
   background: var(--input-bg); color: var(--navy-900);
 }
 .formCol input:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(15,207,174,.12); }
-:global([data-theme="dark"]) .formCol label { color: #8392ab; }
-:global([data-theme="dark"]) .formCol input { background: rgba(255,255,255,.05); border-color: #1e2640; color: #e8edf5; }
+:global([data-theme="dark"]) .formCol label { color: var(--slate-500); }
+:global([data-theme="dark"]) .formCol input { background: rgba(255,255,255,.05); border-color: var(--border); color: var(--navy-900); }
 
 .dangerZone {
   border: 1px solid rgba(245,54,92,.3);
@@ -76,6 +76,6 @@
 .langSelect:focus { border-color: var(--teal-500); }
 :global([data-theme="dark"]) .langSelect {
   background: rgba(255,255,255,.05);
-  border-color: #1e2640;
-  color: #e8edf5;
+  border-color: var(--border);
+  color: var(--navy-900);
 }

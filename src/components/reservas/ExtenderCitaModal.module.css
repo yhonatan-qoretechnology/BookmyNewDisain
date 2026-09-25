@@ -78,7 +78,7 @@
   background: rgba(15, 207, 174, .12);
 }
 .opcionPeligro.opcionActiva {
-  border-color: #e5484d;
+  border-color: var(--red);
   background: rgba(229, 72, 77, .1);
 }
 

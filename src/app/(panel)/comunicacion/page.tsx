@@ -363,20 +363,27 @@ export default function ComunicacionPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar usuarios..."
+            placeholder={t("comunicacion.searchUsers")}
             className={styles.searchInput}
-            aria-label="Buscar usuarios"
+            aria-label={t("comunicacion.searchUsers")}
           />
           <button
             type="button"
             className={styles.addContactBtn}
             onClick={() => setShowAddContact(true)}
-            aria-label="Agregar contacto"
-            title="Agregar nuevo contacto"
+            aria-label={t("comunicacion.addContact")}
+            title={t("comunicacion.addContact")}
           >
             <Icon name="plus" width={18} height={18} />
           </button>
         </div>
+        {displayCanales.length === 0 && (
+          <div className={styles.canalesVacios}>
+            <Icon name="chat" width={22} height={22} />
+            <strong>{t("comunicacion.emptyTitle")}</strong>
+            <span>{t("comunicacion.emptyMsg")}</span>
+          </div>
+        )}
         {displayCanales.map((c) => (
           <button
             key={c.id}
@@ -430,6 +437,15 @@ export default function ComunicacionPage() {
         )}
 
         <div className={styles.chatMsgs} ref={msgsRef}>
+          {/* Sin conversación elegida, el lienzo quedaba en blanco y no se
+              entendía que faltaba elegir un contacto. */}
+          {!canal && (
+            <div className={styles.sinCanal}>
+              <Icon name="chat" width={26} height={26} />
+              <strong>{t("comunicacion.pickChat")}</strong>
+              <span>{t("comunicacion.pickChatMsg")}</span>
+            </div>
+          )}
           {mensajes.map((m, i) => (
             <div key={i} className={`${styles.msgRow} ${m.dir === "out" ? styles.msgOut : ""}`}>
               {/* Los mensajes entrantes son del contacto: se usa su foto */}

@@ -50,7 +50,7 @@ export function LanguageToggle() {
         aria-label={t("topbar.language")}
       >
         <span className={styles.langFlag} aria-hidden>{current.flag}</span>
-        {current.code.toUpperCase()}
+        <span className={styles.langLabel}>{current.code.toUpperCase()}</span>
         <svg className={styles.langCaret} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M6 9l6 6 6-6" /></svg>
       </button>
 

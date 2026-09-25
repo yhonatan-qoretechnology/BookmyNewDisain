@@ -68,6 +68,8 @@ const ICONS: Record<string, React.ReactNode> = {
   trendDown: (<>{P("M3 8l5.5 6 4-3L21 19")}{P("M16 19h5v-5")}</>),
   bot: (<><rect x="4" y="8" width="16" height="12" rx="3.5" />{P("M12 8V4.5")}<circle cx="12" cy="3.6" r="1.1" />{P("M2.5 12.5v3M21.5 12.5v3")}<circle cx="9.5" cy="14" r="1.05" fill="currentColor" stroke="none" /><circle cx="14.5" cy="14" r="1.05" fill="currentColor" stroke="none" />{P("M10 17.2h4")}</>),
   play: P("M5 3l14 9-14 9V3z"),
+  /* Llave: acceso de un empleado (correo y contrasena) */
+  key: (<><circle cx="8" cy="15" r="4" />{P("M11 12.5 20 3.5M17.5 6l2.2 2.2M15.3 8.2l2.2 2.2")}</>),
   pause: P("M6 4h4v16H6zM14 4h4v16h-4z"),
   /* Chat · adjuntos */
   fileText: (<>{P("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z")}{P("M14 2v6h6")}{P("M9 13h6M9 17h6M9 9h1")}</>),

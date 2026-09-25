@@ -9,7 +9,7 @@
   background: none; border: none;
 }
 .todayLink:hover { background: var(--hover-surface); color: var(--navy-900); }
-:global([data-theme="dark"]) .todayLink { color: #8392ab; }
+:global([data-theme="dark"]) .todayLink { color: var(--slate-500); }
 
 .monthSwitch {
   display: flex; align-items: center; gap: 10px;
@@ -21,7 +21,7 @@
   display: flex; align-items: center; justify-content: center; color: var(--slate-500);
 }
 .navArrow:hover { background: var(--teal-50); color: var(--teal-600); }
-:global([data-theme="dark"]) .navArrow:hover { background: rgba(15,207,174,.12); color: #0fcfae; }
+:global([data-theme="dark"]) .navArrow:hover { background: rgba(15,207,174,.12); color: var(--teal-500); }
 
 .viewToggle { display: flex; background: var(--hover-surface); border-radius: var(--r-md); padding: 3px; }
 .viewToggle button {
@@ -71,7 +71,7 @@
   overflow: hidden;
   overflow-wrap: anywhere;
 }
-:global([data-theme="dark"]) .calEvent { color: #0fcfae; }
+:global([data-theme="dark"]) .calEvent { color: var(--teal-500); }
 .calEventMore { opacity: .6; cursor: default; }
 
 @media (max-width: 600px) {
@@ -98,7 +98,7 @@
 .cellDisabled .dayNum { color: var(--slate-300); text-decoration: line-through; }
 .cellSelected { background: var(--teal-50); box-shadow: inset 0 0 0 2px var(--teal-500); }
 .cellSelected .dayNum { color: var(--teal-700); }
-:global([data-theme="dark"]) .cellSelected .dayNum { color: #0fcfae; }
+:global([data-theme="dark"]) .cellSelected .dayNum { color: var(--teal-500); }
 .cellToday .dayNum::after {
   content: ""; display: inline-block; width: 6px; height: 6px;
   border-radius: 50%; background: var(--teal-500);
@@ -108,9 +108,9 @@
 /* Festivo: aviso visual. NO bloquea el agendado — de eso se ocupan
    los días cerrados de sede. Por eso no reutiliza .cellDisabled. */
 .cellFestivo { background: #fdecea; }
-.cellFestivo .dayNum { color: #c0392b; font-weight: 800; }
+.cellFestivo .dayNum { color: var(--red); font-weight: 800; }
 .festivoNombre {
-  display: block; font-size: 10px; line-height: 1.25; color: #c0392b;
+  display: block; font-size: 10px; line-height: 1.25; color: var(--red);
   font-weight: 600; margin-top: 2px; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }

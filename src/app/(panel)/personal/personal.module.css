@@ -1,6 +1,6 @@
 .rowActions {
-  display: flex; align-items: center; gap: 8px;
-  flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+  flex-wrap: nowrap;
 }
 
 /* Campo de contraseña + botón "Generar" en línea */
@@ -36,7 +36,7 @@
   color: var(--navy-900);
   word-break: break-all; text-align: right;
 }
-:global([data-theme="dark"]) .credValue { color: #e8edf5; }
+:global([data-theme="dark"]) .credValue { color: var(--navy-900); }
 
 .credWarn {
   font-size: 12px; line-height: 1.5;

@@ -3,43 +3,65 @@
    Los estilos de componentes viven en CSS Modules. */
 
 :root {
-  --teal-50:   #e0faf5;
-  --teal-100:  #b3f2e6;
-  --teal-400:  #2de6c2;
-  --teal-500:  #0fcfae;
-  --teal-600:  #05b89a;
-  --teal-700:  #038a75;
-  --navy-900:  #1b2559;
-  --navy-700:  #2d3a6e;
-  --slate-500: #8392ab;
-  --slate-300: #b8c4d9;
-  --page-bg:   #f0f2f5;
+  /* ── Marca ────────────────────────────────────────────
+     Los verdes son los mismos de bookmy.es para que la web y
+     el panel se reconozcan como el mismo producto; el panel
+     usa los tonos profundos, que aguantan mejor una jornada
+     de trabajo, y deja el neón para los acentos del modo
+     oscuro. */
+  --teal-50:   #e3f8ef;
+  --teal-100:  #bdeeda;
+  --teal-400:  #2fd39a;
+  --teal-500:  #12b981;
+  --teal-600:  #0d9d6d;
+  --teal-700:  #0a7b56;
+  --neon:      #39ff8c;
+
+  --navy-900:  #101a24;
+  --navy-700:  #2c3a48;
+  --slate-500: #6b7c8c;
+  --slate-300: #a9b6c2;
+  --page-bg:   #f2f6f4;
   --surface:   #ffffff;
-  --surface-2: #ffffff;
-  --border:    #e8edf5;
-  --amber:     #fb8c00;
-  --red:       #f5365c;
-  --blue:      #2152ff;
-  --green:     #17c964;
+  --surface-2: #fafdfb;
+  --border:    #e4ece8;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --blue:      #2563eb;
+  --green:     #12b981;
 
-  --grad-teal:   linear-gradient(195deg, #2de6c2, #0fcfae);
-  --grad-amber:  linear-gradient(195deg, #ffa726, #fb8c00);
-  --grad-red:    linear-gradient(195deg, #ef5350, #e53935);
-  --grad-blue:   linear-gradient(195deg, #42a5f5, #1565c0);
-  --grad-purple: linear-gradient(195deg, #ab47bc, #7b1fa2);
-  --grad-green:  linear-gradient(195deg, #66bb6a, #388e3c);
-  --grad-navy:   linear-gradient(195deg, #3a5bf0, #1b2559);
-  --grad-coral:  linear-gradient(195deg, #ff6b6b, #ee5a24);
+  --grad-teal:   linear-gradient(140deg, #2fd39a, #0d9d6d);
+  --grad-amber:  linear-gradient(140deg, #fbbf24, #f59e0b);
+  --grad-red:    linear-gradient(140deg, #f87171, #dc2626);
+  --grad-blue:   linear-gradient(140deg, #60a5fa, #2563eb);
+  --grad-purple: linear-gradient(140deg, #c084fc, #7c3aed);
+  --grad-green:  linear-gradient(140deg, #4ade80, #16a34a);
+  --grad-navy:   linear-gradient(140deg, #334155, #101a24);
+  --grad-coral:  linear-gradient(140deg, #fb7185, #e11d48);
 
-  --shadow-sm:   0 2px 6px rgba(27, 37, 89, .06);
-  --shadow-md:   0 20px 27px rgba(27, 37, 89, .07);
-  --shadow-lg:   0 30px 50px rgba(27, 37, 89, .14);
-  --shadow-icon: 0 6px 16px rgba(27, 37, 89, .28);
+  /* ── Sombras ──────────────────────────────────────────
+     En dos capas (contacto + difusión) en vez de una sola muy
+     marcada: dan profundidad sin ensuciar el fondo. */
+  --shadow-sm:   0 1px 2px rgba(16, 26, 36, .05), 0 2px 6px rgba(16, 26, 36, .04);
+  --shadow-md:   0 2px 6px rgba(16, 26, 36, .05), 0 14px 28px rgba(16, 26, 36, .07);
+  --shadow-lg:   0 4px 12px rgba(16, 26, 36, .07), 0 28px 56px rgba(16, 26, 36, .12);
+  --shadow-icon: 0 6px 16px rgba(13, 157, 109, .28);
+  --ring:        0 0 0 4px var(--teal-50);
 
-  --r-xl: 20px;
-  --r-lg: 16px;
-  --r-md: 12px;
-  --r-sm:  8px;
+  /* ── Curvas ───────────────────────────────────────────
+     Un punto más amplias que antes, en la línea de la web. */
+  --r-xl: 22px;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 10px;
+
+  /* ── Movimiento ───────────────────────────────────────
+     Una sola curva y tres duraciones: lo instantáneo (hover),
+     lo que acompaña (paneles) y lo que entra en escena. */
+  --ease:   cubic-bezier(.2, .8, .2, 1);
+  --t-fast: .16s;
+  --t-med:  .26s;
+  --t-slow: .42s;
 
   /* Sidebar vive dentro del margen de la página */
   --sidebar-w:     260px;
@@ -47,31 +69,38 @@
   --topbar-h:      80px;
 
   /* Superficies auxiliares (equivalen a los hardcodes del dark) */
-  --hover-surface: var(--page-bg);
+  --hover-surface: #eef4f1;
   --input-bg:      var(--surface);
-  --muted-cell:    #f7f9fc;
+  --muted-cell:    #f7faf8;
 }
 
 /* ══════════════════════════════════════════════════════
    DARK MODE — variables base (sobreescriben :root)
 ══════════════════════════════════════════════════════ */
 [data-theme="dark"] {
-  --page-bg:   #0f1117;
-  --surface:   #161929;
-  --surface-2: #1a2035;
-  --border:    #1e2640;
-  --navy-900:  #e8edf5;
-  --navy-700:  #c4cede;
-  --slate-500: #8392ab;
-  --slate-300: #4a5670;
-  --teal-50:   rgba(15, 207, 174, .12);
-  --teal-100:  rgba(15, 207, 174, .20);
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, .3);
-  --shadow-md: 0 20px 27px rgba(0, 0, 0, .35);
-  --shadow-lg: 0 30px 50px rgba(0, 0, 0, .5);
+  /* El oscuro toma el negro verdoso de la web en vez del azulado
+     de antes: la misma familia de color en los dos sitios. */
+  --page-bg:   #0c1411;
+  --surface:   #121c18;
+  --surface-2: #16221d;
+  --border:    #1e2e28;
+  --navy-900:  #e8f3ee;
+  --navy-700:  #c2d3cb;
+  --slate-500: #8fa49b;
+  --slate-300: #5b6f66;
+  --teal-50:   rgba(47, 211, 154, .14);
+  --teal-100:  rgba(47, 211, 154, .24);
+  --teal-500:  #2fd39a;
+  --teal-600:  #35e0a5;
+  --teal-700:  #6bf7b4;
 
-  --hover-surface: rgba(255, 255, 255, .05);
-  --input-bg:      rgba(255, 255, 255, .05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .22);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, .35), 0 16px 32px rgba(0, 0, 0, .3);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, .4), 0 30px 60px rgba(0, 0, 0, .45);
+  --ring:      0 0 0 4px rgba(47, 211, 154, .22);
+
+  --hover-surface: rgba(255, 255, 255, .06);
+  --input-bg:      rgba(255, 255, 255, .04);
   --muted-cell:    rgba(255, 255, 255, .025);
 }
 
@@ -79,26 +108,49 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: var(--font-jakarta), "Plus Jakarta Sans", "Google Sans", system-ui, sans-serif;
+  /* Texto en Inter y titulares en Plus Jakarta, igual que bookmy.es:
+     Inter aguanta mejor los tamaños pequeños de tablas y formularios. */
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
   background: var(--page-bg);
   color: var(--navy-900);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   min-height: 100vh;
 }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; }
 input, select, textarea { font-family: inherit; }
 ul, ol { list-style: none; }
-h1, h2, h3, h4, h5 { font-weight: 700; line-height: 1.2; }
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+}
 img { max-width: 100%; }
 ::selection { background: var(--teal-100); }
 
 a:focus-visible, button:focus-visible,
-input:focus-visible, [tabindex]:focus-visible {
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--teal-500);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
+
+/* Barras de desplazamiento discretas, del color de la interfaz */
+* { scrollbar-width: thin; scrollbar-color: var(--slate-300) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--slate-300);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--slate-500); background-clip: content-box; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }

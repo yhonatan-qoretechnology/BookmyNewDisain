@@ -294,18 +294,34 @@ export default function PersonalPage() {
                 </td>
                 <td><Badge kind={p.activo ? "activo" : "inactivo"}>{p.activo ? t("personal.activeF") : t("personal.inactiveF")}</Badge></td>
                 <td>
+                  {/* Acciones en una sola linea de iconos: con los botones de
+                      texto, la columna se partia en dos filas y cada integrante
+                      ocupaba el doble de alto. El texto vive en el title y en
+                      el aria-label. */}
                   <div className={styles.rowActions}>
-                    <IconButton aria-label={t("personal.editAria", { nombre: p.nombre })} onClick={() => abrirEdicion(p)}>
+                    <IconButton
+                      title={t("common.edit")}
+                      aria-label={t("personal.editAria", { nombre: p.nombre })}
+                      onClick={() => abrirEdicion(p)}
+                    >
                       <Icon name="edit" />
                     </IconButton>
-                    <Button size="sm" variant="ghost" onClick={() => abrirAcceso(p)}>
-                      {p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess")}
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => cambiarEstado(p)}>
-                      {p.activo ? t("personal.disable") : t("personal.enable")}
-                    </Button>
+                    <IconButton
+                      title={p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess")}
+                      aria-label={`${p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess")} · ${p.nombre}`}
+                      onClick={() => abrirAcceso(p)}
+                    >
+                      <Icon name="key" />
+                    </IconButton>
+                    <IconButton
+                      title={p.activo ? t("personal.disable") : t("personal.enable")}
+                      aria-label={`${p.activo ? t("personal.disable") : t("personal.enable")} · ${p.nombre}`}
+                      onClick={() => cambiarEstado(p)}
+                    >
+                      <Icon name={p.activo ? "pause" : "play"} />
+                    </IconButton>
                     {puedeEliminar && (
-                      <IconButton danger aria-label={t("personal.deleteAria", { nombre: p.nombre })} onClick={() => eliminar(p.id, p.nombre)}>
+                      <IconButton danger title={t("common.delete")} aria-label={t("personal.deleteAria", { nombre: p.nombre })} onClick={() => eliminar(p.id, p.nombre)}>
                         <Icon name="trash" />
                       </IconButton>
                     )}

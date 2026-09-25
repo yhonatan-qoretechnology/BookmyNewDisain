@@ -59,7 +59,12 @@ export default function ImageGallery({
 
   return (
     <div className={styles.wrap}>
-      {label && <span className={styles.label}>{label}</span>}
+      {label && (
+        <span className={styles.label}>
+          {label}
+          {!disabled && <span className={styles.hint}>{t("imagen.hint")}</span>}
+        </span>
+      )}
 
       <div className={styles.grid}>
         {lista.map((ruta) => (
@@ -86,7 +91,6 @@ export default function ImageGallery({
             variant="card"
             value={null}
             onUpload={añadir}
-            hint={t("imagen.hint")}
           />
         )}
       </div>

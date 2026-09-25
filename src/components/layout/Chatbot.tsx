@@ -62,8 +62,15 @@ export default function Chatbot() {
      hidratación: el estado inicial siempre es CLOSED en el servidor) */
   useEffect(() => {
     try {
-      if (!localStorage.getItem(SEEN_KEY)) setState("TOOLTIP");
+      if (localStorage.getItem(SEEN_KEY)) return;
     } catch { /* almacenamiento bloqueado */ }
+    setState("TOOLTIP");
+    /* Y se retira solo: el saludo tapaba la esquina de la tabla hasta que
+       alguien lo cerraba a mano. */
+    const id = window.setTimeout(() => {
+      setState((actual) => (actual === "TOOLTIP" ? "CLOSED" : actual));
+    }, 9000);
+    return () => clearTimeout(id);
   }, []);
 
   const marcarVisto = useCallback(() => {

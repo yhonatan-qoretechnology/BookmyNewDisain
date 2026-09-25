@@ -12,7 +12,7 @@
   display: block; font-size: 12.5px; font-weight: 700;
   margin: 10px 0 8px; color: var(--navy-900);
 }
-:global([data-theme="dark"]) .sectionLabel { color: #8392ab; }
+:global([data-theme="dark"]) .sectionLabel { color: var(--slate-500); }
 
 /* Horario semanal */
 .horarioList {
@@ -32,7 +32,7 @@
   font-size: 13.5px; font-weight: 600; color: var(--navy-900);
   min-width: 110px; cursor: pointer;
 }
-:global([data-theme="dark"]) .horarioDia { color: #e8edf5; }
+:global([data-theme="dark"]) .horarioDia { color: var(--navy-900); }
 .horarioDia input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--teal-500); cursor: pointer; }
 .horarioCerrado { color: var(--slate-500); font-size: 12.5px; font-style: italic; }
 .horarioTimes { display: flex; align-items: center; gap: 8px; }
@@ -42,7 +42,7 @@
   background: var(--input-bg); color: var(--navy-900);
 }
 :global([data-theme="dark"]) .horarioTimes input[type="time"] {
-  border-color: #1e2640; color: #e8edf5;
+  border-color: var(--border); color: var(--navy-900);
 }
 .horarioTimes span { color: var(--slate-400); font-size: 12px; }
 
@@ -54,7 +54,7 @@
   background: var(--input-bg); color: var(--navy-900);
 }
 :global([data-theme="dark"]) .diaCerradoAdd input[type="date"] {
-  border-color: #1e2640; color: #e8edf5;
+  border-color: var(--border); color: var(--navy-900);
 }
 .diaCerradoList { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .diaCerradoTag {
@@ -63,13 +63,13 @@
   background: var(--hover-surface); border: 1px solid var(--border);
   font-size: 12.5px; font-weight: 600; color: var(--navy-900);
 }
-:global([data-theme="dark"]) .diaCerradoTag { color: #e8edf5; }
+:global([data-theme="dark"]) .diaCerradoTag { color: var(--navy-900); }
 .diaCerradoTag button {
   display: flex; align-items: center; justify-content: center;
   width: 18px; height: 18px; border-radius: 50%; border: none;
   background: var(--border); color: var(--slate-500); cursor: pointer;
 }
-.diaCerradoTag button:hover { background: var(--red-500, #e5484d); color: #fff; }
+.diaCerradoTag button:hover { background: var(--red-500, var(--red)); color: #fff; }
 
 .actionsRow {
   grid-column: 1 / -1;

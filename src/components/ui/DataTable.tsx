@@ -15,7 +15,7 @@
    él React reutiliza el tbody y los resultados nuevos aparecerían
    de golpe.
 ============================================================ */
-import { Children, isValidElement } from "react";
+import { Children, cloneElement, isValidElement, type ReactElement } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { STAGGER, staggerChild, staggerParent } from "@/components/animations";
 import Pagination, { type PaginationProps } from "./Pagination";
@@ -38,15 +38,28 @@ export default function DataTable({
   const reduce = useReducedMotion();
 
   /* Cada <tr> pasa a ser motion.tr para poder heredar las variantes;
-     lo que no sea una fila (un fragmento, null…) se deja intacto. */
+     lo que no sea una fila (un fragmento, null…) se deja intacto.
+
+     De paso, cada celda recibe `data-label` con el título de su columna:
+     en móvil la tabla se apila en tarjetas (ver DataTable.module.css) y sin
+     esa etiqueta los valores quedarían sueltos, sin saber qué son. */
+  const etiqueta = (i: number) =>
+    typeof headers[i] === "string" ? (headers[i] as string) : undefined;
+
   const filas = Children.map(children, (fila) => {
     if (!isValidElement(fila) || fila.type !== "tr") return fila;
     const { children: celdas, ...resto } = fila.props as {
       children?: React.ReactNode;
     } & Record<string, unknown>;
+    const conEtiqueta = Children.map(celdas, (celda, i) => {
+      if (!isValidElement(celda)) return celda;
+      const props = celda.props as Record<string, unknown>;
+      if (props["data-label"] !== undefined) return celda;
+      return cloneElement(celda as ReactElement, { "data-label": etiqueta(i) });
+    });
     return (
       <motion.tr {...resto} variants={reduce ? undefined : staggerChild}>
-        {celdas}
+        {conEtiqueta}
       </motion.tr>
     );
   });
@@ -88,6 +101,8 @@ export default function DataTable({
   );
 }
 
-export function PriceCell({ value }: { value: number }) {
-  return <td className={styles.priceCell}>{value.toFixed(2)}€</td>;
+/* Recibe y reenvía el resto de props (`data-label`) para que en móvil el
+   precio también salga con el título de su columna delante. */
+export function PriceCell({ value, ...rest }: { value: number } & React.TdHTMLAttributes<HTMLTableCellElement>) {
+  return <td className={styles.priceCell} {...rest}>{value.toFixed(2)}€</td>;
 }

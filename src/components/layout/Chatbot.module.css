@@ -220,31 +220,34 @@
 
 /* ── Tema oscuro ─────────────────────────────────────────── */
 :global([data-theme="dark"]) .tooltip,
-:global([data-theme="dark"]) .window { border-color: #1e2640; }
+:global([data-theme="dark"]) .window { border-color: var(--border); }
 :global([data-theme="dark"]) .tooltipTitle,
 :global([data-theme="dark"]) .answerTitle,
-:global([data-theme="dark"]) .bubble { color: #e8edf5; }
+:global([data-theme="dark"]) .bubble { color: var(--navy-900); }
 :global([data-theme="dark"]) .bubble,
-:global([data-theme="dark"]) .option { border-color: #1e2640; }
-:global([data-theme="dark"]) .option { color: #e8edf5; background: rgba(255, 255, 255, .03); }
+:global([data-theme="dark"]) .option { border-color: var(--border); }
+:global([data-theme="dark"]) .option { color: var(--navy-900); background: rgba(255, 255, 255, .03); }
 :global([data-theme="dark"]) .option:hover {
   background: rgba(15, 207, 174, .12);
-  color: #0fcfae;
+  color: var(--teal-500);
   border-color: rgba(15, 207, 174, .5);
 }
-:global([data-theme="dark"]) .quick { border-color: #1e2640; background: rgba(255, 255, 255, .03); }
+:global([data-theme="dark"]) .quick { border-color: var(--border); background: rgba(255, 255, 255, .03); }
 :global([data-theme="dark"]) .quick:hover {
   background: rgba(15, 207, 174, .12);
-  color: #0fcfae;
+  color: var(--teal-500);
   border-color: rgba(15, 207, 174, .5);
 }
-:global([data-theme="dark"]) .footer { border-color: #1e2640; }
+:global([data-theme="dark"]) .footer { border-color: var(--border); }
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 480px) {
   .wrap { right: 14px; bottom: 14px; left: 14px; align-items: stretch; }
   .fab { align-self: flex-end; }
-  .tooltip { width: auto; }
+  /* El saludo no ocupa todo el ancho: en un movil tapaba la pantalla
+     entera hasta que se cerraba. La conversacion si, que ahi es el
+     contenido principal. */
+  .tooltip { width: auto; max-width: 300px; margin-left: auto; }
   .window { width: auto; max-height: calc(100vh - 110px); }
 }
 
