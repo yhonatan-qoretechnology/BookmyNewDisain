@@ -557,6 +557,18 @@ export const DisponibilidadApi = {
   horarioSede: (sedeId: number) =>
     http.get<ApiHorarioSede[]>(EP.horarioSede + qs({ sedeId })),
 
+  /* Escritura del horario semanal. El backend da prioridad a esta tabla
+     sobre el JSON `sede.horario`, así que la pantalla de la sede tiene que
+     escribir aquí: si solo guardara el JSON, el cambio no tendría efecto
+     en las sedes que ya tienen filas. */
+  crearHorario: (dto: {
+    sedeId: number; diaSemana: number; horaApertura: string; horaCierre: string; activo: boolean;
+  }) => http.post<ApiHorarioSede>(EP.horarioSede, dto),
+  actualizarHorario: (id: number, dto: {
+    horaApertura?: string; horaCierre?: string; activo?: boolean;
+  }) => http.put<ApiHorarioSede>(`${EP.horarioSede}/${id}`, dto),
+  borrarHorario: (id: number) => http.delete<void>(`${EP.horarioSede}/${id}`),
+
   /** GET /dia-cerrado-sede?sedeId=&desde=&hasta= — cierres puntuales. */
   diasCerrados: (sedeId: number, desde?: string, hasta?: string) =>
     http.get<ApiDiaCerradoSede[]>(EP.diaCerradoSede + qs({ sedeId, desde, hasta })),
