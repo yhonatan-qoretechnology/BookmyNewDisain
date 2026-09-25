@@ -6,9 +6,9 @@
    es de dos mitades: a la izquierda la marca con una vista real
    del producto, a la derecha el formulario.
 ============================================================ */
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants";
 import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
@@ -19,7 +19,17 @@ import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
 import styles from "./login.module.css";
 
 export default function LoginPage() {
+  /* useSearchParams obliga a un límite de Suspense en el build estático */
+  return (
+    <Suspense fallback={null}>
+      <Login />
+    </Suspense>
+  );
+}
+
+function Login() {
   const router = useRouter();
+  const params = useSearchParams();
   const { session, login } = useSession();
   const { t } = useI18n();
   const { theme, toggleTheme } = useTheme();
@@ -32,6 +42,9 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [recuperarOpen, setRecuperarOpen] = useState(false);
   const [exito, setExito] = useState("");
+  /* Se llega aquí desde una sesión caducada: conviene decirlo, si no
+     parece que el panel se ha cerrado solo sin motivo. */
+  const [caducada] = useState(() => params.get("caducada") === "1");
 
   /* Con sesión abierta no se enseña el formulario: al panel directamente. */
   useEffect(() => {
@@ -130,6 +143,13 @@ export default function LoginPage() {
           <span className={styles.badge}>{t("login.badge")}</span>
           <h1 className={styles.title}>{t("login.welcome")}</h1>
           <p className={styles.lede}>{t("login.lede")}</p>
+
+          {caducada && !error && (
+            <div className={styles.aviso} role="status">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" /><path d="M12 7.5v5l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+              <span>{t("login.expired")}</span>
+            </div>
+          )}
 
           {error && (
             <div className={styles.error} role="alert">

@@ -6,7 +6,8 @@
    - credentials: "include" para el cookie `access_token`.
    - Authorization: Bearer como respaldo (jwt.strategy.ts).
 ============================================================ */
-import { API_URL, getToken } from "./config";
+import { API_URL, getToken, setToken } from "./config";
+import { SESSION_STORAGE_KEY } from "@/constants";
 
 export class ApiError extends Error {
   status: number;
@@ -47,12 +48,41 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   try { body = text ? JSON.parse(text) : null; } catch { body = text; }
 
   if (!res.ok) {
+    /* Token caducado o de un usuario que ya no existe: la sesión guardada
+       ya no vale. Sin esto el panel se quedaba abierto con la sesión
+       vieja, lanzando 401 en cada pantalla, en vez de pedir entrar otra
+       vez. Se excluye el propio login para no romper el mensaje de
+       "credenciales incorrectas". */
+    if (res.status === 401 && !path.startsWith("/auth/login")) {
+      cerrarSesionCaducada();
+    }
     const msg =
       (body as { message?: string | string[] })?.message?.toString() ||
       `HTTP ${res.status}`;
     throw new ApiError(res.status, Array.isArray(msg) ? msg.join(", ") : msg, body);
   }
   return body as T;
+}
+
+/** Rutas del panel: cualquier otra (la web pública) no necesita sesión. */
+const RUTAS_PRIVADAS = /^\/(dashboard|reservas|clientes|servicios|personal|calendario|resenas|sedes|estadisticas|facturacion|stock|comunicacion|configuracion|empresas|administradores|employee-dashboard)/;
+
+/** Se llama una sola vez aunque fallen varias peticiones a la vez. */
+let cerrando = false;
+
+function cerrarSesionCaducada() {
+  if (cerrando || typeof window === "undefined") return;
+  cerrando = true;
+  try {
+    setToken(null);
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch { /* almacenamiento bloqueado */ }
+
+  if (RUTAS_PRIVADAS.test(window.location.pathname)) {
+    window.location.replace("/login?caducada=1");
+  } else {
+    cerrando = false;
+  }
 }
 
 export const http = {

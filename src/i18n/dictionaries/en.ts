@@ -181,6 +181,7 @@ const en: Dictionary = {
     changed: "Plan updated",
   },
   login: {
+    expired: "Your session has expired. Sign in again to continue.",
     backToSite: "Back to bookmy.es",
     showPassword: "Show password",
     hidePassword: "Hide password",

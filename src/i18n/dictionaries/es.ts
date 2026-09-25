@@ -188,6 +188,7 @@ const es = {
     changed: "Plan actualizado",
   },
   login: {
+    expired: "Tu sesión ha caducado. Entra otra vez para seguir.",
     backToSite: "Volver a bookmy.es",
     showPassword: "Mostrar contraseña",
     hidePassword: "Ocultar contraseña",
