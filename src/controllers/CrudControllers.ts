@@ -14,6 +14,7 @@ import type {
   ApiClient, ApiProfesional, ApiResena, ApiSede, ApiService, ApiServicioAsignable, ClientUpdatePayload,
 } from "@/api/types";
 import { generarPassword } from "@/lib/password";
+import { madridToday } from "@/lib/timezone";
 import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
@@ -407,12 +408,30 @@ export const PersonalController = {
    */
   async search(
     term: string,
-    sedes: Array<{ id: string; nombre: string }> = []
+    sedes: Array<{ id: string; nombre: string }> = [],
+    session?: Session | null
   ): Promise<Empleado[]> {
     const q = term.toLowerCase();
-    const list = await ProfesionalesApi.findAll().catch(() => []);
+    const [list, reservas] = await Promise.all([
+      ProfesionalesApi.findAll().catch(() => []),
+      session
+        ? ReservasController.getForSession(session).catch(() => [] as Reserva[])
+        : Promise.resolve([] as Reserva[]),
+    ]);
     const nombreSede = new Map(sedes.map((s) => [s.id, s.nombre]));
     const sedeIds = new Set(sedes.map((s) => s.id));
+    /* La columna "reservas este mes" mostraba siempre 0: el dato nunca se
+       calculaba. Se cuenta sobre las citas visibles de la sesión, sin las
+       canceladas ni las extensiones (que no son reservas nuevas). */
+    const mesActual = madridToday().slice(0, 7);
+    const reservasDelMes = new Map<string, number>();
+    for (const r of reservas) {
+      if (r.extensionDeId != null) continue;
+      if (r.estado === "cancelado") continue;
+      if (!r.fecha.startsWith(mesActual)) continue;
+      const k = String(r.empleadoId);
+      reservasDelMes.set(k, (reservasDelMes.get(k) || 0) + 1);
+    }
     return (list || [])
       .filter((p) => sedeIds.size === 0 || sedeIds.has(String(p.sedeId)))
       .map((p) => ({
@@ -424,7 +443,7 @@ export const PersonalController = {
         sede: nombreSede.get(String(p.sedeId)) || "—",
         sedeId: String(p.sedeId),
         telefono: p.phone || "",
-        reservas: 0,
+        reservas: reservasDelMes.get(String(p.id)) || 0,
         activo: p.state !== "disabled",
         tieneAcceso: p.acceso?.tieneAcceso ?? false,
         accesoEmail: p.acceso?.email ?? null,

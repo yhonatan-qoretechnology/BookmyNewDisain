@@ -123,10 +123,20 @@ export default function EstadisticasPage() {
     () =>
       Promise.all(
         TIPOS_VISTOS.map((tipo) =>
-          EstadisticasApi.masVistos(tipo, { desde: ini, hasta: fin, limit: 5 }).catch(() => [] as ApiRankingVistas[]),
+          EstadisticasApi.masVistos(tipo, {
+            desde: ini,
+            hasta: fin,
+            limit: 5,
+            /* Sin esto el ranking sale de toda la plataforma: el negocio
+               veria arriba las fichas de otros. El backend lo vuelve a
+               acotar por sesion; esto es para que el superadmin viendo un
+               negocio concreto tambien vea lo suyo. */
+            ...(session?.negocioId ? { empresaId: Number(session.negocioId) } : {}),
+            ...(session?.sedeId ? { sedeId: Number(session.sedeId) } : {}),
+          }).catch(() => [] as ApiRankingVistas[]),
         ),
       ),
-    [clave],
+    [clave, session?.negocioId, session?.sedeId],
     TIPOS_VISTOS.map(() => [] as ApiRankingVistas[]),
   );
   const [tipoVisto, setTipoVisto] = useState(0);

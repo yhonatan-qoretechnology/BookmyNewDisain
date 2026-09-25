@@ -169,22 +169,32 @@ export const ReservasController = {
   },
 
   /**
-   * Últimas citas de la sede de la sesión (o de la primera sede
-   * de la empresa) — GET /appointments/branches/:sedeId/latest.
+   * Últimas citas del negocio — GET /appointments/branches/:sedeId/latest.
+   *
+   * Con "Todas las sedes" se preguntaba solo por la PRIMERA sede de la
+   * empresa, así que el dashboard decía "actividad más reciente en <negocio>"
+   * y enseñaba la de una sola. Ahora se piden todas y se ordenan juntas.
    * @param n Cantidad a traer.
    */
   async getUltimas(n: number, session: Session | null, language = "es"): Promise<Reserva[]> {
     if (!session) return [];
     const [names, payments] = await Promise.all([getServiceNames(language), getPaymentsByAppointment()]);
-    const sedeId = session.sedeId
-      ? Number(session.sedeId)
+    const sedeIds = session.sedeId
+      ? [Number(session.sedeId)]
       : Number(session.negocioId)
-        ? (await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => []))[0]?.id
-        : undefined;
-    if (!sedeId) return [];
-    const r = await AppointmentsApi.latestBySede(sedeId, n).catch(() => []);
-    const lista = Array.isArray(r) ? r : [];
-    return remember(lista.map((a) => mapAppointment(withPayment(a, payments), names)));
+        ? (await SedesApi.findByEmpresa(Number(session.negocioId)).catch(() => [])).map((s) => s.id)
+        : [];
+    if (!sedeIds.length) return [];
+    const porSede = await Promise.all(
+      sedeIds.map((id) => AppointmentsApi.latestBySede(id, n).catch(() => []))
+    );
+    const lista = porSede.flat().filter((a) => a && typeof a === "object");
+    return remember(
+      lista
+        .map((a) => mapAppointment(withPayment(a, payments), names))
+        .sort((a, b) => (b.inicioISO || "").localeCompare(a.inicioISO || ""))
+        .slice(0, n)
+    );
   },
 
   /**

@@ -71,8 +71,8 @@ export default function PersonalPage() {
   const { data: sedesOpc } = useData(() => NegociosController.getSedesForSession(session), [session?.negocioId], []);
   /* MODO API: GET /profesionales (el nombre de sede se resuelve con sedesOpc) */
   const { data: lista, reload } = useData(
-    () => PersonalController.search(search, sedesOpc),
-    [search, sedesOpc], []
+    () => PersonalController.search(search, sedesOpc, session),
+    [search, sedesOpc, session?.id, session?.negocioId, session?.sedeId], []
   );
 
   const abrirAlta = () => {
