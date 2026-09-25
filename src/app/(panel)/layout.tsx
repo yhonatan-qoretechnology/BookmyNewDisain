@@ -4,7 +4,7 @@
 ============================================================ */
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { ROUTES, RUTAS_DE_PAGO } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import AppShell from "@/components/layout/AppShell";
@@ -47,6 +47,15 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     // Las especialistas usan su propio panel (excepto configuración)
     if (session.role === "employee" && pathname !== ROUTES.configuracion) {
       router.replace(ROUTES.employeeDashboard);
+      return;
+    }
+    /* Stock e insumos y Comunicación son del plan de pago: no están en el
+       menú del negocio y tampoco se entra escribiendo la dirección. */
+    const dePago = RUTAS_DE_PAGO.some(
+      (ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`)
+    );
+    if (dePago && session.role !== "superadmin") {
+      router.replace(ROUTES.dashboard);
     }
   }, [session, loading, pathname, router]);
 

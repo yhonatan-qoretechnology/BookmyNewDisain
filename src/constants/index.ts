@@ -30,17 +30,16 @@ export const ROUTES = {
 export const sedeEditarPath = (id: number | string) => `/sedes/${id}/editar`;
 
 /* ── Navegación por rol ──────────────────────────────────── */
-const COMMON_ITEMS: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
-  { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
-  { id: "clientes", label: "Clientes", href: ROUTES.clientes, icon: "users" },
-  { id: "servicios", label: "Servicios", href: ROUTES.servicios, icon: "scissors" },
-  { id: "personal", label: "Personal", href: ROUTES.personal, icon: "user" },
-  { id: "calendario", label: "Calendario", href: ROUTES.calendario, icon: "calendar" },
-  { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
-  { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
-];
-
+/**
+ * Menú de un negocio (dueño y administrador de sede) = los módulos del
+ * plan gratuito: reservas, clientes, servicios, personal, calendario,
+ * reseñas y sedes.
+ *
+ * "Stock e insumos" y "Comunicación" son del plan de pago, así que no
+ * aparecen aquí; RUTAS_DE_PAGO las bloquea también por URL. Reseñas y
+ * Sedes sí entran en el plan gratuito y faltaban: solo se llegaba a
+ * ellas escribiendo la dirección a mano.
+ */
 const ADMIN_ITEMS: NavItem[] = [
   { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
   { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
@@ -48,11 +47,18 @@ const ADMIN_ITEMS: NavItem[] = [
   { id: "servicios", label: "Servicios", href: ROUTES.servicios, icon: "scissors" },
   { id: "personal", label: "Personal", href: ROUTES.personal, icon: "user" },
   { id: "calendario", label: "Calendario", href: ROUTES.calendario, icon: "calendar" },
-  { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
-  { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
+  { id: "resenas", label: "Reseñas", href: ROUTES.resenas, icon: "star" },
+  { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
+
+/**
+ * Módulos que NO entran en el plan gratuito. Quien no sea superadmin no
+ * los ve en el menú y, si escribe la ruta, el layout del panel lo
+ * devuelve al dashboard.
+ */
+export const RUTAS_DE_PAGO: readonly string[] = [ROUTES.stock, ROUTES.comunicacion];
 
 const EMPLOYEE_ITEMS: NavItem[] = [
   { id: "emp-main", label: "Mis Reservas", href: ROUTES.employeeDashboard, icon: "calendar" },
