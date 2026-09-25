@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { SessionProvider } from "@/context/SessionContext";
 import { UiProvider } from "@/context/UiContext";
@@ -7,6 +7,13 @@ import { I18nProvider } from "@/i18n";
 import { ReservaPopupProvider } from "@/components/reservas/ReservaPopupContext";
 import { BookingProvider } from "@/context/BookingContext";
 import "@/styles/globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -16,8 +23,14 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "BookMy — Studio Suite",
-  description: "Panel de administración para equipos de belleza y bienestar",
+  metadataBase: new URL("https://bookmy.es"),
+  title: {
+    default: "Bookmy · Reserva de citas y servicios online",
+    template: "%s",
+  },
+  description:
+    "Bookmy: la forma más rápida de reservar servicios y citas. Gestiona agenda, pagos, clientes y equipo desde una sola plataforma.",
+  icons: { icon: "/web/img/favicon.svg" },
 };
 
 /** Aplica el tema antes de pintar para evitar el flash.
@@ -36,11 +49,11 @@ const themeInitScript = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className={`${jakarta.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={jakarta.variable}>
+      <body>
         <ThemeProvider>
           <SessionProvider>
             {/* I18nProvider vive DENTRO de SessionProvider: así puede leer

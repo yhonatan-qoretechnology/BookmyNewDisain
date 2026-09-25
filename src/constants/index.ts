@@ -2,7 +2,7 @@ import type { NavItem } from "@/models";
 
 /* ── Constantes de rutas ─────────────────────────────────── */
 export const ROUTES = {
-  login: "/",
+  login: "/login",
   dashboard: "/dashboard",
   employeeDashboard: "/employee-dashboard",
   employeeCalendario: "/employee-dashboard/calendario",

@@ -7,7 +7,11 @@
    Usa `{variable}` para interpolar valores: t("x.y", { n: 3 }).
 ============================================================ */
 
+import webEs from "./web.es";
+
 const es = {
+  /** Web publica (bookmy.es). Vive en su propio fichero por tamano. */
+  web: webEs,
   common: {
     search: "Buscar…",
     save: "Guardar",
@@ -142,6 +146,16 @@ const es = {
   },
 
   login: {
+    backToSite: "Volver a bookmy.es",
+    showPassword: "Mostrar contraseña",
+    hidePassword: "Ocultar contraseña",
+    noAccount: "¿Aún no tienes cuenta?",
+    seePlans: "Ver planes",
+    signingIn: "Entrando…",
+    badge: "Panel administrativo",
+    point1: "Agenda y reservas en tiempo real",
+    point2: "Clientes, equipo y sedes en un sitio",
+    point3: "Reseñas y estadísticas de tu negocio",
     quote: "“Cada reserva, cada cliente, cada sede de tu negocio — en un solo lugar.”",
     foot: "La plataforma para negocios de reservas con múltiples sedes",
     welcome: "Bienvenido de nuevo",

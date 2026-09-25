@@ -5,8 +5,10 @@
    clave o sobra alguna, TypeScript lo marca en compilación.
 ============================================================ */
 import type { Dictionary } from "./es";
+import webEn from "./web.en";
 
 const en: Dictionary = {
+  web: webEn,
   common: {
     search: "Search…",
     save: "Save",
@@ -141,6 +143,16 @@ const en: Dictionary = {
   },
 
   login: {
+    backToSite: "Back to bookmy.es",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    noAccount: "Don't have an account yet?",
+    seePlans: "See plans",
+    signingIn: "Signing in…",
+    badge: "Admin panel",
+    point1: "Live schedule and bookings",
+    point2: "Clients, staff and branches in one place",
+    point3: "Reviews and business statistics",
     quote: "“Every booking, every client, every branch of your business — in one place.”",
     foot: "The platform for booking businesses with multiple branches",
     welcome: "Welcome back",
