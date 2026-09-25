@@ -35,10 +35,10 @@ export const sedeEditarPath = (id: number | string) => `/sedes/${id}/editar`;
  * plan gratuito: reservas, clientes, servicios, personal, calendario,
  * reseñas y sedes.
  *
- * "Stock e insumos" y "Comunicación" son del plan de pago, así que no
- * aparecen aquí; RUTAS_DE_PAGO las bloquea también por URL. Reseñas y
- * Sedes sí entran en el plan gratuito y faltaban: solo se llegaba a
- * ellas escribiendo la dirección a mano.
+ * Stock e insumos, Comunicación, Facturación y Estadísticas son del plan
+ * de pago, así que no aparecen aquí; RUTAS_DE_PAGO las bloquea también
+ * por URL. Reseñas y Sedes sí entran en el plan gratuito y faltaban: solo
+ * se llegaba a ellas escribiendo la dirección a mano.
  */
 const ADMIN_ITEMS: NavItem[] = [
   { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
@@ -54,11 +54,20 @@ const ADMIN_ITEMS: NavItem[] = [
 ];
 
 /**
- * Módulos que NO entran en el plan gratuito. Quien no sea superadmin no
+ * Módulos que NO entran en el plan gratuito: stock, comunicación,
+ * facturación (con sus gastos) y estadísticas. Quien no sea superadmin no
  * los ve en el menú y, si escribe la ruta, el layout del panel lo
  * devuelve al dashboard.
+ *
+ * Basta con la ruta padre: el guard también cubre lo que cuelga de ella
+ * (`/facturacion/gastos`).
  */
-export const RUTAS_DE_PAGO: readonly string[] = [ROUTES.stock, ROUTES.comunicacion];
+export const RUTAS_DE_PAGO: readonly string[] = [
+  ROUTES.stock,
+  ROUTES.comunicacion,
+  ROUTES.facturacion,
+  ROUTES.estadisticas,
+];
 
 const EMPLOYEE_ITEMS: NavItem[] = [
   { id: "emp-main", label: "Mis Reservas", href: ROUTES.employeeDashboard, icon: "calendar" },
