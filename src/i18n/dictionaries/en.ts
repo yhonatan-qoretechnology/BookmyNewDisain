@@ -737,7 +737,7 @@ const en: Dictionary = {
     namePlaceholder: "E.g.: Spa Pedicure",
     categoryPlaceholder: "Nails, Facial, Massage…",
     duration: "Duration (min)",
-    created: "Service created",
+    created: "Service created. Assign it to your team in Branches → Services so clients can book it",
     minutes: "{n} min",
     description: "Description",
     descriptionPlaceholder: "Service description (optional)",

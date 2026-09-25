@@ -743,7 +743,7 @@ const es = {
     namePlaceholder: "Ej: Pedicura Spa",
     categoryPlaceholder: "Uñas, Facial, Masajes…",
     duration: "Duración (min)",
-    created: "Servicio creado",
+    created: "Servicio creado. Asígnalo a tu equipo en Sedes → Servicios para que se pueda reservar",
     minutes: "{n} min",
     description: "Descripción",
     descriptionPlaceholder: "Descripción del servicio (opcional)",
