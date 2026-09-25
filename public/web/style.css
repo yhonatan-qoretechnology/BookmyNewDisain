@@ -344,9 +344,11 @@ button{font-family:inherit;cursor:pointer;}
   backdrop-filter:blur(10px);box-shadow:0 8px 22px rgba(0,0,0,.3);
   animation:floaty 5s ease-in-out infinite;
 }
-.chip-1{top:8%;left:6%;animation-delay:.2s;}
-.chip-2{top:28%;right:2%;animation-delay:1s;}
-.chip-3{bottom:14%;left:0;animation-delay:1.8s;}
+/* Las tres etiquetas van por fuera del movil, no encima: antes la de
+   "satisfaccion" quedaba medio tapada por la pantalla del telefono. */
+.chip-1{top:2%;left:0;animation-delay:.2s;}
+.chip-2{top:15%;right:0;animation-delay:1s;}
+.chip-3{bottom:3%;left:0;animation-delay:1.8s;}
 @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-14px);}}
 
 /* chips de datos del hero: icono + cifra, sin caja rigida, estilo glass */
@@ -386,7 +388,7 @@ button{font-family:inherit;cursor:pointer;}
 /* La imagen segun el idioma la elige React (una sola <img>), asi que ya
    no hacen falta las dos variantes con display:none. */
 .hero-float-image{
-  display:block;width:600px;height:auto;
+  display:block;width:min(540px, 100%);height:auto;
   animation:floaty 6s ease-in-out infinite;
 }
 
@@ -606,13 +608,15 @@ button{font-family:inherit;cursor:pointer;}
   display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-card);z-index:2;
   animation:floaty 6s ease-in-out infinite;
 }
-.card-rate{top:0;left:-10px;max-width:230px;}
+/* La tarjeta de "98% confirmadas" se solapaba con la captura del panel y
+   el texto quedaba ilegible: se sube y se separa del borde. */
+.card-rate{top:-18px;left:0;max-width:230px;z-index:3;}
 .card-rate .dash{color:var(--accent-2);font-size:18px;}
 .card-rate strong{display:block;font-size:14px;font-family:var(--font-display);}
 .card-rate p{font-size:12px;margin-top:2px;}
 .mini-chart{
-  position:absolute;top:36%;left:-6%;width:220px;padding:14px;border-radius:var(--radius-md);
-  z-index:2;animation:floaty 7s ease-in-out infinite 1s;
+  position:absolute;top:44%;left:0;width:200px;padding:14px;border-radius:var(--radius-md);
+  z-index:3;animation:floaty 7s ease-in-out infinite 1s;
 }
 .chart-svg{width:100%;height:60px;}
 .chart-marker{font-size:11px;font-weight:700;color:var(--accent-2);}
@@ -1530,4 +1534,24 @@ textarea:focus-visible,
     color: var(--accent-2);
     margin-bottom: 3px;
   }
+}
+
+/* ── Etiquetas flotantes del hero en pantallas pequeñas ───
+   A 390px la etiqueta de "satisfacción" se salía por el borde
+   derecho y el texto quedaba cortado: se reduce la píldora y se
+   deja que la leyenda ocupe dos líneas si hace falta. */
+@media (max-width: 560px) {
+  .hero-chip {
+    padding: 6px 11px 6px 6px;
+    gap: 7px;
+    max-width: 47%;
+    white-space: normal;
+  }
+  .hero-chip .chip-icon { width: 24px; height: 24px; }
+  .hero-chip .chip-icon svg { width: 13px; height: 13px; }
+  .hero-chip .chip-text strong { font-size: 12.5px; }
+  .hero-chip .chip-text small { font-size: 8.5px; line-height: 1.25; }
+  .chip-1 { top: 1%; left: 0; }
+  .chip-2 { top: 13%; right: 0; }
+  .chip-3 { bottom: 1%; left: 0; }
 }

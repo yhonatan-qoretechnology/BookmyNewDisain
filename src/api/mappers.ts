@@ -43,9 +43,14 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
   if (!role) return null; // CLIENT no entra al panel
   return {
     id: String(u.id),
-    name: u.UserData?.name || u.AdminProfile
-      ? `${u.AdminProfile?.firstName ?? u.UserData?.name ?? ""} ${u.AdminProfile?.lastName ?? ""}`.trim() || u.email
-      : u.UserData?.name || u.email,
+    /* Nombre visible. Un empleado no tiene ni AdminProfile ni UserData:
+       su nombre vive en la ficha de profesional, y sin esto el panel
+       saludaba con el correo sintetico (marcoruiz@empresa.com). */
+    name:
+      [u.AdminProfile?.firstName, u.AdminProfile?.lastName].filter(Boolean).join(" ").trim() ||
+      u.UserData?.name ||
+      u.profesionales?.nombre ||
+      u.email,
     role,
     email: u.email,
     negocioId: u.AdminProfile?.empresaId != null ? String(u.AdminProfile.empresaId) : "",
@@ -53,7 +58,7 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
     sedeId: u.AdminProfile?.sedeId != null ? String(u.AdminProfile.sedeId) : null,
     sedeName: opts.sedeName || null,
     especialidad: null,
-    foto: u.fotoPerfil || u.AdminProfile?.photoUrl || null,
+    foto: u.fotoPerfil || u.AdminProfile?.photoUrl || u.profesionales?.imagen || null,
     /* Se completa aparte para EMPLOYEE (AuthController.login), a partir
        del profesionalId que trae el JWT — un employee no tiene AdminProfile. */
     profesionalId: null,

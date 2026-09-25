@@ -38,6 +38,9 @@ export interface ApiUser {
   state?: "enabled" | "disabled" | "blocked";
   fotoPerfil?: string | null;
   UserData?: ApiUserData | null;
+  /** Ficha de profesional: la trae el login de un EMPLOYEE, que no tiene
+      ni UserData ni AdminProfile. De aquí sale su nombre visible. */
+  profesionales?: { id: number; nombre: string; imagen?: string | null } | null;
   AdminProfile?: ApiAdminProfile | null;
 }
 
