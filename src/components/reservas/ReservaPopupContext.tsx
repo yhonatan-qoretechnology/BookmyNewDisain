@@ -9,6 +9,7 @@ import type { Reserva } from "@/models";
 import { ReservasController } from "@/controllers/ReservasController";
 import { fmtFechaLarga, fmtMoneda } from "@/constants";
 import type { ApiCitaEnConflicto } from "@/api/types";
+import { madridHHmm } from "@/lib/timezone";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
@@ -327,7 +328,8 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
           t("extender.extendida", { n: minutos, inicio: res.extension.hora, fin: res.extension.horaFin || "—" }),
           "success",
         );
-        setReserva(null);
+        /* El detalle se queda abierto y muestra ya el tiempo extra */
+        setReserva({ ...r, minutosExtendidos: (r.minutosExtendidos ?? 0) + minutos });
         avisarCambio();
       } else {
         setAccion({
@@ -453,6 +455,27 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 <div className={styles.field}><label>{t("common.date")}</label><span>{fmtFechaLarga(reserva.fecha)}</span></div>
                 <div className={styles.field}><label>{t("common.time")}</label><span>{reserva.hora || "—"}{reserva.horaFin ? ` – ${reserva.horaFin}` : ""}</span></div>
                 <div className={styles.field}><label>{t("common.duration")}</label><span>{reserva.duracion} min</span></div>
+                {/* Solo si hubo extensión: si no, no se muestra nada */}
+                {!!reserva.minutosExtendidos && (
+                  <div className={`${styles.field} ${styles.fieldExtra}`}>
+                    <label>{t("popup.tiempoExtra")}</label>
+                    <span>
+                      +{reserva.minutosExtendidos} min
+                      {reserva.horaFin && reserva.finISO
+                        ? ` · ${reserva.horaFin} – ${madridHHmm(new Date(Date.parse(reserva.finISO) + reserva.minutosExtendidos * 60000))}`
+                        : ""}
+                      {reserva.precio > 0
+                        ? ` · ${fmtMoneda(ReservasController.importeExtension(reserva, reserva.minutosExtendidos), "EUR")}`
+                        : ""}
+                    </span>
+                  </div>
+                )}
+                {reserva.extensionDeId != null && (
+                  <div className={`${styles.field} ${styles.fieldExtra}`}>
+                    <label>{t("popup.tiempoExtra")}</label>
+                    <span>{t("popup.chipExtension", { id: `R-${reserva.extensionDeId}` })}</span>
+                  </div>
+                )}
                 <div className={styles.field}><label>{t("common.branch")}</label><span>{sedeNombre || "—"}</span></div>
                 <div className={styles.field}><label>{t("common.specialist")}</label><span>{espNombre}</span></div>
                 {reserva.metodoPago && (

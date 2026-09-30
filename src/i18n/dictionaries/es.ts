@@ -1221,6 +1221,7 @@ const es = {
     reasignada: "Cita reasignada a {nombre}",
     chipExtension: "Extensión de {id}",
     chipExtendida: "Extendida +{n} min",
+    tiempoExtra: "Tiempo extra",
     close: "Cerrar",
     print: "PDF",
     email: "Correo",

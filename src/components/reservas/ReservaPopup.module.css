@@ -58,6 +58,15 @@
   color: var(--slate-300); margin-bottom: 3px;
 }
 .field span { font-size: 14px; font-weight: 600; color: var(--navy-900); }
+/* "Tiempo extra": solo aparece si la cita se extendió */
+.fieldExtra {
+  grid-column: 1 / -1;
+  padding: 8px 12px; border-radius: var(--r-md);
+  background: rgba(255,167,38,.12); border-left: 3px solid #ffa726;
+}
+.fieldExtra label { color: #b86e00 !important; }
+.fieldExtra span { color: #8a5200 !important; font-weight: 700 !important; }
+:global([data-theme="dark"]) .fieldExtra span { color: #ffb74d !important; }
 .price { color: var(--teal-600) !important; font-size: 18px !important; font-weight: 800 !important; }
 :global([data-theme="dark"]) .field span { color: #8392ab; }
 :global([data-theme="dark"]) .price { color: #0fcfae !important; }

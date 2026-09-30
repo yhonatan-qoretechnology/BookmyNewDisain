@@ -1216,6 +1216,7 @@ const en: Dictionary = {
     reasignada: "Appointment reassigned to {nombre}",
     chipExtension: "Extension of {id}",
     chipExtendida: "Extended +{n} min",
+    tiempoExtra: "Extra time",
     close: "Close",
     print: "PDF",
     email: "Email",
