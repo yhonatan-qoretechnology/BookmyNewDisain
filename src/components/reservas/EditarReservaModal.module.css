@@ -13,5 +13,5 @@
 .area:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 1px; }
 .notas { font-size: 12.5px; color: var(--slate-500); background: var(--hover-surface);
   border-radius: var(--r-sm); padding: 10px 12px; margin-top: 8px; white-space: pre-wrap; }
-:global([data-theme="dark"]) .area { background: rgba(255,255,255,.04); border-color: #1e2640; color: #e8edf5; }
-:global([data-theme="dark"]) .seccionTitulo, :global([data-theme="dark"]) .resumen b { color: #e8edf5; }
+:global([data-theme="dark"]) .area { background: rgba(255,255,255,.04); border-color: var(--border); color: var(--navy-900); }
+:global([data-theme="dark"]) .seccionTitulo, :global([data-theme="dark"]) .resumen b { color: var(--navy-900); }

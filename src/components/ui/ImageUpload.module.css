@@ -48,7 +48,7 @@
 /* Variante rectángulo — logos e imágenes de sede */
 .card {
   width: 100%;
-  max-width: 260px;
+  max-width: 200px;
   aspect-ratio: 16 / 10;
   border-radius: var(--r-md);
 }
@@ -72,6 +72,13 @@
   font-weight: 800;
   color: var(--slate-500);
   background: var(--surface-2);
+}
+/* Sin tope, el icono se estiraba hasta ocupar toda la zona de subida y la
+   tarjeta de la sede parecia una ilustracion gigante. */
+.placeholder svg {
+  width: 26px;
+  height: 26px;
+  opacity: .5;
 }
 
 /* Capa de acción: aparece al pasar por encima o mientras sube */

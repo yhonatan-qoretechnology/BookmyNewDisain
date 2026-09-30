@@ -7,8 +7,11 @@
      se monta; aquí solo se declaran las variantes
    · Pie fijo: las acciones quedan siempre visibles
    · El cuerpo solo hace scroll si el contenido no cabe
+   · `printable`: el modal se monta directamente en <body> y, al
+     imprimir, sale él solo (sin el listado de detrás ni los botones)
 ============================================================ */
 import { ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { EASE_OUT, SPRING_SOFT } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
@@ -26,6 +29,7 @@ export default function Modal({
   footer,
   size = "md",
   closeLabel = "Cerrar",
+  printable = false,
 }: {
   title: string;
   subtitle?: string;
@@ -35,6 +39,8 @@ export default function Modal({
   footer?: ReactNode;
   size?: ModalSize;
   closeLabel?: string;
+  /** Imprimible con window.print(): ver globals.css ([data-print-root]) */
+  printable?: boolean;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -49,9 +55,10 @@ export default function Modal({
 
   const reduce = useReducedMotion();
 
-  return (
+  const modal = (
     <motion.div
       className={styles.overlay}
+      data-print-root={printable ? "" : undefined}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -74,15 +81,20 @@ export default function Modal({
             <h3 className={styles.title}>{title}</h3>
             {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
           </div>
-          <button type="button" className={styles.close} onClick={onClose} aria-label={closeLabel}>
+          <button type="button" className={styles.close} onClick={onClose} aria-label={closeLabel} data-no-print>
             <Icon name="x" />
           </button>
         </div>
 
         <div className={styles.body}>{children}</div>
 
-        {footer && <div className={styles.footer}>{footer}</div>}
+        {footer && <div className={styles.footer} data-no-print>{footer}</div>}
       </motion.div>
     </motion.div>
   );
+
+  /* Para imprimirlo solo, el modal tiene que ser hijo directo de <body>:
+     dentro del panel no hay forma de ocultar el listado sin ocultarlo a él. */
+  if (printable && typeof document !== "undefined") return createPortal(modal, document.body);
+  return modal;
 }

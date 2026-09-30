@@ -26,7 +26,7 @@
   font-size: 14.5px; font-weight: 800; color: var(--navy-900);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-:global([data-theme="dark"]) .catNombre { color: #e8edf5; }
+:global([data-theme="dark"]) .catNombre { color: var(--navy-900); }
 
 .catCount {
   flex: none;
@@ -34,7 +34,7 @@
   background: var(--teal-50);
   padding: 3px 10px; border-radius: 999px;
 }
-:global([data-theme="dark"]) .catCount { background: rgba(15,207,174,.12); color: #0fcfae; }
+:global([data-theme="dark"]) .catCount { background: rgba(15,207,174,.12); color: var(--teal-500); }
 
 .catChevron {
   flex: none; display: inline-flex;
@@ -70,7 +70,7 @@
 }
 
 .servNombre { font-size: 14px; font-weight: 800; color: var(--navy-900); }
-:global([data-theme="dark"]) .servNombre { color: #e8edf5; }
+:global([data-theme="dark"]) .servNombre { color: var(--navy-900); }
 
 .servDesc {
   font-size: 12px; color: var(--slate-500); line-height: 1.45;
@@ -88,7 +88,7 @@
 }
 .servDur svg { color: var(--teal-600); }
 .servPrecio { font-weight: 800; font-size: 15px; color: var(--teal-700); }
-:global([data-theme="dark"]) .servPrecio { color: #0fcfae; }
+:global([data-theme="dark"]) .servPrecio { color: var(--teal-500); }
 
 .servFoot { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; }
 

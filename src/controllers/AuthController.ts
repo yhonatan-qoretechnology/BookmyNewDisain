@@ -4,7 +4,7 @@
    además el cookie httpOnly `access_token`; guardamos el token para
    el header Authorization (jwt.strategy.ts acepta ambos).
 ============================================================ */
-import type { Session } from "@/models";
+import type { EstadoPlan, Session } from "@/models";
 import { SESSION_STORAGE_KEY } from "@/constants";
 import { isApiEnabled, setToken } from "@/api/config";
 import { AuthApi, EmpresasApi, ProfesionalesApi, SedesApi } from "@/api/modules";
@@ -56,12 +56,22 @@ export const AuthController = {
     let sedeName: string | undefined;
     const empresaId = res.user.AdminProfile?.empresaId;
     const sedeId = res.user.AdminProfile?.sedeId;
+    /* El plan del negocio decide qué módulos ve: viaja en la sesión para
+       no pedirlo en cada pantalla. */
+    let plan: EstadoPlan | null = null;
     try {
-      if (empresaId != null) negocioName = (await EmpresasApi.findOne(empresaId)).nombre;
+      if (empresaId != null) {
+        const [empresa, estadoPlan] = await Promise.all([
+          EmpresasApi.findOne(empresaId),
+          EmpresasApi.plan(empresaId).catch(() => null),
+        ]);
+        negocioName = empresa.nombre;
+        plan = estadoPlan;
+      }
       if (sedeId != null) sedeName = (await SedesApi.findOne(sedeId)).nombre;
     } catch { /* el panel funciona sin los nombres */ }
 
-    const session = mapUserToSession(res.user, { negocioName, sedeName });
+    const session = mapUserToSession(res.user, { negocioName, sedeName, plan });
     if (!session) {
       setToken(null);
       return { error: "CLIENT_ROLE" };

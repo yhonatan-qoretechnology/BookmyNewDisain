@@ -4,17 +4,20 @@
 ============================================================ */
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { moduloDePago, ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import AppShell from "@/components/layout/AppShell";
 import PageTransition from "@/components/animations/PageTransition";
+import PlanProLock from "@/components/plan/PlanProLock";
+import TrialBanner from "@/components/plan/TrialBanner";
 import Icon from "@/components/ui/Icon";
 
 /** Ruta → clave del diccionario `pages.*` (título/acento del topbar) */
 const PAGE_KEY: Record<string, string> = {
   [ROUTES.dashboard]: "dashboard",
   [ROUTES.empresas]: "empresas",
+  [ROUTES.administradores]: "administradores",
   [ROUTES.reservas]: "reservas",
   [ROUTES.reservaNueva]: "reservas",
   [ROUTES.clientes]: "clientes",
@@ -46,7 +49,11 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     // Las especialistas usan su propio panel (excepto configuración)
     if (session.role === "employee" && pathname !== ROUTES.configuracion) {
       router.replace(ROUTES.employeeDashboard);
+      return;
     }
+    /* Los módulos de pago NO se redirigen: se muestran bloqueados con lo
+       que incluye Pro y la oferta de los 30 días (ver más abajo). Devolver
+       al dashboard sin explicación no vendía nada. */
   }, [session, loading, pathname, router]);
 
   if (loading || !session) {
@@ -83,6 +90,12 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const title = t(`pages.${key}.title`);
   const accent = t(`pages.${key}.accent`);
 
+  /* ¿La ruta es de un módulo de pago que este negocio no tiene? El
+     superadmin no pertenece a ninguna empresa, así que lo ve todo. */
+  const modulo = moduloDePago(pathname);
+  const esPro = session.role === "superadmin" || session.plan?.planEfectivo === "PRO";
+  const bloqueado = !!modulo && !esPro;
+
   return (
     <AppShell
       meta={{
@@ -91,9 +104,14 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
         breadcrumb: t(`nav.${key}`),
       }}
     >
+      {/* Aviso del plan: días de prueba, fin de la prueba u oferta. */}
+      <TrialBanner />
+
       {/* El crossfade se ata a la ruta: al cambiar `pathname`, la vista
           saliente se desvanece antes de montar la entrante. */}
-      <PageTransition routeKey={pathname}>{children}</PageTransition>
+      <PageTransition routeKey={pathname}>
+        {bloqueado ? <PlanProLock modulo={modulo!} /> : children}
+      </PageTransition>
     </AppShell>
   );
 }

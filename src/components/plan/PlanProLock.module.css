@@ -1,0 +1,211 @@
+/* ============================================================
+   Pantalla de venta de Bookmy CRM Pro dentro del panel.
+   Fondo de marca, tarjeta de cristal y una captura del producto
+   con candado: tiene que dar ganas de pulsar el botón.
+============================================================ */
+
+.wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--topbar-h) - 40px);
+  padding: 8px 0 24px;
+}
+
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: 36px;
+  width: 100%;
+  padding: 44px;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  color: #eaf6ef;
+  background:
+    radial-gradient(900px 500px at 12% -20%, rgba(57, 255, 140, .22), transparent 60%),
+    radial-gradient(700px 420px at 95% 115%, rgba(47, 211, 154, .18), transparent 55%),
+    linear-gradient(155deg, #0f2a22 0%, #101a24 58%, #0a1014 100%);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Rejilla muy tenue, como la de la web */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: radial-gradient(circle at 30% 0%, rgba(0, 0, 0, .9), transparent 72%);
+  pointer-events: none;
+}
+
+.copy { position: relative; z-index: 1; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #06140f;
+  background: linear-gradient(135deg, #6bf7b4, #2fd39a);
+  box-shadow: 0 8px 20px rgba(57, 255, 140, .3);
+}
+.badge svg { width: 13px; height: 13px; }
+
+.title {
+  font-size: clamp(25px, 2.7vw, 36px);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  margin-bottom: 12px;
+}
+
+.lead {
+  max-width: 52ch;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: rgba(234, 246, 239, .78);
+  margin-bottom: 22px;
+}
+
+.ventajas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  margin-bottom: 26px;
+}
+.ventajas li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(234, 246, 239, .9);
+}
+.check {
+  display: grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 50%;
+  color: #06140f;
+  background: #39ff8c;
+}
+.check svg { width: 12px; height: 12px; }
+
+.oferta {
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .1);
+  backdrop-filter: blur(12px);
+}
+.oferta strong { display: block; font-size: 15px; margin-bottom: 4px; }
+.oferta p { font-size: 13px; line-height: 1.55; color: rgba(234, 246, 239, .72); }
+
+.acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.cta, .secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: var(--r-md);
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.cta {
+  color: #06140f;
+  background: linear-gradient(135deg, #6bf7b4, #2fd39a);
+  box-shadow: 0 12px 28px rgba(57, 255, 140, .28);
+}
+.cta:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 34px rgba(57, 255, 140, .36); }
+.cta:disabled { opacity: .7; cursor: default; }
+.cta svg { width: 16px; height: 16px; }
+
+.secundario {
+  color: rgba(234, 246, 239, .9);
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .14);
+}
+.secundario:hover { background: rgba(255, 255, 255, .14); }
+
+.spinner {
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  border: 2px solid rgba(6, 20, 15, .35);
+  border-top-color: #06140f;
+  animation: spin .8s linear infinite;
+}
+
+/* ── Lado visual ─────────────────────────────────────── */
+.visual {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+
+.visualIcon {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: var(--r-lg);
+  color: #06140f;
+  background: linear-gradient(140deg, #6bf7b4, #2fd39a);
+  box-shadow: 0 14px 30px rgba(57, 255, 140, .3);
+}
+.visualIcon svg { width: 27px; height: 27px; }
+
+.visualShot {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .45);
+}
+.visualShot img { display: block; width: 100%; filter: saturate(.9) blur(1px); opacity: .72; }
+
+.visualLock {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, rgba(10, 16, 20, .55), rgba(10, 16, 20, .8));
+  color: #39ff8c;
+}
+.visualLock svg { width: 40px; height: 40px; }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .card { grid-template-columns: 1fr; padding: 32px 26px; gap: 26px; }
+  .visual { flex-direction: row; align-items: center; }
+  .visualShot { flex: 1; }
+}
+
+@media (max-width: 680px) {
+  .card { padding: 26px 20px; border-radius: var(--r-lg); }
+  .ventajas { grid-template-columns: 1fr; }
+  .acciones { flex-direction: column; }
+  .cta, .secundario { width: 100%; }
+  .visual { display: none; }
+}

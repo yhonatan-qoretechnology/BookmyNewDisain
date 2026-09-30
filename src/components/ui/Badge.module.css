@@ -1,21 +1,30 @@
+/* El punto de color delante evita depender solo del fondo para
+   distinguir el estado (daltonismo, capturas en blanco y negro). */
 .badge {
-  display: inline-flex; align-items: center;
+  display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 12px; border-radius: 999px;
   font-size: 12px; font-weight: 700;
   letter-spacing: .02em; white-space: nowrap;
+  border: 1px solid transparent;
 }
-.pendiente { background: #fff3e0; color: #e65100; }
-.confirmada, .atendida  { background: var(--teal-50); color: var(--teal-700); }
-.noShow, .cancelado { background: #fdecea; color: var(--red); }
-.activo    { background: var(--teal-50); color: var(--teal-700); }
+.badge::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 6px;
+}
+.pendiente { background: #fff4e5; color: #b45309; border-color: rgba(180, 83, 9, .16); }
+.confirmada, .atendida  { background: var(--teal-50); color: var(--teal-700); border-color: rgba(10, 123, 86, .16); }
+.noShow, .cancelado { background: #fdeceb; color: #b91c1c; border-color: rgba(185, 28, 28, .16); }
+.activo    { background: var(--teal-50); color: var(--teal-700); border-color: rgba(10, 123, 86, .16); }
 .inactivo  { background: var(--page-bg); color: var(--slate-500); }
-.pagado    { background: #e8f5e9; color: #2e7d32; }
+.pagado    { background: #e7f7ec; color: #15803d; border-color: rgba(21, 128, 61, .16); }
 
 :global([data-theme="dark"]) .pendiente { background: rgba(251,140,0,.15); color: #ffb347; }
-:global([data-theme="dark"]) .atendida  { background: rgba(15,207,174,.15); color: #0fcfae; }
+:global([data-theme="dark"]) .atendida  { background: rgba(15,207,174,.15); color: var(--teal-500); }
 :global([data-theme="dark"]) .cancelado { background: rgba(245,54,92,.15); color: #ff6b8a; }
-:global([data-theme="dark"]) .activo    { background: rgba(15,207,174,.15); color: #0fcfae; }
-:global([data-theme="dark"]) .inactivo  { background: rgba(255,255,255,.07); color: #4a5670; }
+:global([data-theme="dark"]) .activo    { background: rgba(15,207,174,.15); color: var(--teal-500); }
+:global([data-theme="dark"]) .inactivo  { background: rgba(255,255,255,.07); color: var(--slate-300); }
 :global([data-theme="dark"]) .pagado    { background: rgba(23,201,100,.15); color: #4ade80; }
 
 /* Badge de rol en la sidebar */
@@ -25,7 +34,7 @@
   font-size: 11px; font-weight: 800; letter-spacing: .04em;
 }
 .superadmin { background: linear-gradient(135deg,#8b5cf6,#4c1d95); color: #fff; }
-.owner      { background: linear-gradient(135deg,#3a5bf0,#1b2559); color: #fff; }
+.owner      { background: linear-gradient(135deg, #2fd39a, #0a7b56); color: #fff; }
 .admin      { background: var(--grad-teal); color: #fff; }
 .employee   { background: var(--grad-amber); color: #fff; }
 
@@ -34,4 +43,4 @@
   font-size: 11.5px; font-weight: 700; padding: 4px 10px;
   border-radius: 999px; background: var(--teal-50); color: var(--teal-700);
 }
-:global([data-theme="dark"]) .tag { background: rgba(15,207,174,.12); color: #0fcfae; }
+:global([data-theme="dark"]) .tag { background: rgba(15,207,174,.12); color: var(--teal-500); }

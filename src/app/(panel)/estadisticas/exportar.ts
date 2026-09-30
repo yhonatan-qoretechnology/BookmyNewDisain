@@ -15,7 +15,11 @@ export interface TablaExport {
 
 /** Escapa un valor para CSV: comillas dobles y separadores. */
 function celda(v: string): string {
-  const s = v ?? "";
+  let s = v ?? "";
+  /* Excel toma como fórmula lo que empieza por = + - @ ("+1,1 pp" acabaría
+     en #¿NOMBRE?). Un espacio delante lo deja como texto; los números
+     sueltos se quedan como están. */
+  if (/^[=+\-@]/.test(s) && !/^[+-]?\d+([.,]\d+)?%?$/.test(s)) s = ` ${s}`;
   return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

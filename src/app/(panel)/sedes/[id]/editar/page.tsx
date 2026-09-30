@@ -23,6 +23,8 @@ import { Field } from "@/components/ui/Modal";
 import ImageGallery from "@/components/ui/ImageGallery";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
+import { DisponibilidadApi } from "@/api/modules";
+import type { ApiHorarioSede } from "@/api/types";
 import styles from "./editarSede.module.css";
 
 /** Días en orden de despliegue (la clave es la misma que usa el
@@ -57,6 +59,23 @@ function horarioToForm(horario: Record<string, string> | null): HorarioForm {
   return form;
 }
 
+/** Índice de `Date.getDay()` de cada día del formulario (0 = domingo). */
+const DIA_SEMANA: Record<string, number> = {
+  lunes: 1, martes: 2, "miércoles": 3, jueves: 4, viernes: 5, "sábado": 6, domingo: 0,
+};
+
+/** Filas de `horario_sede` → formulario. Esa tabla manda sobre el JSON. */
+function filasToForm(filas: ApiHorarioSede[]): HorarioForm {
+  const form: HorarioForm = {};
+  for (const dia of DIAS) {
+    const fila = filas.find((f) => f.diaSemana === DIA_SEMANA[dia]);
+    form[dia] = fila && fila.activo
+      ? { cerrado: false, apertura: fila.horaApertura, cierre: fila.horaCierre }
+      : { cerrado: true, apertura: fila?.horaApertura || DEFAULT_APERTURA, cierre: fila?.horaCierre || DEFAULT_CIERRE };
+  }
+  return form;
+}
+
 function formToHorario(form: HorarioForm): Record<string, string> {
   const horario: Record<string, string> = {};
   for (const dia of DIAS) {
@@ -86,6 +105,9 @@ export default function EditarSedePage() {
   const [latitud, setLatitud] = useState("");
   const [longitud, setLongitud] = useState("");
   const [horarioForm, setHorarioForm] = useState<HorarioForm>(() => horarioToForm(null));
+  /** Filas existentes en `horario_sede`, para saber qué actualizar y qué crear */
+  const [filasHorario, setFilasHorario] = useState<ApiHorarioSede[]>([]);
+  const [horarioCargado, setHorarioCargado] = useState(false);
   const [diasCerrado, setDiasCerrado] = useState<string[]>([]);
   const [nuevaFecha, setNuevaFecha] = useState("");
   const [guardando, setGuardando] = useState(false);
@@ -99,9 +121,28 @@ export default function EditarSedePage() {
     setTelefono(sede.telefono);
     setLatitud(sede.latitud != null ? String(sede.latitud) : "");
     setLongitud(sede.longitud != null ? String(sede.longitud) : "");
-    setHorarioForm(horarioToForm(sede.horario));
     setDiasCerrado(sede.diasCerrado);
   }, [sede]);
+
+  /* El horario real vive en `horario_sede`: el backend le da prioridad
+     sobre el JSON de la sede. Se piden las filas aparte… */
+  useEffect(() => {
+    let vigente = true;
+    DisponibilidadApi.horarioSede(sedeId)
+      .then((filas) => { if (vigente) setFilasHorario(filas || []); })
+      .catch(() => { if (vigente) setFilasHorario([]); })
+      .finally(() => { if (vigente) setHorarioCargado(true); });
+    return () => { vigente = false; };
+  }, [sedeId]);
+
+  /* …y el formulario se arma cuando están las dos fuentes, con la tabla por
+     delante. Hacerlo en dos efectos separados dejaba una carrera: el de la
+     sede llegaba después y volvía a pintar el JSON (todo "Cerrado") encima
+     de lo que ya se había leído de la tabla. */
+  useEffect(() => {
+    if (!sede || !horarioCargado) return;
+    setHorarioForm(filasHorario.length ? filasToForm(filasHorario) : horarioToForm(sede.horario));
+  }, [sede, filasHorario, horarioCargado]);
 
   const cambiarDia = (dia: string, patch: Partial<DiaForm>) => {
     setHorarioForm((prev) => ({ ...prev, [dia]: { ...prev[dia], ...patch } }));
@@ -114,6 +155,39 @@ export default function EditarSedePage() {
   };
   const quitarDiaCerrado = (fecha: string) => {
     setDiasCerrado((prev) => prev.filter((f) => f !== fecha));
+  };
+
+  /**
+   * Vuelca el horario del formulario en `horario_sede`, que es de donde
+   * el backend saca la disponibilidad real. Un día cerrado se guarda como
+   * fila inactiva en vez de borrarla, para conservar sus horas.
+   */
+  const guardarHorarioSemanal = async () => {
+    const tareas: Promise<unknown>[] = [];
+    for (const dia of DIAS) {
+      const d = horarioForm[dia];
+      const diaSemana = DIA_SEMANA[dia];
+      const fila = filasHorario.find((f) => f.diaSemana === diaSemana);
+      if (fila) {
+        const igual =
+          fila.activo === !d.cerrado &&
+          fila.horaApertura === d.apertura &&
+          fila.horaCierre === d.cierre;
+        if (!igual) {
+          tareas.push(DisponibilidadApi.actualizarHorario(fila.id, {
+            horaApertura: d.apertura, horaCierre: d.cierre, activo: !d.cerrado,
+          }));
+        }
+      } else if (!d.cerrado) {
+        tareas.push(DisponibilidadApi.crearHorario({
+          sedeId, diaSemana, horaApertura: d.apertura, horaCierre: d.cierre, activo: true,
+        }));
+      }
+    }
+    if (!tareas.length) return;
+    await Promise.all(tareas);
+    const filas = await DisponibilidadApi.horarioSede(sedeId).catch(() => [] as ApiHorarioSede[]);
+    setFilasHorario(filas);
   };
 
   const volver = () => router.back();
@@ -129,9 +203,12 @@ export default function EditarSedePage() {
         nombre, direccion, telefono, provincia,
         latitud: latitud.trim() ? Number(latitud) : null,
         longitud: longitud.trim() ? Number(longitud) : null,
+        /* El JSON se sigue guardando como respaldo: es lo que usan las
+           sedes que todavía no tienen filas en `horario_sede`. */
         horario: formToHorario(horarioForm),
         diasCerrado,
       });
+      await guardarHorarioSemanal();
       toast(t("empresaSedes.updated"), "success");
       router.back();
     } catch (e) {

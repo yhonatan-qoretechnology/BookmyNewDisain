@@ -32,6 +32,11 @@ export interface Negocio {
   activo: boolean;
   /** Logo de la empresa (columna logo_url); encabeza las facturas */
   logo?: string | null;
+  /** Plan contratado y fecha de fin de prueba (GET /empresas) */
+  plan?: "FREE" | "PRO";
+  trialEndsAt?: string | null;
+  /** true mientras la prueba de 30 días siga viva */
+  enPrueba?: boolean;
 }
 
 export interface Sede {
@@ -82,6 +87,23 @@ export interface Session {
       body de POST /auth/login. Sede/especialidad de un employee se
       resuelven a partir de este id (GET /profesionales/:id/detalle). */
   profesionalId: string | null;
+  /** Plan del negocio: decide qué módulos ve. El superadmin no tiene. */
+  plan?: EstadoPlan | null;
+}
+
+/** Plan de un negocio y estado de su prueba (GET /empresas/:id/plan). */
+export interface EstadoPlan {
+  /** Lo contratado. */
+  plan: "FREE" | "PRO";
+  /** Lo que puede usar hoy: la prueba cuenta como PRO. */
+  planEfectivo: "FREE" | "PRO";
+  trialEndsAt: string | null;
+  enPrueba: boolean;
+  diasDePrueba: number;
+  /** La prueba existió y se acabó: es el momento de vender. */
+  pruebaCaducada: boolean;
+  /** Todavía puede pedir los 30 días. */
+  puedeProbar: boolean;
 }
 
 export interface Reserva {

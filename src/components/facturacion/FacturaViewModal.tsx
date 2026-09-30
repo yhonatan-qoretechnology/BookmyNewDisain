@@ -149,6 +149,7 @@ function Contenido({
       onClose={onClose}
       size="lg"
       closeLabel={t("common.close")}
+      printable
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("common.close")}</Button>
@@ -226,7 +227,7 @@ function Contenido({
             <th className={styles.c}>{t("facturacion.cantidad")}</th>
             <th className={styles.r}>{t("facturacion.precio")}</th>
             <th className={styles.r}>{t("facturacion.subtotal")}</th>
-            {hayAdicionales && <th className={styles.quitarCol} />}
+            {hayAdicionales && <th className={styles.quitarCol} data-no-print />}
           </tr>
         </thead>
         <tbody>
@@ -237,7 +238,7 @@ function Contenido({
               <td className={styles.r}>{fmtMoneda(it.precio, f.moneda)}</td>
               <td className={styles.r}>{fmtMoneda(it.precio * it.cantidad, f.moneda)}</td>
               {hayAdicionales && (
-                <td className={styles.quitarCol}>
+                <td className={styles.quitarCol} data-no-print>
                   {it.itemId != null &&
                     (confirmando === it.itemId ? (
                       <>
@@ -271,7 +272,7 @@ function Contenido({
       </table>
 
       {f.apiId != null && (
-        anadiendo ? (
+        <div data-no-print>{anadiendo ? (
           <div className={styles.adicionalForm}>
             <input
               value={concepto}
@@ -301,7 +302,7 @@ function Contenido({
           <Button size="sm" variant="ghost" onClick={() => setAnadiendo(true)}>
             <Icon name="plus" /> {t("facturacion.anadirAdicionales")}
           </Button>
-        )
+        )}</div>
       )}
 
       <div className={styles.totales}>

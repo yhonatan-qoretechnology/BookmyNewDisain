@@ -131,7 +131,7 @@ export default function SedesPage() {
                     <Icon name="tag" /> {t("serviciosSede.abrir")}
                   </Button>
                   <Button
-                    variant="danger"
+                    variant="dangerGhost"
                     size="sm"
                     onClick={() => eliminar(s.id, s.nombre)}
                   >

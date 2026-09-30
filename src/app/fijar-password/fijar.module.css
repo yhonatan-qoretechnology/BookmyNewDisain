@@ -9,10 +9,10 @@
   border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); color: var(--navy-900); }
 .campo input:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 1px; }
 .reglas { font-size: 12px; color: var(--slate-500); line-height: 1.6; margin: 0 0 18px; }
-.error { font-size: 13px; color: #c0392b; background: #fdecea; border-radius: var(--r-sm); padding: 10px 12px; margin-bottom: 16px; }
+.error { font-size: 13px; color: var(--red); background: #fdecea; border-radius: var(--r-sm); padding: 10px 12px; margin-bottom: 16px; }
 .ok { font-size: 13px; color: #1e6b45; background: #e4f2ea; border-radius: var(--r-sm); padding: 12px; margin-bottom: 16px; }
 .boton { width: 100%; }
 .centro { text-align: center; font-size: 13px; color: var(--slate-500); }
-:global([data-theme="dark"]) .card { background: #131a2e; border-color: #1e2640; }
-:global([data-theme="dark"]) .titulo, :global([data-theme="dark"]) .campo span { color: #e8edf5; }
-:global([data-theme="dark"]) .campo input { background: rgba(255,255,255,.04); border-color: #1e2640; color: #e8edf5; }
+:global([data-theme="dark"]) .card { background: var(--surface-2); border-color: var(--border); }
+:global([data-theme="dark"]) .titulo, :global([data-theme="dark"]) .campo span { color: var(--navy-900); }
+:global([data-theme="dark"]) .campo input { background: rgba(255,255,255,.04); border-color: var(--border); color: var(--navy-900); }

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 600" width="300" height="600">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16261f"/>
+      <stop offset="55%" stop-color="#0c1613"/>
+      <stop offset="100%" stop-color="#070b09"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="bodyClip">
+      <rect x="6" y="6" width="288" height="588" rx="46"/>
+    </clipPath>
+  </defs>
+
+  <!-- cuerpo del telefono: ESTA imagen completa es el elemento flotante, sin tarjeta ni marco adicional -->
+  <rect x="6" y="6" width="288" height="588" rx="46" fill="url(#bodyGrad)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+  <rect x="6" y="6" width="288" height="588" rx="46" fill="url(#sheen)" clip-path="url(#bodyClip)"/>
+
+  <!-- notch -->
+  <rect x="120" y="26" width="60" height="7" rx="4" fill="rgba(255,255,255,0.14)"/>
+
+  <!-- topbar -->
+  <text x="34" y="76" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#eaf6ef">Mi Agenda</text>
+  <circle cx="258" cy="71" r="5" fill="#39ff8c"/>
+  <circle cx="258" cy="71" r="9" fill="none" stroke="#39ff8c" stroke-opacity="0.35" stroke-width="1.5"/>
+
+  <!-- stat -->
+  <text x="34" y="108" font-family="Arial, sans-serif" font-size="11" fill="#84988e">Reservas este mes</text>
+  <text x="34" y="156" font-family="Arial, sans-serif" font-size="46" font-weight="800" fill="#ffffff">32</text>
+
+  <!-- sparkline -->
+  <polyline points="34,196 64,186 94,191 124,166 154,176 184,148 214,160 244,134 268,142"
+            fill="none" stroke="#39ff8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="244" cy="134" r="4.5" fill="#39ff8c"/>
+
+  <!-- botones pill -->
+  <rect x="34" y="222" width="92" height="34" rx="17" fill="#39ff8c"/>
+  <text x="80" y="244" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#06140f">Reservar</text>
+  <rect x="134" y="222" width="92" height="34" rx="17" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.14)"/>
+  <text x="180" y="244" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#cfe7dd">Historial</text>
+
+  <!-- lista de reservas -->
+  <g font-family="Arial, sans-serif" font-size="12.5" fill="#cfe7dd">
+    <rect x="34" y="288" width="232" height="46" rx="12" fill="rgba(255,255,255,0.035)"/>
+    <circle cx="52" cy="311" r="3.5" fill="#39ff8c"/>
+    <text x="64" y="315">Corte + barba · 17:30</text>
+
+    <rect x="34" y="344" width="232" height="46" rx="12" fill="rgba(255,255,255,0.035)"/>
+    <circle cx="52" cy="367" r="3.5" fill="#39ff8c"/>
+    <text x="64" y="371">Manicura spa · 19:00</text>
+
+    <rect x="34" y="400" width="232" height="46" rx="12" fill="rgba(255,255,255,0.035)"/>
+    <circle cx="52" cy="423" r="3.5" fill="#39ff8c"/>
+    <text x="64" y="427">Revisión técnica · 09:15</text>
+  </g>
+
+  <!-- indicador inferior -->
+  <rect x="124" y="572" width="52" height="5" rx="2.5" fill="rgba(255,255,255,0.18)"/>
+</svg>

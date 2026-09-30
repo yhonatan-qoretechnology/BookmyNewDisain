@@ -53,6 +53,9 @@ export interface ExportLabels {
 const cuerpo = (m: Mensaje, labels: ExportLabels): string =>
   m.texto?.trim() || (m.messageType && m.messageType !== "TEXT" ? labels.attachment : "");
 
+/** Temporizador del print() del PDF del chat mientras no se ha lanzado. */
+let impresionPendiente: number | undefined;
+
 export const ChatExportController = {
   /**
    * Descarga la conversación como .txt
@@ -126,6 +129,17 @@ export const ChatExportController = {
       <div class="print-chat">${filas}</div>
       <div class="print-footer">${esc(labels.footer)} · BookMy</div>`;
 
-    setTimeout(() => window.print(), 120);
+    /* Al cerrar el diálogo de impresión se quita el área: si se queda en el
+       <body>, cualquier impresión posterior (una factura, Estadísticas)
+       sacaría este chat en su lugar. Solo con afterprint: en navegadores
+       donde print() no bloquea, quitarla justo después dejaría la hoja en blanco. */
+    /* Un doble clic no debe programar dos print(): el primero cerraría con
+       su afterprint el área que necesita el segundo. */
+    if (impresionPendiente !== undefined) clearTimeout(impresionPendiente);
+    else window.addEventListener("afterprint", () => document.getElementById("bmPrintArea")?.remove(), { once: true });
+    impresionPendiente = window.setTimeout(() => {
+      impresionPendiente = undefined;
+      window.print();
+    }, 120);
   },
 };

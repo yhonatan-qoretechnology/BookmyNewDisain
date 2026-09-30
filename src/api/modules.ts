@@ -8,7 +8,7 @@ import { EP } from "./endpoints";
 import type {
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
-  ApiDisponibilidadProfesional, ApiEmpresa,
+  ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
   ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
@@ -17,7 +17,7 @@ import type {
   ApiServicioAsignable, ApiUser,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
-  RegisterUserDto, SendMessageDto, UpdateGastoDto, UpdateServiceDto,
+  RegisterUserDto, RegistroNegocioDto, SendMessageDto, UpdateGastoDto, UpdateServiceDto,
 } from "./types";
 
 /* ── AuthModule ─────────────────────────────────────────── */
@@ -172,6 +172,20 @@ export const ClientsApi = {
 
 /* ── EmpresaModule ──────────────────────────────────────── */
 export const EmpresasApi = {
+  /** POST /empresas/registro — alta desde la web. Devuelve { user, token }. */
+  registrar: (dto: RegistroNegocioDto) =>
+    http.post<LoginResponse>(EP.registroNegocio, dto),
+
+  /** GET /empresas/:id/plan — plan del negocio y estado de su prueba. */
+  plan: (id: number) => http.get<ApiEstadoPlan>(EP.empresaPlan(id)),
+
+  /** POST /empresas/:id/prueba — regala los 30 días de Pro (una sola vez). */
+  activarPrueba: (id: number) => http.post<ApiEstadoPlan>(EP.empresaPrueba(id)),
+
+  /** PATCH /empresas/:id/plan — lo cambia el superadmin cuando cobra. */
+  cambiarPlan: (id: number, plan: "FREE" | "PRO") =>
+    http.patch<ApiEstadoPlan>(EP.empresaPlan(id), { plan }),
+
   findAll: () => http.get<ApiEmpresa[]>(EP.empresas),
   findOne: (id: number) => http.get<ApiEmpresa>(EP.empresaById(id)),
   create: (data: { nombre: string; descripcion?: string; telefono?: string; email?: string }) =>
@@ -556,6 +570,18 @@ export const DisponibilidadApi = {
    */
   horarioSede: (sedeId: number) =>
     http.get<ApiHorarioSede[]>(EP.horarioSede + qs({ sedeId })),
+
+  /* Escritura del horario semanal. El backend da prioridad a esta tabla
+     sobre el JSON `sede.horario`, así que la pantalla de la sede tiene que
+     escribir aquí: si solo guardara el JSON, el cambio no tendría efecto
+     en las sedes que ya tienen filas. */
+  crearHorario: (dto: {
+    sedeId: number; diaSemana: number; horaApertura: string; horaCierre: string; activo: boolean;
+  }) => http.post<ApiHorarioSede>(EP.horarioSede, dto),
+  actualizarHorario: (id: number, dto: {
+    horaApertura?: string; horaCierre?: string; activo?: boolean;
+  }) => http.put<ApiHorarioSede>(`${EP.horarioSede}/${id}`, dto),
+  borrarHorario: (id: number) => http.delete<void>(`${EP.horarioSede}/${id}`),
 
   /** GET /dia-cerrado-sede?sedeId=&desde=&hasta= — cierres puntuales. */
   diasCerrados: (sedeId: number, desde?: string, hasta?: string) =>

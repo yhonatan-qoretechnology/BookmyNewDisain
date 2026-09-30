@@ -8,7 +8,7 @@
      EMPLOYEE     → employee    (usuario empleado)
      CLIENT       → sin acceso al panel (usa la app de clientes)
 ============================================================ */
-import type { MetodoPago, Reserva, Rol, Session } from "@/models";
+import type { EstadoPlan, MetodoPago, Reserva, Rol, Session } from "@/models";
 import { madridHHmm, madridYmd } from "@/lib/timezone";
 import type { ApiAppointment, ApiAppointmentStatus, ApiRole, ApiUser } from "./types";
 
@@ -38,14 +38,22 @@ export const ESTADO_APPT_MAP: Record<Reserva["estado"], ApiAppointmentStatus> = 
   noShow: "NO_SHOW",
 };
 
-export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeName?: string }): Session | null {
+export function mapUserToSession(
+  u: ApiUser,
+  opts: { negocioName?: string; sedeName?: string; plan?: EstadoPlan | null }
+): Session | null {
   const role = ROLE_MAP[u.role];
   if (!role) return null; // CLIENT no entra al panel
   return {
     id: String(u.id),
-    name: u.UserData?.name || u.AdminProfile
-      ? `${u.AdminProfile?.firstName ?? u.UserData?.name ?? ""} ${u.AdminProfile?.lastName ?? ""}`.trim() || u.email
-      : u.UserData?.name || u.email,
+    /* Nombre visible. Un empleado no tiene ni AdminProfile ni UserData:
+       su nombre vive en la ficha de profesional, y sin esto el panel
+       saludaba con el correo sintetico (marcoruiz@empresa.com). */
+    name:
+      [u.AdminProfile?.firstName, u.AdminProfile?.lastName].filter(Boolean).join(" ").trim() ||
+      u.UserData?.name ||
+      u.profesionales?.nombre ||
+      u.email,
     role,
     email: u.email,
     negocioId: u.AdminProfile?.empresaId != null ? String(u.AdminProfile.empresaId) : "",
@@ -53,13 +61,15 @@ export function mapUserToSession(u: ApiUser, opts: { negocioName?: string; sedeN
     sedeId: u.AdminProfile?.sedeId != null ? String(u.AdminProfile.sedeId) : null,
     sedeName: opts.sedeName || null,
     especialidad: null,
-    foto: u.fotoPerfil || u.AdminProfile?.photoUrl || null,
+    foto: u.fotoPerfil || u.AdminProfile?.photoUrl || u.profesionales?.imagen || null,
     /* Se completa aparte para EMPLOYEE (AuthController.login), a partir
        del profesionalId que trae el JWT — un employee no tiene AdminProfile. */
     profesionalId: null,
     /* ⚙️ PARÁMETRO DE BD: user_data.idioma viaja del login a la
        sesión; el I18nProvider lo aplica automáticamente. */
     idioma: u.UserData?.idioma?.slice(0, 2).toLowerCase() || "es",
+    /* Plan del negocio: de él dependen los módulos visibles. */
+    plan: opts.plan ?? null,
   };
 }
 

@@ -3,24 +3,25 @@
   min-height: var(--topbar-h);
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 28px;
-  background: rgba(240,242,245,.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* El color sale del fondo de página: si se codifica a mano, al cambiar
+     la paleta la barra se queda con el tono viejo. */
+  background: color-mix(in srgb, var(--page-bg) 86%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   gap: 16px;
 }
-:global([data-theme="dark"]) .topbar { background: rgba(15,17,23,.9); }
 
 .left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .leftCol { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .breadcrumb { font-size: 11.5px; color: var(--slate-500); font-weight: 600; }
 .breadcrumb a { color: var(--slate-500); }
 .breadcrumb span { color: var(--navy-900); }
-:global([data-theme="dark"]) .breadcrumb { color: #4a5670; }
-:global([data-theme="dark"]) .breadcrumb span { color: #8392ab; }
+:global([data-theme="dark"]) .breadcrumb { color: var(--slate-300); }
+:global([data-theme="dark"]) .breadcrumb span { color: var(--slate-500); }
 
 .pageTitle { font-size: 19px; font-weight: 800; color: var(--navy-900); line-height: 1; }
 .accent { color: var(--teal-600); }
-:global([data-theme="dark"]) .accent { color: #0fcfae; }
+:global([data-theme="dark"]) .accent { color: var(--teal-500); }
 
 .right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
@@ -40,9 +41,10 @@
   position: relative; cursor: pointer; flex: none;
 }
 .iconAction svg { width: 16px; height: 16px; }
-.iconAction:hover { background: var(--hover-surface); }
+.iconAction { transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
+.iconAction:hover { background: var(--hover-surface); color: var(--navy-900); border-color: var(--slate-300); transform: translateY(-1px); }
 :global([data-theme="dark"]) .iconAction {
-  background: rgba(255,255,255,.05); border-color: #1e2640; color: #8392ab;
+  background: rgba(255,255,255,.05); border-color: var(--border); color: var(--slate-500);
 }
 .bellDot {
   position: absolute; top: -2px; right: -2px;
@@ -99,8 +101,8 @@
 .userAvatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .userName { font-size: 13.5px; font-weight: 700; line-height: 1.2; color: var(--navy-900); }
 .userRole { font-size: 11.5px; color: var(--slate-500); }
-:global([data-theme="dark"]) .userName { color: #e8edf5; }
-:global([data-theme="dark"]) .userRole { color: #4a5670; }
+:global([data-theme="dark"]) .userName { color: var(--navy-900); }
+:global([data-theme="dark"]) .userRole { color: var(--slate-300); }
 
 @media (max-width: 1024px) { .topbar { padding: 0 18px; } }
 @media (max-width: 860px) {
@@ -109,8 +111,20 @@
 }
 @media (max-width: 600px) {
   .topbar { padding: 0 12px; min-height: 64px; }
-  .pageTitle { font-size: 17px; }
+  /* La miga de pan se solapaba con el titulo y con el selector de idioma:
+     en movil sobra, porque la pantalla activa ya se ve en el menu. */
+  .breadcrumb { display: none; }
+  .left { flex: 1 1 auto; min-width: 0; }
+  .leftCol { min-width: 0; }
+  .pageTitle {
+    font-size: 17px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
   .userName, .userRole { display: none; }
+  .right { gap: 6px; }
+  .langToggle { height: 38px; padding: 0 9px; }
+  .langLabel { display: none; }
+  .iconAction { width: 36px; height: 36px; }
 }
 @media (max-width: 380px) { .pageTitle { font-size: 15px; } }
 
@@ -137,13 +151,13 @@
 .langCaret { width: 12px; height: 12px; }
 :global([data-theme="dark"]) .langToggle {
   background: rgba(255,255,255,.05);
-  border-color: #1e2640;
-  color: #e8edf5;
+  border-color: var(--border);
+  color: var(--navy-900);
 }
 :global([data-theme="dark"]) .langToggle:hover {
   background: rgba(15,207,174,.1);
-  border-color: #0fcfae;
-  color: #0fcfae;
+  border-color: var(--teal-500);
+  color: var(--teal-500);
 }
 
 .langMenu {
@@ -157,7 +171,7 @@
   z-index: 60;
 }
 /* Entrada y salida las anima AnimatePresence en Topbar.tsx */
-:global([data-theme="dark"]) .langMenu { background: #1a2035; border-color: #1e2640; }
+:global([data-theme="dark"]) .langMenu { background: var(--surface-2); border-color: var(--border); }
 .langOption {
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 9px 11px;
@@ -168,7 +182,7 @@
 }
 .langOption:hover { background: var(--teal-50); color: var(--teal-600); }
 .langOptionActive { color: var(--teal-600); background: var(--teal-50); font-weight: 800; }
-:global([data-theme="dark"]) .langOption { color: #e8edf5; }
+:global([data-theme="dark"]) .langOption { color: var(--navy-900); }
 :global([data-theme="dark"]) .langOption:hover,
-:global([data-theme="dark"]) .langOptionActive { background: rgba(15,207,174,.12); color: #0fcfae; }
+:global([data-theme="dark"]) .langOptionActive { background: rgba(15,207,174,.12); color: var(--teal-500); }
 .langCheck { margin-left: auto; width: 14px; height: 14px; }

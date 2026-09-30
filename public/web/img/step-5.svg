@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 520" width="420" height="520">
+  <defs>
+    <linearGradient id="g25" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1a16"/>
+      <stop offset="55%" stop-color="#103226"/>
+      <stop offset="100%" stop-color="#0d1411"/>
+    </linearGradient>
+    <pattern id="grid25" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M0 0H28V28" fill="none" stroke="#70c1a6" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="420" height="520" fill="url(#g25)"/>
+  <rect width="420" height="520" fill="url(#grid25)"/>
+  <circle cx="75.6" cy="114.4" r="117.60000000000001" fill="#39ff8c" opacity="0.10"/>
+  <circle cx="361.2" cy="426.4" r="92.4" fill="#70c1a6" opacity="0.12"/>
+  <g transform="translate(210.0,246.0)">
+    <circle r="26" fill="none" stroke="#70c1a6" stroke-opacity="0.55" stroke-width="2"/>
+    <path d="M-10,-2 L0,8 L12,-10" fill="none" stroke="#39ff8c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.0"/>
+    <rect x="-12" y="-9" width="24" height="18" rx="3" fill="none" stroke="#bfe9d8" stroke-width="2"/>
+    <circle cx="-5" cy="0" r="2" fill="#bfe9d8"/>
+    <path d="M-12,-3 L12,-3" stroke="#bfe9d8" stroke-width="1.4"/>
+  </g>
+  <text x="50%" y="290.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#cfe7dd" opacity="0.85">Paso 5 · Confirma tu cita</text>
+  <text x="50%" y="308.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#7fa596" opacity="0.7">420×520 · sustituye este archivo</text>
+</svg>

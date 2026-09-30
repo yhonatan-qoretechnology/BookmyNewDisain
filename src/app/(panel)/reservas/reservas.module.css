@@ -20,11 +20,11 @@
 
 :global([data-theme="dark"]) .estadoSelect {
   background: rgba(255,255,255,.04);
-  border-color: #1e2640;
-  color: #e8edf5;
+  border-color: var(--border);
+  color: var(--navy-900);
 }
-:global([data-theme="dark"]) .estadoSelect:hover:not(:disabled) { border-color: #0fcfae; }
-:global([data-theme="dark"]) .estadoSelect option { background: #131a2e; color: #e8edf5; }
+:global([data-theme="dark"]) .estadoSelect:hover:not(:disabled) { border-color: var(--teal-500); }
+:global([data-theme="dark"]) .estadoSelect option { background: var(--surface-2); color: var(--navy-900); }
 
 @media (prefers-reduced-motion: reduce) { .estadoSelect { transition: none; } }
 

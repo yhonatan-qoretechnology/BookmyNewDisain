@@ -24,7 +24,7 @@ type MotionConflicts =
 
 interface ButtonProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, MotionConflicts> {
-  variant?: "primary" | "ghost" | "danger";
+  variant?: "primary" | "ghost" | "danger" | "dangerGhost";
   size?: "md" | "sm";
   block?: boolean;
 }

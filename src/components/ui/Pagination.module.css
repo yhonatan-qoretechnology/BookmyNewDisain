@@ -45,14 +45,14 @@
 
 :global([data-theme="dark"]) .numero,
 :global([data-theme="dark"]) .flecha {
-  background: rgba(255,255,255,.04); border-color: #1e2640; color: #8392ab;
+  background: rgba(255,255,255,.04); border-color: var(--border); color: var(--slate-500);
 }
 :global([data-theme="dark"]) .numero:hover:not(.activa),
 :global([data-theme="dark"]) .flecha:hover:not(:disabled) {
-  background: rgba(15,207,174,.10); color: #0fcfae; border-color: #0fcfae;
+  background: rgba(15,207,174,.10); color: var(--teal-500); border-color: var(--teal-500);
 }
 :global([data-theme="dark"]) .activa {
-  background: #0fcfae; border-color: #0fcfae; color: #06231e;
+  background: var(--teal-500); border-color: var(--teal-500); color: #06231e;
 }
 
 /* En móvil el recuento pasa arriba y los controles ocupan el ancho */

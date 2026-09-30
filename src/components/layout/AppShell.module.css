@@ -23,3 +23,10 @@
   /* FIX PADDING: mínimo 14px de respiro lateral en móvil */
   .content { padding: 10px 14px 32px; }
 }
+
+/* Al imprimir, el contenido ocupa la hoja entera (sin columna de menú). */
+@media print {
+  .appShell { grid-template-columns: 1fr !important; }
+  .main { overflow: visible !important; min-height: 0 !important; }
+  .content { padding: 0 !important; }
+}

@@ -166,12 +166,12 @@
   color: var(--slate-500);
 }
 
-:global([data-theme="dark"]) .campo > span { color: #8392ab; }
+:global([data-theme="dark"]) .campo > span { color: var(--slate-500); }
 :global([data-theme="dark"]) .campo input,
-:global([data-theme="dark"]) .campo select { border-color: #1e2640; color: #e8edf5; }
+:global([data-theme="dark"]) .campo select { border-color: var(--border); color: var(--navy-900); }
 
 /* ── Zona peligrosa ── */
-.peligro h4 { color: var(--red, #e5484d); }
+.peligro h4 { color: var(--red, var(--red)); }
 
 /* ── Pie ── */
 .foot {

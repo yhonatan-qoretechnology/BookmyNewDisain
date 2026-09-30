@@ -2,7 +2,7 @@ import type { NavItem } from "@/models";
 
 /* ── Constantes de rutas ─────────────────────────────────── */
 export const ROUTES = {
-  login: "/",
+  login: "/login",
   dashboard: "/dashboard",
   employeeDashboard: "/employee-dashboard",
   employeeCalendario: "/employee-dashboard/calendario",
@@ -29,30 +29,76 @@ export const ROUTES = {
     modal anterior; se navega en vez de abrirse encima de la pantalla. */
 export const sedeEditarPath = (id: number | string) => `/sedes/${id}/editar`;
 
-/* ── Navegación por rol ──────────────────────────────────── */
-const COMMON_ITEMS: NavItem[] = [
+/* ── Navegación por rol y plan ───────────────────────────── */
+/**
+ * Menú de un negocio con el plan gratuito: reservas, clientes, servicios,
+ * personal, calendario, reseñas y sedes. Reseñas y Sedes faltaban y solo
+ * se llegaba a ellas escribiendo la dirección a mano.
+ */
+const ADMIN_ITEMS_FREE: NavItem[] = [
   { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
   { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
   { id: "clientes", label: "Clientes", href: ROUTES.clientes, icon: "users" },
   { id: "servicios", label: "Servicios", href: ROUTES.servicios, icon: "scissors" },
   { id: "personal", label: "Personal", href: ROUTES.personal, icon: "user" },
   { id: "calendario", label: "Calendario", href: ROUTES.calendario, icon: "calendar" },
+  { id: "resenas", label: "Reseñas", href: ROUTES.resenas, icon: "star" },
+  { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
 
-const ADMIN_ITEMS: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
-  { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
-  { id: "clientes", label: "Clientes", href: ROUTES.clientes, icon: "users" },
-  { id: "servicios", label: "Servicios", href: ROUTES.servicios, icon: "scissors" },
-  { id: "personal", label: "Personal", href: ROUTES.personal, icon: "user" },
-  { id: "calendario", label: "Calendario", href: ROUTES.calendario, icon: "calendar" },
+/** Lo que añade Bookmy CRM Pro (contratado o durante la prueba). */
+const ADMIN_ITEMS_PRO: NavItem[] = [
+  ...ADMIN_ITEMS_FREE.slice(0, 7),
+  {
+    id: "facturacion",
+    label: "Facturación",
+    href: ROUTES.facturacion,
+    icon: "dollar",
+    children: [
+      { id: "facturas", label: "Facturas", href: ROUTES.facturas, icon: "invoice" },
+      { id: "gastos", label: "Gastos", href: ROUTES.gastos, icon: "receipt" },
+    ],
+  },
+  { id: "estadisticas", label: "Estadísticas", href: ROUTES.estadisticas, icon: "barChart" },
+  { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
   { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
   { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
+
+/**
+ * Módulos que solo entran en Bookmy CRM Pro. Quien no lo tenga no los ve
+ * en el menú y, si escribe la ruta, el panel le enseña qué se está
+ * perdiendo en vez de un error.
+ *
+ * Basta con la ruta padre: también cubre lo que cuelga de ella
+ * (`/facturacion/gastos`).
+ */
+export const RUTAS_DE_PAGO: readonly string[] = [
+  ROUTES.stock,
+  ROUTES.comunicacion,
+  ROUTES.facturacion,
+  ROUTES.estadisticas,
+];
+
+/** Nombre del módulo de pago al que pertenece una ruta, si es de pago. */
+export function moduloDePago(pathname: string): string | null {
+  const ruta = RUTAS_DE_PAGO.find(
+    (r) => pathname === r || pathname.startsWith(`${r}/`)
+  );
+  if (!ruta) return null;
+  return (
+    {
+      [ROUTES.stock]: "stock",
+      [ROUTES.comunicacion]: "comunicacion",
+      [ROUTES.facturacion]: "facturacion",
+      [ROUTES.estadisticas]: "estadisticas",
+    }[ruta] ?? null
+  );
+}
 
 const EMPLOYEE_ITEMS: NavItem[] = [
   { id: "emp-main", label: "Mis Reservas", href: ROUTES.employeeDashboard, icon: "calendar" },
@@ -64,6 +110,7 @@ const EMPLOYEE_ITEMS: NavItem[] = [
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
 
+/** @deprecated Usa `navParaSesion`: el menú depende del plan, no solo del rol. */
 export const NAV_BY_ROLE: Record<string, NavItem[]> = {
   superadmin: [
     { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
@@ -93,10 +140,20 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
     { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
   ],
-  owner: ADMIN_ITEMS,
-  admin: ADMIN_ITEMS,
+  owner: ADMIN_ITEMS_FREE,
+  admin: ADMIN_ITEMS_FREE,
   employee: EMPLOYEE_ITEMS,
 };
+
+/**
+ * Menú de la sesión: el superadmin lo ve todo; un negocio ve el plan
+ * gratuito y, si tiene Pro (contratado o de prueba), los cuatro módulos
+ * de pago.
+ */
+export function navParaSesion(role: string, pro: boolean): NavItem[] {
+  if (role === "superadmin" || role === "employee") return NAV_BY_ROLE[role] ?? [];
+  return pro ? ADMIN_ITEMS_PRO : ADMIN_ITEMS_FREE;
+}
 
 /* ── Constantes de almacenamiento ─────────────────────────── */
 export const THEME_STORAGE_KEY = "bookmy-theme";
