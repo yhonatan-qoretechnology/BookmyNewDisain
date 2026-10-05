@@ -447,6 +447,8 @@ const es = {
     panelTitle: "Empresas registradas",
     panelSub: "{n} negocio(s) en la plataforma",
     searchPlaceholder: "Buscar por nombre o rubro…",
+    filtroPais: "Filtrar por país",
+    todosLosPaises: "Todos los países",
     new: "+ Nueva empresa",
     emptyTitle: "Sin empresas",
     emptyMsg: "No hay resultados para esa búsqueda.",

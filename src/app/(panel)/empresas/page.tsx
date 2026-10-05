@@ -36,6 +36,11 @@ export default function EmpresasPage() {
   const { t, locale } = useI18n();
 
   const [search, setSearch] = useState("");
+  /* El superadmin es el unico que ve negocios de varios mercados a la vez:
+     sin este filtro, una lista con Espana y Colombia mezcladas no se puede
+     leer. Es el unico control nuevo que ha traido la separacion por paises
+     a todo el panel. */
+  const [paisFiltro, setPaisFiltro] = useState("");
   /** Empresa cuyo plan se está cambiando (para bloquear su botón) */
   const [cambiandoPlan, setCambiandoPlan] = useState<string | null>(null);
   /** Empresa cuyo bloqueo se está guardando (para bloquear su botón) */
@@ -117,8 +122,21 @@ export default function EmpresasPage() {
   }, [todas], {} as Record<string, number>);
   const lista = useMemo(() => {
     const q = search.toLowerCase();
-    return todas.filter((n) => (n.nombre + n.rubro).toLowerCase().includes(q));
-  }, [todas, search]);
+    return todas
+      .filter((n) => !paisFiltro || n.paisIso === paisFiltro)
+      .filter((n) => (n.nombre + n.rubro).toLowerCase().includes(q));
+  }, [todas, search, paisFiltro]);
+
+  /* Solo se ofrecen los paises que de verdad tienen negocios: mientras no
+     haya ninguno colombiano, el filtro no aparece y la pantalla queda como
+     estaba. */
+  const paisesConNegocios = useMemo(() => {
+    const vistos = new Map<string, string>();
+    for (const n of todas) {
+      if (n.paisIso) vistos.set(n.paisIso, n.paisNombre || n.paisIso);
+    }
+    return [...vistos].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [todas]);
 
   /* ── Selección de empresa → carga automática de sus sedes ──
      La empresa y la sede elegidas se guardan en el estado global
@@ -193,6 +211,19 @@ export default function EmpresasPage() {
             <PanelHead title={t("empresas.panelTitle")} sub={t("empresas.panelSub", { n: lista.length })} />
             <Toolbar>
               <SearchBox value={search} onChange={setSearch} placeholder={t("empresas.searchPlaceholder")} />
+              {paisesConNegocios.length > 1 && (
+                <select
+                  value={paisFiltro}
+                  onChange={(e) => setPaisFiltro(e.target.value)}
+                  aria-label={t("empresas.filtroPais")}
+                  className={styles.filtroPais}
+                >
+                  <option value="">{t("empresas.todosLosPaises")}</option>
+                  {paisesConNegocios.map(([iso, nombre]) => (
+                    <option key={iso} value={iso}>{nombre}</option>
+                  ))}
+                </select>
+              )}
               <ToolbarActions>
                 <Button variant="ghost" onClick={() => setVerificaciones(true)}>
                   {t("kyc.verificaciones")}

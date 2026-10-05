@@ -417,6 +417,8 @@ const en: Dictionary = {
     panelTitle: "Registered companies",
     panelSub: "{n} business(es) on the platform",
     searchPlaceholder: "Search by name or industry…",
+    filtroPais: "Filter by country",
+    todosLosPaises: "All countries",
     new: "+ New company",
     emptyTitle: "No companies",
     emptyMsg: "No results for that search.",

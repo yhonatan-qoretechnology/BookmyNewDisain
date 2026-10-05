@@ -41,6 +41,10 @@ export interface Negocio {
   /** Bloqueada por el superadmin: ni entran sus admins ni admite reservas */
   bloqueada?: boolean;
   bloqueadaMotivo?: string | null;
+  /** Pais del negocio. Solo lo usa el superadmin, que es el unico que ve
+      empresas de varios mercados a la vez. */
+  paisIso?: string | null;
+  paisNombre?: string | null;
 }
 
 export interface Sede {

@@ -22,6 +22,9 @@ const mapEmpresa = (e: ApiEmpresa): Negocio => ({
   enPrueba: !!e.trialEndsAt && new Date(e.trialEndsAt).getTime() > Date.now(),
   bloqueada: !!e.bloqueada,
   bloqueadaMotivo: e.bloqueadaMotivo ?? null,
+  /* El backend lo manda como `country`, igual que el campo de Prisma. */
+  paisIso: e.country?.isoCode ?? e.pais?.isoCode ?? null,
+  paisNombre: e.country?.nombre ?? e.pais?.nombre ?? null,
 });
 
 export const NegociosController = {
