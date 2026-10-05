@@ -108,7 +108,10 @@ function Login() {
           </ul>
 
           <div className={styles.artShot}>
-            <img src="/web/img/dashboard-b.png" alt="" loading="lazy" decoding="async" />
+            <picture>
+              <source srcSet="/web/img/bookmy-app-personas.webp" type="image/webp" />
+              <img src="/web/img/bookmy-app-personas.png" alt="" loading="lazy" decoding="async" />
+            </picture>
           </div>
         </div>
 
