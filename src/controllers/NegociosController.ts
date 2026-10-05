@@ -20,6 +20,8 @@ const mapEmpresa = (e: ApiEmpresa): Negocio => ({
   trialEndsAt: e.trialEndsAt ?? null,
   /* Una prueba viva vale como Pro aunque el plan contratado sea FREE. */
   enPrueba: !!e.trialEndsAt && new Date(e.trialEndsAt).getTime() > Date.now(),
+  bloqueada: !!e.bloqueada,
+  bloqueadaMotivo: e.bloqueadaMotivo ?? null,
 });
 
 export const NegociosController = {
@@ -62,5 +64,20 @@ export const NegociosController = {
       descripcion: input.rubro,
     });
     return mapEmpresa(created);
+  },
+
+  /**
+   * Corta el acceso de una empresa — PATCH /empresas/:id/bloquear.
+   * Sus admins y profesionales no podrán entrar al panel (el login
+   * devuelve EMPRESA_BLOQUEADA) y sus sedes dejan de admitir reservas.
+   * @throws ApiError 403 si quien llama no es superadmin.
+   */
+  async bloquear(negocioId: string, motivo?: string): Promise<void> {
+    await EmpresasApi.bloquear(Number(negocioId), motivo);
+  },
+
+  /** Devuelve el acceso — PATCH /empresas/:id/desbloquear. */
+  async desbloquear(negocioId: string): Promise<void> {
+    await EmpresasApi.desbloquear(Number(negocioId));
   },
 };

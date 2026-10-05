@@ -724,6 +724,10 @@ export interface ServicioAsignable {
   duracion: number;
   asignado: boolean;
   asignacionId: number | null;
+  /** Minutos de limpieza/preparación que se bloquean tras cada cita */
+  tiempoAdicionalMinutos: number;
+  /** Si el servicio puede partirse en dos días cuando no entra antes del cierre */
+  permiteContinuarOtroDia: boolean;
 }
 
 /**
@@ -752,7 +756,21 @@ export const AsignacionesController = {
       duracion: s.precios?.[0]?.duration ?? 0,
       asignado: s.asignado,
       asignacionId: s.asignacionId,
+      tiempoAdicionalMinutos: s.tiempoAdicionalMinutos ?? 0,
+      permiteContinuarOtroDia: !!s.permiteContinuarOtroDia,
     }));
+  },
+
+  /**
+   * Ajustes de una asignación ya creada — PATCH /service-sede-profesional/:id.
+   * El bloqueo del tiempo extra lo calcula el backend solo al validar horarios.
+   * @param asignacionId fila de service_sede_profesional.
+   */
+  async actualizarAjustes(
+    asignacionId: number,
+    ajustes: { tiempoAdicionalMinutos?: number; permiteContinuarOtroDia?: boolean },
+  ): Promise<void> {
+    await AsignacionesApi.actualizar(asignacionId, ajustes);
   },
 
   /**

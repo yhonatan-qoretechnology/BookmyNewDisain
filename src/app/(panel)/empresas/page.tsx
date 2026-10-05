@@ -37,6 +37,11 @@ export default function EmpresasPage() {
   const [search, setSearch] = useState("");
   /** Empresa cuyo plan se está cambiando (para bloquear su botón) */
   const [cambiandoPlan, setCambiandoPlan] = useState<string | null>(null);
+  /** Empresa cuyo bloqueo se está guardando (para bloquear su botón) */
+  const [bloqueando, setBloqueando] = useState<string | null>(null);
+  /** Empresa elegida para bloquear: el modal pide el motivo */
+  const [bloqueandoA, setBloqueandoA] = useState<Negocio | null>(null);
+  const [motivoBloqueo, setMotivoBloqueo] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [rubro, setRubro] = useState("");
@@ -65,6 +70,40 @@ export default function EmpresasPage() {
       toast(e instanceof Error ? e.message : "Error", "error");
     } finally {
       setCambiandoPlan(null);
+    }
+  };
+
+  /**
+   * Bloquear corta el acceso: sus admins y profesionales no pueden entrar
+   * al panel y sus sedes dejan de admitir reservas. El motivo es opcional,
+   * pero es lo que verá quien intente entrar.
+   */
+  const bloquear = async () => {
+    if (!bloqueandoA) return;
+    setBloqueando(bloqueandoA.id);
+    try {
+      await NegociosController.bloquear(bloqueandoA.id, motivoBloqueo);
+      toast(t("empresas.bloqueadaOk", { empresa: bloqueandoA.nombre }), "success");
+      setBloqueandoA(null);
+      setMotivoBloqueo("");
+      await reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setBloqueando(null);
+    }
+  };
+
+  const desbloquear = async (n: Negocio) => {
+    setBloqueando(n.id);
+    try {
+      await NegociosController.desbloquear(n.id);
+      toast(t("empresas.desbloqueadaOk", { empresa: n.nombre }), "success");
+      await reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setBloqueando(null);
     }
   };
 
@@ -192,6 +231,13 @@ export default function EmpresasPage() {
                           {n.enPrueba && n.trialEndsAt && (
                             <Tag>{t("plan.trialUntil", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale) })}</Tag>
                           )}
+                          {n.bloqueada && (
+                            <Badge kind="cancelado">
+                              {n.bloqueadaMotivo
+                                ? t("empresas.bloqueadaPor", { motivo: n.bloqueadaMotivo })
+                                : t("empresas.bloqueada")}
+                            </Badge>
+                          )}
                         </TagRow>
                         <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
                           {activa ? (
@@ -214,6 +260,15 @@ export default function EmpresasPage() {
                             {t("plan.changeTo", {
                               plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro"),
                             })}
+                          </Button>
+                          {/* Bloqueo: sus admins no entran y sus sedes no admiten reservas */}
+                          <Button
+                            variant={n.bloqueada ? "ghost" : "danger"}
+                            size="sm"
+                            disabled={bloqueando === n.id}
+                            onClick={() => (n.bloqueada ? void desbloquear(n) : setBloqueandoA(n))}
+                          >
+                            {n.bloqueada ? t("empresas.desbloquear") : t("empresas.bloquear")}
                           </Button>
                         </div>
                       </SimpleCard>
@@ -244,6 +299,28 @@ export default function EmpresasPage() {
         )}
         <ModalActions>
           <Button variant="ghost" onClick={() => setSedePick(null)}>{t("common.close")}</Button>
+        </ModalActions>
+      </Modal>
+
+      {/* Bloquear una empresa: el motivo se le muestra a quien intente entrar */}
+      <Modal open={!!bloqueandoA} onClose={() => { setBloqueandoA(null); setMotivoBloqueo(""); }}>
+        <ModalTitle>{t("empresas.bloquearTitulo", { empresa: bloqueandoA?.nombre || "" })}</ModalTitle>
+        <ModalText>{t("empresas.bloquearSub")}</ModalText>
+        <Field label={t("empresas.bloquearMotivo")} htmlFor="bloq-motivo">
+          <input
+            id="bloq-motivo"
+            value={motivoBloqueo}
+            onChange={(e) => setMotivoBloqueo(e.target.value)}
+            placeholder={t("empresas.bloquearMotivoPlaceholder")}
+          />
+        </Field>
+        <ModalActions>
+          <Button variant="ghost" onClick={() => { setBloqueandoA(null); setMotivoBloqueo(""); }}>
+            {t("common.cancel")}
+          </Button>
+          <Button variant="danger" disabled={!!bloqueando} onClick={() => void bloquear()}>
+            {t("empresas.bloquear")}
+          </Button>
         </ModalActions>
       </Modal>
 

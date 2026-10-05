@@ -239,6 +239,20 @@
 .aviso span { font-size: 12.5px; color: var(--slate-500); }
 
 /* ── Pie ── */
+/* Ajustes de una asignación: tiempo extra y continuar otro día */
+.ajustes {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+  padding: 6px 14px 12px 42px;
+  font-size: 12.5px; color: var(--slate-500);
+}
+.ajuste { display: inline-flex; align-items: center; gap: 7px; }
+.ajuste input {
+  width: 72px; padding: 5px 8px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: inherit;
+}
+.ajusteCheck { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+
 .foot {
   display: flex;
   align-items: center;

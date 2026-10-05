@@ -344,6 +344,11 @@ const en: Dictionary = {
     created: "Reserva creada correctamente",
     slotTaken: "Esa franja acaba de ocuparse. Elige otro horario.",
     incomplete: "Falta información para completar la reserva.",
+    /* Servicio que no entra antes del cierre y se parte en dos días */
+    continuacionTitulo: "Este servicio se hace en dos partes",
+    continuacionMsg: "Hoy caben {minutosHoy} min: de la hora elegida hasta las {finHoy}. Los {restante} min que faltan se harían el {fecha}, de {inicio} a {fin}. ¿Lo confirmas?",
+    continuacionConfirmar: "Sí, reservar las dos partes",
+    continuacionCreada: "Reserva creada en dos partes",
   },
 
   empresas: {
@@ -363,6 +368,17 @@ const en: Dictionary = {
     rubro: "Industry",
     rubroPlaceholder: "Beauty, barbershop, spa, clinic…",
     created: "Company registered on the platform",
+    /* Blocking companies (superadmin only) */
+    bloquear: "Block",
+    desbloquear: "Unblock",
+    bloqueada: "Blocked",
+    bloqueadaPor: "Blocked: {motivo}",
+    bloquearTitulo: "Block {empresa}",
+    bloquearSub: "Its admins and staff won't be able to sign in, and its branches will stop taking bookings.",
+    bloquearMotivo: "Reason (optional)",
+    bloquearMotivoPlaceholder: "e.g. unpaid subscription",
+    bloqueadaOk: "{empresa} blocked",
+    desbloqueadaOk: "{empresa} unblocked",
     selectorLabel: "Company:",
     pickBranchTitle: "Branches of {empresa}",
     loadingBranches: "Loading branches…",
@@ -571,6 +587,11 @@ const en: Dictionary = {
     sinProfesionalesMsg: "Add at least one professional under Staff to assign services.",
     nota: "A service with no professional assigned won't show up when booking at this branch.",
     errGuardar: "The change could not be saved.",
+    /* Per-service settings at this branch */
+    tiempoAdicional: "Extra time (min)",
+    tiempoAdicionalAyuda: "Cleaning or set-up minutes blocked after each appointment.",
+    continuarOtroDia: "Can continue another day",
+    continuarOtroDiaAyuda: "If it doesn't fit before closing, the booking is split into two appointments.",
   },
 
   /* Image upload — shared across screens */
@@ -805,6 +826,14 @@ const en: Dictionary = {
   },
 
   calendario: {
+    /* Official public holidays */
+    festivosSincronizar: "Sync holidays",
+    festivosAnio: "Year",
+    festivosSincronizando: "Syncing…",
+    festivosResultado: "Synced {autonomicos} regional and {nacionales} national holidays for {anio}",
+    festivosFallidas: "Could not fetch: {comunidades}",
+    festivosCreditos: "Holiday data:",
+    festivosFuente: "Calendarios Nacionales",
     panelTitle: "Monthly agenda",
     subAll: "All {negocio} branches",
     subBranch: "{sede} branch",

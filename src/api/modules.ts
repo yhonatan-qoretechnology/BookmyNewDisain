@@ -14,7 +14,8 @@ import type {
   ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
   ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
-  ApiServicioAsignable, ApiUser,
+  ApiServicioAsignable, ApiSincronizacionFestivos, ApiUser, ApiConContinuacion,
+  UpdateServiceSedeProfesionalDto,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
   RegisterUserDto, RegistroNegocioDto, SendMessageDto, UpdateGastoDto, UpdateServiceDto,
@@ -130,6 +131,13 @@ export const AsignacionesApi = {
   asignar: (dto: CreateServiceSedeProfesionalDto) =>
     http.post<{ id: number }>(EP.serviceSedeProfesional, dto),
 
+  /**
+   * PATCH — ajustes de esa asignación: minutos extra que se bloquean tras
+   * cada cita y si el servicio puede continuar otro día.
+   */
+  actualizar: (asignacionId: number, dto: UpdateServiceSedeProfesionalDto) =>
+    http.patch<{ id: number }>(EP.serviceSedeProfesionalById(asignacionId), dto),
+
   /** DELETE — quita la asignación por su id (el `asignacionId`). */
   quitar: (asignacionId: number) =>
     http.delete(EP.serviceSedeProfesionalById(asignacionId)),
@@ -191,6 +199,12 @@ export const EmpresasApi = {
   create: (data: { nombre: string; descripcion?: string; telefono?: string; email?: string }) =>
     http.post<ApiEmpresa>(EP.empresas, data),
   update: (id: number, data: Partial<ApiEmpresa>) => http.patch<ApiEmpresa>(EP.empresaById(id), data),
+  /** PATCH /empresas/:id/bloquear — corta el acceso de sus admins y las reservas. */
+  bloquear: (id: number, motivo?: string) =>
+    http.patch<ApiEmpresa>(EP.empresaBloquear(id), motivo?.trim() ? { motivo: motivo.trim() } : {}),
+  /** PATCH /empresas/:id/desbloquear — devuelve el acceso. */
+  desbloquear: (id: number) => http.patch<ApiEmpresa>(EP.empresaDesbloquear(id)),
+  /** DELETE /empresas/:id — solo SUPER_ADMIN; el resto recibe 403. */
   remove: (id: number) => http.delete(EP.empresaById(id)),
 };
 
@@ -278,6 +292,14 @@ export const AppointmentsApi = {
     http.get<ApiAppointment[]>(EP.appointmentsCalendar + qs({ sedeId, fechaInicio, fechaFin })),
   /** POST /appointments — CreateAppointmentDto exacto del backend */
   create: (dto: CreateAppointmentDto) => http.post<ApiAppointment>(EP.appointments, dto),
+  /**
+   * POST /appointments/con-continuacion — mismo payload que create(), para
+   * cuando el servicio no entra completo antes del cierre y se parte en dos
+   * días. Devuelve { parte1, parte2 } o, si ya no hace falta partir, una
+   * cita normal.
+   */
+  createConContinuacion: (dto: CreateAppointmentDto) =>
+    http.post<ApiConContinuacion>(EP.appointmentsConContinuacion, dto),
   cancel: (id: number) => http.patch<ApiAppointment>(EP.appointmentCancel(id)),
   /**
    * PATCH /appointments/:id — cambia el estado de la cita.
@@ -478,6 +500,14 @@ export const FestivosApi = {
   /** GET /festivos?anio=&sedeId= — nacionales + de su comunidad + de su municipio. */
   findAll: (params: { anio?: number; sedeId?: number } = {}) =>
     http.get<ApiFestivo[]>(EP.festivos + qs(params)),
+
+  /**
+   * POST /festivos/sincronizar { anio } — baja el calendario oficial completo
+   * (nacional + 19 comunidades) de calendariosnacionales.com y lo guarda.
+   * Solo SUPER_ADMIN; se corre una vez al año cuando sale el calendario.
+   */
+  sincronizar: (anio: number) =>
+    http.post<ApiSincronizacionFestivos>(EP.festivosSincronizar, { anio }),
 };
 
 /* ── Subida de imágenes ─────────────────────────────────────

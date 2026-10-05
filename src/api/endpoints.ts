@@ -54,6 +54,10 @@ export const EP = {
   empresaPrueba: (id: number) => `/empresas/${id}/prueba`,
   /** PATCH multipart — campo "logo". Devuelve la Empresa actualizada. */
   empresaLogo: (id: number) => `/empresas/${id}/logo`,
+  /** PATCH { motivo? } — corta el acceso de la empresa. Solo SUPER_ADMIN. */
+  empresaBloquear: (id: number) => `/empresas/${id}/bloquear`,
+  /** PATCH sin cuerpo — devuelve el acceso. Solo SUPER_ADMIN. */
+  empresaDesbloquear: (id: number) => `/empresas/${id}/desbloquear`,
 
   /* @Controller('sedes') */
   sedes: "/sedes",
@@ -124,6 +128,8 @@ export const EP = {
   appointmentById: (id: number) => `/appointments/${id}`,
   appointmentsFilter: "/appointments/filter",
   appointmentsCalendar: "/appointments/calendar",
+  /** POST — mismo payload que /appointments; crea las dos partes del servicio partido */
+  appointmentsConContinuacion: "/appointments/con-continuacion",
   appointmentsLatest: (sedeId: number) => `/appointments/branches/${sedeId}/latest`,
   appointmentCancel: (id: number) => `/appointments/${id}/cancel`,
   appointmentReschedule: (id: number) => `/appointments/${id}/reschedule`,
@@ -155,6 +161,8 @@ export const EP = {
 
   /* @Controller('festivos') — publico; informativos, no bloquean el agendado */
   festivos: "/festivos",
+  /** POST { anio } — baja el calendario oficial del año. Solo SUPER_ADMIN. */
+  festivosSincronizar: "/festivos/sincronizar",
 
   /* @Controller('estadisticas') — rankings con filtro desde/hasta (2.12) */
   estEmpresas: "/estadisticas/empresas-con-mas-reservas",

@@ -25,11 +25,11 @@ import { DIAS_AGENDABLES } from "@/constants";
 import {
   AppointmentsApi, AuthApi, DisponibilidadApi, ProfesionalesApi, SedesApi,
 } from "@/api/modules";
-import { http } from "@/api/http";
+import { ApiError, http } from "@/api/http";
 import { EP } from "@/api/endpoints";
 import type {
-  ApiAppointment, ApiDisponibilidadProfesional, ApiPaymentMethod, ApiSede,
-  ApiServicioProfesional, ApiUser,
+  ApiAppointment, ApiDisponibilidadProfesional, ApiPaymentMethod, ApiRequiereContinuacion,
+  ApiSede, ApiServicioProfesional, ApiUser, CreateAppointmentDto,
 } from "@/api/types";
 import {
   construirSlots, ocupacionDeCita, resolverCierres, resolverHorario,
@@ -56,10 +56,60 @@ export interface AgendaProvider {
 }
 export interface ReservaCreator {
   crear(draft: BookingDraft): Promise<{ id: number }>;
+  /** Confirma el servicio partido en dos días (POST /appointments/con-continuacion). */
+  crearConContinuacion(draft: BookingDraft): Promise<{ partes: ApiAppointment[] }>;
 }
 
 /* ── Caché simple con TTL (evita duplicados en el flujo) ─── */
 const TTL_MS = 60_000;
+/* ── Servicio que no entra antes del cierre y se parte en dos días ──
+   El backend responde 400 con code "REQUIERE_CONTINUACION" y los datos
+   de las dos partes; el panel lo convierte en este error para poder
+   preguntarle al cliente antes de confirmar. */
+export type DatosContinuacion = ApiRequiereContinuacion["continuacion"];
+
+export class ErrorRequiereContinuacion extends Error {
+  continuacion: DatosContinuacion;
+  constructor(continuacion: DatosContinuacion) {
+    super("REQUIERE_CONTINUACION");
+    this.name = "ErrorRequiereContinuacion";
+    this.continuacion = continuacion;
+  }
+}
+
+/** Lee el cuerpo del 400 y devuelve los datos de la continuación, si los trae. */
+function leerContinuacion(e: unknown): DatosContinuacion | null {
+  if (!(e instanceof ApiError)) return null;
+  const body = e.body as Partial<ApiRequiereContinuacion> | null;
+  return body?.code === "REQUIERE_CONTINUACION" && body.continuacion
+    ? body.continuacion
+    : null;
+}
+
+/** CreateAppointmentDto exacto a partir del borrador del asistente. */
+function payloadDeReserva(draft: BookingDraft): CreateAppointmentDto {
+  const { cliente, profesional, servicio, slot, sedeId, metodoPago } = draft;
+  if (!cliente || !profesional || !servicio || !slot || !sedeId || !metodoPago) {
+    throw new Error("INCOMPLETE");
+  }
+  const paymentMethod: ApiPaymentMethod = metodoPago === "tarjeta" ? "CARD" : "CASH";
+  return {
+    fecha: slot.inicioISO,
+    horaInicio: slot.inicioISO,
+    horaFin: slot.finISO,
+    duracion: servicio.duracion,
+    sedeId: Number(sedeId),
+    serviceId: Number(servicio.id),
+    profesionalId: Number(profesional.id),
+    userId: Number(cliente.id),
+    paymentMethod,
+    paymentAmount: servicio.precio,
+    ...(paymentMethod === "CARD" && draft.card
+      ? { cardNumber: draft.card.number, expiryDate: draft.card.expiry, cvv: draft.card.cvv }
+      : {}),
+  };
+}
+
 const cache = new Map<string, { at: number; value: unknown }>();
 
 async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
@@ -348,26 +398,33 @@ export const BookingController:
     const libres = await this.getSlotsDisponibles(profesional.id, sedeId, fecha, servicio.duracion);
     if (!libres.some((s) => s.hora === slot.hora)) throw new Error("SLOT_TAKEN");
 
-    const paymentMethod: ApiPaymentMethod = metodoPago === "tarjeta" ? "CARD" : "CASH";
-    const created = await AppointmentsApi.create({
-      fecha: slot.inicioISO,
-      horaInicio: slot.inicioISO,
-      horaFin: slot.finISO,
-      duracion: servicio.duracion,
-      sedeId: Number(sedeId),
-      serviceId: Number(servicio.id),
-      profesionalId: Number(profesional.id),
-      userId: Number(cliente.id),
-      paymentMethod,
-      paymentAmount: servicio.precio,
-      ...(paymentMethod === "CARD" && draft.card
-        ? { cardNumber: draft.card.number, expiryDate: draft.card.expiry, cvv: draft.card.cvv }
-        : {}),
-    });
+    try {
+      const created = await AppointmentsApi.create(payloadDeReserva(draft));
+      /* La agenda del profesional y su detalle cambiaron: invalidar */
+      invalidate([`agenda:${profesional.id}:`, `detalle:${profesional.id}:`]);
+      return { id: created.id };
+    } catch (e) {
+      /* El servicio no entra completo antes del cierre pero admite partirse
+         en dos días: no es un fallo, hay que preguntárselo al cliente. */
+      const continuacion = leerContinuacion(e);
+      if (continuacion) throw new ErrorRequiereContinuacion(continuacion);
+      throw e;
+    }
+  },
 
-    /* La agenda del profesional y su detalle cambiaron: invalidar */
+  /**
+   * Confirma el servicio partido en dos días — POST /appointments/con-continuacion.
+   * Va el MISMO payload que el intento original, sin tocar nada.
+   * @returns las dos partes enlazadas, o una sola cita si para entonces ya
+   *   se liberó un hueco y no hizo falta partir.
+   */
+  async crearConContinuacion(draft: BookingDraft): Promise<{ partes: ApiAppointment[] }> {
+    const { profesional } = draft;
+    if (!profesional) throw new Error("INCOMPLETE");
+    const res = await AppointmentsApi.createConContinuacion(payloadDeReserva(draft));
     invalidate([`agenda:${profesional.id}:`, `detalle:${profesional.id}:`]);
-    return { id: created.id };
+    const partes = "parte1" in res ? [res.parte1, res.parte2] : [res];
+    return { partes };
   },
 
   /** Limpieza total de caché tras finalizar el flujo. */

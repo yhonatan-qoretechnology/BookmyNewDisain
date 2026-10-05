@@ -89,6 +89,10 @@ export interface ApiEmpresa {
   plan?: "FREE" | "PRO";
   trialEndsAt?: string | null;
   trialUsed?: boolean;
+  /** Bloqueo del superadmin: sus admins no pueden entrar ni recibir reservas. */
+  bloqueada?: boolean;
+  bloqueadaEn?: string | null;
+  bloqueadaMotivo?: string | null;
 }
 
 /** GET /empresas/:id/plan — plan del negocio y estado de la prueba. */
@@ -507,6 +511,10 @@ export interface ApiServicioAsignable {
   asignado: boolean;
   /** id de la fila de service_sede_profesional; null si no está asignado */
   asignacionId: number | null;
+  /** Minutos de limpieza/preparación que el backend bloquea tras cada cita */
+  tiempoAdicionalMinutos?: number | null;
+  /** Si el servicio puede partirse en dos días cuando no entra antes del cierre */
+  permiteContinuarOtroDia?: boolean | null;
 }
 
 /** DTO de POST /service-sede-profesional */
@@ -514,6 +522,12 @@ export interface CreateServiceSedeProfesionalDto {
   sedeId: number;
   serviceId: number;
   profesionalId: number;
+}
+
+/** DTO de PATCH /service-sede-profesional/:id */
+export interface UpdateServiceSedeProfesionalDto {
+  tiempoAdicionalMinutos?: number;
+  permiteContinuarOtroDia?: boolean;
 }
 
 /* ── ClientManagement (@Controller('clients')) ───────────────
@@ -721,6 +735,39 @@ export interface ApiPaymentItem {
   concepto: string;
   cantidad: number;
   precioUnitario: number;
+}
+
+/**
+ * Cuerpo del 400 de POST /appointments cuando el servicio no entra completo
+ * antes del cierre pero admite partirse en dos días (permiteContinuarOtroDia).
+ */
+export interface ApiRequiereContinuacion {
+  message: string;
+  code: "REQUIERE_CONTINUACION";
+  continuacion: {
+    minutosDisponiblesHoy: number;
+    duracionRestante: number;
+    horaFinHoySugerida: string;
+    proximoDiaDisponible: { fecha: string; horaInicio: string; horaFin: string };
+  };
+}
+
+/**
+ * POST /appointments/con-continuacion — crea las dos partes enlazadas
+ * (parte2.extensionDeId === parte1.id). Si para entonces ya no hace falta
+ * partir, devuelve una cita normal: hay que soportar las dos formas.
+ */
+export type ApiConContinuacion =
+  | { parte1: ApiAppointment; parte2: ApiAppointment }
+  | ApiAppointment;
+
+/** Respuesta de POST /festivos/sincronizar. */
+export interface ApiSincronizacionFestivos {
+  anio: number;
+  nacionalesCount: number;
+  autonomicosCount: number;
+  comunidadesFallidas: string[];
+  fuente: string;
 }
 
 /** Festivo devuelto por GET /festivos. Es informativo: no bloquea el agendado. */

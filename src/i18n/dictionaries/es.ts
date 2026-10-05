@@ -349,6 +349,11 @@ const es = {
     created: "Reserva creada correctamente",
     slotTaken: "Esa franja acaba de ocuparse. Elige otro horario.",
     incomplete: "Falta información para completar la reserva.",
+    /* Servicio que no entra antes del cierre y se parte en dos días */
+    continuacionTitulo: "Este servicio se hace en dos partes",
+    continuacionMsg: "Hoy caben {minutosHoy} min: de la hora elegida hasta las {finHoy}. Los {restante} min que faltan se harían el {fecha}, de {inicio} a {fin}. ¿Lo confirmas?",
+    continuacionConfirmar: "Sí, reservar las dos partes",
+    continuacionCreada: "Reserva creada en dos partes",
   },
 
   empresas: {
@@ -368,6 +373,17 @@ const es = {
     rubro: "Rubro",
     rubroPlaceholder: "Belleza, barbería, spa, clínica…",
     created: "Empresa registrada en la plataforma",
+    /* Bloqueo de empresas (solo superadmin) */
+    bloquear: "Bloquear",
+    desbloquear: "Desbloquear",
+    bloqueada: "Bloqueada",
+    bloqueadaPor: "Bloqueada: {motivo}",
+    bloquearTitulo: "Bloquear {empresa}",
+    bloquearSub: "Sus administradores y profesionales no podrán entrar al panel, y sus sedes dejarán de admitir reservas.",
+    bloquearMotivo: "Motivo (opcional)",
+    bloquearMotivoPlaceholder: "Ej. impago de la cuota",
+    bloqueadaOk: "{empresa} bloqueada",
+    desbloqueadaOk: "{empresa} desbloqueada",
     selectorLabel: "Empresa:",
     pickBranchTitle: "Sedes de {empresa}",
     loadingBranches: "Cargando sedes…",
@@ -578,6 +594,11 @@ const es = {
     sinProfesionalesMsg: "Añade al menos un profesional en Personal para poder asignarle servicios.",
     nota: "Un servicio sin ningún profesional asignado no aparecerá al reservar en esta sede.",
     errGuardar: "No se pudo guardar el cambio.",
+    /* Ajustes de cada servicio en esa sede */
+    tiempoAdicional: "Tiempo extra (min)",
+    tiempoAdicionalAyuda: "Minutos de limpieza o preparación que se bloquean después de cada cita.",
+    continuarOtroDia: "Puede continuar otro día",
+    continuarOtroDiaAyuda: "Si no entra completo antes del cierre, la reserva se parte en dos citas.",
   },
 
   /* Subida de imágenes — compartido por todas las pantallas */
@@ -817,6 +838,14 @@ const es = {
   },
 
   calendario: {
+    /* Festivos oficiales */
+    festivosSincronizar: "Sincronizar festivos",
+    festivosAnio: "Año",
+    festivosSincronizando: "Sincronizando…",
+    festivosResultado: "Se sincronizaron {autonomicos} festivos autonómicos y {nacionales} nacionales para {anio}",
+    festivosFallidas: "No se pudieron traer: {comunidades}",
+    festivosCreditos: "Datos de festivos:",
+    festivosFuente: "Calendarios Nacionales",
     panelTitle: "Agenda mensual",
     subAll: "Todas las sedes de {negocio}",
     subBranch: "Sede {sede}",

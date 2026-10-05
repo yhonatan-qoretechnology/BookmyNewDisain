@@ -50,6 +50,8 @@ export default function ServiciosSedeModal({
   /* Cambios locales sobre la respuesta del API: evita recargar
      doscientos servicios en cada clic */
   const [cambios, setCambios] = useState<Map<number, number | null>>(new Map());
+  /* Ajustes editados en pantalla: serviceId → { minutos, continuar } */
+  const [ajustes, setAjustes] = useState<Map<number, { minutos: number; continuar: boolean }>>(new Map());
 
   const abierto = sedeId != null;
 
@@ -126,7 +128,36 @@ export default function ServiciosSedeModal({
     }
   };
 
+  /* ── Ajustes por asignación: minutos extra y continuar otro día ──
+     Se guardan contra PATCH /service-sede-profesional/:id. El número
+     se escribe en local y se manda al salir del campo; la casilla, al
+     instante. Si el guardado falla, se revierte lo que se vea. */
+  const ajusteDe = (s: ServicioAsignable) =>
+    ajustes.get(s.id) ?? { minutos: s.tiempoAdicionalMinutos, continuar: s.permiteContinuarOtroDia };
+
+  const cambiarAjuste = (s: ServicioAsignable, cambio: { minutos?: number; continuar?: boolean }) =>
+    setAjustes((prev) => new Map(prev).set(s.id, { ...ajusteDe(s), ...cambio }));
+
+  const guardarAjuste = async (
+    s: ServicioAsignable,
+    cambio: { minutos?: number; continuar?: boolean } = {},
+  ) => {
+    if (s.asignacionId == null) return;
+    const previo = { minutos: s.tiempoAdicionalMinutos, continuar: s.permiteContinuarOtroDia };
+    const valor = { ...ajusteDe(s), ...cambio };
+    try {
+      await AsignacionesController.actualizarAjustes(s.asignacionId, {
+        tiempoAdicionalMinutos: valor.minutos,
+        permiteContinuarOtroDia: valor.continuar,
+      });
+    } catch (e) {
+      setAjustes((prev) => new Map(prev).set(s.id, previo));
+      toast(e instanceof Error ? e.message : t("serviciosSede.errGuardar"), "error");
+    }
+  };
+
   const cerrar = () => {
+    setAjustes(new Map());
     setCambios(new Map());
     setBusqueda("");
     setSoloAsignados(false);
@@ -219,29 +250,59 @@ export default function ServiciosSedeModal({
                 <span>{items.length}</span>
               </h4>
               {items.map((s) => (
-                <label
-                  key={s.id}
-                  className={`${styles.fila} ${s.asignado ? styles.filaOn : ""}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={s.asignado}
-                    disabled={guardando === s.id}
-                    onChange={() => void alternar(s)}
-                  />
-                  <span className={styles.info}>
-                    <b>{s.nombre}</b>
-                    {s.duracion > 0 && (
-                      <span className={styles.meta}>{s.duracion} min</span>
-                    )}
-                  </span>
-                  <span className={styles.precio}>
-                    {s.precio > 0 ? fmtMoneda(s.precio, s.moneda) : "—"}
-                  </span>
-                  <span className={styles.estado} aria-hidden>
-                    {guardando === s.id ? <span className={styles.spinner} /> : null}
-                  </span>
-                </label>
+                <div key={s.id}>
+                  <label className={`${styles.fila} ${s.asignado ? styles.filaOn : ""}`}>
+                    <input
+                      type="checkbox"
+                      checked={s.asignado}
+                      disabled={guardando === s.id}
+                      onChange={() => void alternar(s)}
+                    />
+                    <span className={styles.info}>
+                      <b>{s.nombre}</b>
+                      {s.duracion > 0 && (
+                        <span className={styles.meta}>{s.duracion} min</span>
+                      )}
+                    </span>
+                    <span className={styles.precio}>
+                      {s.precio > 0 ? fmtMoneda(s.precio, s.moneda) : "—"}
+                    </span>
+                    <span className={styles.estado} aria-hidden>
+                      {guardando === s.id ? <span className={styles.spinner} /> : null}
+                    </span>
+                  </label>
+
+                  {/* Ajustes de ESTA asignación (servicio + sede + profesional).
+                      Fuera del <label> de arriba: dentro, tocarlos marcaría la
+                      casilla. El bloqueo del tiempo extra lo calcula el backend. */}
+                  {s.asignado && s.asignacionId != null && (
+                    <div className={styles.ajustes}>
+                      <label className={styles.ajuste} title={t("serviciosSede.tiempoAdicionalAyuda")}>
+                        <span>{t("serviciosSede.tiempoAdicional")}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={240}
+                          step={5}
+                          value={ajusteDe(s).minutos}
+                          onChange={(e) => cambiarAjuste(s, { minutos: Math.max(0, Math.min(240, e.target.valueAsNumber || 0)) })}
+                          onBlur={() => void guardarAjuste(s)}
+                        />
+                      </label>
+                      <label className={styles.ajusteCheck} title={t("serviciosSede.continuarOtroDiaAyuda")}>
+                        <input
+                          type="checkbox"
+                          checked={ajusteDe(s).continuar}
+                          onChange={(e) => {
+                            cambiarAjuste(s, { continuar: e.target.checked });
+                            void guardarAjuste(s, { continuar: e.target.checked });
+                          }}
+                        />
+                        {t("serviciosSede.continuarOtroDia")}
+                      </label>
+                    </div>
+                  )}
+                </div>
               ))}
             </section>
           ))

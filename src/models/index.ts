@@ -37,6 +37,9 @@ export interface Negocio {
   trialEndsAt?: string | null;
   /** true mientras la prueba de 30 días siga viva */
   enPrueba?: boolean;
+  /** Bloqueada por el superadmin: ni entran sus admins ni admite reservas */
+  bloqueada?: boolean;
+  bloqueadaMotivo?: string | null;
 }
 
 export interface Sede {

@@ -20,7 +20,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DIAS_AGENDABLES, ROUTES, fmtFechaLarga } from "@/constants";
 import type { CategoriaServicios, MetodoPago, SedeOpcion, SlotHora } from "@/models";
-import { BookingController } from "@/controllers/BookingController";
+import {
+  BookingController, ErrorRequiereContinuacion, type DatosContinuacion,
+} from "@/controllers/BookingController";
+import { madridHHmm } from "@/lib/timezone";
 import { useBooking, BOOKING_STEPS, type BookingStep } from "@/context/BookingContext";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
@@ -48,7 +51,7 @@ export default function NuevaReservaPage() {
   const router = useRouter();
   const { session } = useSession();
   const { t } = useI18n();
-  const { toast } = useUi();
+  const { toast, confirm } = useUi();
   const booking = useBooking();
   const { draft } = booking;
 
@@ -189,6 +192,46 @@ export default function NuevaReservaPage() {
   const [saving, setSaving] = useState(false);
   const needsCard = draft.metodoPago === "tarjeta";
 
+  /**
+   * El servicio no entra completo antes del cierre pero admite partirse:
+   * se le cuentan al cliente las dos partes y, si acepta, se reenvía el
+   * MISMO payload a /appointments/con-continuacion.
+   */
+  const pedirContinuacion = useCallback((c: DatosContinuacion) => {
+    const p = c.proximoDiaDisponible;
+    confirm({
+      title: t("booking.continuacionTitulo"),
+      message: t("booking.continuacionMsg", {
+        finHoy: madridHHmm(new Date(c.horaFinHoySugerida)),
+        minutosHoy: c.minutosDisponiblesHoy,
+        restante: c.duracionRestante,
+        fecha: fmtFechaLarga(p.fecha),
+        inicio: madridHHmm(new Date(p.horaInicio)),
+        fin: madridHHmm(new Date(p.horaFin)),
+      }),
+      confirmLabel: t("booking.continuacionConfirmar"),
+      onConfirm: async () => {
+        setSaving(true);
+        try {
+          const { partes } = await BookingController.crearConContinuacion({
+            ...draft, card: needsCard ? card : undefined,
+          });
+          booking.reset();
+          BookingController.invalidateAll();
+          /* Si para entonces ya se liberó un hueco, el backend devuelve una
+             sola cita en vez de las dos partes. */
+          toast(partes.length > 1 ? t("booking.continuacionCreada") : t("booking.created"), "success");
+          router.push(ROUTES.dashboard);
+        } catch (e) {
+          toast(e instanceof Error ? e.message : t("booking.incomplete"), "error");
+        } finally {
+          setSaving(false);
+        }
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, needsCard, card, booking, confirm, toast, t, router]);
+
   const confirmar = useCallback(async () => {
     if (!draft.metodoPago) { toast(t("booking.pickPayment"), "error"); return; }
     if (needsCard && (!card.number || !card.expiry || !card.cvv)) {
@@ -205,6 +248,11 @@ export default function NuevaReservaPage() {
       toast(t("booking.created"), "success");
       router.push(ROUTES.dashboard);
     } catch (e) {
+      /* No es un fallo: el servicio se puede hacer en dos días */
+      if (e instanceof ErrorRequiereContinuacion) {
+        pedirContinuacion(e.continuacion);
+        return;
+      }
       const msg = e instanceof Error ? e.message : "";
       if (msg === "SLOT_TAKEN") {
         toast(t("booking.slotTaken"), "error");
@@ -216,7 +264,8 @@ export default function NuevaReservaPage() {
     } finally {
       setSaving(false);
     }
-  }, [draft, needsCard, card, booking, toast, t, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, needsCard, card, booking, toast, t, router, pedirContinuacion]);
 
   /* ── Render ────────────────────────────────────────────── */
   const canNext =
