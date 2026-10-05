@@ -114,8 +114,10 @@ interface RefPais {
 }
 
 function refDeEmpresa(empresa: ApiEmpresa): RefPais | null {
-  const p = empresa.pais ?? null;
-  const id = p?.id ?? empresa.paisId ?? null;
+  /* `country` es como lo manda el backend (es el campo de Prisma); `pais`
+     se mira despues por si alguna respuesta lo trae en castellano. */
+  const p = empresa.country ?? empresa.pais ?? null;
+  const id = p?.id ?? empresa.countryId ?? empresa.paisId ?? null;
   if (!p && id == null) return null;
   const completo = paisUsable(p);
   return { isoCode: p?.isoCode ?? null, id, completo };

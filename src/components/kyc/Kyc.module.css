@@ -24,6 +24,13 @@
   border-radius: var(--r-lg); border: 1.5px solid rgba(255, 167, 38, .5);
   background: rgba(255, 167, 38, .12);
 }
+/* El icono es un SVG sin alto propio: dentro de un flex se estiraba hasta
+   ocupar la pantalla entera y tapaba la pagina. */
+.banner > svg {
+  flex: 0 0 auto;
+  width: 20px; height: 20px;
+  color: #b26a00;
+}
 .bannerRechazada { border-color: rgba(229, 72, 77, .5); background: rgba(229, 72, 77, .1); }
 .bannerTexto { flex: 1; min-width: 200px; margin: 0; font-size: 13.5px; line-height: 1.5; }
 .bannerCta {

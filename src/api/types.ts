@@ -111,6 +111,11 @@ export interface ApiEmpresa {
      Según lo que incluya la consulta llega el país anidado, solo su id
      o ninguno de los dos (empresas dadas de alta antes de vender en
      Colombia), así que el panel contempla los tres casos. */
+  /* El backend los llama `country` y `countryId`, como el campo de Prisma.
+     Se aceptan tambien en castellano por si alguna respuesta vieja los
+     trae asi: lo que importa es no quedarse sin pais y caer en euros. */
+  countryId?: number | null;
+  country?: ApiPais | null;
   paisId?: number | null;
   pais?: ApiPais | null;
 }

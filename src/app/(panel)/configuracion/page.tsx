@@ -182,7 +182,7 @@ export default function ConfiguracionPage() {
               aria-label={t("configuracion.language")}
             >
               {LOCALES.map((l) => (
-                <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
+                <option key={l.code} value={l.code}>{l.label}</option>
               ))}
             </select>
           </div>
