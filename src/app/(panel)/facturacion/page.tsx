@@ -28,6 +28,7 @@ import Button, { IconButton } from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
+import PlanProLock from "@/components/plan/PlanProLock";
 import FacturaViewModal from "@/components/facturacion/FacturaViewModal";
 import { descargarFacturaPdf } from "@/components/facturacion/facturaPdf";
 import styles from "@/components/facturacion/facturacion.module.css";
@@ -63,7 +64,7 @@ export default function FacturacionPage() {
   }, [fEmpresaId]);
 
   /* Una factura por cada pago real (PaymentModule), acotado por rol */
-  const { data: lista, loading, reload } = useData(
+  const { data: lista, loading, error, reload } = useData(
     () =>
       FacturasController.search(
         session,
@@ -73,6 +74,13 @@ export default function FacturacionPage() {
     [session?.id, session?.negocioId, session?.sedeId, locale, fQuery, fFecha, fEmpresaId, fSedeId],
     []
   );
+
+  /* El layout ya bloquea Facturación si session.plan no es Pro, pero esa
+     sesión puede quedar desactualizada (un superadmin le bajó el plan a la
+     empresa mientras esta pantalla ya estaba abierta): el backend igual
+     responde 403 (ver PlanProGuard/exigirPro) y, sin esto, se veía como
+     "no hay facturas" en vez de avisar que se perdió el acceso a Pro. */
+  const sinAccesoPro = !!error && error.includes("Bookmy CRM Pro");
 
   /* Tras añadir o quitar un adicional la lista se recarga con el total nuevo,
      pero la factura abierta en el popup es la copia anterior: se sustituye. */
@@ -135,6 +143,10 @@ export default function FacturacionPage() {
       setBajando(null);
     }
   };
+
+  if (sinAccesoPro) {
+    return <PlanProLock modulo="facturacion" />;
+  }
 
   return (
     <>
