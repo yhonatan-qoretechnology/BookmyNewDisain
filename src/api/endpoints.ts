@@ -54,6 +54,12 @@ export const EP = {
   empresaPrueba: (id: number) => `/empresas/${id}/prueba`,
   /** PATCH multipart — campo "logo". Devuelve la Empresa actualizada. */
   empresaLogo: (id: number) => `/empresas/${id}/logo`,
+  /* Verificación de identidad del negocio (KYC), revisada a mano.
+     Ojo: "kyc/pendientes" va antes que /empresas/:id en el backend. */
+  kycPendientes: "/empresas/kyc/pendientes",
+  empresaKyc: (id: number) => `/empresas/${id}/kyc`,
+  empresaKycAprobar: (id: number) => `/empresas/${id}/kyc/aprobar`,
+  empresaKycRechazar: (id: number) => `/empresas/${id}/kyc/rechazar`,
   /** PATCH { motivo? } — corta el acceso de la empresa. Solo SUPER_ADMIN. */
   empresaBloquear: (id: number) => `/empresas/${id}/bloquear`,
   /** PATCH sin cuerpo — devuelve el acceso. Solo SUPER_ADMIN. */

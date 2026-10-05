@@ -14,6 +14,7 @@ import type {
   ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
   ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
+  ApiEmpresaKyc, ApiKycPendiente,
   ApiServicioAsignable, ApiSincronizacionFestivos, ApiUser, ApiConContinuacion,
   UpdateServiceSedeProfesionalDto,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
@@ -206,6 +207,28 @@ export const EmpresasApi = {
   desbloquear: (id: number) => http.patch<ApiEmpresa>(EP.empresaDesbloquear(id)),
   /** DELETE /empresas/:id — solo SUPER_ADMIN; el resto recibe 403. */
   remove: (id: number) => http.delete(EP.empresaById(id)),
+};
+
+/* ── Verificación del negocio (KYC) ─────────────────────────
+   Manual: el negocio sube su documentación y el superadmin aprueba o
+   rechaza. No bloquea nada mientras tanto. */
+export const KycApi = {
+  /** GET /empresas/:id/kyc — el dueño de esa empresa o el superadmin. */
+  estado: (empresaId: number) => http.get<ApiEmpresaKyc>(EP.empresaKyc(empresaId)),
+
+  /** POST /empresas/:id/kyc (multipart) — lo que no se mande se conserva. */
+  enviar: (empresaId: number, form: FormData) =>
+    http.postForm<ApiEmpresaKyc>(EP.empresaKyc(empresaId), form),
+
+  /** GET /empresas/kyc/pendientes — cola del superadmin. */
+  pendientes: () => http.get<ApiKycPendiente[]>(EP.kycPendientes),
+
+  aprobar: (empresaId: number) =>
+    http.patch<ApiEmpresaKyc>(EP.empresaKycAprobar(empresaId)),
+
+  /** PATCH { motivo } — el negocio lo ve y puede volver a enviarla. */
+  rechazar: (empresaId: number, motivo: string) =>
+    http.patch<ApiEmpresaKyc>(EP.empresaKycRechazar(empresaId), { motivo }),
 };
 
 /* ── SedeModule ─────────────────────────────────────────── */

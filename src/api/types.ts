@@ -95,6 +95,31 @@ export interface ApiEmpresa {
   bloqueadaMotivo?: string | null;
 }
 
+/* ── Verificación de identidad del negocio (KYC) ───────────
+   Revisión manual del superadmin. No bloquea nada: la empresa trabaja
+   igual mientras espera; solo ve el aviso en su panel. */
+export type ApiKycEstado = "PENDIENTE" | "EN_REVISION" | "APROBADA" | "RECHAZADA";
+
+export interface ApiEmpresaKyc {
+  empresaId: number;
+  estado: ApiKycEstado;
+  nifCif: string | null;
+  documentoTipo: string | null;
+  /** Rutas relativas ("uploads/kyc/…"): se resuelven con fotoUrl() */
+  documentoFrente: string | null;
+  documentoDorso: string | null;
+  selfie: string | null;
+  justificante: string | null;
+  enviadoEn: string | null;
+  revisadoEn: string | null;
+  motivoRechazo: string | null;
+}
+
+/** GET /empresas/kyc/pendientes — cola de revisión del superadmin. */
+export interface ApiKycPendiente extends ApiEmpresaKyc {
+  empresa: { id: number; nombre: string; email: string | null; telefono: string | null };
+}
+
 /** GET /empresas/:id/plan — plan del negocio y estado de la prueba. */
 export interface ApiEstadoPlan {
   plan: "FREE" | "PRO";

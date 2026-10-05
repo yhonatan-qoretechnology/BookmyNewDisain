@@ -25,6 +25,7 @@ import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
 import ImageUpload from "@/components/ui/ImageUpload";
 import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
+import KycPendientes from "@/components/kyc/KycPendientes";
 import styles from "./empresas.module.css";
 
 export default function EmpresasPage() {
@@ -42,6 +43,8 @@ export default function EmpresasPage() {
   /** Empresa elegida para bloquear: el modal pide el motivo */
   const [bloqueandoA, setBloqueandoA] = useState<Negocio | null>(null);
   const [motivoBloqueo, setMotivoBloqueo] = useState("");
+  /** Cola de verificaciones de identidad por revisar */
+  const [verificaciones, setVerificaciones] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [rubro, setRubro] = useState("");
@@ -191,6 +194,9 @@ export default function EmpresasPage() {
             <Toolbar>
               <SearchBox value={search} onChange={setSearch} placeholder={t("empresas.searchPlaceholder")} />
               <ToolbarActions>
+                <Button variant="ghost" onClick={() => setVerificaciones(true)}>
+                  {t("kyc.verificaciones")}
+                </Button>
                 <Button onClick={() => setModalOpen(true)}>{t("empresas.new")}</Button>
               </ToolbarActions>
             </Toolbar>
@@ -301,6 +307,8 @@ export default function EmpresasPage() {
           <Button variant="ghost" onClick={() => setSedePick(null)}>{t("common.close")}</Button>
         </ModalActions>
       </Modal>
+
+      <KycPendientes abierto={verificaciones} onClose={() => setVerificaciones(false)} />
 
       {/* Bloquear una empresa: el motivo se le muestra a quien intente entrar */}
       <Modal open={!!bloqueandoA} onClose={() => { setBloqueandoA(null); setMotivoBloqueo(""); }}>

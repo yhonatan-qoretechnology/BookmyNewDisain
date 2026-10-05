@@ -13,6 +13,7 @@ import { AuthApi, ImagenesApi } from "@/api/modules";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import ImageUpload from "@/components/ui/ImageUpload";
+import KycPanel from "@/components/kyc/KycPanel";
 import styles from "./configuracion.module.css";
 
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -96,6 +97,9 @@ export default function ConfiguracionPage() {
 
   return (
     <>
+      {/* Verificación del negocio: solo la gestiona su dueño */}
+      {session?.role === "owner" && <KycPanel />}
+
       <div className={styles.settingsGrid}>
         <Panel>
           <PanelHead title={t("configuracion.profileTitle")} sub={t("configuracion.profileSub", { rol: t(`roles.${session?.role || "superadmin"}`) })} />

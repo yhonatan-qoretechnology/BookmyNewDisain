@@ -11,6 +11,7 @@ import AppShell from "@/components/layout/AppShell";
 import PageTransition from "@/components/animations/PageTransition";
 import PlanProLock from "@/components/plan/PlanProLock";
 import TrialBanner from "@/components/plan/TrialBanner";
+import KycBanner from "@/components/kyc/KycBanner";
 import Icon from "@/components/ui/Icon";
 
 /** Ruta → clave del diccionario `pages.*` (título/acento del topbar) */
@@ -106,6 +107,9 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     >
       {/* Aviso del plan: días de prueba, fin de la prueba u oferta. */}
       <TrialBanner />
+
+      {/* Verificación del negocio pendiente o rechazada (solo al dueño) */}
+      <KycBanner />
 
       {/* El crossfade se ata a la ruta: al cambiar `pathname`, la vista
           saliente se desvanece antes de montar la entrante. */}
