@@ -6,6 +6,11 @@
    2. Crea `dictionaries/<código>.ts` copiando `es.ts` y traduciendo.
    3. Regístralo en `dictionaries/index.ts`.
    Nada más: el selector del topbar y el proveedor lo detectan solos.
+
+   ⚠️ Idioma no es país. Aquí se configura la lengua de la interfaz,
+   que la persona elige; el país del negocio (ES/CO) se fija en el
+   alta de la empresa y vive en `pais.ts`. Un colombiano puede pedir
+   el panel en inglés y sigue cobrando en pesos.
 ============================================================ */
 
 /** Códigos de idioma soportados. Amplía esta unión al agregar idiomas. */

@@ -11,7 +11,8 @@ import { memo, useMemo, useState } from "react";
 import type {
   ClienteOpcion, MetodoPago, ProfesionalCard, SedeOpcion, ServicioOpcion,
 } from "@/models";
-import { fmtFechaLarga, fmtMoneda, initials } from "@/constants";
+import { fmtFechaLarga, initials } from "@/constants";
+import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import { Field } from "@/components/ui/Modal";
@@ -41,6 +42,7 @@ function ReciboConfirmacionBase({
   fecha, hora, metodoPago, onMetodoPago, card, onCardChange,
 }: ReciboProps) {
   const { t } = useI18n();
+  const { pais, fmtMoneda } = useRegion();
   const needsCard = metodoPago === "tarjeta";
   const [sedeImgError, setSedeImgError] = useState(false);
   const [proImgError, setProImgError] = useState(false);
@@ -152,8 +154,8 @@ function ReciboConfirmacionBase({
           <span className={styles.categoriaChip}>{servicio.categoria}</span>
           <div className={styles.reciboRow}><label>{t("booking.name")}</label><span>{servicio.nombre}</span></div>
           <div className={styles.reciboRow}><label>{t("booking.duration")}</label><span>{t("booking.minutes", { n: servicio.duracion })}</span></div>
-          <div className={styles.reciboRow}><label>{t("booking.price")}</label><span>{fmtMoneda(servicio.precio, servicio.moneda)}</span></div>
-          <div className={styles.reciboRow}><label>{t("booking.currency")}</label><span>{servicio.moneda}</span></div>
+          <div className={styles.reciboRow}><label>{t("booking.price")}</label><span>{fmtMoneda(servicio.precio)}</span></div>
+          <div className={styles.reciboRow}><label>{t("booking.currency")}</label><span>{pais.moneda}</span></div>
         </section>
 
         <hr className={styles.reciboSep} />
@@ -163,15 +165,15 @@ function ReciboConfirmacionBase({
           <h4>{t("booking.economicSummary")}</h4>
           <div className={styles.reciboRow}>
             <label>{t("booking.subtotal")}</label>
-            <span>{fmtMoneda(subtotal, servicio.moneda)}</span>
+            <span>{fmtMoneda(subtotal)}</span>
           </div>
           <div className={styles.reciboRow}>
             <label>{t("booking.currency")}</label>
-            <span>{servicio.moneda}</span>
+            <span>{pais.moneda}</span>
           </div>
           <div className={styles.totalBand}>
             <label>{t("booking.total")}</label>
-            <span>{fmtMoneda(total, servicio.moneda)}</span>
+            <span>{fmtMoneda(total)}</span>
           </div>
         </section>
 

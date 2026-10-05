@@ -56,13 +56,28 @@ export interface TextosPdf {
   pie: string;
 }
 
+/** Formato del dinero en el país del negocio (useRegion().pais).
+    Va aparte de las etiquetas porque no es un texto: sin esto el PDF
+    escribiría los pesos con los separadores y los dos decimales
+    españoles, «$ 45.000,00» en vez de «$ 45.000». */
+export interface FormatoMoneda {
+  locale: string;
+  decimales: number;
+}
+
 /**
  * Construye el PDF de una factura y lo descarga.
  * @param f      Factura a imprimir.
  * @param emisor Datos de la empresa/sede que encabezan el documento.
  * @param x      Etiquetas ya traducidas (i18n).
+ * @param fmt    Locale y decimales del país, para los importes.
  */
-export async function descargarFacturaPdf(f: Factura, emisor: Emisor, x: TextosPdf): Promise<void> {
+export async function descargarFacturaPdf(
+  f: Factura,
+  emisor: Emisor,
+  x: TextosPdf,
+  fmt: FormatoMoneda,
+): Promise<void> {
   const jsPDF = (await import("jspdf")).default;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
@@ -187,8 +202,8 @@ export async function descargarFacturaPdf(f: Factura, emisor: Emisor, x: TextosP
     doc.setTextColor(...NAVY);
     doc.text(nombre, M + 3, y);
     doc.text(String(it.cantidad), colCant, y, { align: "center" });
-    doc.text(fmtMoneda(it.precio, f.moneda), colPrecio, y, { align: "right" });
-    doc.text(fmtMoneda(it.precio * it.cantidad, f.moneda), W - M - 3, y, { align: "right" });
+    doc.text(fmtMoneda(it.precio, f.moneda, fmt.locale, fmt.decimales), colPrecio, y, { align: "right" });
+    doc.text(fmtMoneda(it.precio * it.cantidad, f.moneda, fmt.locale, fmt.decimales), W - M - 3, y, { align: "right" });
     y += Math.max(nombre.length * 5, 5) + 3;
 
     doc.setDrawColor(...BORDE);
@@ -208,7 +223,7 @@ export async function descargarFacturaPdf(f: Factura, emisor: Emisor, x: TextosP
   doc.text(x.total.toUpperCase(), W - M - 76, y + 4);
   doc.setFontSize(15);
   doc.setTextColor(...TEAL);
-  doc.text(fmtMoneda(f.total, f.moneda), W - M, y + 4, { align: "right" });
+  doc.text(fmtMoneda(f.total, f.moneda, fmt.locale, fmt.decimales), W - M, y + 4, { align: "right" });
 
   /* ── Pie ─────────────────────────────────────────────── */
   doc.setDrawColor(...BORDE);

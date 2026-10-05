@@ -216,12 +216,32 @@ export function fmtFechaLarga(fecha: string): string {
   return `${d} ${MESES_CORTOS[+m - 1]} ${y}`;
 }
 
-/** Importe con símbolo de moneda según el código ISO (EUR → 25,00 €) */
-export function fmtMoneda(valor: number, moneda: string): string {
+/**
+ * Importe en la moneda y el formato de un país (EUR → 25,00 € · COP → $ 45.000).
+ *
+ * `locale` y `decimales` van sin valor por defecto a propósito: cuando traían
+ * los de España, cualquier llamada nueva que se olvidara de pasarlos imprimía
+ * los pesos con los separadores y los dos decimales españoles sin que nada
+ * avisara. Ahora no compila. Salen de `useRegion().pais` (locale y
+ * decimalesMoneda); los componentes tienen ahí también `fmtMoneda(valor)` ya
+ * atado al país y es lo que deben usar — esta función es para el resto, como
+ * el PDF de la factura, que no es un componente.
+ */
+export function fmtMoneda(
+  valor: number,
+  moneda: string,
+  locale: string,
+  decimales: number,
+): string {
   try {
-    return new Intl.NumberFormat("es-ES", { style: "currency", currency: moneda }).format(valor);
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: moneda,
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
+    }).format(valor);
   } catch {
-    return `${valor.toFixed(2)} ${moneda}`;
+    return `${valor.toFixed(decimales)} ${moneda}`;
   }
 }
 

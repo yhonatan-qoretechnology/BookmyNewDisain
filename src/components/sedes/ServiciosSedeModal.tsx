@@ -21,8 +21,8 @@ import {
 import { ProfesionalesApi } from "@/api/modules";
 import { useData } from "@/hooks/useData";
 import { useI18n } from "@/i18n";
+import { useRegion } from "@/context/RegionContext";
 import { useUi } from "@/context/UiContext";
-import { fmtMoneda } from "@/constants";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
@@ -41,6 +41,7 @@ export default function ServiciosSedeModal({
   onClose: () => void;
 }) {
   const { t, locale } = useI18n();
+  const { fmtMoneda } = useRegion();
   const { toast } = useUi();
 
   const [profesionalId, setProfesionalId] = useState<number | null>(profesionalIdInicial ?? null);
@@ -265,7 +266,7 @@ export default function ServiciosSedeModal({
                       )}
                     </span>
                     <span className={styles.precio}>
-                      {s.precio > 0 ? fmtMoneda(s.precio, s.moneda) : "—"}
+                      {s.precio > 0 ? fmtMoneda(s.precio) : "—"}
                     </span>
                     <span className={styles.estado} aria-hidden>
                       {guardando === s.id ? <span className={styles.spinner} /> : null}

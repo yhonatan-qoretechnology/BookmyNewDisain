@@ -217,7 +217,7 @@ export default function AdministradoresPage() {
               <input id="ad-lastname" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </Field>
             <Field label={t("common.phone")} htmlFor="ad-tel">
-              <input id="ad-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+34 600 000 000" />
+              <input id="ad-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder={t("common.phonePh")} />
             </Field>
             <Field label={t("common.email")} htmlFor="ad-email">
               <input id="ad-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@empresa.com" />

@@ -44,6 +44,12 @@ export const EP = {
   createCompanyAdmin: (empresaId: number) => `/admin/companies/${empresaId}/admins`,
   createBranchAdmin: (sedeId: number) => `/admin/branches/${sedeId}/admins`,
 
+  /* @Controller('paises') — público (sin sesión): lo necesita el alta
+     de un negocio, que ocurre antes de que haya cuenta con la que
+     identificarse. Va antes de /empresas porque el país es lo primero
+     que se elige de una empresa y lo único que luego no cambia. */
+  paises: "/paises",
+
   /* @Controller('empresas') */
   empresas: "/empresas",
   empresaById: (id: number) => `/empresas/${id}`,

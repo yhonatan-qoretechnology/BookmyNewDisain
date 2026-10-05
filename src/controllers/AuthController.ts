@@ -5,6 +5,7 @@
    el header Authorization (jwt.strategy.ts acepta ambos).
 ============================================================ */
 import type { EstadoPlan, Session } from "@/models";
+import { paisUsable, type ConfigPais } from "@/config/paises";
 import { SESSION_STORAGE_KEY } from "@/constants";
 import { isApiEnabled, setToken } from "@/api/config";
 import { AuthApi, EmpresasApi, ProfesionalesApi, SedesApi } from "@/api/modules";
@@ -59,6 +60,10 @@ export const AuthController = {
     /* El plan del negocio decide qué módulos ve: viaja en la sesión para
        no pedirlo en cada pantalla. */
     let plan: EstadoPlan | null = null;
+    /* El país cuelga de la empresa, y la empresa ya se pide aquí: viaja
+       en la sesión para que ninguna pantalla tenga que preguntarlo y para
+       que el primer pintado ya salga en la moneda del negocio. */
+    let pais: ConfigPais | null = null;
     try {
       if (empresaId != null) {
         const [empresa, estadoPlan] = await Promise.all([
@@ -67,11 +72,12 @@ export const AuthController = {
         ]);
         negocioName = empresa.nombre;
         plan = estadoPlan;
+        pais = paisUsable(empresa.pais);
       }
       if (sedeId != null) sedeName = (await SedesApi.findOne(sedeId)).nombre;
     } catch { /* el panel funciona sin los nombres */ }
 
-    const session = mapUserToSession(res.user, { negocioName, sedeName, plan });
+    const session = mapUserToSession(res.user, { negocioName, sedeName, plan, pais });
     if (!session) {
       setToken(null);
       return { error: "CLIENT_ROLE" };

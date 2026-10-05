@@ -5,8 +5,32 @@
    El tipo `Dictionary` se deriva de este objeto: si agregas una
    clave aquí, TypeScript exigirá traducirla en el resto de idiomas.
    Usa `{variable}` para interpolar valores: t("x.y", { n: 3 }).
+
+   ⚙️ PUNTO DE CONFIGURACIÓN #7 — UNA PALABRA QUE CAMBIA POR PAÍS
+   España y Colombia hablan español, pero no el mismo. Cuando una
+   clave chirría al otro lado del charco, se desdobla por país sin
+   tocar ni el componente ni el resto del diccionario:
+
+       movil: porPais({ ES: "Móvil", CO: "Celular" }),
+
+   Reglas de la casa:
+     · ES es obligatorio y manda: lo que no se escriba para otro país
+       cae a ES, así que España nunca cambia por un despiste.
+     · Desdobla SOLO lo que chirríe. Son ~1.700 claves: un juego de
+       textos completo por país no lo mantendría nadie.
+     · Si la palabra ya la manda el backend en GET /paises
+       (etiquetaFiscal, etiquetaRegion, etiquetaMunicipio,
+       etiquetaImpuesto), NO la copies aquí: píntala con
+       useRegion().etiqueta(...). Duplicarla es tener dos verdades, y
+       el día que entre un tercer país el diccionario mentirá.
+     · El país activo lo fija useRegion() con setPaisActivo(); en el
+       diccionario no hay nada más que hacer.
+     · En en.ts y en los diccionarios de la web vale lo mismo: cada
+       idioma desdobla solo lo que en su lengua cambie de verdad
+       ("Mobile" sirve para los dos países; "Price (€)" no).
 ============================================================ */
 
+import { porPais } from "../pais";
 import webEs from "./web.es";
 
 const es = {
@@ -25,10 +49,13 @@ const es = {
     fullName: "Nombre completo",
     email: "Correo",
     phone: "Teléfono",
+    /* El prefijo no es el `dialingCode` del backend, sino un número de
+       ejemplo: en Colombia los móviles empiezan por 3, no por 6. */
+    phonePh: porPais({ ES: "+34 600 000 000", CO: "+57 300 000 0000" }),
     date: "Fecha",
     time: "Hora",
     price: "Precio",
-    priceEur: "Precio (€)",
+    priceEur: porPais({ ES: "Precio (€)", CO: "Precio (COP)" }),
     service: "Servicio",
     client: "Cliente",
     branch: "Sede",
@@ -370,8 +397,13 @@ const es = {
     motivoRechazo: "Motivo del rechazo: {motivo}",
     aprobadaMsg: "Tu negocio está verificado. No tienes que hacer nada más.",
     enRevisionMsg: "Tu documentación está en revisión. Te avisamos en cuanto se resuelva.",
-    nifCif: "NIF/CIF del negocio",
-    nifCifPlaceholder: "Ej. B12345678",
+    /* La etiqueta del documento fiscal la manda el backend
+       (etiquetaFiscal). Esto es una frase, no la etiqueta suelta, y un
+       colombiano no debe leer «NIF/CIF» ni un día; si el formulario ya
+       pinta useRegion().etiqueta("fiscal"), quédate con esa y borra la
+       variante. */
+    nifCif: porPais({ ES: "NIF/CIF del negocio", CO: "NIT del negocio" }),
+    nifCifPlaceholder: porPais({ ES: "Ej. B12345678", CO: "Ej. 900.123.456-7" }),
     tipoDocumento: "Tipo de documento",
     archivos: {
       documentoFrente: "Documento (anverso)",
@@ -380,10 +412,16 @@ const es = {
       justificante: "Justificante de actividad",
     },
     ayuda: {
-      documentoFrente: "DNI, NIE o pasaporte de quien da de alta el negocio.",
+      documentoFrente: porPais({
+        ES: "DNI, NIE o pasaporte de quien da de alta el negocio.",
+        CO: "Cédula de ciudadanía, cédula de extranjería o pasaporte de quien da de alta el negocio.",
+      }),
       documentoDorso: "Solo si tu documento tiene reverso.",
       selfie: "Foto tuya sosteniendo el documento.",
-      justificante: "Alta de autónomo, escritura o licencia de actividad.",
+      justificante: porPais({
+        ES: "Alta de autónomo, escritura o licencia de actividad.",
+        CO: "RUT, cámara de comercio o escritura del negocio.",
+      }),
     },
     yaSubido: "Ya enviado — vuelve a subirlo solo si hay que corregirlo",
     nota: "Imagen o PDF. Solo los ve el equipo de Bookmy para verificar tu negocio.",
@@ -430,7 +468,7 @@ const es = {
     bloquearTitulo: "Bloquear {empresa}",
     bloquearSub: "Sus administradores y profesionales no podrán entrar al panel, y sus sedes dejarán de admitir reservas.",
     bloquearMotivo: "Motivo (opcional)",
-    bloquearMotivoPlaceholder: "Ej. impago de la cuota",
+    bloquearMotivoPlaceholder: porPais({ ES: "Ej. impago de la cuota", CO: "Ej. mora en el pago" }),
     bloqueadaOk: "{empresa} bloqueada",
     desbloqueadaOk: "{empresa} desbloqueada",
     selectorLabel: "Empresa:",
@@ -621,6 +659,10 @@ const es = {
     subtotal: "Subtotal",
     reserva: "Reserva",
     sede: "Sede",
+    /* Documento fiscal del emisor: «NIT» en Colombia, «NIF/CIF» en
+       España. La etiqueta la manda GET /paises (etiquetaFiscal), así
+       que la factura la pinta con useRegion().etiqueta("fiscal") y
+       aquí no se desdobla: una sola verdad por dato. */
     nit: "NIT",
     emitida: "Emitida",
     generando: "Generando PDF…",
@@ -668,15 +710,17 @@ const es = {
 
   gastos: {
     panelTitle: "Gastos",
-    panelSub: "Registro de gastos con tickete adjunto",
+    /* «Tickete» es el nombre de casa en España; en Colombia eso es un
+       recibo. Cambia la palabra entera, no media pantalla. */
+    panelSub: porPais({ ES: "Registro de gastos con tickete adjunto", CO: "Registro de gastos con recibo adjunto" }),
     gasto: "Gasto",
     categoria: "Categoría",
-    tickete: "Tickete",
+    tickete: porPais({ ES: "Tickete", CO: "Recibo" }),
     total: "Total",
     agregar: "Agregar gasto",
     todasCategorias: "Todas las categorías",
     filterGasto: "Buscar por gasto…",
-    verTickete: "Ver tickete",
+    verTickete: porPais({ ES: "Ver tickete", CO: "Ver recibo" }),
     totalPeriodo: "Total del período",
     emptyTitle: "Sin gastos",
     emptyMsg: "Agrega tu primer gasto con el botón «Agregar gasto».",
@@ -688,11 +732,14 @@ const es = {
     delPeriodo: "según los filtros activos",
     /* Formulario */
     formTitulo: "Registrar nuevo gasto",
-    formSub: "Completa los datos y adjunta el tickete del gasto.",
+    formSub: porPais({
+      ES: "Completa los datos y adjunta el tickete del gasto.",
+      CO: "Completa los datos y adjunta el recibo del gasto.",
+    }),
     nombreGasto: "Nombre del gasto",
     nombrePlaceholder: "Ej. Compra de detergentes",
     totalPlaceholder: "0",
-    adjunto: "Tickete (imagen o PDF)",
+    adjunto: porPais({ ES: "Tickete (imagen o PDF)", CO: "Recibo (imagen o PDF)" }),
     adjuntoHint: "JPG, PNG, WEBP o PDF · hasta 10 MB",
     adjuntoCta: "Arrastra el comprobante o haz clic para buscarlo",
     quitarImagen: "Quitar adjunto",
@@ -703,13 +750,13 @@ const es = {
     primeroEmpresa: "Primero selecciona la empresa",
     guardar: "Guardar gasto",
     guardando: "Guardando…",
-    subiendo: "Subiendo tickete…",
+    subiendo: porPais({ ES: "Subiendo tickete…", CO: "Subiendo recibo…" }),
     creado: "Gasto registrado",
     eliminar: "Eliminar gasto",
     eliminarTitulo: "Eliminar gasto",
     eliminarMsg: "¿Seguro que quieres eliminar «{nombre}»? Esta acción no se puede deshacer.",
     eliminado: "Gasto eliminado",
-    sinTickete: "Este gasto no tiene tickete adjunto.",
+    sinTickete: porPais({ ES: "Este gasto no tiene tickete adjunto.", CO: "Este gasto no tiene recibo adjunto." }),
     descargarImagen: "Descargar",
     /* Errores */
     errNombre: "Escribe el nombre del gasto.",
@@ -722,7 +769,7 @@ const es = {
     errPeso: "El archivo supera 10 MB. Adjunta uno más liviano.",
    
     errCategoria: "No hay categorías disponibles todavía.",
-    errSubida: "No se pudo subir el tickete.",
+    errSubida: porPais({ ES: "No se pudo subir el tickete.", CO: "No se pudo subir el recibo." }),
     /* Categorías */
     nuevaCategoria: "Nueva categoría",
     nuevaCategoriaSub: "Crea una categoría propia para clasificar tus gastos.",
@@ -771,7 +818,7 @@ const es = {
     weeklyAgenda: "agenda semanal",
     lastReviews: "últimas 90 reseñas",
     salesTitle: "Ventas por mes",
-    salesSub: "Últimos 6 meses (miles de €)",
+    salesSub: porPais({ ES: "Últimos 6 meses (miles de €)", CO: "Últimos 6 meses (miles de COP)" }),
     fromReviews: "según reseñas",
     topTitle: "Servicios más vendidos",
     topSub: "Reservas acumuladas",
@@ -1044,10 +1091,18 @@ const es = {
 
   sedes: {
     pais: "País",
+    /* «Provincia» y «Municipio» son los nombres españoles. Cómo se
+       llaman en cada país lo manda GET /paises (etiquetaRegion,
+       etiquetaMunicipio: en Colombia «Departamento» y «Ciudad»), así
+       que estos dos rótulos se pintan con useRegion().etiqueta(...) y
+       no se duplican aquí. */
     provincia: "Provincia",
     municipio: "Municipio / Ciudad",
     localidad: "Localidad",
-    autocompletaAyuda: "Escribe la dirección y se rellenan solos el país, la provincia, el municipio y la localidad. Puedes corregirlos a mano.",
+    autocompletaAyuda: porPais({
+      ES: "Escribe la dirección y se rellenan solos el país, la provincia, el municipio y la localidad. Puedes corregirlos a mano.",
+      CO: "Escribe la dirección y se rellenan solos el país, el departamento y la ciudad. Puedes corregirlos a mano.",
+    }),
     cargandoMapas: "Cargando el buscador de direcciones…",
     mapsError: "No se pudo cargar el buscador de direcciones. Escribe los campos a mano.",
     panelTitle: "Sedes de {negocio}",
@@ -1194,7 +1249,7 @@ const es = {
     product: "Producto",
     unit: "Unidad",
     refPrice: "Precio ref.",
-    refPriceEur: "Precio de referencia (€)",
+    refPriceEur: porPais({ ES: "Precio de referencia (€)", CO: "Precio de referencia (COP)" }),
     stock: "Stock",
     currentStock: "Stock actual",
     currentStockShort: "Stock actual: {n} {unidad}",
@@ -1434,11 +1489,18 @@ const es = {
     noNotes: "Sin notas adicionales",
     sheetTitle: "Ficha de Reserva — {id}",
     printedAt: "Impreso el {fecha}",
-    waMessage:
-      "Hola {cliente} 👋\nTe confirmamos tu cita en *{sede}*:\n\n📋 *Servicio:* {servicio}\n📅 *Fecha:* {fecha}\n⏰ *Hora:* {hora}\n💶 *Precio:* {precio}€\n\n¡Te esperamos! ✨",
+    /* {precio} llega ya formateado con la moneda del negocio
+       (useRegion().fmtMoneda): «25,00 €» en España y «$ 45.000» en
+       Colombia. Por eso aquí NO se escribe el símbolo — si se añade,
+       sale «25,00 €€». Lo único que cambia de país es el billete. */
+    waMessage: porPais({
+      ES: "Hola {cliente} 👋\nTe confirmamos tu cita en *{sede}*:\n\n📋 *Servicio:* {servicio}\n📅 *Fecha:* {fecha}\n⏰ *Hora:* {hora}\n💶 *Precio:* {precio}\n\n¡Te esperamos! ✨",
+      CO: "Hola {cliente} 👋\nTe confirmamos tu cita en *{sede}*:\n\n📋 *Servicio:* {servicio}\n📅 *Fecha:* {fecha}\n⏰ *Hora:* {hora}\n💵 *Precio:* {precio}\n\n¡Te esperamos! ✨",
+    }),
     emailSubject: "Confirmación de tu cita — {sede}",
-    emailMessage:
-      "Hola {cliente},\n\nTe confirmamos tu cita en {sede}:\n\nServicio: {servicio}\nFecha: {fecha}\nHora: {hora}\nPrecio: {precio}€\n\n¡Te esperamos!",
+    /* El correo, sin el símbolo pegado, es palabra por palabra el
+       mismo en los dos países: no hay nada que desdoblar. */
+    emailMessage: "Hola {cliente},\n\nTe confirmamos tu cita en {sede}:\n\nServicio: {servicio}\nFecha: {fecha}\nHora: {hora}\nPrecio: {precio}\n\n¡Te esperamos!",
   },
 };
 

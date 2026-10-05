@@ -3,6 +3,11 @@
    (solo los campos que consume este panel)
 ============================================================ */
 
+/* El catálogo de países llega ya con la forma que consume el panel, así
+   que el tipo se define una sola vez en config/paises.ts y aquí solo se
+   le pone su nombre de API. */
+import type { ConfigPais } from "@/config/paises";
+
 /* Enums de la BD (schema.prisma) */
 export type ApiRole = "SUPER_ADMIN" | "COMPANY_ADMIN" | "BRANCH_ADMIN" | "EMPLOYEE" | "CLIENT";
 export type ApiAppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
@@ -75,6 +80,14 @@ export interface RegisterUserDto {
   idioma?: string;
 }
 
+/**
+ * GET /paises — público (sin sesión), porque el alta de un negocio
+ * elige país antes de que exista la cuenta. El backend devuelve ya
+ * todo lo que el panel necesita, así que es el mismo contrato que
+ * ConfigPais y no hay nada que adaptar.
+ */
+export type ApiPais = ConfigPais;
+
 export interface ApiEmpresa {
   id: number;
   nombre: string;
@@ -93,6 +106,13 @@ export interface ApiEmpresa {
   bloqueada?: boolean;
   bloqueadaEn?: string | null;
   bloqueadaMotivo?: string | null;
+  /* País del negocio: se elige en el alta y no cambia. De él salen la
+     moneda, la zona horaria y las etiquetas de todo el panel.
+     Según lo que incluya la consulta llega el país anidado, solo su id
+     o ninguno de los dos (empresas dadas de alta antes de vender en
+     Colombia), así que el panel contempla los tres casos. */
+  paisId?: number | null;
+  pais?: ApiPais | null;
 }
 
 /* ── Verificación de identidad del negocio (KYC) ───────────
@@ -139,7 +159,13 @@ export interface RegistroNegocioDto {
   sedeNombre: string;
   direccion: string;
   pais?: string;
+  /** ISO-2 del país elegido en el alta. De él cuelgan la moneda, el
+      impuesto y la zona horaria del negocio, y no se puede cambiar. */
+  paisIso?: string;
   provincia?: string;
+  /** Comunidad o departamento en corto: con eso saca el backend los
+      festivos de la sede. */
+  region?: string;
   municipio?: string;
   localidad?: string;
   latitud?: number;

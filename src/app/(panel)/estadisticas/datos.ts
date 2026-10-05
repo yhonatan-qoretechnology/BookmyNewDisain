@@ -29,7 +29,7 @@ import type { EstadoReserva, Reserva, Session } from "@/models";
 import { EmpresasApi, PaymentsApi, ResenasApi, SedesApi } from "@/api/modules";
 import type { ApiEmpresa, ApiResena, ApiSede } from "@/api/types";
 import { ReservasController } from "@/controllers/ReservasController";
-import { madridToday, madridYmd } from "@/lib/timezone";
+import { zonaHoy, zonaYmd } from "@/lib/timezone";
 import {
   DEMO,
   type FilaProfesional,
@@ -172,7 +172,7 @@ function claveCliente(c: Reserva): string {
 /** Fecha de Madrid de una reseña (createdAt viene en UTC). */
 function fechaResena(r: ApiResena): string {
   const d = new Date(r.createdAt);
-  return Number.isNaN(d.getTime()) ? "" : madridYmd(d);
+  return Number.isNaN(d.getTime()) ? "" : zonaYmd(d);
 }
 
 export interface RangoPanel {
@@ -182,13 +182,13 @@ export interface RangoPanel {
 
 /** Rango por defecto: el último mes, que es el atajo activo al entrar. */
 export function rangoPorDefecto(): RangoPanel {
-  const hasta = madridToday();
+  const hasta = zonaHoy();
   return { desde: restarDias(hasta, 29), hasta };
 }
 
 /** Rango de un atajo, calculado sobre el día de hoy en Madrid. */
 export function rangoAtajo(cual: "hoy" | "mes" | "anio"): RangoPanel {
-  const hasta = madridToday();
+  const hasta = zonaHoy();
   if (cual === "hoy") return { desde: hasta, hasta };
   if (cual === "mes") return { desde: restarDias(hasta, 29), hasta };
   /* Doce meses exactos: del día siguiente al de hoy hace un año, hasta hoy. */
@@ -317,7 +317,7 @@ export async function cargarPanel(
   const valoracionPrev = media(notasEn(previoDesde, previoHasta));
 
   /* ── Serie de doce meses, terminando en el mes en curso ─── */
-  const [anioHoy, mesHoy] = madridToday().split("-").map(Number);
+  const [anioHoy, mesHoy] = zonaHoy().split("-").map(Number);
   const serieReal: PuntoSerie[] = [];
   const sparkClientes: number[] = [];
   const sparkCancelacion: number[] = [];
@@ -471,7 +471,7 @@ export async function cargarPanel(
     clientes: demo ? DEMO.clientes : { nuevos, recurrentes },
     sedes: demo ? DEMO.sedes : sedes,
     /* Las de ejemplo se fechan hoy: con su fecha fija parecían de hace meses. */
-    ultimas: demo ? DEMO.ultimas.map((u) => ({ ...u, fecha: madridToday() })) : ultimas,
+    ultimas: demo ? DEMO.ultimas.map((u) => ({ ...u, fecha: zonaHoy() })) : ultimas,
     rango,
     demo: {
       kpis: demo,

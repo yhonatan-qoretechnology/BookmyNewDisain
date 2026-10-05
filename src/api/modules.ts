@@ -11,7 +11,7 @@ import type {
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
-  ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
+  ApiPais, ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
   ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiEmpresaKyc, ApiKycPendiente,
@@ -180,6 +180,16 @@ export const ClientsApi = {
 };
 
 /* ── EmpresaModule ──────────────────────────────────────── */
+/* ── PaisModule — catálogo de países (España y Colombia) ─────
+   Público, sin sesión: el alta de un negocio tiene que elegir país
+   antes de que exista la cuenta. Dentro del panel lo pide una sola vez
+   RegionContext, que es quien reparte la configuración del negocio con
+   el que se ha entrado; las pantallas no lo llaman. */
+export const PaisesApi = {
+  /** GET /paises — el catálogo completo, en el orden que da el backend. */
+  listar: () => http.get<ApiPais[]>(EP.paises),
+};
+
 export const EmpresasApi = {
   /** POST /empresas/registro — alta desde la web. Devuelve { user, token }. */
   registrar: (dto: RegistroNegocioDto) =>

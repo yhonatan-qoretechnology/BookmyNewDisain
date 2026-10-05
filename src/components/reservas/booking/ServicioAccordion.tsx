@@ -10,7 +10,7 @@
 ============================================================ */
 import { memo, useCallback, useState } from "react";
 import type { CategoriaServicios, ServicioOpcion } from "@/models";
-import { fmtMoneda } from "@/constants";
+import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
@@ -30,6 +30,7 @@ const ServicioCard = memo(function ServicioCard({
   onSelect: (s: ServicioOpcion) => void;
   labels: { select: string; selected: string; minutes: (n: number) => string };
 }) {
+  const { fmtMoneda } = useRegion();
   return (
     <article className={`${styles.servCard} ${selected ? styles.selected : ""}`}>
       <h5 className={styles.servNombre}>{servicio.nombre}</h5>
@@ -39,7 +40,7 @@ const ServicioCard = memo(function ServicioCard({
           <Icon name="clock" width={13} height={13} />
           {labels.minutes(servicio.duracion)}
         </span>
-        <span className={styles.servPrecio}>{fmtMoneda(servicio.precio, servicio.moneda)}</span>
+        <span className={styles.servPrecio}>{fmtMoneda(servicio.precio)}</span>
       </div>
       <div className={styles.servFoot}>
         {selected ? (

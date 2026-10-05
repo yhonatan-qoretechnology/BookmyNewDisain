@@ -12,6 +12,7 @@ import { useData } from "@/hooks/useData";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
+import { useRegion } from "@/context/RegionContext";
 import { fotoUrl } from "@/constants";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
@@ -78,6 +79,7 @@ function ImagenesNuevas({
 export default function ServiciosPage() {
   const { toast, confirm } = useUi();
   const { t, locale } = useI18n();
+  const { fmtMoneda } = useRegion();
   const { session } = useSession();
   /* Crear/editar/eliminar servicios: solo admin de empresa (owner) y
      superadmin — el resto (admin de sede, employee) solo puede ver el
@@ -258,7 +260,7 @@ export default function ServiciosPage() {
                                   <Icon name="clock" width={13} height={13} />
                                   {t("servicios.minutes", { n: s.duracion })}
                                 </span>
-                                <span className={styles.servPrecio}>{s.precio.toFixed(2)}€</span>
+                                <span className={styles.servPrecio}>{fmtMoneda(s.precio)}</span>
                               </div>
                               {puedeGestionar && (
                                 <div className={styles.servFoot}>

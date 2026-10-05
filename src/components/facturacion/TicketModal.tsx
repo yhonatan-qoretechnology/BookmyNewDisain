@@ -2,8 +2,9 @@
 /* ============================================================
    TicketModal — popup con la imagen del tickete + descarga
 ============================================================ */
-import { fmtFechaLarga, fmtMoneda } from "@/constants";
+import { fmtFechaLarga } from "@/constants";
 import { esTicketPdf, type Gasto } from "@/controllers/FacturacionControllers";
+import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -31,11 +32,12 @@ function Contenido({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  const { fmtMoneda } = useRegion();
 
   return (
     <Modal
       title={gasto.gasto}
-      subtitle={`${fmtFechaLarga(gasto.fecha)} · ${fmtMoneda(gasto.total, "EUR")}`}
+      subtitle={`${fmtFechaLarga(gasto.fecha)} · ${fmtMoneda(gasto.total)}`}
       onClose={onClose}
       size="md"
       closeLabel={t("common.close")}
@@ -55,7 +57,7 @@ function Contenido({
         </div>
         <div className={styles.metaItem}>
           <span className={styles.metaLabel}>{t("gastos.total")}</span>
-          <span className={styles.metaValue}>{fmtMoneda(gasto.total, "EUR")}</span>
+          <span className={styles.metaValue}>{fmtMoneda(gasto.total)}</span>
         </div>
       </div>
 

@@ -14,7 +14,7 @@ import type {
   ApiAppointment, ApiAppointmentSummary, ApiCitaEnConflicto, ApiHuecoSugerido,
   ApiPayment, ApiPaymentMethod,
 } from "@/api/types";
-import { madridHHmm, madridWallToUtc, madridToday, madridYmd, minutesOfHHmm } from "@/lib/timezone";
+import { zonaHHmm, horaLocalAUtc, zonaHoy, zonaYmd, minutesOfHHmm } from "@/lib/timezone";
 import { BookingController } from "./BookingController";
 
 /** Opción unificada para los selects del flujo de agendado */
@@ -121,12 +121,12 @@ const MARGEN_EN_CURSO_MS = 60 * 60000;
  * Madrid disfrazada de UTC: el backend los arma con Date.UTC(...) sobre
  * minutos de Madrid (una cita que acaba a las 21:00 de Madrid sugiere
  * "…T21:00:00.000Z"). Se pasan a instantes reales para que la vista
- * (madridHHmm) y reprogramarAHueco (componentes UTC) acierten.
+ * (zonaHHmm) y reprogramarAHueco (componentes UTC) acierten.
  * Si el backend empieza a mandar instantes reales, hay que quitar esto.
  */
 function conHuecosEnInstantes(c: ApiCitaEnConflicto): ApiCitaEnConflicto {
   const aInstante = (iso: string) =>
-    madridWallToUtc(iso.slice(0, 10), minutesOfHHmm(iso.slice(11, 16))).toISOString();
+    horaLocalAUtc(iso.slice(0, 10), minutesOfHHmm(iso.slice(11, 16))).toISOString();
   const { reprogramar } = c.opciones;
   return {
     ...c,
@@ -358,7 +358,7 @@ export const ReservasController = {
     const mapped: Reserva = {
       ...reserva,
       /* Para mostrar sí se usa el día de Madrid */
-      fecha: madridYmd(inicio),
+      fecha: zonaYmd(inicio),
       hora: slot.hora,
       estado: APPT_ESTADO_MAP[updated.estado] ?? reserva.estado,
     };
@@ -455,7 +455,7 @@ export const ReservasController = {
   puedeExtender(reserva: Reserva): boolean {
     if (reserva.apiId == null || !reserva.inicioISO) return false;
     if (reserva.estado !== "pendiente" && reserva.estado !== "confirmada") return false;
-    return madridYmd(new Date(reserva.inicioISO)) === madridToday();
+    return zonaYmd(new Date(reserva.inicioISO)) === zonaHoy();
   },
 
   /**
@@ -559,9 +559,9 @@ export const ReservasController = {
       clienteId: a.userId ?? undefined,
       telefono: a.userTelefono || "—",
       email: a.userEmail || "—",
-      fecha: inicio ? madridYmd(inicio) : "",
-      hora: inicio ? madridHHmm(inicio) : "—",
-      horaFin: a.horaFin ? madridHHmm(new Date(a.horaFin)) : undefined,
+      fecha: inicio ? zonaYmd(inicio) : "",
+      hora: inicio ? zonaHHmm(inicio) : "—",
+      horaFin: a.horaFin ? zonaHHmm(new Date(a.horaFin)) : undefined,
       inicioISO: a.horaInicio ?? undefined,
       finISO: a.horaFin ?? undefined,
       precio: 0,

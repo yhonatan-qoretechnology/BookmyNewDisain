@@ -1,37 +1,65 @@
 /* ============================================================
-   Zona horaria del negocio — Europe/Madrid
+   Zona horaria del negocio
    ------------------------------------------------------------
-   El backend valida SIEMPRE en Europe/Madrid (appointment.service.ts
-   → APP_TIMEZONE) pero guarda instantes UTC. El panel trabaja en hora
-   de Madrid: una cita guardada como 08:00Z se ve y se agenda como las
-   10:00, que es la hora real de la sede.
+   El backend guarda instantes UTC y valida en la zona de la SEDE
+   (appointment.service.ts → zonaDeSede). El panel trabaja en esa
+   misma hora de pared: una cita guardada como 08:00Z se ve y se
+   agenda como las 10:00 si el negocio está en Madrid, o como las
+   03:00 si está en Bogotá.
 
-   No se usa un desfase fijo: España alterna CET (+1) y CEST (+2), así
-   que el corrimiento se calcula con Intl para la fecha concreta.
+   La zona es una variable del módulo y no un parámetro de cada
+   función a propósito: el panel es una aplicación de cliente que
+   sirve a UN negocio por sesión, así que no hay dos zonas vivas a
+   la vez. La fija RegionProvider en cuanto resuelve el país, y
+   mientras tanto vale Madrid, que es lo que era todo hasta ahora.
+
+   No se usa un desfase fijo: España alterna CET (+1) y CEST (+2)
+   y Colombia no cambia la hora nunca, así que el corrimiento se
+   calcula con Intl para la fecha concreta.
 ============================================================ */
 
-export const APP_TIMEZONE = "Europe/Madrid";
+const ZONA_POR_DEFECTO = "Europe/Madrid";
 
-const partsFormatter = new Intl.DateTimeFormat("en-US", {
-  timeZone: APP_TIMEZONE,
-  hour12: false,
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-});
+let zonaActual = ZONA_POR_DEFECTO;
+
+/** La fija RegionProvider con la zona del país del negocio. */
+export function setZonaHoraria(tz: string) {
+  if (!tz || tz === zonaActual) return;
+  zonaActual = tz;
+  formateador = construirFormateador(tz);
+}
+
+export function getZonaHoraria(): string {
+  return zonaActual;
+}
+
+/** @deprecated Usa getZonaHoraria(): esto solo vale mientras el negocio sea español. */
+export const APP_TIMEZONE = ZONA_POR_DEFECTO;
+
+function construirFormateador(tz: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+let formateador = construirFormateador(ZONA_POR_DEFECTO);
 
 interface WallParts {
   year: number; month: number; day: number;
   hour: number; minute: number; second: number;
 }
 
-/** Descompone un instante en su hora de pared de Madrid. */
-function madridParts(date: Date): WallParts {
+/** Descompone un instante en su hora de pared, en la zona del negocio. */
+function partesLocales(date: Date): WallParts {
   const raw = Object.fromEntries(
-    partsFormatter.formatToParts(date)
+    formateador.formatToParts(date)
       .filter((p) => p.type !== "literal")
       .map((p) => [p.type, p.value])
   ) as Record<string, string>;
@@ -46,48 +74,48 @@ function madridParts(date: Date): WallParts {
   };
 }
 
-/** Minutos que Madrid va por delante de UTC en ese instante (60 o 120). */
-export function madridOffsetMinutes(date: Date): number {
-  const p = madridParts(date);
+/** Minutos que la zona del negocio va por delante de UTC en ese instante. */
+export function desfaseMinutos(date: Date): number {
+  const p = partesLocales(date);
   const asUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
   return Math.round((asUtc - date.getTime()) / 60000);
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** Fecha "YYYY-MM-DD" del instante, en Madrid. */
-export function madridYmd(date: Date): string {
-  const p = madridParts(date);
+/** Fecha "YYYY-MM-DD" del instante, en la zona del negocio. */
+export function zonaYmd(date: Date): string {
+  const p = partesLocales(date);
   return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
 }
 
-/** Hora "HH:mm" del instante, en Madrid. */
-export function madridHHmm(date: Date): string {
-  const p = madridParts(date);
+/** Hora "HH:mm" del instante, en la zona del negocio. */
+export function zonaHHmm(date: Date): string {
+  const p = partesLocales(date);
   return `${pad(p.hour)}:${pad(p.minute)}`;
 }
 
-/** Minutos transcurridos desde medianoche en Madrid. */
-export function madridMinutes(date: Date): number {
-  const p = madridParts(date);
+/** Minutos transcurridos desde medianoche en la zona del negocio. */
+export function zonaMinutos(date: Date): number {
+  const p = partesLocales(date);
   return p.hour * 60 + p.minute;
 }
 
 /** Día de la semana en Madrid (0 = domingo, como Date.getDay()). */
-export function madridDayOfWeek(date: Date): number {
-  const p = madridParts(date);
+export function zonaDiaSemana(date: Date): number {
+  const p = partesLocales(date);
   /* Date.UTC + getUTCDay da el día correcto sin arrastrar la zona local */
   return new Date(Date.UTC(p.year, p.month - 1, p.day)).getUTCDay();
 }
 
-/** Hoy en Madrid, como "YYYY-MM-DD". */
-export function madridToday(): string {
-  return madridYmd(new Date());
+/** Hoy en la zona del negocio, como "YYYY-MM-DD". */
+export function zonaHoy(): string {
+  return zonaYmd(new Date());
 }
 
 /**
- * Convierte una hora de pared de Madrid al instante UTC que le
- * corresponde. Es la operación inversa de madridHHmm y la que se
+ * Convierte una hora de pared del negocio al instante UTC que le
+ * corresponde. Es la operación inversa de zonaHHmm y la que se
  * usa para construir lo que se manda al backend.
  *
  * Se resuelve iterando: se parte de tratar la hora como si fuera UTC
@@ -95,10 +123,10 @@ export function madridToday(): string {
  * pasada cubre los saltos de horario de verano, donde el desfase del
  * punto de partida y el del resultado difieren.
  *
- * @param ymd Fecha "YYYY-MM-DD" en Madrid.
- * @param minutesOfDay Minutos desde medianoche en Madrid.
+ * @param ymd Fecha "YYYY-MM-DD" en la zona del negocio.
+ * @param minutesOfDay Minutos desde medianoche en la zona del negocio.
  */
-export function madridWallToUtc(ymd: string, minutesOfDay: number): Date {
+export function horaLocalAUtc(ymd: string, minutesOfDay: number): Date {
   const [year, month, day] = ymd.split("-").map(Number);
   const hour = Math.floor(minutesOfDay / 60);
   const minute = minutesOfDay % 60;
@@ -106,7 +134,7 @@ export function madridWallToUtc(ymd: string, minutesOfDay: number): Date {
 
   let ts = naive;
   for (let i = 0; i < 2; i++) {
-    const offset = madridOffsetMinutes(new Date(ts));
+    const offset = desfaseMinutos(new Date(ts));
     const corrected = naive - offset * 60000;
     if (corrected === ts) break;
     ts = corrected;

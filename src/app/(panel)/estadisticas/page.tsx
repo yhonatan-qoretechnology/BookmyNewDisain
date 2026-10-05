@@ -14,7 +14,7 @@
 import { useMemo, useState } from "react";
 import { EstadisticasApi } from "@/api/modules";
 import type { ApiRankingVistas } from "@/api/types";
-import { fmtMoneda } from "@/constants";
+import { useRegion } from "@/context/RegionContext";
 import { useSession } from "@/context/SessionContext";
 import { useData } from "@/hooks/useData";
 import { useI18n } from "@/i18n";
@@ -76,6 +76,7 @@ const CHIP_ESTADO: Record<string, string> = {
 
 export default function EstadisticasPage() {
   const { t, tList, locale } = useI18n();
+  const { pais, fmtMoneda } = useRegion();
   const { session } = useSession();
 
   /* ── Rango de fechas (2.12) ───────────────────────────────
@@ -142,9 +143,9 @@ export default function EstadisticasPage() {
   const [tipoVisto, setTipoVisto] = useState(0);
   const [serieTab, setSerieTab] = useState<"reservas" | "ingresos">("reservas");
 
-  const nf = useMemo(() => new Intl.NumberFormat("es-ES"), []);
+  const nf = useMemo(() => new Intl.NumberFormat(pais.locale), [pais.locale]);
   const num = (n: number) => nf.format(Math.round(n));
-  const dinero = (n: number) => fmtMoneda(n, "EUR");
+  const dinero = fmtMoneda;
   const pct = (n: number) => `${n.toFixed(1).replace(".", ",")}%`;
   const signo = (n: number, unidad = "%") => `${n > 0 ? "+" : ""}${n.toFixed(1).replace(".", ",")}${unidad}`;
   /* Eje de ingresos: "k" solo cuando hay miles de verdad; con importes

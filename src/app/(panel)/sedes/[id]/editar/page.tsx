@@ -267,7 +267,7 @@ export default function EditarSedePage() {
             <input id="sd-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
           </Field>
           <Field label={`${t("common.phone")} *`} htmlFor="sd-tel">
-            <input id="sd-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+34 600 000 000" />
+            <input id="sd-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder={t("common.phonePh")} />
           </Field>
           <Field label={t("empresaSedes.latitude")} htmlFor="sd-lat">
             <input id="sd-lat" type="number" step="any" value={latitud} onChange={(e) => setLatitud(e.target.value)} />

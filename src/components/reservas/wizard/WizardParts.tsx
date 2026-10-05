@@ -9,6 +9,7 @@
 import { useRef } from "react";
 import type { ClienteOpcion, ProfesionalCard, ServicioOpcion, SlotHora } from "@/models";
 import { fotoUrl, initials } from "@/constants";
+import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import styles from "./wizard.module.css";
@@ -161,6 +162,7 @@ export function ServicioCards({
   onSelect: (s: ServicioOpcion) => void;
 }) {
   const { t } = useI18n();
+  const { fmtMoneda } = useRegion();
   return (
     <div className={styles.serviceGrid} role="listbox" aria-label="servicios">
       {servicios.map((s) => (
@@ -179,7 +181,7 @@ export function ServicioCards({
               <Icon name="clock" width={13} height={13} />
               {t("wizard.minutes", { n: s.duracion })}
             </span>
-            <span className={styles.servicePrice}>{s.precio.toFixed(2)}€</span>
+            <span className={styles.servicePrice}>{fmtMoneda(s.precio)}</span>
           </span>
         </button>
       ))}

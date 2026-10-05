@@ -8,7 +8,7 @@
    Acciones: Ver (popup) · Descargar PDF
 ============================================================ */
 import { useEffect, useMemo, useState } from "react";
-import { fmtFechaLarga, fmtMoneda } from "@/constants";
+import { fmtFechaLarga } from "@/constants";
 import {
   EmisorController,
   Factura,
@@ -17,6 +17,7 @@ import {
 } from "@/controllers/FacturacionControllers";
 import { useData } from "@/hooks/useData";
 import { usePaginacion } from "@/hooks/usePaginacion";
+import { useRegion } from "@/context/RegionContext";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
@@ -37,6 +38,7 @@ export default function FacturacionPage() {
   const { t } = useI18n();
   const { locale } = useI18n();
   const { session } = useSession();
+  const { pais, fmtMoneda, etiqueta } = useRegion();
   const { toast } = useUi();
 
   /* --- búsqueda libre (ID/Cliente/Servicio en una sola caja) + fecha --- */
@@ -69,9 +71,10 @@ export default function FacturacionPage() {
       FacturasController.search(
         session,
         { q: fQuery, fecha: fFecha, empresaId: fEmpresaId, sedeId: fSedeId },
-        locale
+        locale,
+        pais.moneda
       ),
-    [session?.id, session?.negocioId, session?.sedeId, locale, fQuery, fFecha, fEmpresaId, fSedeId],
+    [session?.id, session?.negocioId, session?.sedeId, locale, pais.moneda, fQuery, fFecha, fEmpresaId, fSedeId],
     []
   );
 
@@ -122,7 +125,7 @@ export default function FacturacionPage() {
     estado: t("common.state"),
     reserva: t("facturacion.reserva"),
     sede: t("facturacion.sede"),
-    nit: t("facturacion.nit"),
+    nit: etiqueta("fiscal"),
     servicio: t("common.service"),
     fecha: t("common.date"),
     cliente: t("common.client"),
@@ -135,7 +138,7 @@ export default function FacturacionPage() {
     if (!emisor) return;
     setBajando(f.id);
     try {
-      await descargarFacturaPdf(f, emisor, textosPdf());
+      await descargarFacturaPdf(f, emisor, textosPdf(), { locale: pais.locale, decimales: pais.decimalesMoneda });
       toast(t("facturacion.pdfListo"), "success");
     } catch {
       toast(t("facturacion.pdfError"), "error");
@@ -158,17 +161,17 @@ export default function FacturacionPage() {
         />
         <StatCard
           color="blue" icon={<Icon name="dollar" />}
-          label={t("facturacion.statFacturado")} count={resumen.total} format={(n) => fmtMoneda(n, "EUR")}
+          label={t("facturacion.statFacturado")} count={resumen.total} format={fmtMoneda}
           footer={t("facturacion.delPeriodo")}
         />
         <StatCard
           color="green" icon={<Icon name="circle-check" />}
-          label={t("facturacion.statCobrado")} count={resumen.cobrado} format={(n) => fmtMoneda(n, "EUR")}
+          label={t("facturacion.statCobrado")} count={resumen.cobrado} format={fmtMoneda}
           footer={t("facturacion.delPeriodo")}
         />
         <StatCard
           color="amber" icon={<Icon name="clock" />}
-          label={t("facturacion.statPendiente")} count={resumen.pendiente} format={(n) => fmtMoneda(n, "EUR")}
+          label={t("facturacion.statPendiente")} count={resumen.pendiente} format={fmtMoneda}
           footer={t("facturacion.delPeriodo")}
         />
       </StatGrid>
@@ -244,7 +247,7 @@ export default function FacturacionPage() {
                 <td><PersonRow name={f.cliente} photo={f.clienteFoto} /></td>
                 <td>{f.servicio}</td>
                 <td>{fmtFechaLarga(f.fecha)}</td>
-                <td><b>{fmtMoneda(f.total, f.moneda)}</b></td>
+                <td><b>{fmtMoneda(f.total)}</b></td>
                 <td>
                   <div className={styles.rowActions}>
                     <Button variant="ghost" size="sm" onClick={() => setVer(f)}>

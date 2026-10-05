@@ -353,7 +353,7 @@ export default function PersonalPage() {
           <input id="np-rol" value={rol} onChange={(e) => setRol(e.target.value)} placeholder={t("personal.rolePlaceholder")} />
         </Field>
         <Field label={t("common.phone")} htmlFor="np-tel">
-          <input id="np-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+34 600 000 000" />
+          <input id="np-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder={t("common.phonePh")} />
         </Field>
         <Field label={t("common.branch")} htmlFor="np-sede">
           <select id="np-sede" value={sede} onChange={(e) => setSede(e.target.value)}>
@@ -413,7 +413,7 @@ export default function PersonalPage() {
           <input id="ep-rol" value={eRol} onChange={(e) => setERol(e.target.value)} placeholder={t("personal.rolePlaceholder")} />
         </Field>
         <Field label={t("common.phone")} htmlFor="ep-tel">
-          <input id="ep-tel" value={eTelefono} onChange={(e) => setETelefono(e.target.value)} placeholder="+34 600 000 000" />
+          <input id="ep-tel" value={eTelefono} onChange={(e) => setETelefono(e.target.value)} placeholder={t("common.phonePh")} />
         </Field>
         <Field label={t("common.branch")} htmlFor="ep-sede">
           <select id="ep-sede" value={eSede} onChange={(e) => setESede(e.target.value)}>

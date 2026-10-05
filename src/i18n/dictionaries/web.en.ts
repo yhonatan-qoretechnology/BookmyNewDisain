@@ -7,6 +7,7 @@
    que en el panel.
 ============================================================ */
 import type { WebDictionary } from "./web.es";
+import { porPais } from "../pais";
 
 const webEn: WebDictionary = {
   nav: {
@@ -229,9 +230,9 @@ const webEn: WebDictionary = {
     email: "Email address",
     emailPh: "you@email.com",
     phone: "Phone",
-    phonePh: "+1 555 000 0000",
+    phonePh: porPais({ ES: "+1 555 000 0000", CO: "+57 300 000 0000" }),
     country: "Country",
-    countryPh: "United States",
+    countryPh: porPais({ ES: "United States", CO: "Colombia" }),
     business: "Business type",
     selectOpt: "Select an option",
     optHealth: "Health",
@@ -281,7 +282,7 @@ const webEn: WebDictionary = {
     email: "Email address",
     emailPh: "you@email.com",
     phone: "Phone",
-    phonePh: "+1 555 000 0000",
+    phonePh: porPais({ ES: "+1 555 000 0000", CO: "+57 300 000 0000" }),
     subject: "Reason for contact",
     subjectSelect: "Select an option",
     subjectSales: "Sales",
@@ -501,7 +502,7 @@ const webEn: WebDictionary = {
     rubroServicios: "Professional services",
     rubroOtro: "Other",
     telefono: "Contact phone",
-    telefonoPh: "+34 600 000 000",
+    telefonoPh: porPais({ ES: "+34 600 000 000", CO: "+57 300 000 0000" }),
     sedeNombre: "Branch name",
     sedeNombrePh: "e.g. Downtown",
     direccion: "Address",

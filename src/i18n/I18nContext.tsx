@@ -17,9 +17,21 @@
    `updateSession({ idioma })`. Cuando exista backend, ese es el
    lugar para disparar el PATCH/UPDATE del parámetro del usuario
    (ver comentario "// → API" más abajo).
+
+   El PAÍS del negocio (ES/CO) es otro eje y no se elige aquí: ver
+   `pais.ts`. Este proveedor solo lo lee para escoger la redacción
+   de las claves que la tienen desdoblada.
 ============================================================ */
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { DEFAULT_LOCALE, LANG_STORAGE_KEY, isLocale, type LocaleCode } from "./config";
+import {
+  PAIS_POR_DEFECTO,
+  getPaisActivo,
+  setPaisActivo,
+  suscribirPais,
+  textoDelPais,
+  type PaisIso,
+} from "./pais";
 import { DICTIONARIES } from "./dictionaries";
 import { useSession } from "@/context/SessionContext";
 
@@ -33,6 +45,9 @@ interface I18nValue {
   t: (path: string, vars?: Vars) => string;
   /** Acceso a listas del diccionario (meses, días…): tList("calendar.dow") */
   tList: (path: string) => string[];
+  /** País del negocio con el que se están resolviendo los textos.
+      Lo fija useRegion() con `setPaisActivo()`; aquí es de lectura. */
+  pais: PaisIso;
 }
 
 const I18nContext = createContext<I18nValue>({
@@ -40,6 +55,7 @@ const I18nContext = createContext<I18nValue>({
   setLocale: () => {},
   t: (p) => p,
   tList: () => [],
+  pais: PAIS_POR_DEFECTO,
 });
 
 /** Navega el diccionario por la ruta "a.b.c" */
@@ -50,6 +66,12 @@ function resolve(locale: LocaleCode, path: string): unknown {
   );
 }
 
+/** Primer render (servidor e hidratación): el país aún no se conoce,
+    así que se parte siempre de la base y nunca descuadra el HTML. */
+function paisBase(): PaisIso {
+  return PAIS_POR_DEFECTO;
+}
+
 function interpolate(text: string, vars?: Vars): string {
   if (!vars) return text;
   return text.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? String(vars[k]) : `{${k}}`));
@@ -58,6 +80,10 @@ function interpolate(text: string, vars?: Vars): string {
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const { session, updateSession } = useSession();
   const [locale, setLocaleState] = useState<LocaleCode>(DEFAULT_LOCALE);
+  /* El país vive fuera de React (ver pais.ts) para que lo pueda
+     escribir también el alta, que no tiene sesión; se suscribe en vez
+     de leerse para que al resolverse se repinten los textos. */
+  const pais = useSyncExternalStore(suscribirPais, getPaisActivo, paisBase);
 
   /* Resolución inicial (solo en cliente): localStorage → navegador → defecto.
      El parámetro de BD (session.idioma) se aplica en el efecto siguiente
@@ -75,6 +101,15 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLocale(session?.idioma)) setLocaleState(session.idioma);
   }, [session?.idioma]);
+
+  /* 2️⃣ PAÍS DEL NEGOCIO: el RegionProvider lo resuelve y lo deja en la
+     sesión, de donde se lee aquí. No se usa useRegion() porque ese
+     proveedor se monta por debajo de este, pero el dato es el mismo.
+     Mientras no se sepa (superadmin, sesión antigua, el alta) no toca
+     nada y rige España. */
+  useEffect(() => {
+    setPaisActivo(session?.pais?.isoCode);
+  }, [session?.pais?.isoCode]);
 
   /* Refleja el idioma en <html lang="…"> por accesibilidad y SEO */
   useEffect(() => {
@@ -96,20 +131,21 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, [session, updateSession]);
 
   const t = useCallback((path: string, vars?: Vars): string => {
-    const value = resolve(locale, path);
-    if (typeof value === "string") return interpolate(value, vars);
+    const value = textoDelPais(resolve(locale, path), pais);
+    if (value !== undefined) return interpolate(value, vars);
     // Respaldo: si falta la clave en el idioma activo, usa el base (es)
-    const fallback = resolve(DEFAULT_LOCALE, path);
-    return typeof fallback === "string" ? interpolate(fallback, vars) : path;
-  }, [locale]);
+    const fallback = textoDelPais(resolve(DEFAULT_LOCALE, path), pais);
+    return fallback !== undefined ? interpolate(fallback, vars) : path;
+  }, [locale, pais]);
 
   const tList = useCallback((path: string): string[] => {
     const value = resolve(locale, path);
-    return Array.isArray(value) ? (value as string[]) : [];
-  }, [locale]);
+    if (!Array.isArray(value)) return [];
+    return value.map((item) => textoDelPais(item, pais) ?? String(item));
+  }, [locale, pais]);
 
   return (
-    <I18nContext.Provider value={{ locale, setLocale, t, tList }}>
+    <I18nContext.Provider value={{ locale, setLocale, t, tList, pais }}>
       {children}
     </I18nContext.Provider>
   );

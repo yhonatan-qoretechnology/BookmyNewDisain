@@ -7,10 +7,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Reserva } from "@/models";
 import { ReservasController } from "@/controllers/ReservasController";
-import { fmtFechaLarga, fmtMoneda } from "@/constants";
+import { fmtFechaLarga } from "@/constants";
 import type { ApiCitaEnConflicto } from "@/api/types";
-import { madridHHmm } from "@/lib/timezone";
+import { zonaHHmm } from "@/lib/timezone";
 import { useI18n } from "@/i18n";
+import { useRegion } from "@/context/RegionContext";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import ReagendarModal from "./ReagendarModal";
@@ -39,6 +40,7 @@ const ReservaPopupContext = createContext<ReservaPopupValue>({
 
 export function ReservaPopupProvider({ children }: { children: React.ReactNode }) {
   const { t, locale } = useI18n();
+  const { fmtMoneda } = useRegion();
   const { session } = useSession();
   const [reserva, setReserva] = useState<Reserva | null>(null);
   const reduce = useReducedMotion();
@@ -175,7 +177,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
         servicio: reserva.servicio,
         fecha: fmtFechaLarga(reserva.fecha),
         hora: reserva.hora,
-        precio: reserva.precio.toFixed(2),
+        precio: fmtMoneda(reserva.precio),
       })
     );
     const url = `https://wa.me/${tel}?text=${msg}`;
@@ -204,7 +206,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
         servicio: reserva.servicio,
         fecha: fmtFechaLarga(reserva.fecha),
         hora: reserva.hora,
-        precio: reserva.precio.toFixed(2),
+        precio: fmtMoneda(reserva.precio),
       })
     );
     const url = `mailto:${reserva.email}?subject=${asunto}&body=${cuerpo}`;
@@ -248,7 +250,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
         { label: t("common.client"), value: reserva.cliente },
         { label: t("common.phone"), value: reserva.telefono || "—" },
         { label: t("common.email"), value: reserva.email || "—" },
-        { label: t("common.price"), value: `${reserva.precio.toFixed(2)}€` },
+        { label: t("common.price"), value: fmtMoneda(reserva.precio) },
         { label: t("common.date"), value: fmtFechaLarga(reserva.fecha) },
         { label: t("common.time"), value: reserva.hora || "—" },
         { label: t("common.duration"), value: `${reserva.duracion} min` },
@@ -451,7 +453,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                 </div>
                 <div className={styles.field}><label>{t("common.phone")}</label><span>{reserva.telefono || "—"}</span></div>
                 <div className={styles.field}><label>{t("common.email")}</label><span style={{ wordBreak: "break-all" }}>{reserva.email || "—"}</span></div>
-                <div className={styles.field}><label>{t("common.price")}</label><span className={styles.price}>{reserva.precio.toFixed(2)}€</span></div>
+                <div className={styles.field}><label>{t("common.price")}</label><span className={styles.price}>{fmtMoneda(reserva.precio)}</span></div>
                 <div className={styles.field}><label>{t("common.date")}</label><span>{fmtFechaLarga(reserva.fecha)}</span></div>
                 <div className={styles.field}><label>{t("common.time")}</label><span>{reserva.hora || "—"}{reserva.horaFin ? ` – ${reserva.horaFin}` : ""}</span></div>
                 <div className={styles.field}><label>{t("common.duration")}</label><span>{reserva.duracion} min</span></div>
@@ -462,10 +464,10 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                     <span>
                       +{reserva.minutosExtendidos} min
                       {reserva.horaFin && reserva.finISO
-                        ? ` · ${reserva.horaFin} – ${madridHHmm(new Date(Date.parse(reserva.finISO) + reserva.minutosExtendidos * 60000))}`
+                        ? ` · ${reserva.horaFin} – ${zonaHHmm(new Date(Date.parse(reserva.finISO) + reserva.minutosExtendidos * 60000))}`
                         : ""}
                       {reserva.precio > 0
-                        ? ` · ${fmtMoneda(ReservasController.importeExtension(reserva, reserva.minutosExtendidos), "EUR")}`
+                        ? ` · ${fmtMoneda(ReservasController.importeExtension(reserva, reserva.minutosExtendidos))}`
                         : ""}
                     </span>
                   </div>
@@ -506,7 +508,7 @@ export function ReservaPopupProvider({ children }: { children: React.ReactNode }
                         >
                           <b>{extendiendoMin === m ? t("extender.aplicando") : `+${m} min`}</b>
                           {reserva.precio > 0 && (
-                            <small>{fmtMoneda(ReservasController.importeExtension(reserva, m), "EUR")}</small>
+                            <small>{fmtMoneda(ReservasController.importeExtension(reserva, m))}</small>
                           )}
                         </button>
                       ))}

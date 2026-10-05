@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { fmtFechaLarga, fmtMoneda, initials } from "@/constants";
 import { FacturasController, type Emisor, type Factura } from "@/controllers/FacturacionControllers";
+import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Badge from "@/components/ui/Badge";
@@ -30,6 +31,7 @@ function Contenido({
   onActualizada?: () => Promise<void> | void;
 }) {
   const { t } = useI18n();
+  const { pais, etiqueta } = useRegion();
   const { toast } = useUi();
   const [generando, setGenerando] = useState(false);
   /** itemId del adicional que se está quitando (bloquea los demás botones) */
@@ -115,14 +117,14 @@ function Contenido({
         estado: t("common.state"),
         reserva: t("facturacion.reserva"),
         sede: t("facturacion.sede"),
-        nit: t("facturacion.nit"),
+        nit: etiqueta("fiscal"),
         servicio: t("common.service"),
         fecha: t("common.date"),
         cliente: t("common.client"),
         metodoPago: t("common.price"),
         profesional: t("common.specialist"),
         pie: t("facturacion.panelTitle"),
-      });
+      }, { locale: pais.locale, decimales: pais.decimalesMoneda });
       toast(t("facturacion.pdfListo"), "success");
     } catch {
       toast(t("facturacion.pdfError"), "error");
@@ -176,7 +178,7 @@ function Contenido({
           <span className={styles.emisorNombre}>{em.nombre}</span>
           {em.nit && (
             <span className={styles.emisorLinea}>
-              <Icon name="shield" /> {t("facturacion.nit")}: {em.nit}
+              <Icon name="shield" /> {etiqueta("fiscal")}: {em.nit}
             </span>
           )}
           {(em.sedeNombre || em.sedeDireccion) && (
@@ -235,8 +237,8 @@ function Contenido({
             <tr key={i}>
               <td>{it.concepto}</td>
               <td className={styles.c}>{it.cantidad}</td>
-              <td className={styles.r}>{fmtMoneda(it.precio, f.moneda)}</td>
-              <td className={styles.r}>{fmtMoneda(it.precio * it.cantidad, f.moneda)}</td>
+              <td className={styles.r}>{fmtMoneda(it.precio, f.moneda, pais.locale, pais.decimalesMoneda)}</td>
+              <td className={styles.r}>{fmtMoneda(it.precio * it.cantidad, f.moneda, pais.locale, pais.decimalesMoneda)}</td>
               {hayAdicionales && (
                 <td className={styles.quitarCol} data-no-print>
                   {it.itemId != null &&
@@ -308,7 +310,7 @@ function Contenido({
       <div className={styles.totales}>
         <div className={styles.totalGrande}>
           <span>{t("gastos.total")}</span>
-          <span>{fmtMoneda(f.total, f.moneda)}</span>
+          <span>{fmtMoneda(f.total, f.moneda, pais.locale, pais.decimalesMoneda)}</span>
         </div>
       </div>
     </Modal>
