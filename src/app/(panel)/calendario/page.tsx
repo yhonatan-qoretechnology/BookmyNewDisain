@@ -29,9 +29,14 @@ export default function CalendarioPage() {
   const { data: diasFestivos } = useData(
     () => FestivosApi.findAll({
       anio: new Date().getFullYear(),
-      sedeId: session?.sedeId ? Number(session.sedeId) : undefined,
+      /* Con sede fija, los suyos; el dueño trabaja sobre toda la empresa, así
+         que se piden los de todas sus sedes — si no, solo llegaban los
+         nacionales y el calendario no marcaba ningún festivo autonómico. */
+      ...(session?.sedeId
+        ? { sedeId: Number(session.sedeId) }
+        : { empresaId: Number(session?.negocioId) || undefined }),
     }).catch(() => []),
-    [session?.sedeId],
+    [session?.sedeId, session?.negocioId],
     [],
   );
 

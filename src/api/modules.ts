@@ -520,8 +520,13 @@ export const EstadisticasApi = {
 };
 
 export const FestivosApi = {
-  /** GET /festivos?anio=&sedeId= — nacionales + de su comunidad + de su municipio. */
-  findAll: (params: { anio?: number; sedeId?: number } = {}) =>
+  /**
+   * GET /festivos?anio=&sedeId=&empresaId= — nacionales + los de su comunidad
+   * + los de su municipio. Con `empresaId` devuelve los de TODAS las sedes de
+   * la empresa, que es lo que necesita el calendario del dueño: sin sede fija
+   * solo llegaban los nacionales y no se veía ninguna marca autonómica.
+   */
+  findAll: (params: { anio?: number; sedeId?: number; empresaId?: number } = {}) =>
     http.get<ApiFestivo[]>(EP.festivos + qs(params)),
 
   /**
