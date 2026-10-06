@@ -833,10 +833,21 @@ export interface ApiFestivo {
   id: number;
   fecha: string;
   nombre: string;
-  ambito: "NACIONAL" | "AUTONOMICO" | "LOCAL";
+  /** REGIONAL se llamaba AUTONOMICO: una comunidad es una figura española */
+  ambito: "NACIONAL" | "REGIONAL" | "LOCAL";
   pais: string;
-  ccaa: string | null;
+  /** ISO 3166-2 sin el prefijo de país ("AN", "CT"); vacío si no aplica */
+  region: string | null;
+  /** Solo en los LOCAL: el municipio que no trabaja ese día */
   municipio: string | null;
+}
+
+/** DTO de POST /festivos/local — alta manual del festivo de un pueblo. */
+export interface CrearFestivoLocalDto {
+  fecha: string;
+  nombre: string;
+  municipio: string;
+  pais?: string;
 }
 
 /* ── Estadísticas ─────────────────────────────────────────── */

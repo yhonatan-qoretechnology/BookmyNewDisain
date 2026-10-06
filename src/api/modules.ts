@@ -14,7 +14,7 @@ import type {
   ApiPais, ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
   ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
-  ApiEmpresaKyc, ApiKycPendiente,
+  ApiEmpresaKyc, ApiKycPendiente, CrearFestivoLocalDto,
   ApiServicioAsignable, ApiSincronizacionFestivos, ApiUser, ApiConContinuacion,
   UpdateServiceSedeProfesionalDto,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
@@ -546,6 +546,18 @@ export const FestivosApi = {
    */
   sincronizar: (anio: number) =>
     http.post<ApiSincronizacionFestivos>(EP.festivosSincronizar, { anio }),
+
+  /* ── Festivos locales (los del municipio) ──────────────────
+     La sincronización solo trae nacionales y regionales; los patronos de
+     cada pueblo, que son los que cambian de Benalmádena a Marbella, se
+     cargan a mano. Solo SUPER_ADMIN. */
+  locales: (anio?: number, pais?: string) =>
+    http.get<ApiFestivo[]>(EP.festivosLocales + qs({ anio, pais })),
+
+  crearLocal: (dto: CrearFestivoLocalDto) =>
+    http.post<ApiFestivo>(EP.festivoLocal, dto),
+
+  borrarLocal: (id: number) => http.delete<void>(EP.festivoLocalById(id)),
 };
 
 /* ── Subida de imágenes ─────────────────────────────────────

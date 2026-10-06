@@ -945,6 +945,23 @@ const en: Dictionary = {
     addImages: "Add images",
   },
 
+  /* Town-level holidays: the official feed only brings national and regional ones */
+  festivos: {
+    localesBoton: "Local holidays",
+    localesTitulo: "{anio} local holidays",
+    localesSub: "Each town's patron saint days don't come in the official sync: add them here and every branch will see its own. Accents in the town name don't matter.",
+    municipio: "Town",
+    municipioPlaceholder: "e.g. Benalmádena",
+    nombrePlaceholder: "e.g. Virgen del Carmen",
+    agregar: "Add",
+    agregado: "Local holiday added",
+    faltanDatos: "Fill in the date, the town and the name.",
+    sinLocales: "No local holidays loaded for this year yet.",
+    borrarTitulo: "Remove local holiday",
+    borrarMsg: "Remove “{nombre}” from {municipio}? It will stop being marked on the calendars.",
+    borrado: "Local holiday removed",
+  },
+
   calendario: {
     /* Official public holidays */
     festivosSincronizar: "Sync holidays",

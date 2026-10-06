@@ -15,6 +15,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import CalendarGrid from "@/components/ui/CalendarGrid";
 import { FestivosApi } from "@/api/modules";
+import FestivosLocales from "@/components/festivos/FestivosLocales";
 
 export default function CalendarioPage() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function CalendarioPage() {
   /* Festivos del año en curso, acotados a la sede de la sesión: el backend
      resuelve su comunidad y su municipio. Son informativos — pintan la
      celda en rojo pero NO impiden agendar. */
-  const { data: diasFestivos } = useData(
+  const { data: diasFestivos, reload: reloadFestivos } = useData(
     () => FestivosApi.findAll({
       anio: new Date().getFullYear(),
       /* Con sede fija, los suyos; el dueño trabaja sobre toda la empresa, así
@@ -44,6 +45,8 @@ export default function CalendarioPage() {
      vez al año, cuando sale el calendario del siguiente. */
   const [anioSync, setAnioSync] = useState(() => new Date().getFullYear() + 1);
   const [sincronizando, setSincronizando] = useState(false);
+  /** Gestor de los festivos de cada pueblo, que la API oficial no trae */
+  const [locales, setLocales] = useState(false);
 
   const sincronizarFestivos = async () => {
     setSincronizando(true);
@@ -118,8 +121,19 @@ export default function CalendarioPage() {
           <Button size="sm" disabled={sincronizando} onClick={() => void sincronizarFestivos()}>
             {sincronizando ? t("calendario.festivosSincronizando") : t("calendario.festivosSincronizar")}
           </Button>
+          {/* Los del municipio no vienen en la sincronización: se cargan a mano */}
+          <Button size="sm" variant="ghost" onClick={() => setLocales(true)}>
+            {t("festivos.localesBoton")}
+          </Button>
         </div>
       )}
+
+      <FestivosLocales
+        abierto={locales}
+        anio={new Date().getFullYear()}
+        onClose={() => setLocales(false)}
+        onCambios={() => void reloadFestivos()}
+      />
 
       <CalendarGrid
         events={events}

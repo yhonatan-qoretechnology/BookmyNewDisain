@@ -991,6 +991,24 @@ const es = {
     addImages: "Agregar imágenes",
   },
 
+  /* Festivos de cada municipio: la API oficial solo trae los nacionales
+     y los de cada comunidad */
+  festivos: {
+    localesBoton: "Festivos locales",
+    localesTitulo: "Festivos locales de {anio}",
+    localesSub: "Los patronos de cada pueblo no vienen en la sincronización oficial: cárgalos aquí y cada sede verá los suyos. Da igual escribir el municipio con tilde o sin ella.",
+    municipio: "Municipio",
+    municipioPlaceholder: "Ej. Benalmádena",
+    nombrePlaceholder: "Ej. Virgen del Carmen",
+    agregar: "Añadir",
+    agregado: "Festivo local añadido",
+    faltanDatos: "Completa la fecha, el municipio y el nombre.",
+    sinLocales: "Todavía no hay festivos locales cargados para este año.",
+    borrarTitulo: "Quitar festivo local",
+    borrarMsg: "¿Quitar «{nombre}» de {municipio}? Dejará de marcarse en los calendarios.",
+    borrado: "Festivo local quitado",
+  },
+
   calendario: {
     /* Festivos oficiales */
     festivosSincronizar: "Sincronizar festivos",
