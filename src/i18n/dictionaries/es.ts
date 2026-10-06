@@ -197,6 +197,11 @@ const es = {
     f4: "Chat con tu equipo y con tus clientes",
     f5: "Varias sedes bajo un mismo panel",
     f6: "Todo lo del plan gratuito, sin límites",
+    /* Panel "Tu plan", en Configuración */
+    panelTitle: "Tu plan",
+    panelSub: "Qué incluye tu cuenta de Bookmy ahora mismo",
+    soloPro: "Solo en Pro",
+    proActivo: "Tienes Bookmy CRM Pro: todos los módulos están disponibles.",
     /* Aviso de la prueba en el panel */
     trialBanner: "Te quedan {n} días de prueba de Bookmy CRM Pro",
     trialBannerOne: "Hoy es el último día de tu prueba de Bookmy CRM Pro",

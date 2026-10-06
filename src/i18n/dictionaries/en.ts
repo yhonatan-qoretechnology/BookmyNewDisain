@@ -172,6 +172,11 @@ const en: Dictionary = {
     f4: "Chat with your team and your clients",
     f5: "Several branches under one panel",
     f6: "Everything in the free plan, with no limits",
+    /* "Your plan" panel, under Settings */
+    panelTitle: "Your plan",
+    panelSub: "What your Bookmy account includes right now",
+    soloPro: "Pro only",
+    proActivo: "You have Bookmy CRM Pro: every module is available.",
     trialBanner: "{n} days left of your Bookmy CRM Pro trial",
     trialBannerOne: "Today is the last day of your Bookmy CRM Pro trial",
     trialBannerCta: "I want to keep Pro",

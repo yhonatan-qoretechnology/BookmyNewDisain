@@ -1,0 +1,31 @@
+/* "Tu plan", en Configuración */
+.cabecera {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.nota { margin: 0; font-size: 12.5px; color: var(--slate-500); line-height: 1.55; }
+
+.ventajas { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 8px; }
+.ventajas li {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13.5px; line-height: 1.4;
+}
+.ventajas li svg { flex: none; }
+.incluida { color: var(--navy-900); }
+.incluida svg { color: var(--teal-600); }
+.bloqueada { color: var(--slate-500); }
+.bloqueada svg { color: var(--slate-300); }
+.bloqueada small {
+  margin-left: auto; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--slate-500);
+}
+:global([data-theme="dark"]) .incluida { color: #e8edf5; }
+
+.acciones { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.ventas {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  padding: 9px 16px; border-radius: var(--r-md);
+  background: var(--navy-900); color: #fff;
+}
+:global([data-theme="dark"]) .ventas { background: var(--teal-500); }
