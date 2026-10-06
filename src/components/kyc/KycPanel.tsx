@@ -51,7 +51,16 @@ export default function KycPanel() {
   const [archivos, setArchivos] = useState<Archivos>({});
   const [enviando, setEnviando] = useState(false);
 
-  if (!empresaId) return null;
+  /* Antes esto devolvía null y el panel entero desaparecía sin explicación:
+     parecía que la verificación no existía. */
+  if (!empresaId) {
+    return (
+      <Panel>
+        <PanelHead title={t("kyc.titulo")} sub={t("kyc.sub")} />
+        <p className={styles.nota}>{t("kyc.sinNegocio")}</p>
+      </Panel>
+    );
+  }
 
   const estado = kyc?.estado ?? "PENDIENTE";
   const aprobada = estado === "APROBADA";

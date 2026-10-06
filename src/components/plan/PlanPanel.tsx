@@ -30,7 +30,18 @@ export default function PlanPanel() {
   const [activando, setActivando] = useState(false);
 
   /* El superadmin no pertenece a ningún negocio: su sitio es Empresas. */
-  if (!session?.negocioId || session.role === "superadmin") return null;
+  if (!session || session.role === "superadmin") return null;
+
+  /* Sin empresa en la sesión no hay plan que mirar, pero antes esto
+     desaparecía sin decir nada y parecía que la pantalla estaba rota. */
+  if (!session.negocioId || !Number(session.negocioId)) {
+    return (
+      <Panel>
+        <PanelHead title={t("plan.panelTitle")} sub={t("plan.panelSub")} />
+        <p className={styles.nota}>{t("plan.sinNegocio")}</p>
+      </Panel>
+    );
+  }
 
   const pro = estado?.planEfectivo === "PRO";
   /* La prueba la activa el dueño; un admin de sede solo mira. */

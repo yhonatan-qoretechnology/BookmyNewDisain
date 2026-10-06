@@ -201,6 +201,7 @@ const es = {
     panelTitle: "Tu plan",
     panelSub: "Qué incluye tu cuenta de Bookmy ahora mismo",
     soloPro: "Solo en Pro",
+    sinNegocio: "Tu usuario no está asociado a ningún negocio, así que no hay plan que mostrar. Vuelve a entrar o pide que te asocien a una empresa.",
     proActivo: "Tienes Bookmy CRM Pro: todos los módulos están disponibles.",
     /* Aviso de la prueba en el panel */
     trialBanner: "Te quedan {n} días de prueba de Bookmy CRM Pro",
@@ -428,6 +429,7 @@ const es = {
         CO: "RUT, cámara de comercio o escritura del negocio.",
       }),
     },
+    sinNegocio: "Tu usuario no está asociado a ningún negocio, así que no hay verificación que enviar. Vuelve a entrar o pide que te asocien a una empresa.",
     yaSubido: "Ya enviado — vuelve a subirlo solo si hay que corregirlo",
     nota: "Imagen o PDF. Solo los ve el equipo de Bookmy para verificar tu negocio.",
     enviar: "Enviar a revisión",

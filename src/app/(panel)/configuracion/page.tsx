@@ -102,7 +102,8 @@ export default function ConfiguracionPage() {
       {/* Plan del negocio: lo ve el dueño y el admin de sede (sin poder activar) */}
       <PlanPanel />
 
-      {session?.role === "owner" && <KycPanel />}
+      {/* La verificación la envía el dueño; el admin de sede ve el estado */}
+      {(session?.role === "owner" || session?.role === "admin") && <KycPanel />}
 
       <div className={styles.settingsGrid}>
         <Panel>
