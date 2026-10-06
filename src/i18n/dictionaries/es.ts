@@ -460,6 +460,12 @@ const es = {
     siguiente: "Siguiente",
     listo: "Listo",
     falta: "Falta",
+    /* "Listo" se leia como "ya subido" y no lo estaba: hasta pulsar Enviar,
+       el archivo solo esta elegido en el navegador. El superadmin veia "sin
+       documentacion" y parecia que una de las dos pantallas mentia. */
+    sinEnviar: "Elegido · sin enviar",
+    yaEnviado: "Enviado",
+    avisoSinEnviar: "Nada de esto se ha subido todavía. Se envía al pulsar «Enviar a revisión».",
     opcional: "Opcional",
     corregir: "Corregir y volver a enviar",
     editarEnvio: "Cambiar lo enviado",

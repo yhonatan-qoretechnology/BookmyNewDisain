@@ -36,6 +36,10 @@ interface Archivos {
   justificante: File | null;
 }
 
+const ARCHIVOS_WIZARD = [
+  "documentoFrente", "documentoDorso", "selfie", "justificante",
+] as const;
+
 const SIN_ARCHIVOS: Archivos = {
   documentoFrente: null, documentoDorso: null, selfie: null, justificante: null,
 };
@@ -76,6 +80,10 @@ export default function KycWizard() {
   /* El pasaporte no tiene reverso: pedirlo solo confunde. */
   const pideDorso = tipo !== "Pasaporte";
   const tieneFrente = !!archivos.documentoFrente || !!kyc?.documentoFrente;
+  /* Hay algo elegido que todavía no ha salido del navegador: mientras no se
+     pulse Enviar, el superadmin no ve nada y las dos pantallas parecen
+     contradecirse. */
+  const hayElegidoSinEnviar = ARCHIVOS_WIZARD.some((campo) => !!archivos[campo]);
 
   /* ── Estado de la revisión: cuando ya se envió, manda esto ── */
   const enCurso = estado === "EN_REVISION" || estado === "APROBADA";
@@ -269,19 +277,29 @@ export default function KycWizard() {
             <ul className={styles.repaso}>
               <li><span>{t("kyc.nifCif")}</span><b>{nif || "—"}</b></li>
               <li><span>{t("kyc.tipoDocumento")}</span><b>{tipo || "—"}</b></li>
-              <li>
-                <span>{t("kyc.archivos.documentoFrente")}</span>
-                <b className={tieneFrente ? styles.ok : styles.falta}>
-                  {tieneFrente ? t("kyc.listo") : t("kyc.falta")}
-                </b>
-              </li>
-              <li>
-                <span>{t("kyc.archivos.selfie")}</span>
-                <b className={archivos.selfie || kyc?.selfie ? styles.ok : styles.falta}>
-                  {archivos.selfie || kyc?.selfie ? t("kyc.listo") : t("kyc.opcional")}
-                </b>
-              </li>
+              {(["documentoFrente", "selfie"] as const).map((campo) => {
+                const elegido = !!archivos[campo];
+                const enviado = !!kyc?.[campo];
+                /* Tres cosas distintas, que antes se resumían en "Listo":
+                   lo que ya está en el servidor, lo que solo está elegido en
+                   este navegador y lo que no hay. */
+                return (
+                  <li key={campo}>
+                    <span>{t(`kyc.archivos.${campo}`)}</span>
+                    <b className={enviado || elegido ? styles.ok : styles.falta}>
+                      {enviado
+                        ? t("kyc.yaEnviado")
+                        : elegido
+                          ? t("kyc.sinEnviar")
+                          : campo === "selfie"
+                            ? t("kyc.opcional")
+                            : t("kyc.falta")}
+                    </b>
+                  </li>
+                );
+              })}
             </ul>
+            {hayElegidoSinEnviar && <p className={styles.avisoSinEnviar}>{t("kyc.avisoSinEnviar")}</p>}
             <p className={styles.nota}>{t("kyc.nota")}</p>
           </>
         )}

@@ -86,3 +86,13 @@
 @media (max-width: 720px) {
   .pasos { grid-template-columns: 1fr 1fr; }
 }
+
+/* "Lo que ves aquí todavía no ha salido de tu navegador" */
+.avisoSinEnviar {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: #b26a00;
+}
+:global([data-theme="dark"]) .avisoSinEnviar { color: #ffb74d; }
