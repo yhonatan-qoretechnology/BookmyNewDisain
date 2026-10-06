@@ -20,6 +20,8 @@ const mapEmpresa = (e: ApiEmpresa): Negocio => ({
   trialEndsAt: e.trialEndsAt ?? null,
   /* Una prueba viva vale como Pro aunque el plan contratado sea FREE. */
   enPrueba: !!e.trialEndsAt && new Date(e.trialEndsAt).getTime() > Date.now(),
+  /* Sin fila de KYC es que nunca envió documentación: le toca subirla. */
+  kycEstado: e.kyc?.estado ?? "PENDIENTE",
   bloqueada: !!e.bloqueada,
   bloqueadaMotivo: e.bloqueadaMotivo ?? null,
   /* El backend lo manda como `country`, igual que el campo de Prisma. */

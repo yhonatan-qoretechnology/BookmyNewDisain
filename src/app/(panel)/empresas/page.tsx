@@ -26,6 +26,8 @@ import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
 import ImageUpload from "@/components/ui/ImageUpload";
 import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
 import KycPendientes from "@/components/kyc/KycPendientes";
+import KycEmpresaModal from "@/components/kyc/KycEmpresaModal";
+import { BADGE_KYC } from "@/components/kyc/KycPanel";
 import styles from "./empresas.module.css";
 
 export default function EmpresasPage() {
@@ -50,6 +52,8 @@ export default function EmpresasPage() {
   const [motivoBloqueo, setMotivoBloqueo] = useState("");
   /** Cola de verificaciones de identidad por revisar */
   const [verificaciones, setVerificaciones] = useState(false);
+  /** Empresa cuya verificación se está mirando (desde su propia tarjeta) */
+  const [kycDe, setKycDe] = useState<Negocio | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [rubro, setRubro] = useState("");
@@ -268,6 +272,11 @@ export default function EmpresasPage() {
                           {n.enPrueba && n.trialEndsAt && (
                             <Tag>{t("plan.trialUntil", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale) })}</Tag>
                           )}
+                          {/* Verificación de identidad: se ve en TODAS, también
+                              en las que aún no han subido nada */}
+                          <Badge kind={BADGE_KYC[n.kycEstado ?? "PENDIENTE"]}>
+                            {t(`kyc.estados.${n.kycEstado ?? "PENDIENTE"}`)}
+                          </Badge>
                           {n.bloqueada && (
                             <Badge kind="cancelado">
                               {n.bloqueadaMotivo
@@ -286,6 +295,11 @@ export default function EmpresasPage() {
                           )}
                           <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
                             {t("empresas.viewSedes")}
+                          </Button>
+                          {/* Abre la verificación de ESA empresa, esté en la
+                              cola o no: ver documentos, aprobar o rechazar */}
+                          <Button variant="ghost" size="sm" onClick={() => setKycDe(n)}>
+                            {t("kyc.verEmpresa")}
                           </Button>
                           {/* El superadmin marca aquí quién ha pagado Pro */}
                           <Button
@@ -339,7 +353,17 @@ export default function EmpresasPage() {
         </ModalActions>
       </Modal>
 
-      <KycPendientes abierto={verificaciones} onClose={() => setVerificaciones(false)} />
+      <KycPendientes
+        abierto={verificaciones}
+        onClose={() => { setVerificaciones(false); void reload(); }}
+      />
+
+      <KycEmpresaModal
+        empresaId={kycDe ? Number(kycDe.id) : null}
+        empresaNombre={kycDe?.nombre || ""}
+        onClose={() => setKycDe(null)}
+        onResuelto={() => void reload()}
+      />
 
       {/* Bloquear una empresa: el motivo se le muestra a quien intente entrar */}
       <Modal open={!!bloqueandoA} onClose={() => { setBloqueandoA(null); setMotivoBloqueo(""); }}>

@@ -403,6 +403,10 @@ const en: Dictionary = {
     bannerCta: "Verify business",
     /* Superadmin queue */
     verificaciones: "Verifications",
+    verEmpresa: "Verification",
+    empresaTitulo: "{empresa} verification",
+    elegirArchivo: "Open each document to review it:",
+    sinDocumentos: "This business hasn't uploaded its documents yet. They have to do it from their own panel, under Settings → Business verification.",
     pendientesTitulo: "Verifications to review",
     pendientesVacio: "No verifications pending.",
     aprobar: "Approve",

@@ -38,6 +38,8 @@ export interface Negocio {
   trialEndsAt?: string | null;
   /** true mientras la prueba de 30 días siga viva */
   enPrueba?: boolean;
+  /** Verificación de identidad: "PENDIENTE" si nunca envió documentación */
+  kycEstado?: "PENDIENTE" | "EN_REVISION" | "APROBADA" | "RECHAZADA";
   /** Bloqueada por el superadmin: ni entran sus admins ni admite reservas */
   bloqueada?: boolean;
   bloqueadaMotivo?: string | null;

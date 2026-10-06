@@ -102,6 +102,8 @@ export interface ApiEmpresa {
   plan?: "FREE" | "PRO";
   trialEndsAt?: string | null;
   trialUsed?: boolean;
+  /** Estado de la verificación de identidad; null si nunca envió nada. */
+  kyc?: { estado: ApiKycEstado; enviadoEn: string | null; motivoRechazo: string | null } | null;
   /** Bloqueo del superadmin: sus admins no pueden entrar ni recibir reservas. */
   bloqueada?: boolean;
   bloqueadaEn?: string | null;

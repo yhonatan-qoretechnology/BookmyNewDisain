@@ -433,6 +433,10 @@ const es = {
     bannerCta: "Verificar negocio",
     /* Cola del superadmin */
     verificaciones: "Verificaciones",
+    verEmpresa: "Verificación",
+    empresaTitulo: "Verificación de {empresa}",
+    elegirArchivo: "Abre cada documento para revisarlo:",
+    sinDocumentos: "Este negocio todavía no ha subido su documentación. Tiene que hacerlo desde su panel, en Configuración → Verificación del negocio.",
     pendientesTitulo: "Verificaciones por revisar",
     pendientesVacio: "No hay verificaciones pendientes.",
     aprobar: "Aprobar",
