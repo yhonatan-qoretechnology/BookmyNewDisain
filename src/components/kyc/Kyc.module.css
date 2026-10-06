@@ -59,3 +59,25 @@
   border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface);
 }
 .vacio { padding: 20px 4px; color: var(--slate-500); font-size: 13.5px; }
+
+/* Cola sin nada que revisar: no es un error, es buena noticia */
+.vacioCola {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 36px 20px; text-align: center;
+}
+.vacioCola svg { color: var(--teal-500); }
+.vacioCola b { font-size: 15px; }
+.vacioCola span { font-size: 13px; color: var(--slate-500); max-width: 42ch; }
+
+/* Mensaje de "esto lo envía el dueño": tiene que leerse como un titular,
+   no como una nota al pie perdida bajo un formulario apagado. */
+.bloqueoTitulo {
+  margin: 14px 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy-900);
+}
+:global([data-theme="dark"]) .bloqueoTitulo { color: var(--slate-300); }
+
+/* Buscador encima del listado de todas las empresas */
+.todasBarra { margin-bottom: 12px; }

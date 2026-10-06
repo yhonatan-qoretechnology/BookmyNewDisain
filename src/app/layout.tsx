@@ -9,23 +9,15 @@ import { ReservaPopupProvider } from "@/components/reservas/ReservaPopupContext"
 import { BookingProvider } from "@/context/BookingContext";
 import "@/styles/globals.css";
 
-/* Las dos fuentes viven en el repositorio, no se descargan de Google al
-   compilar. `next/font/google` las baja en tiempo de build, y si la red
-   del servidor de despliegue falla -aunque sea un segundo- Next sigue
-   adelante sin ella: paso en produccion el 6 de octubre de 2026, donde
-   Inter no llego a generarse y toda la web salio con la tipografia del
-   sistema. Un fichero en el repositorio no se cae.
+/* Plus Jakarta para todo, que es la tipografia del producto.
 
-   Son las variables de las dos familias, asi que un solo fichero cubre
-   todos los pesos. */
-const inter = localFont({
-  src: "../../public/fonts/inter-variable.woff2",
-  weight: "400 700",
-  variable: "--font-inter",
-  display: "swap",
-  fallback: ["system-ui", "sans-serif"],
-});
+   Vive en el repositorio y no se descarga de Google al compilar.
+   `next/font/google` la baja en tiempo de build y, si la red del servidor
+   de despliegue falla, Next sigue adelante sin ella: el 6 de octubre de
+   2026 paso justo eso en produccion y toda la web salio en Times New
+   Roman. Un fichero versionado no se cae.
 
+   Es la version variable, asi que un solo fichero cubre los cinco pesos. */
 const jakarta = localFont({
   src: "../../public/fonts/plus-jakarta-sans-variable.woff2",
   weight: "400 800",
@@ -61,7 +53,7 @@ const themeInitScript = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${jakarta.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="es" className={jakarta.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

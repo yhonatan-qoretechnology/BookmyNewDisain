@@ -173,8 +173,14 @@ export const EP = {
 
   /* @Controller('festivos') — publico; informativos, no bloquean el agendado */
   festivos: "/festivos",
+  /* Qué país/región/municipio se le está aplicando a una sede */
+  festivosContexto: "/festivos/contexto",
   /** POST { anio } — baja el calendario oficial del año. Solo SUPER_ADMIN. */
   festivosSincronizar: "/festivos/sincronizar",
+  /* Festivos locales: la API externa no los trae, se cargan a mano */
+  festivosLocales: "/festivos/locales",
+  festivoLocal: "/festivos/local",
+  festivoLocalById: (id: number) => `/festivos/local/${id}`,
 
   /* @Controller('estadisticas') — rankings con filtro desde/hasta (2.12) */
   estEmpresas: "/estadisticas/empresas-con-mas-reservas",

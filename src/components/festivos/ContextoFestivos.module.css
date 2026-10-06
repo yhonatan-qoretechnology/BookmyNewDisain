@@ -1,0 +1,60 @@
+/* ============================================================
+   Línea de contexto del calendario: qué municipio y qué comunidad
+   se están aplicando. Tono discreto — es una aclaración, no un
+   mensaje de error; sube de tono solo cuando falta el municipio.
+============================================================ */
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 12.5px;
+  color: var(--slate-500);
+}
+
+/* El SVG no tiene alto propio: dentro de un flex se estira */
+.barra > svg { flex: 0 0 auto; width: 16px; height: 16px; color: var(--teal-600); }
+
+.texto { color: var(--navy-900); font-weight: 600; }
+.region { font-weight: 500; color: var(--slate-500); }
+
+/* Falta el municipio de la sede: sin él solo salen nacionales y regionales */
+.aviso {
+  border-color: rgba(255, 167, 38, .5);
+  background: rgba(255, 167, 38, .1);
+}
+.aviso > svg { color: #b26a00; }
+
+/* Municipios a los que todavía no se les han cargado sus fiestas locales */
+.pendiente {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--page-bg);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--slate-500);
+}
+
+/* El municipio vino del campo antiguo: no es un error, pero hay que mirarlo */
+.dudoso {
+  flex: 1 1 100%;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #b26a00;
+  font-weight: 600;
+}
+
+:global([data-theme="dark"]) .texto { color: var(--slate-300); }
+:global([data-theme="dark"]) .dudoso { color: #ffb74d; }
+:global([data-theme="dark"]) .pendiente { background: transparent; }
+
+@media (max-width: 640px) {
+  .pendiente { margin-left: 0; }
+}

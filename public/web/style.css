@@ -6,11 +6,12 @@
 :root{
   /* Las fuentes las sirve Next desde public/fonts, sin llamar a Google al
      compilar. El respaldo va DENTRO de var() a proposito: si la variable
-     no existe, `var(--x), Inter` deja el valor en `, Inter` -invalido- y
+     no existe, `var(--x), Jakarta` deja el valor en `, Jakarta` -invalido- y
      el navegador descarta la regla entera y usa su serif por defecto.
      Paso en produccion el 6/10/2026 y toda la web salio en Times New Roman. */
   --font-display: var(--font-jakarta, 'Plus Jakarta Sans'), system-ui, sans-serif;
-  --font-body: var(--font-inter, 'Inter'), system-ui, sans-serif;
+  /* Plus Jakarta tambien en el cuerpo: Inter se retiro del producto. */
+  --font-body: var(--font-jakarta, 'Plus Jakarta Sans'), system-ui, sans-serif;
 
   --bg:#161520;
   --bg-alt:#0d1714;

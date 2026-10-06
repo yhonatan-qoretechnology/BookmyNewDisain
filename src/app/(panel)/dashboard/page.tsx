@@ -9,6 +9,7 @@ import { ROUTES, fmtFechaCorta } from "@/constants";
 import { ReservasController } from "@/controllers/ReservasController";
 import { NegociosController } from "@/controllers/NegociosController";
 import { EstadisticasController } from "@/controllers/EstadisticasController";
+import { FestivosApi } from "@/api/modules";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { useRegion } from "@/context/RegionContext";
@@ -24,6 +25,8 @@ import Badge from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import CalendarGrid from "@/components/ui/CalendarGrid";
+import ContextoFestivos from "@/components/festivos/ContextoFestivos";
+import { mapaFestivos } from "@/components/festivos/mapaFestivos";
 import { PersonRow } from "@/components/ui/People";
 import styles from "./dashboard.module.css";
 
@@ -117,6 +120,22 @@ export default function DashboardPage() {
     [session?.id, session?.negocioId, session?.sedeId, locale],
     { ingresosMes: 0, clientes: 0, citas: 0, valoracion: null as number | null }
   );
+  /* Festivos de la sede (o de todas las de la empresa, si el dueño no
+     trabaja sobre una): el dashboard es lo primero que se mira por la
+     mañana y aquí tampoco se marcaban. */
+  const { data: diasFestivos } = useData(
+    () => FestivosApi.findAll({
+      anio: new Date().getFullYear(),
+      ...(session?.sedeId
+        ? { sedeId: Number(session.sedeId) }
+        : { empresaId: Number(session?.negocioId) || undefined }),
+    }).catch(() => []),
+    [session?.sedeId, session?.negocioId],
+    [],
+  );
+
+  const festivos = useMemo(() => mapaFestivos(diasFestivos), [diasFestivos]);
+
   const calMap = ReservasController.buildCalendarMap(todas);
   const calEvents = Object.fromEntries(
     Object.entries(calMap).map(([fecha, list]) => [
@@ -220,9 +239,15 @@ export default function DashboardPage() {
 
         <Panel>
           <PanelHead title={t("dashboard.calTitle")} sub={t("dashboard.calSub")} />
-          <CalendarGrid 
-            events={calEvents} 
-            maxPerCell={2} 
+          <ContextoFestivos
+            sedeId={session?.sedeId ? Number(session.sedeId) : undefined}
+            empresaId={!session?.sedeId ? Number(session?.negocioId) || undefined : undefined}
+            festivos={diasFestivos || []}
+          />
+          <CalendarGrid
+            events={calEvents}
+            festivos={festivos}
+            maxPerCell={2}
             onEventClick={(id, data) => data ? popup.open(data, recargarCitas) : popup.open(id, recargarCitas)} 
             selectable={true}
             selectedDate={selectedDate}

@@ -23,6 +23,10 @@ export const ROUTES = {
   stock: "/stock",
   comunicacion: "/comunicacion",
   configuracion: "/configuracion",
+  /** Plan del negocio: qué incluye, prueba de 30 días y contratación */
+  plan: "/plan",
+  /** Verificación de identidad del negocio (KYC) */
+  verificacion: "/verificacion",
 } as const;
 
 /** Vista de edición de una sede (Datos + Imágenes) — reemplaza el
@@ -44,6 +48,8 @@ const ADMIN_ITEMS_FREE: NavItem[] = [
   { id: "calendario", label: "Calendario", href: ROUTES.calendario, icon: "calendar" },
   { id: "resenas", label: "Reseñas", href: ROUTES.resenas, icon: "star" },
   { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
+  { id: "plan", label: "Plan", href: ROUTES.plan, icon: "star" },
+  { id: "verificacion", label: "Verificación", href: ROUTES.verificacion, icon: "shield" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
@@ -65,6 +71,8 @@ const ADMIN_ITEMS_PRO: NavItem[] = [
   { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
   { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
   { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
+  { id: "plan", label: "Plan", href: ROUTES.plan, icon: "star" },
+  { id: "verificacion", label: "Verificación", href: ROUTES.verificacion, icon: "shield" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
@@ -105,7 +113,8 @@ const EMPLOYEE_ITEMS: NavItem[] = [
   { id: "calendario", label: "Calendario", href: ROUTES.employeeCalendario, icon: "calendar" },
   /* La pantalla de Configuración es enteramente personal (perfil propio,
      cambiar su contraseña, tema, idioma) — no depende de permisos de
-     admin, así que el profesional también debe poder entrar ahí. */
+     admin, así que el profesional también debe poder entrar ahí.
+     El plan y la verificación del negocio NO son suyos: no los ve. */
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
 ];
@@ -116,6 +125,8 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { id: "dashboard", label: "Dashboard", href: ROUTES.dashboard, icon: "layout" },
     { id: "empresas", label: "Empresas", href: ROUTES.empresas, icon: "building" },
     { id: "administradores", label: "Administradores", href: ROUTES.administradores, icon: "shield" },
+    /* Cola de verificaciones de identidad de los negocios */
+    { id: "verificacion", label: "Verificaciones", href: ROUTES.verificacion, icon: "shield" },
     { id: "reservas", label: "Reservas", href: ROUTES.reservas, icon: "calendar" },
     { id: "clientes", label: "Clientes", href: ROUTES.clientes, icon: "users" },
     {

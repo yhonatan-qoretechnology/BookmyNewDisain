@@ -114,6 +114,8 @@ const es = {
     stock: "Stock e insumos",
     comunicacion: "Comunicación",
     configuracion: "Configuración",
+    plan: "Plan",
+    verificacion: "Verificación",
     logout: "Cerrar sesión",
     "emp-main": "Mis Reservas",
   },
@@ -197,6 +199,18 @@ const es = {
     f4: "Chat con tu equipo y con tus clientes",
     f5: "Varias sedes bajo un mismo panel",
     f6: "Todo lo del plan gratuito, sin límites",
+    /* Panel "Tu plan", en Configuración */
+    panelTitle: "Tu plan",
+    panelSub: "Qué incluye tu cuenta de Bookmy ahora mismo",
+    soloPro: "Solo en Pro",
+    sinNegocio: "Tu usuario no está asociado a ningún negocio, así que no hay plan que mostrar. Vuelve a entrar o pide que te asocien a una empresa.",
+    proActivo: "Tienes Bookmy CRM Pro: todos los módulos están disponibles.",
+    freeActivo: "Estás en el plan gratuito. Tienes la agenda del día a día; lo demás entra en Pro.",
+    actual: "Tu plan",
+    freeDesc: "Todo lo que necesitas para llevar la agenda: reservas, clientes, equipo y sedes.",
+    proDesc: "Lo que hace que el negocio se administre solo: dinero, datos, stock y comunicación.",
+    empresasTitulo: "Plan de cada negocio",
+    empresasSub: "Marca aquí quién ha pagado Bookmy CRM Pro y quién vuelve al plan gratuito",
     /* Aviso de la prueba en el panel */
     trialBanner: "Te quedan {n} días de prueba de Bookmy CRM Pro",
     trialBannerOne: "Hoy es el último día de tu prueba de Bookmy CRM Pro",
@@ -286,6 +300,8 @@ const es = {
     stock: { title: "Stock e", accent: "Insumos" },
     comunicacion: { title: "Comunicación entre", accent: "Sedes" },
     configuracion: { title: "Configuración", accent: "" },
+    plan: { title: "Tu", accent: "Plan" },
+    verificacion: { title: "Verificación del", accent: "Negocio" },
     employee: { title: "Mis", accent: "Reservas" },
   },
 
@@ -386,7 +402,16 @@ const es = {
   /* Verificación de identidad del negocio (KYC), revisada a mano */
   kyc: {
     titulo: "Verificación del negocio",
+    /* El subtítulo iba fijo y decía "revisamos tus documentos" aunque no se
+       hubiera enviado ninguno: la cabecera contradecía a la etiqueta de
+       estado justo debajo. Ahora cada estado dice lo suyo. */
     sub: "Revisamos tus documentos a mano. Mientras tanto puedes seguir trabajando con normalidad.",
+    subPorEstado: {
+      PENDIENTE: "Todavía no has enviado tu documentación. Puedes seguir trabajando con normalidad mientras tanto.",
+      EN_REVISION: "Revisamos tus documentos a mano. Mientras tanto puedes seguir trabajando con normalidad.",
+      APROBADA: "Tu negocio está verificado.",
+      RECHAZADA: "Hay algo que corregir en lo que enviaste. Abajo tienes el motivo.",
+    },
     estados: {
       PENDIENTE: "Sin verificar",
       EN_REVISION: "En revisión",
@@ -423,7 +448,52 @@ const es = {
         CO: "RUT, cámara de comercio o escritura del negocio.",
       }),
     },
-    yaSubido: "Ya enviado — vuelve a subirlo solo si hay que corregirlo",
+    sinNegocio: "Tu usuario no está asociado a ningún negocio, así que no hay verificación que enviar. Vuelve a entrar o pide que te asocien a una empresa.",
+    yaSubido: "Ya enviado — toca para verlo",
+    /* Asistente por pasos */
+    pasos: {
+      datos: "Datos",
+      documento: "Documento",
+      selfie: "Selfie",
+      repaso: "Repaso",
+    },
+    pasoDatosLead: "Empecemos por los datos fiscales del negocio y por el documento con el que se va a identificar el responsable.",
+    pasoDocumentoLead: "Sube una foto del documento del responsable. Que se lea entero, sin reflejos y sin recortar los bordes.",
+    pasoSelfieLead: "Una foto del responsable sosteniendo ese mismo documento, con la cara y el documento bien visibles.",
+    pasoRepasoLead: "Último paso: el justificante de actividad del negocio y un repaso de lo que vas a enviar.",
+    soltar: "Arrastra el archivo o haz clic",
+    formatos: "JPG, PNG, WEBP o PDF · hasta 10 MB",
+    errTipo: "El archivo debe ser una imagen (JPG, PNG, WEBP) o un PDF.",
+    errPeso: "El archivo supera los 10 MB. Sube uno más liviano.",
+    atras: "Atrás",
+    siguiente: "Siguiente",
+    listo: "Listo",
+    falta: "Falta",
+    /* "Listo" se leia como "ya subido" y no lo estaba: hasta pulsar Enviar,
+       el archivo solo esta elegido en el navegador. El superadmin veia "sin
+       documentacion" y parecia que una de las dos pantallas mentia. */
+    sinEnviar: "Elegido · sin enviar",
+    yaEnviado: "Enviado",
+    avisoSinEnviar: "Nada de esto se ha subido todavía. Se envía al pulsar «Enviar a revisión».",
+    opcional: "Opcional",
+    corregir: "Corregir y volver a enviar",
+    editarEnvio: "Cambiar lo enviado",
+    soloDuenio: "Solo un administrador del negocio puede enviar la documentación.",
+    /* Se dice ANTES de rellenar nada: antes se podían subir los cuatro
+       documentos y el botón final aparecía apagado sin más explicación. */
+    soloDuenioTitulo: "La envía un administrador del negocio",
+    soloDuenioDetalle: "Tu cuenta no es de administrador, así que puedes ver en qué punto va la verificación pero no enviarla. La envía el dueño del negocio o el administrador de una sede, desde esta misma pantalla.",
+    soloDuenioEstado: "Estado actual: {estado}",
+    linea: {
+      enviada: "Documentación enviada",
+      revisando: "En revisión",
+      resuelta: "Resolución",
+    },
+    lineaSub: {
+      enviada: "Ya tenemos tus documentos.",
+      revisando: "Los revisa una persona del equipo de Bookmy.",
+      resuelta: "Te avisamos aquí mismo en cuanto haya respuesta.",
+    },
     nota: "Imagen o PDF. Solo los ve el equipo de Bookmy para verificar tu negocio.",
     enviar: "Enviar a revisión",
     enviando: "Enviando…",
@@ -433,12 +503,31 @@ const es = {
     bannerCta: "Verificar negocio",
     /* Cola del superadmin */
     verificaciones: "Verificaciones",
+    verEmpresa: "Verificación",
+    empresaTitulo: "Verificación de {empresa}",
+    elegirArchivo: "Abre cada documento para revisarlo:",
+    sinDocumentos: "Este negocio todavía no ha subido su documentación.",
+    /* Hay empresas sin cuenta de dueño: si el superadmin no pudiera
+       subirla por ellas, no habría forma de verificarlas nunca. */
+    subirPorEmpresa: "Subirla en su nombre",
+    subirPorEmpresaAyuda: "Para cuando el negocio te manda los papeles por otro canal, o todavía no tiene cuenta de dueño. Queda igual que si la hubiera enviado él: en revisión, a la espera de que la apruebes.",
+    enviarPorEmpresa: "Enviar a revisión",
+    enviadaPorEmpresa: "Documentación enviada. Ya puedes aprobarla o rechazarla.",
     pendientesTitulo: "Verificaciones por revisar",
-    pendientesVacio: "No hay verificaciones pendientes.",
+    pendientesVacio: "Nada esperando revisión.",
+    pendientesVacioSub: "Ninguna empresa ha enviado documentación todavía. Abajo tienes el estado de todas.",
+    /* El listado completo: sin esto la cola vacía parecía decir que no hay
+       nada que verificar, mientras el negocio veía su "Sin verificar". */
+    todasTitulo: "Estado de todas las empresas",
+    todasSub: "Quién está verificado, quién no ha enviado nada y quién espera revisión",
+    todasVacio: "No hay empresas dadas de alta.",
+    verDocumentos: "Ver",
+    colaSub: "Documentación enviada por los negocios, de la más antigua a la más nueva",
     aprobar: "Aprobar",
     rechazar: "Rechazar",
     rechazarMotivo: "Motivo del rechazo…",
     faltaMotivo: "Escribe el motivo del rechazo.",
+    faltaFrente: "Falta la foto del documento del responsable del negocio.",
     aprobada: "Verificación aprobada",
     rechazada: "Verificación rechazada",
   },
@@ -935,13 +1024,40 @@ const es = {
     addImages: "Agregar imágenes",
   },
 
+  /* Festivos de cada municipio: la API oficial solo trae los nacionales
+     y los de cada comunidad */
+  festivos: {
+    localesBoton: "Festivos locales",
+    localesTitulo: "Festivos locales de {anio}",
+    localesSub: "Los patronos de cada pueblo no vienen en la sincronización oficial: cárgalos aquí y cada sede verá los suyos. Da igual escribir el municipio con tilde o sin ella.",
+    municipio: "Municipio",
+    municipioPlaceholder: "Ej. Benalmádena",
+    nombrePlaceholder: "Ej. Virgen del Carmen",
+    agregar: "Añadir",
+    agregado: "Festivo local añadido",
+    faltanDatos: "Completa la fecha, el municipio y el nombre.",
+    sinLocales: "Todavía no hay festivos locales cargados para este año.",
+    borrarTitulo: "Quitar festivo local",
+    borrarMsg: "¿Quitar «{nombre}» de {municipio}? Dejará de marcarse en los calendarios.",
+    borrado: "Festivo local quitado",
+  },
+
   calendario: {
     /* Festivos oficiales */
     festivosSincronizar: "Sincronizar festivos",
     festivosAnio: "Año",
     festivosSincronizando: "Sincronizando…",
-    festivosResultado: "Se sincronizaron {autonomicos} festivos autonómicos y {nacionales} nacionales para {anio}",
+    festivosResultado: "{anio}: {nacionales} festivos nacionales, {autonomicos} autonómicos y {locales} locales de {municipios} municipios",
     festivosFallidas: "No se pudieron traer: {comunidades}",
+    /* Qué se le está aplicando al calendario: sin esto, dos sedes del mismo
+       pueblo parecen "no refrescar" y una sede con el municipio mal cargado
+       no se nota. */
+    contextoMunicipio: "Festivos de {municipio}",
+    contextoVarios: "Festivos de {n} municipios: {municipios}",
+    contextoSinMunicipio: "Esta sede no tiene municipio cargado: solo se marcan los nacionales y los de su comunidad",
+    contextoRegion: "comunidad {region}",
+    contextoSinLocales: "{municipio} no tiene fiestas locales cargadas todavía",
+    contextoDudoso: "El municipio de {sedes} se ha sacado del campo «provincia»: revísalo en la ficha de la sede",
     festivosCreditos: "Datos de festivos:",
     festivosFuente: "Calendarios Nacionales",
     panelTitle: "Agenda mensual",
@@ -1321,6 +1437,9 @@ const es = {
     editTitle: "Actualizar sede",
     updated: "Sede actualizada",
     province: "Provincia",
+    municipality: "Municipio",
+    municipalityHint: "Decide qué fiestas locales ve el calendario de esta sede. Si se deja vacío, se saca de la dirección.",
+    municipalityPh: "Ej.: Marbella",
     provincePlaceholder: "Ciudad o provincia",
     viewProfesionales: "Profesionales",
     viewResenas: "Reseñas",

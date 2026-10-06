@@ -102,6 +102,8 @@ export interface ApiEmpresa {
   plan?: "FREE" | "PRO";
   trialEndsAt?: string | null;
   trialUsed?: boolean;
+  /** Estado de la verificación de identidad; null si nunca envió nada. */
+  kyc?: { estado: ApiKycEstado; enviadoEn: string | null; motivoRechazo: string | null } | null;
   /** Bloqueo del superadmin: sus admins no pueden entrar ni recibir reservas. */
   bloqueada?: boolean;
   bloqueadaEn?: string | null;
@@ -191,6 +193,10 @@ export interface ApiSede {
   direccion: string;
   telefono?: string | null;
   provincia?: string | null;
+  /** Municipio: decide las fiestas locales de su calendario. El campo
+      `provincia` es el antiguo y en sedes viejas guarda la provincia. */
+  municipio?: string | null;
+  localidad?: string | null;
   imagenes?: string[];
   empresaId: number;
   profesionales?: ApiProfesional[];
@@ -820,10 +826,38 @@ export type ApiConContinuacion =
 /** Respuesta de POST /festivos/sincronizar. */
 export interface ApiSincronizacionFestivos {
   anio: number;
+  pais: string;
   nacionalesCount: number;
-  autonomicosCount: number;
-  comunidadesFallidas: string[];
+  regionalesCount: number;
+  /** Fiestas del municipio (CSV oficial de la Seguridad Social) */
+  localesCount: number;
+  /** Cuántos municipios distintos quedaron cubiertos */
+  municipiosCount: number;
+  /** Por qué no se cargaron las locales, si no se cargaron (p. ej. otro año) */
+  localesOmitidas: string | null;
+  regionesFallidas: string[];
   fuente: string;
+  fuenteLocales?: string;
+}
+
+/**
+ * De dónde salen los festivos de una sede (o de una empresa): su país, su
+ * región y su municipio, ya resueltos por el backend. El calendario lo
+ * escribe encima para que se vea qué se está aplicando — y para que una
+ * sede con el municipio mal cargado se note.
+ */
+export interface ApiContextoFestivos {
+  pais: string;
+  regiones: string[];
+  municipios: string[];
+  sedes: {
+    sedeId: number;
+    nombre: string;
+    municipio?: string;
+    /** De dónde salió: "provincia" es el campo antiguo, el que miente */
+    origenMunicipio?: "municipio" | "localidad" | "direccion" | "provincia";
+    region?: string;
+  }[];
 }
 
 /** Festivo devuelto por GET /festivos. Es informativo: no bloquea el agendado. */
@@ -831,10 +865,21 @@ export interface ApiFestivo {
   id: number;
   fecha: string;
   nombre: string;
-  ambito: "NACIONAL" | "AUTONOMICO" | "LOCAL";
+  /** REGIONAL se llamaba AUTONOMICO: una comunidad es una figura española */
+  ambito: "NACIONAL" | "REGIONAL" | "LOCAL";
   pais: string;
-  ccaa: string | null;
+  /** ISO 3166-2 sin el prefijo de país ("AN", "CT"); vacío si no aplica */
+  region: string | null;
+  /** Solo en los LOCAL: el municipio que no trabaja ese día */
   municipio: string | null;
+}
+
+/** DTO de POST /festivos/local — alta manual del festivo de un pueblo. */
+export interface CrearFestivoLocalDto {
+  fecha: string;
+  nombre: string;
+  municipio: string;
+  pais?: string;
 }
 
 /* ── Estadísticas ─────────────────────────────────────────── */

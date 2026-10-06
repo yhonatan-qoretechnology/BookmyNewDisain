@@ -11,10 +11,10 @@ import type {
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
-  ApiPais, ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
+  ApiPais, ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo, ApiContextoFestivos,
   ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
-  ApiEmpresaKyc, ApiKycPendiente,
+  ApiEmpresaKyc, ApiKycPendiente, CrearFestivoLocalDto,
   ApiServicioAsignable, ApiSincronizacionFestivos, ApiUser, ApiConContinuacion,
   UpdateServiceSedeProfesionalDto,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
@@ -530,9 +530,22 @@ export const EstadisticasApi = {
 };
 
 export const FestivosApi = {
-  /** GET /festivos?anio=&sedeId= — nacionales + de su comunidad + de su municipio. */
-  findAll: (params: { anio?: number; sedeId?: number } = {}) =>
+  /**
+   * GET /festivos?anio=&sedeId=&empresaId= — nacionales + los de su comunidad
+   * + los de su municipio. Con `empresaId` devuelve los de TODAS las sedes de
+   * la empresa, que es lo que necesita el calendario del dueño: sin sede fija
+   * solo llegaban los nacionales y no se veía ninguna marca autonómica.
+   */
+  findAll: (params: { anio?: number; sedeId?: number; empresaId?: number } = {}) =>
     http.get<ApiFestivo[]>(EP.festivos + qs(params)),
+
+  /**
+   * GET /festivos/contexto?sedeId=|empresaId= — el país, la región y el
+   * municipio que el backend está aplicando. El calendario lo muestra: así
+   * se ve de dónde salen los festivos y cuándo una sede no tiene municipio.
+   */
+  contexto: (params: { sedeId?: number; empresaId?: number } = {}) =>
+    http.get<ApiContextoFestivos>(EP.festivosContexto + qs(params)),
 
   /**
    * POST /festivos/sincronizar { anio } — baja el calendario oficial completo
@@ -541,6 +554,18 @@ export const FestivosApi = {
    */
   sincronizar: (anio: number) =>
     http.post<ApiSincronizacionFestivos>(EP.festivosSincronizar, { anio }),
+
+  /* ── Festivos locales (los del municipio) ──────────────────
+     La sincronización solo trae nacionales y regionales; los patronos de
+     cada pueblo, que son los que cambian de Benalmádena a Marbella, se
+     cargan a mano. Solo SUPER_ADMIN. */
+  locales: (anio?: number, pais?: string) =>
+    http.get<ApiFestivo[]>(EP.festivosLocales + qs({ anio, pais })),
+
+  crearLocal: (dto: CrearFestivoLocalDto) =>
+    http.post<ApiFestivo>(EP.festivoLocal, dto),
+
+  borrarLocal: (id: number) => http.delete<void>(EP.festivoLocalById(id)),
 };
 
 /* ── Subida de imágenes ─────────────────────────────────────

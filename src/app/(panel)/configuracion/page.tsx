@@ -13,7 +13,6 @@ import { AuthApi, ImagenesApi } from "@/api/modules";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import ImageUpload from "@/components/ui/ImageUpload";
-import KycPanel from "@/components/kyc/KycPanel";
 import styles from "./configuracion.module.css";
 
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -98,7 +97,8 @@ export default function ConfiguracionPage() {
   return (
     <>
       {/* Verificación del negocio: solo la gestiona su dueño */}
-      {session?.role === "owner" && <KycPanel />}
+      {/* El plan y la verificación tienen su propia entrada en el menú
+          (Plan y Verificación): aquí se duplicaban. */}
 
       <div className={styles.settingsGrid}>
         <Panel>

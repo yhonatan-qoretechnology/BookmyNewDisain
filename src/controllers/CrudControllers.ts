@@ -592,6 +592,7 @@ function mapSedeDetalle(s: ApiSede, equipo: number): SedeDetalle {
     imagenes: s.imagenes ?? [],
     telefono: s.telefono || "",
     provincia: s.provincia || "",
+    municipio: s.municipio || "",
     latitud: s.latitud ?? null,
     longitud: s.longitud ?? null,
     horario: s.horario ?? null,
@@ -684,6 +685,10 @@ export const SedesController = {
    */
   async update(id: number, input: {
     nombre: string; direccion: string; telefono: string; provincia: string;
+    /* El municipio viaja aparte de `provincia` porque es el que decide las
+       fiestas locales: en las sedes antiguas `provincia` guarda "Málaga"
+       aunque la sede esté en Marbella, y así se puede corregir. */
+    municipio?: string;
     latitud?: number | null; longitud?: number | null;
     horario?: Record<string, string>; diasCerrado?: string[];
   }): Promise<void> {
@@ -692,6 +697,7 @@ export const SedesController = {
       direccion: input.direccion.trim(),
       telefono: input.telefono.trim() || undefined,
       provincia: input.provincia.trim() || undefined,
+      municipio: input.municipio?.trim() || undefined,
       latitud: input.latitud ?? undefined,
       longitud: input.longitud ?? undefined,
       horario: input.horario,

@@ -24,6 +24,7 @@ import {
   BookingController, ErrorRequiereContinuacion, type DatosContinuacion,
 } from "@/controllers/BookingController";
 import { zonaHHmm } from "@/lib/timezone";
+import { FestivosApi } from "@/api/modules";
 import { useBooking, BOOKING_STEPS, type BookingStep } from "@/context/BookingContext";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
@@ -190,6 +191,30 @@ export default function NuevaReservaPage() {
     [booking]
   );
   const [saving, setSaving] = useState(false);
+  /* Festivos de la sede elegida, para avisar en el paso de fecha. Se piden
+     dos años porque se agenda hasta DIAS_AGENDABLES vista y se puede cruzar
+     el cambio de año. Son informativos: el día sigue siendo reservable (lo
+     que de verdad cierra una sede son sus días cerrados). */
+  const { data: diasFestivos } = useData(
+    async () => {
+      if (!draft.sedeId) return [];
+      const anio = new Date().getFullYear();
+      const sedeId = Number(draft.sedeId);
+      const [esteAnio, siguiente] = await Promise.all([
+        FestivosApi.findAll({ anio, sedeId }).catch(() => []),
+        FestivosApi.findAll({ anio: anio + 1, sedeId }).catch(() => []),
+      ]);
+      return [...esteAnio, ...siguiente];
+    },
+    [draft.sedeId],
+    [],
+  );
+
+  const festivos = useMemo(
+    () => Object.fromEntries((diasFestivos || []).map((f) => [f.fecha.slice(0, 10), f.nombre])),
+    [diasFestivos],
+  );
+
   const needsCard = draft.metodoPago === "tarjeta";
 
   /**
@@ -371,6 +396,7 @@ export default function NuevaReservaPage() {
             <div className={styles.calendarioFull}>
               <CalendarGrid
                 events={{}}
+                festivos={festivos}
                 selectable
                 selectedDate={draft.fecha}
                 onSelectDate={booking.setFecha}

@@ -17,6 +17,8 @@ import Icon from "@/components/ui/Icon";
 /** Ruta → clave del diccionario `pages.*` (título/acento del topbar) */
 const PAGE_KEY: Record<string, string> = {
   [ROUTES.dashboard]: "dashboard",
+  [ROUTES.plan]: "plan",
+  [ROUTES.verificacion]: "verificacion",
   [ROUTES.empresas]: "empresas",
   [ROUTES.administradores]: "administradores",
   [ROUTES.reservas]: "reservas",
