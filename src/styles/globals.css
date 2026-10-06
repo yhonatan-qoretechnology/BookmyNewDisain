@@ -110,7 +110,7 @@ html { scroll-behavior: smooth; }
 body {
   /* Texto en Inter y titulares en Plus Jakarta, igual que bookmy.es:
      Inter aguanta mejor los tamaños pequeños de tablas y formularios. */
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter, Inter), system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.55;
   background: var(--page-bg);
@@ -124,7 +124,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
 input, select, textarea { font-family: inherit; }
 ul, ol { list-style: none; }
 h1, h2, h3, h4, h5 {
-  font-family: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  font-family: var(--font-jakarta, "Plus Jakarta Sans"), system-ui, sans-serif;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -.015em;

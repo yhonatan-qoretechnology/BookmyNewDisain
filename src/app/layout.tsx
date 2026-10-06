@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { SessionProvider } from "@/context/SessionContext";
 import { UiProvider } from "@/context/UiContext";
@@ -9,18 +9,29 @@ import { ReservaPopupProvider } from "@/components/reservas/ReservaPopupContext"
 import { BookingProvider } from "@/context/BookingContext";
 import "@/styles/globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+/* Las dos fuentes viven en el repositorio, no se descargan de Google al
+   compilar. `next/font/google` las baja en tiempo de build, y si la red
+   del servidor de despliegue falla -aunque sea un segundo- Next sigue
+   adelante sin ella: paso en produccion el 6 de octubre de 2026, donde
+   Inter no llego a generarse y toda la web salio con la tipografia del
+   sistema. Un fichero en el repositorio no se cae.
+
+   Son las variables de las dos familias, asi que un solo fichero cubre
+   todos los pesos. */
+const inter = localFont({
+  src: "../../public/fonts/inter-variable.woff2",
+  weight: "400 700",
   variable: "--font-inter",
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const jakarta = localFont({
+  src: "../../public/fonts/plus-jakarta-sans-variable.woff2",
+  weight: "400 800",
   variable: "--font-jakarta",
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
 
 export const metadata: Metadata = {
