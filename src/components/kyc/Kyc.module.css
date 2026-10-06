@@ -78,3 +78,6 @@
   color: var(--navy-900);
 }
 :global([data-theme="dark"]) .bloqueoTitulo { color: var(--slate-300); }
+
+/* Buscador encima del listado de todas las empresas */
+.todasBarra { margin-bottom: 12px; }

@@ -493,8 +493,14 @@ const es = {
     elegirArchivo: "Abre cada documento para revisarlo:",
     sinDocumentos: "Este negocio todavía no ha subido su documentación. Tiene que hacerlo desde su panel, en Configuración → Verificación del negocio.",
     pendientesTitulo: "Verificaciones por revisar",
-    pendientesVacio: "No hay verificaciones pendientes.",
-    pendientesVacioSub: "Cuando un negocio envíe su documentación, aparecerá aquí para que la revises.",
+    pendientesVacio: "Nada esperando revisión.",
+    pendientesVacioSub: "Ninguna empresa ha enviado documentación todavía. Abajo tienes el estado de todas.",
+    /* El listado completo: sin esto la cola vacía parecía decir que no hay
+       nada que verificar, mientras el negocio veía su "Sin verificar". */
+    todasTitulo: "Estado de todas las empresas",
+    todasSub: "Quién está verificado, quién no ha enviado nada y quién espera revisión",
+    todasVacio: "No hay empresas dadas de alta.",
+    verDocumentos: "Ver",
     colaSub: "Documentación enviada por los negocios, de la más antigua a la más nueva",
     aprobar: "Aprobar",
     rechazar: "Rechazar",
