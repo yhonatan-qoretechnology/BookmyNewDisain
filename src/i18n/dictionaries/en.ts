@@ -436,9 +436,9 @@ const en: Dictionary = {
     opcional: "Optional",
     corregir: "Fix and send again",
     editarEnvio: "Change what was sent",
-    soloDuenio: "Only the business owner can send the documents.",
-    soloDuenioTitulo: "The business owner sends it",
-    soloDuenioDetalle: "Your account is not the owner's, so you can see how the verification is going but not send it. Sign in with the business owner account — the one that registered the company — and you will find it on this same screen.",
+    soloDuenio: "Only a business administrator can send the documents.",
+    soloDuenioTitulo: "A business administrator sends it",
+    soloDuenioDetalle: "Your account is not an administrator, so you can see how the verification is going but not send it. The business owner or a branch administrator sends it, from this same screen.",
     soloDuenioEstado: "Current status: {estado}",
     linea: {
       enviada: "Documents sent",

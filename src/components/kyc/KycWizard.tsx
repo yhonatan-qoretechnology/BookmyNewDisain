@@ -50,7 +50,10 @@ export default function KycWizard() {
   const { t } = useI18n();
 
   const empresaId = Number(session?.negocioId) || 0;
-  const puedeEnviar = session?.role === "owner";
+  /* La envía cualquier administrador de la empresa, dueño o de sede: hay
+     empresas sin cuenta de dueño y, si solo pudiera él, no se verificarían
+     nunca. El backend aplica la misma regla (KycService.exigirAcceso). */
+  const puedeEnviar = session?.role === "owner" || session?.role === "admin";
 
   const { data: kyc, reload } = useData<ApiEmpresaKyc | null>(
     () => (empresaId ? KycController.estado(empresaId).catch(() => null) : Promise.resolve(null)),

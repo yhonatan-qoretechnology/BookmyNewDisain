@@ -469,11 +469,11 @@ const es = {
     opcional: "Opcional",
     corregir: "Corregir y volver a enviar",
     editarEnvio: "Cambiar lo enviado",
-    soloDuenio: "Solo el dueño del negocio puede enviar la documentación.",
+    soloDuenio: "Solo un administrador del negocio puede enviar la documentación.",
     /* Se dice ANTES de rellenar nada: antes se podían subir los cuatro
        documentos y el botón final aparecía apagado sin más explicación. */
-    soloDuenioTitulo: "La envía el dueño del negocio",
-    soloDuenioDetalle: "Tu cuenta no es la del dueño, así que puedes ver en qué punto va la verificación pero no enviarla. Entra con la cuenta del dueño del negocio —la que dio de alta la empresa— y la tendrás en esta misma pantalla.",
+    soloDuenioTitulo: "La envía un administrador del negocio",
+    soloDuenioDetalle: "Tu cuenta no es de administrador, así que puedes ver en qué punto va la verificación pero no enviarla. La envía el dueño del negocio o el administrador de una sede, desde esta misma pantalla.",
     soloDuenioEstado: "Estado actual: {estado}",
     linea: {
       enviada: "Documentación enviada",
