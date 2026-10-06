@@ -59,3 +59,12 @@
   border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface);
 }
 .vacio { padding: 20px 4px; color: var(--slate-500); font-size: 13.5px; }
+
+/* Cola sin nada que revisar: no es un error, es buena noticia */
+.vacioCola {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 36px 20px; text-align: center;
+}
+.vacioCola svg { color: var(--teal-500); }
+.vacioCola b { font-size: 15px; }
+.vacioCola span { font-size: 13px; color: var(--slate-500); max-width: 42ch; }
