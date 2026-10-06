@@ -402,7 +402,16 @@ const es = {
   /* Verificación de identidad del negocio (KYC), revisada a mano */
   kyc: {
     titulo: "Verificación del negocio",
+    /* El subtítulo iba fijo y decía "revisamos tus documentos" aunque no se
+       hubiera enviado ninguno: la cabecera contradecía a la etiqueta de
+       estado justo debajo. Ahora cada estado dice lo suyo. */
     sub: "Revisamos tus documentos a mano. Mientras tanto puedes seguir trabajando con normalidad.",
+    subPorEstado: {
+      PENDIENTE: "Todavía no has enviado tu documentación. Puedes seguir trabajando con normalidad mientras tanto.",
+      EN_REVISION: "Revisamos tus documentos a mano. Mientras tanto puedes seguir trabajando con normalidad.",
+      APROBADA: "Tu negocio está verificado.",
+      RECHAZADA: "Hay algo que corregir en lo que enviaste. Abajo tienes el motivo.",
+    },
     estados: {
       PENDIENTE: "Sin verificar",
       EN_REVISION: "En revisión",

@@ -378,6 +378,12 @@ const en: Dictionary = {
   kyc: {
     titulo: "Business verification",
     sub: "We review your documents by hand. You can keep working as usual meanwhile.",
+    subPorEstado: {
+      PENDIENTE: "You haven't sent your documents yet. You can keep working as usual meanwhile.",
+      EN_REVISION: "We review your documents by hand. You can keep working as usual meanwhile.",
+      APROBADA: "Your business is verified.",
+      RECHAZADA: "Something needs fixing in what you sent. The reason is below.",
+    },
     estados: {
       PENDIENTE: "Not verified",
       EN_REVISION: "Under review",

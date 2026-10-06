@@ -71,7 +71,7 @@ export default function KycWizard() {
   if (!empresaId) {
     return (
       <Panel>
-        <PanelHead title={t("kyc.titulo")} sub={t("kyc.sub")} />
+        <PanelHead title={t("kyc.titulo")} sub={t("kyc.subPorEstado.PENDIENTE")} />
         <p className={styles.nota}>{t("kyc.sinNegocio")}</p>
       </Panel>
     );
@@ -100,7 +100,7 @@ export default function KycWizard() {
 
     return (
       <Panel>
-        <PanelHead title={t("kyc.titulo")} sub={t("kyc.sub")} />
+        <PanelHead title={t("kyc.titulo")} sub={t(`kyc.subPorEstado.${estado}`)} />
 
         <div className={styles.estadoCabecera}>
           <Badge kind={BADGE_KYC[estado]}>{t(`kyc.estados.${estado}`)}</Badge>
@@ -147,7 +147,7 @@ export default function KycWizard() {
   if (!puedeEnviar) {
     return (
       <Panel>
-        <PanelHead title={t("kyc.titulo")} sub={t("kyc.sub")} />
+        <PanelHead title={t("kyc.titulo")} sub={t(`kyc.subPorEstado.${estado}`)} />
         <div className={styles.estadoCabecera}>
           <Badge kind={BADGE_KYC[estado]}>{t(`kyc.estados.${estado}`)}</Badge>
         </div>
@@ -183,7 +183,7 @@ export default function KycWizard() {
 
   return (
     <Panel>
-      <PanelHead title={t("kyc.titulo")} sub={t("kyc.sub")} />
+      <PanelHead title={t("kyc.titulo")} sub={t(`kyc.subPorEstado.${estado}`)} />
 
       {/* Dónde estoy y cuánto falta */}
       <ol className={styles.pasos}>
