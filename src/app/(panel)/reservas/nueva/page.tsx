@@ -23,7 +23,7 @@ import type { CategoriaServicios, MetodoPago, SedeOpcion, SlotHora } from "@/mod
 import {
   BookingController, ErrorRequiereContinuacion, type DatosContinuacion,
 } from "@/controllers/BookingController";
-import { madridHHmm } from "@/lib/timezone";
+import { zonaHHmm } from "@/lib/timezone";
 import { FestivosApi } from "@/api/modules";
 import { useBooking, BOOKING_STEPS, type BookingStep } from "@/context/BookingContext";
 import { useSession } from "@/context/SessionContext";
@@ -227,12 +227,12 @@ export default function NuevaReservaPage() {
     confirm({
       title: t("booking.continuacionTitulo"),
       message: t("booking.continuacionMsg", {
-        finHoy: madridHHmm(new Date(c.horaFinHoySugerida)),
+        finHoy: zonaHHmm(new Date(c.horaFinHoySugerida)),
         minutosHoy: c.minutosDisponiblesHoy,
         restante: c.duracionRestante,
         fecha: fmtFechaLarga(p.fecha),
-        inicio: madridHHmm(new Date(p.horaInicio)),
-        fin: madridHHmm(new Date(p.horaFin)),
+        inicio: zonaHHmm(new Date(p.horaInicio)),
+        fin: zonaHHmm(new Date(p.horaFin)),
       }),
       confirmLabel: t("booking.continuacionConfirmar"),
       onConfirm: async () => {

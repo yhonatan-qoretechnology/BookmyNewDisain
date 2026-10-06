@@ -11,6 +11,7 @@ import { NegociosController } from "@/controllers/NegociosController";
 import { EstadisticasController } from "@/controllers/EstadisticasController";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
+import { useRegion } from "@/context/RegionContext";
 import { useReservaPopup } from "@/components/reservas/ReservaPopupContext";
 import ReagendarModal from "@/components/reservas/ReagendarModal";
 import Chatbot from "@/components/layout/Chatbot";
@@ -96,6 +97,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { session } = useSession();
   const { t } = useI18n();
+  const { fmtMoneda } = useRegion();
   const popup = useReservaPopup();
 
   const { locale } = useI18n();
@@ -147,7 +149,7 @@ export default function DashboardPage() {
       <ContextSelectors />
       <StatGrid>
         <StatCard color="teal"  icon={<Icon name="user" />}  label={t("dashboard.totalClients")}  count={resumen.clientes} footer={t("dashboard.fromApi")} />
-        <StatCard color="green" icon={<Icon name="chart" />} label={t("estadisticas.monthRevenue")} count={resumen.ingresosMes} format={(n) => `${n.toFixed(2)}€`} footer={t("estadisticas.thisMonth")} />
+        <StatCard color="green" icon={<Icon name="chart" />} label={t("estadisticas.monthRevenue")} count={resumen.ingresosMes} format={fmtMoneda} footer={t("estadisticas.thisMonth")} />
         <StatCard color="coral" icon={<Icon name="clock" />} label={t("dashboard.totalBookings")} count={resumen.citas} footer={t("dashboard.fromApi")} />
         <StatCard color="amber" icon={<Icon name="chat" />}  label={t("estadisticas.rating")} value={resumen.valoracion != null ? `${resumen.valoracion.toFixed(1)} ★` : "—"} footer={t("estadisticas.fromReviews")} />
       </StatGrid>

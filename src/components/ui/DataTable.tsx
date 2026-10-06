@@ -17,6 +17,7 @@
 ============================================================ */
 import { Children, cloneElement, isValidElement, type ReactElement } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useRegion } from "@/context/RegionContext";
 import { STAGGER, staggerChild, staggerParent } from "@/components/animations";
 import Pagination, { type PaginationProps } from "./Pagination";
 import styles from "./DataTable.module.css";
@@ -102,7 +103,12 @@ export default function DataTable({
 }
 
 /* Recibe y reenvía el resto de props (`data-label`) para que en móvil el
-   precio también salga con el título de su columna delante. */
+   precio también salga con el título de su columna delante.
+
+   El importe lo da el país de la empresa: esta celda la comparten cinco
+   pantallas (dashboard, reservas, stock…), así que el euro escrito a mano que
+   había aquí era el que se le colaba a un negocio colombiano en más sitios. */
 export function PriceCell({ value, ...rest }: { value: number } & React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={styles.priceCell} {...rest}>{value.toFixed(2)}€</td>;
+  const { fmtMoneda } = useRegion();
+  return <td className={styles.priceCell} {...rest}>{fmtMoneda(value)}</td>;
 }

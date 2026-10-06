@@ -7,7 +7,7 @@
    - "Nueva categoría" crea categorías propias sin salir de la vista
 ============================================================ */
 import { useEffect, useMemo, useState } from "react";
-import { fmtFechaLarga, fmtMoneda } from "@/constants";
+import { fmtFechaLarga } from "@/constants";
 import {
   CategoriasGastoController,
   esTicketPdf,
@@ -16,6 +16,7 @@ import {
   GastosController,
 } from "@/controllers/FacturacionControllers";
 import { useData } from "@/hooks/useData";
+import { useRegion } from "@/context/RegionContext";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
@@ -35,6 +36,7 @@ import styles from "@/components/facturacion/facturacion.module.css";
 export default function GastosPage() {
   const { t } = useI18n();
   const { session } = useSession();
+  const { fmtMoneda } = useRegion();
   const { toast, confirm } = useUi();
 
   const [fGasto, setFGasto] = useState("");
@@ -98,7 +100,7 @@ export default function GastosPage() {
       <StatGrid>
         <StatCard
           color="coral" icon={<Icon name="wallet" />}
-          label={t("gastos.statTotal")} value={fmtMoneda(resumen.total, "EUR")}
+          label={t("gastos.statTotal")} value={fmtMoneda(resumen.total)}
           footer={t("gastos.delPeriodo")}
         />
         <StatCard
@@ -108,7 +110,7 @@ export default function GastosPage() {
         />
         <StatCard
           color="blue" icon={<Icon name="barChart" />}
-          label={t("gastos.statPromedio")} value={fmtMoneda(resumen.promedio, "EUR")}
+          label={t("gastos.statPromedio")} value={fmtMoneda(resumen.promedio)}
           footer={t("gastos.delPeriodo")}
         />
         <StatCard
@@ -216,7 +218,7 @@ export default function GastosPage() {
                     </span>
                   )}
                 </td>
-                <td><b>{fmtMoneda(g.total, "EUR")}</b></td>
+                <td><b>{fmtMoneda(g.total)}</b></td>
                 <td>
                   <div className={styles.rowActions}>
                     <Button variant="ghost" size="sm" onClick={() => setTicketDe(g)}>

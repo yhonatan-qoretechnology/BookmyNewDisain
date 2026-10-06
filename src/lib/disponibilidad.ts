@@ -23,7 +23,7 @@ import type {
   ApiDiaCerradoSede, ApiDisponibilidadProfesional, ApiHorarioSede, ApiSede,
 } from "@/api/types";
 import {
-  DAY_NAMES, hhmmOfMinutes, madridMinutes, madridWallToUtc, madridYmd,
+  DAY_NAMES, hhmmOfMinutes, zonaMinutos, horaLocalAUtc, zonaYmd,
   minutesOfHHmm, normalizeKey,
 } from "./timezone";
 
@@ -108,7 +108,7 @@ export function resolverCierres(
       const d = new Date(r.fecha);
       if (Number.isNaN(d.getTime())) return acc;
       acc.push({
-        dia: madridYmd(d),
+        dia: zonaYmd(d),
         todoElDia: r.todoElDia ?? true,
         inicio: r.horaInicio ? minutesOfHHmm(r.horaInicio) : null,
         fin: r.horaFin ? minutesOfHHmm(r.horaFin) : null,
@@ -121,7 +121,7 @@ export function resolverCierres(
   return json.reduce<CierreNormalizado[]>((acc, valor) => {
     const d = new Date(`${valor}T00:00:00Z`);
     if (Number.isNaN(d.getTime())) return acc;
-    acc.push({ dia: madridYmd(d), todoElDia: true, inicio: null, fin: null });
+    acc.push({ dia: zonaYmd(d), todoElDia: true, inicio: null, fin: null });
     return acc;
   }, []);
 }
@@ -200,13 +200,13 @@ export function construirSlots(o: OpcionesSlots): Slot[] {
       if (ocupadas.some((oc) => solapan(t, fin, oc.start, oc.end))) continue;
 
       /* Descartar el pasado comparando instantes reales, no horas sueltas */
-      const inicioUtc = madridWallToUtc(fecha, t);
+      const inicioUtc = horaLocalAUtc(fecha, t);
       if (inicioUtc.getTime() <= ahora.getTime()) continue;
 
       slots.push({
         hora: hhmmOfMinutes(t),
         inicioISO: inicioUtc.toISOString(),
-        finISO: madridWallToUtc(fecha, fin).toISOString(),
+        finISO: horaLocalAUtc(fecha, fin).toISOString(),
       });
     }
   }
@@ -217,7 +217,7 @@ export function construirSlots(o: OpcionesSlots): Slot[] {
 /** Minutos de Madrid ocupados por una cita ya existente. */
 export function ocupacionDeCita(horaInicio: string, horaFin: string): Ocupacion {
   return {
-    start: madridMinutes(new Date(horaInicio)),
-    end: madridMinutes(new Date(horaFin)),
+    start: zonaMinutos(new Date(horaInicio)),
+    end: zonaMinutos(new Date(horaFin)),
   };
 }

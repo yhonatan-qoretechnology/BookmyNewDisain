@@ -101,17 +101,23 @@
   background: #39ff8c;
 }
 
-/* Captura del panel: asomada desde abajo, como en la web */
+/* Ilustracion asomada desde abajo. Va recortada contra el fondo, sin marco:
+   es un PNG transparente, asi que un borde o una caja la delatarian. La
+   sombra se aplica a la silueta con drop-shadow, no al rectangulo. */
 .artShot {
   position: relative;
-  border-radius: 18px 18px 0 0;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .12);
-  border-bottom: 0;
-  box-shadow: 0 -10px 60px rgba(0, 0, 0, .45);
-  max-height: 320px;
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
 }
-.artShot img { display: block; width: 100%; }
+.artShot img {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, .45));
+}
 
 .artFoot {
   position: relative;

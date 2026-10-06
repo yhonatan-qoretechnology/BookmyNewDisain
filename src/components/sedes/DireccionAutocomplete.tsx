@@ -10,11 +10,18 @@
    Los campos quedan editables: Places no siempre acierta con la
    localidad en municipios pequeños, y es preferible poder corregir
    a que el dato se quede mal.
+
+   La búsqueda se limita al país de la empresa, no a España: el país
+   se fijó al crear la cuenta y una sede nunca está en otro. Así un
+   negocio colombiano ve sus direcciones de Bogotá y uno español no
+   ve ruido de medio mundo.
 ============================================================ */
 import { useEffect, useRef } from "react";
 import { useGoogleMaps } from "@/hooks/useGoogleMaps";
+import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import { Field } from "@/components/ui/Modal";
+import { autocompletarDireccion } from "@/lib/places";
 import styles from "./DireccionAutocomplete.module.css";
 
 export interface DatosDireccion {
@@ -25,58 +32,38 @@ export interface DatosDireccion {
   localidad: string;
   latitud?: number;
   longitud?: number;
-}
-
-/** Primer componente cuyo `types` contenga alguno de los buscados. */
-function componente(
-  comps: google.maps.places.AddressComponent[] | undefined,
-  ...tipos: string[]
-): string {
-  const c = comps?.find((x) => tipos.some((t) => x.types.includes(t)));
-  return c?.long_name ?? "";
+  /* Los rellena Places; opcionales porque el formulario arranca sin
+     ellos y no se piden a mano. `paisIso` es el ISO-2 del país y
+     `region` la comunidad o departamento con que se sacan los festivos. */
+  paisIso?: string;
+  region?: string;
 }
 
 interface Props {
   valor: DatosDireccion;
   onChange: (d: DatosDireccion) => void;
+  /** País en el que buscar (ISO-2). Por defecto, el de la empresa. */
+  paisIso?: string;
 }
 
-export default function DireccionAutocomplete({ valor, onChange }: Props) {
+export default function DireccionAutocomplete({ valor, onChange, paisIso }: Props) {
   const { t } = useI18n();
   const { ready, error } = useGoogleMaps();
+  const { pais, etiqueta } = useRegion();
   const inputRef = useRef<HTMLInputElement>(null);
   /* En una ref para que el listener de Places, que se registra una sola vez,
      no se quede con una versión vieja de la función. */
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
+  const buscarEn = paisIso ?? pais.isoCode;
+
   useEffect(() => {
     if (!ready || !inputRef.current) return;
-
-    const auto = new google.maps.places.Autocomplete(inputRef.current, {
-      types: ["address"],
-      fields: ["address_components", "formatted_address", "geometry"],
-      componentRestrictions: { country: "es" },
-    });
-
-    const listener = auto.addListener("place_changed", () => {
-      const place = auto.getPlace();
-      const comps = place.address_components;
-      onChangeRef.current({
-        direccion: place.formatted_address ?? inputRef.current?.value ?? "",
-        pais: componente(comps, "country"),
-        provincia: componente(comps, "administrative_area_level_2", "administrative_area_level_1"),
-        municipio: componente(comps, "locality", "postal_town"),
-        /* La "localidad" del PDF (Arroyo de la Miel) es una pedanía: Google la
-           devuelve como sublocality o como neighborhood según la zona. */
-        localidad: componente(comps, "sublocality", "sublocality_level_1", "neighborhood"),
-        latitud: place.geometry?.location?.lat(),
-        longitud: place.geometry?.location?.lng(),
-      });
-    });
-
-    return () => listener.remove();
-  }, [ready]);
+    return autocompletarDireccion(inputRef.current, buscarEn, (direccion) =>
+      onChangeRef.current(direccion)
+    );
+  }, [ready, buscarEn]);
 
   const set = (campo: keyof DatosDireccion) => (e: React.ChangeEvent<HTMLInputElement>) =>
     onChange({ ...valor, [campo]: e.target.value });
@@ -104,10 +91,10 @@ export default function DireccionAutocomplete({ valor, onChange }: Props) {
         <Field label={t("sedes.pais")} htmlFor="nsd-pais">
           <input id="nsd-pais" value={valor.pais} onChange={set("pais")} />
         </Field>
-        <Field label={t("sedes.provincia")} htmlFor="nsd-prov">
+        <Field label={etiqueta("region")} htmlFor="nsd-prov">
           <input id="nsd-prov" value={valor.provincia} onChange={set("provincia")} />
         </Field>
-        <Field label={t("sedes.municipio")} htmlFor="nsd-mun">
+        <Field label={etiqueta("municipio")} htmlFor="nsd-mun">
           <input id="nsd-mun" value={valor.municipio} onChange={set("municipio")} />
         </Field>
         <Field label={t("sedes.localidad")} htmlFor="nsd-loc">

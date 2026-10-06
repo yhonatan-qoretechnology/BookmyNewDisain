@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { SessionProvider } from "@/context/SessionContext";
 import { UiProvider } from "@/context/UiContext";
 import { I18nProvider } from "@/i18n";
+import { RegionProvider } from "@/context/RegionContext";
 import { ReservaPopupProvider } from "@/components/reservas/ReservaPopupContext";
 import { BookingProvider } from "@/context/BookingContext";
 import "@/styles/globals.css";
@@ -59,13 +60,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* I18nProvider vive DENTRO de SessionProvider: así puede leer
                 el parámetro de idioma que la BD entrega en la sesión. */}
             <I18nProvider>
-              <UiProvider>
-                {/* Estado global del asistente de reservas (empresa, sede,
-                    cliente, profesional, servicio, fecha, hora, pago) */}
-                <BookingProvider>
-                  <ReservaPopupProvider>{children}</ReservaPopupProvider>
-                </BookingProvider>
-              </UiProvider>
+              {/* También dentro de SessionProvider: el país cuelga de la
+                  empresa con la que se ha entrado y de él salen la moneda,
+                  la zona horaria y las etiquetas (NIF/CIF o NIT…). */}
+              <RegionProvider>
+                <UiProvider>
+                  {/* Estado global del asistente de reservas (empresa, sede,
+                      cliente, profesional, servicio, fecha, hora, pago) */}
+                  <BookingProvider>
+                    <ReservaPopupProvider>{children}</ReservaPopupProvider>
+                  </BookingProvider>
+                </UiProvider>
+              </RegionProvider>
             </I18nProvider>
           </SessionProvider>
         </ThemeProvider>

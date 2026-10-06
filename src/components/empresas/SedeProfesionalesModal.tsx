@@ -128,7 +128,7 @@ export default function SedeProfesionalesModal({
           <input id="sp-rol" value={eRol} onChange={(e) => setERol(e.target.value)} placeholder={t("personal.rolePlaceholder")} />
         </Field>
         <Field label={t("common.phone")} htmlFor="sp-tel">
-          <input id="sp-tel" value={eTelefono} onChange={(e) => setETelefono(e.target.value)} placeholder="+34 600 000 000" />
+          <input id="sp-tel" value={eTelefono} onChange={(e) => setETelefono(e.target.value)} placeholder={t("common.phonePh")} />
         </Field>
         <ModalActions>
           <Button variant="ghost" onClick={() => setEditando(null)} disabled={guardando}>{t("common.cancel")}</Button>

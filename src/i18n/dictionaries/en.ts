@@ -3,8 +3,14 @@
    ------------------------------------------------------------
    Tipado contra `Dictionary` (derivado de es.ts): si falta una
    clave o sobra alguna, TypeScript lo marca en compilación.
+
+   Las variantes por país (porPais) son opcionales en cada idioma:
+   aquí solo se desdobla lo que en inglés cambia de verdad entre
+   España y Colombia —la moneda, el documento de identidad—, no
+   «Mobile», que sirve para los dos. Lo que no se desdobla cae a ES.
 ============================================================ */
 import type { Dictionary } from "./es";
+import { porPais } from "../pais";
 import webEn from "./web.en";
 
 const en: Dictionary = {
@@ -22,10 +28,11 @@ const en: Dictionary = {
     fullName: "Full name",
     email: "Email",
     phone: "Phone",
+    phonePh: porPais({ ES: "+34 600 000 000", CO: "+57 300 000 0000" }),
     date: "Date",
     time: "Time",
     price: "Price",
-    priceEur: "Price (€)",
+    priceEur: porPais({ ES: "Price (€)", CO: "Price (COP)" }),
     service: "Service",
     client: "Client",
     branch: "Branch",
@@ -366,7 +373,7 @@ const en: Dictionary = {
     aprobadaMsg: "Your business is verified. Nothing else to do.",
     enRevisionMsg: "Your documents are under review. We'll let you know as soon as it's resolved.",
     nifCif: "Business tax ID",
-    nifCifPlaceholder: "e.g. B12345678",
+    nifCifPlaceholder: porPais({ ES: "e.g. B12345678", CO: "e.g. 900.123.456-7" }),
     tipoDocumento: "Document type",
     archivos: {
       documentoFrente: "ID document (front)",
@@ -375,10 +382,16 @@ const en: Dictionary = {
       justificante: "Proof of activity",
     },
     ayuda: {
-      documentoFrente: "ID, residence card or passport of whoever registers the business.",
+      documentoFrente: porPais({
+        ES: "ID, residence card or passport of whoever registers the business.",
+        CO: "Citizenship card, foreigner ID card or passport of whoever registers the business.",
+      }),
       documentoDorso: "Only if your document has a back side.",
       selfie: "A photo of you holding your document.",
-      justificante: "Self-employment registration, deed or trading licence.",
+      justificante: porPais({
+        ES: "Self-employment registration, deed or trading licence.",
+        CO: "Tax registration (RUT), chamber of commerce certificate or deed.",
+      }),
     },
     yaSubido: "Already sent — upload again only to correct it",
     nota: "Image or PDF. Only the Bookmy team sees them, to verify your business.",
@@ -404,6 +417,8 @@ const en: Dictionary = {
     panelTitle: "Registered companies",
     panelSub: "{n} business(es) on the platform",
     searchPlaceholder: "Search by name or industry…",
+    filtroPais: "Filter by country",
+    todosLosPaises: "All countries",
     new: "+ New company",
     emptyTitle: "No companies",
     emptyMsg: "No results for that search.",
@@ -759,7 +774,7 @@ const en: Dictionary = {
     weeklyAgenda: "weekly agenda",
     lastReviews: "last 90 reviews",
     salesTitle: "Sales by month",
-    salesSub: "Last 6 months (thousands of €)",
+    salesSub: porPais({ ES: "Last 6 months (thousands of €)", CO: "Last 6 months (thousands of COP)" }),
     fromReviews: "from reviews",
     topTitle: "Best-selling services",
     topSub: "Accumulated bookings",
@@ -1036,7 +1051,10 @@ const en: Dictionary = {
     provincia: "Province",
     municipio: "Municipality / City",
     localidad: "Locality",
-    autocompletaAyuda: "Type the address and the country, province, municipality and locality fill in automatically. You can correct them by hand.",
+    autocompletaAyuda: porPais({
+      ES: "Type the address and the country, province, municipality and locality fill in automatically. You can correct them by hand.",
+      CO: "Type the address and the country, department and city fill in automatically. You can correct them by hand.",
+    }),
     cargandoMapas: "Loading the address finder…",
     mapsError: "The address finder could not load. Type the fields by hand.",
     panelTitle: "{negocio} branches",
@@ -1183,7 +1201,7 @@ const en: Dictionary = {
     product: "Product",
     unit: "Unit",
     refPrice: "Ref. price",
-    refPriceEur: "Reference price (€)",
+    refPriceEur: porPais({ ES: "Reference price (€)", CO: "Reference price (COP)" }),
     stock: "Stock",
     currentStock: "Current stock",
     currentStockShort: "Current stock: {n} {unidad}",
@@ -1423,11 +1441,14 @@ const en: Dictionary = {
     noNotes: "No additional notes",
     sheetTitle: "Booking Sheet — {id}",
     printedAt: "Printed on {fecha}",
-    waMessage:
-      "Hi {cliente} 👋\nYour appointment at *{sede}* is confirmed:\n\n📋 *Service:* {servicio}\n📅 *Date:* {fecha}\n⏰ *Time:* {hora}\n💶 *Price:* {precio}€\n\nSee you soon! ✨",
+    /* El símbolo va pegado a {precio}: la variable llega como número
+       crudo desde el componente (ver es.ts). */
+    waMessage: porPais({
+      ES: "Hi {cliente} 👋\nYour appointment at *{sede}* is confirmed:\n\n📋 *Service:* {servicio}\n📅 *Date:* {fecha}\n⏰ *Time:* {hora}\n💶 *Price:* {precio}\n\nSee you soon! ✨",
+      CO: "Hi {cliente} 👋\nYour appointment at *{sede}* is confirmed:\n\n📋 *Service:* {servicio}\n📅 *Date:* {fecha}\n⏰ *Time:* {hora}\n💵 *Price:* {precio}\n\nSee you soon! ✨",
+    }),
     emailSubject: "Your appointment confirmation — {sede}",
-    emailMessage:
-      "Hi {cliente},\n\nYour appointment at {sede} is confirmed:\n\nService: {servicio}\nDate: {fecha}\nTime: {hora}\nPrice: {precio}€\n\nSee you soon!",
+    emailMessage: "Hi {cliente},\n\nYour appointment at {sede} is confirmed:\n\nService: {servicio}\nDate: {fecha}\nTime: {hora}\nPrice: {precio}\n\nSee you soon!",
   },
 };
 

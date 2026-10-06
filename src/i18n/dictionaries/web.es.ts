@@ -5,7 +5,14 @@
    del diccionario del panel bajo la clave `web`, asi que se usa
    con t("web.nav.home") y el idioma lo manda el mismo selector
    que en el panel.
+
+   El pais (ES/CO) es otro eje: las claves que chirrian a un
+   colombiano se desdoblan con porPais({ ES, CO }) igual que en
+   es.ts (ver alli el PUNTO DE CONFIGURACION #7). Antes del alta no
+   hay empresa y el pais es ES, asi que la web espanola no cambia.
 ============================================================ */
+import { porPais } from "../pais";
+
 const webEs = {
   nav: {
     panel: "Entrar al panel",
@@ -132,7 +139,7 @@ const webEs = {
       f1: "Gestión básica de reservas",
       f2: "Agenda digital 24/7",
       f3: "Confirmaciones automáticas",
-      f4: "Acceso desde móvil y tablet",
+      f4: porPais({ ES: "Acceso desde móvil y tablet", CO: "Acceso desde celular y tablet" }),
       f5: "Perfil público para clientes",
       cta: "Quiero la versión Free",
     },
@@ -227,9 +234,9 @@ const webEs = {
     email: "Correo electrónico",
     emailPh: "tucorreo@email.com",
     phone: "Teléfono",
-    phonePh: "+34 600 000 000",
+    phonePh: porPais({ ES: "+34 600 000 000", CO: "+57 300 000 0000" }),
     country: "País",
-    countryPh: "España",
+    countryPh: porPais({ ES: "España", CO: "Colombia" }),
     business: "Tipo de empresa",
     selectOpt: "Selecciona una opción",
     optHealth: "Salud",
@@ -279,7 +286,7 @@ const webEs = {
     email: "Correo electrónico",
     emailPh: "tucorreo@email.com",
     phone: "Teléfono",
-    phonePh: "+34 600 000 000",
+    phonePh: porPais({ ES: "+34 600 000 000", CO: "+57 300 000 0000" }),
     subject: "Motivo de tu consulta",
     subjectSelect: "Selecciona una opción",
     subjectSales: "Ventas",
@@ -323,7 +330,7 @@ const webEs = {
       f2Text: "Tu negocio queda disponible para reservar en cualquier momento, incluso fuera de horario de atención.",
       f3Title: "Confirmaciones automáticas",
       f3Text: "Cada reserva se confirma al instante, sin que tengas que llamar o escribir manualmente.",
-      f4Title: "Acceso desde móvil y tablet",
+      f4Title: porPais({ ES: "Acceso desde móvil y tablet", CO: "Acceso desde celular y tablet" }),
       f4Text: "Gestiona tu agenda desde cualquier dispositivo, sin instalar software adicional.",
       f5Title: "Perfil público para clientes",
       f5Text: "Tus clientes encuentran tu negocio, servicios y disponibilidad en un perfil público fácil de compartir.",
@@ -360,7 +367,10 @@ const webEs = {
     text: "Descubre cómo Bookmy transforma negocios reales. Tips, casos de éxito y novedades todos los días.",
     viewPost: "Ver post",
     cap1: "Reserva tu cita con Glow Experience desde la app Bookmy 📅 ¡Rápido, fácil y sin llamadas!",
-    cap2: "Tu negocio nunca duerme con Bookmy. Gestiona reservas, pagos y clientes desde tu móvil. 🚀",
+    cap2: porPais({
+      ES: "Tu negocio nunca duerme con Bookmy. Gestiona reservas, pagos y clientes desde tu móvil. 🚀",
+      CO: "Tu negocio nunca duerme con Bookmy. Gestiona reservas, pagos y clientes desde tu celular. 🚀",
+    }),
     cap3: "¿Sabes cuánto tiempo pierdes gestionando citas manualmente? Con Bookmy lo automatizas todo. ✨",
     followBtn: "Seguir @appbookmy en Instagram",
   },
@@ -493,7 +503,8 @@ const webEs = {
     /* Campos */
     empresaNombre: "Nombre del negocio",
     empresaNombrePh: "Ej. Glow Experience",
-    rubro: "¿A qué os dedicáis?",
+    /* El «os dedicáis» es de España; en Colombia se trata de usted. */
+    rubro: porPais({ ES: "¿A qué os dedicáis?", CO: "¿A qué se dedican?" }),
     rubroPh: "Selecciona tu sector",
     rubroSalud: "Salud y bienestar",
     rubroEstetica: "Estética y belleza",
@@ -502,12 +513,18 @@ const webEs = {
     rubroServicios: "Servicios profesionales",
     rubroOtro: "Otro",
     telefono: "Teléfono de contacto",
-    telefonoPh: "+34 600 000 000",
+    telefonoPh: porPais({ ES: "+34 600 000 000", CO: "+57 300 000 0000" }),
     sedeNombre: "Nombre de la sede",
     sedeNombrePh: "Ej. Sede Centro",
     direccion: "Dirección",
     direccionPh: "Empieza a escribir y elige tu dirección",
     direccionAyuda: "La usamos para que tus clientes te encuentren en la app.",
+    /* Los rótulos de la dirección los manda GET /paises
+       (etiquetaMunicipio, etiquetaRegion): «Ciudad» y «Departamento» en
+       Colombia. En el alta no hay sesión todavía, así que no se leen con
+       useRegion() sino del país que se acaba de elegir en el desplegable
+       (ver SignupWizard). Estos dos solo quedan de respaldo, para cuando
+       /paises no contesta. */
     municipio: "Municipio",
     provincia: "Provincia",
     firstName: "Nombre",

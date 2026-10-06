@@ -87,7 +87,20 @@ export default function Icon({ name, strokeWidth = 1.9, ...rest }: IconProps) {
   const content = ICONS[name as string];
   if (!content) return null;
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} {...rest}>
+    /* Un SVG sin alto ni ancho se estira hasta llenar lo que lo contenga.
+       Casi todos los sitios lo acotan por CSS, pero donde no -el aviso de
+       verificacion, sin ir mas lejos- salia un icono del tamano de la
+       pantalla. Con un tamano por defecto no puede volver a pasar, y el CSS
+       lo sigue mandando donde haga falta otra cosa. */
+    <svg
+      viewBox="0 0 24 24"
+      width={20}
+      height={20}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      {...rest}
+    >
       {content}
     </svg>
   );

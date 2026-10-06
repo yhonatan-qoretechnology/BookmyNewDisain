@@ -14,7 +14,7 @@ import type {
   ApiClient, ApiProfesional, ApiResena, ApiSede, ApiService, ApiServicioAsignable, ClientUpdatePayload,
 } from "@/api/types";
 import { generarPassword } from "@/lib/password";
-import { madridToday } from "@/lib/timezone";
+import { zonaHoy } from "@/lib/timezone";
 import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
@@ -217,6 +217,9 @@ export const ServiciosController = {
    * (categoryId + translations[] + prices[]). Si se pasan `imagenes`,
    * viaja como multipart (translations/prices serializados con
    * JSON.stringify, tal como espera el backend en ese modo).
+   *
+   * El precio va sin moneda: la pone el backend según el país de la empresa.
+   * Mandarla desde aquí guardaba 45.000 COP como si fueran euros.
    */
   async create(input: {
     nombre: string;
@@ -232,7 +235,7 @@ export const ServiciosController = {
       translations: [
         { language: input.language, name: input.nombre, description: input.descripcion },
       ],
-      prices: [{ amount: input.precio, duration: input.duracion, currency: "EUR" }],
+      prices: [{ amount: input.precio, duration: input.duracion }],
     };
     if (input.imagenes?.length) {
       await ServicesWriteApi.createConImagenes(dto, input.imagenes);
@@ -261,7 +264,7 @@ export const ServiciosController = {
         ? [{ language: input.language, name: input.nombre, description: input.descripcion }]
         : undefined,
       prices: input.precio != null || input.duracion != null
-        ? [{ amount: input.precio ?? 0, duration: input.duracion ?? 30, currency: "EUR" }]
+        ? [{ amount: input.precio ?? 0, duration: input.duracion ?? 30 }]
         : undefined,
     };
     if (input.imagenes?.length) {
@@ -423,7 +426,7 @@ export const PersonalController = {
     /* La columna "reservas este mes" mostraba siempre 0: el dato nunca se
        calculaba. Se cuenta sobre las citas visibles de la sesión, sin las
        canceladas ni las extensiones (que no son reservas nuevas). */
-    const mesActual = madridToday().slice(0, 7);
+    const mesActual = zonaHoy().slice(0, 7);
     const reservasDelMes = new Map<string, number>();
     for (const r of reservas) {
       if (r.extensionDeId != null) continue;
@@ -720,7 +723,6 @@ export interface ServicioAsignable {
   nombre: string;
   categoria: string;
   precio: number;
-  moneda: string;
   duracion: number;
   asignado: boolean;
   asignacionId: number | null;
@@ -752,7 +754,6 @@ export const AsignacionesController = {
       nombre: s.nombre,
       categoria: s.categoria || "—",
       precio: s.precios?.[0]?.amount ?? 0,
-      moneda: s.precios?.[0]?.currency ?? "EUR",
       duracion: s.precios?.[0]?.duration ?? 0,
       asignado: s.asignado,
       asignacionId: s.asignacionId,

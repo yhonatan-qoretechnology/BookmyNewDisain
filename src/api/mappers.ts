@@ -9,7 +9,8 @@
      CLIENT       → sin acceso al panel (usa la app de clientes)
 ============================================================ */
 import type { EstadoPlan, MetodoPago, Reserva, Rol, Session } from "@/models";
-import { madridHHmm, madridYmd } from "@/lib/timezone";
+import type { ConfigPais } from "@/config/paises";
+import { zonaHHmm, zonaYmd } from "@/lib/timezone";
 import type { ApiAppointment, ApiAppointmentStatus, ApiRole, ApiUser } from "./types";
 
 export const ROLE_MAP: Record<ApiRole, Rol | null> = {
@@ -40,7 +41,7 @@ export const ESTADO_APPT_MAP: Record<Reserva["estado"], ApiAppointmentStatus> = 
 
 export function mapUserToSession(
   u: ApiUser,
-  opts: { negocioName?: string; sedeName?: string; plan?: EstadoPlan | null }
+  opts: { negocioName?: string; sedeName?: string; plan?: EstadoPlan | null; pais?: ConfigPais | null }
 ): Session | null {
   const role = ROLE_MAP[u.role];
   if (!role) return null; // CLIENT no entra al panel
@@ -70,6 +71,12 @@ export function mapUserToSession(
     idioma: u.UserData?.idioma?.slice(0, 2).toLowerCase() || "es",
     /* Plan del negocio: de él dependen los módulos visibles. */
     plan: opts.plan ?? null,
+    /* País del NEGOCIO, el de su empresa — no `u.UserData.country`, que
+       es dónde vive la persona y puede no ser el del negocio. De aquí
+       salen la moneda, la zona horaria y las etiquetas del panel.
+       Si el login no lo pasa, RegionContext lo resuelve preguntando por
+       la empresa y lo deja en la sesión; mientras tanto, España. */
+    pais: opts.pais ?? null,
   };
 }
 
@@ -80,10 +87,10 @@ export function mapUserToSession(
  * aquí se leía getUTCHours(), y el panel mostraba todas las citas dos
  * horas antes de su hora real.
  */
-const hhmm = (iso: string): string => madridHHmm(new Date(iso));
+const hhmm = (iso: string): string => zonaHHmm(new Date(iso));
 
 /** Día al que pertenece la cita en Madrid (no el de UTC). */
-const diaMadrid = (iso: string): string => madridYmd(new Date(iso));
+const diaMadrid = (iso: string): string => zonaYmd(new Date(iso));
 
 /**
  * Convierte un Appointment del backend al modelo del panel.

@@ -13,10 +13,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { EmpresasApi } from "@/api/modules";
+import { EmpresasApi, PaisesApi } from "@/api/modules";
+import type { ApiPais, RegistroNegocioDto } from "@/api/types";
 import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
 import { useGoogleMaps } from "@/hooks/useGoogleMaps";
+import { autocompletarDireccion } from "@/lib/places";
+import { setPaisActivo, useI18n } from "@/i18n";
 import { ROUTES } from "@/constants";
 import { useWebT } from "./useWebT";
 import styles from "./SignupWizard.module.css";
@@ -32,6 +35,10 @@ interface Datos {
   municipio: string;
   provincia: string;
   pais: string;
+  /** ISO-2 del país: de él salen moneda, impuestos y festivos del negocio. */
+  paisIso: string;
+  /** Comunidad o departamento (en corto): con eso el backend saca los festivos. */
+  region: string;
   localidad: string;
   latitud?: number;
   longitud?: number;
@@ -44,9 +51,29 @@ interface Datos {
 
 const VACIO: Datos = {
   empresaNombre: "", rubro: "", telefono: "",
-  sedeNombre: "", direccion: "", municipio: "", provincia: "", pais: "", localidad: "",
+  sedeNombre: "", direccion: "", municipio: "", provincia: "", pais: "", paisIso: "",
+  region: "", localidad: "",
   firstName: "", lastName: "", email: "", password: "", acepta: false,
 };
+
+/** Lo poco que el alta necesita del catálogo de países. Las dos
+    etiquetas entran aquí porque el paso de la sede pregunta por la
+    geografía antes de que exista la cuenta: sin sesión no hay
+    useRegion() del que leerlas. */
+type PaisOpcion = Pick<
+  ApiPais,
+  "isoCode" | "nombre" | "zonaHoraria" | "etiquetaRegion" | "etiquetaMunicipio"
+>;
+
+/* Si /paises no contesta, el alta no se queda sin país: sin esto un fallo
+   de red crearía el negocio colombiano como español, y el país no se
+   puede cambiar después. */
+const PAISES_RESPALDO: PaisOpcion[] = [
+  { isoCode: "ES", nombre: "España", zonaHoraria: "Europe/Madrid",
+    etiquetaRegion: "Provincia", etiquetaMunicipio: "Municipio" },
+  { isoCode: "CO", nombre: "Colombia", zonaHoraria: "America/Bogota",
+    etiquetaRegion: "Departamento", etiquetaMunicipio: "Ciudad" },
+];
 
 const RUBROS = ["Salud", "Estetica", "Barberia", "Deporte", "Servicios", "Otro"] as const;
 const CLAVE_RUBRO: Record<string, string> = {
@@ -58,13 +85,10 @@ const CLAVE_RUBRO: Record<string, string> = {
 const PASSWORD_OK = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{7,}$/;
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/** Primer componente de la dirección cuyo `types` coincida. */
-function componente(comps: google.maps.places.AddressComponent[] | undefined, ...tipos: string[]) {
-  return comps?.find((c) => tipos.some((t) => c.types.includes(t)))?.long_name ?? "";
-}
-
 export default function SignupWizard() {
   const { w, locale } = useWebT();
+  /* "País" ya existe en el diccionario del panel; la web no repite la cadena. */
+  const { t } = useI18n();
   const router = useRouter();
   const params = useSearchParams();
   const { login } = useSession();
@@ -77,35 +101,69 @@ export default function SignupWizard() {
   const [enviando, setEnviando] = useState(false);
   const [listo, setListo] = useState(false);
   const [verPass, setVerPass] = useState(false);
+  const [paises, setPaises] = useState<PaisOpcion[]>(PAISES_RESPALDO);
   const direccionRef = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof Datos>(campo: K, valor: Datos[K]) =>
     setDatos((d) => ({ ...d, [campo]: valor }));
 
+  /* El país elegido manda en el vocabulario de la sede: en Colombia se
+     pide Departamento y Ciudad, no Provincia y Municipio. */
+  const paisElegido = useMemo(
+    () => paises.find((p) => p.isoCode === datos.paisIso),
+    [paises, datos.paisIso]
+  );
+
+  useEffect(() => {
+    let vivo = true;
+    PaisesApi.listar()
+      .then((lista) => { if (vivo && Array.isArray(lista) && lista.length) setPaises(lista); })
+      .catch(() => undefined); // el respaldo ya cubre España y Colombia
+    return () => { vivo = false; };
+  }, []);
+
+  /* El vocabulario de la web ya habla del país elegido antes de que exista
+     la cuenta: quien se da de alta en Colombia lee "celular", no "móvil". */
+  useEffect(() => { setPaisActivo(datos.paisIso); }, [datos.paisIso]);
+
+  /* El país se elige una sola vez y marca moneda, impuestos y festivos para
+     siempre, así que viene adivinado en vez de en blanco. La zona horaria
+     del dispositivo acierta más que el idioma: un negocio de Bogotá puede
+     tener el navegador en es-ES, pero no America/Bogota. */
+  useEffect(() => {
+    setDatos((d) => {
+      if (d.paisIso) return d;
+      const zona = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const elegido =
+        paises.find((p) => p.zonaHoraria === zona) ??
+        paises.find((p) => p.isoCode === "ES") ?? // España es el mercado de partida
+        paises[0];
+      return elegido ? { ...d, paisIso: elegido.isoCode, pais: elegido.nombre } : d;
+    });
+  }, [paises]);
+
   /* Google Places rellena municipio, provincia y coordenadas; si no hay
-     mapas, los campos siguen ahí para escribirlos a mano. */
+     mapas, los campos siguen ahí para escribirlos a mano. La búsqueda va
+     limitada al país elegido: así "Calle 93" encuentra Bogotá y no medio
+     mundo. Al cambiar de país hay que volver a montarlo. */
   useEffect(() => {
     if (!mapsListo || paso !== 2 || !direccionRef.current) return;
-    const auto = new google.maps.places.Autocomplete(direccionRef.current, {
-      types: ["address"],
-      fields: ["address_components", "formatted_address", "geometry"],
-    });
-    const sub = auto.addListener("place_changed", () => {
-      const place = auto.getPlace();
-      const comps = place.address_components;
-      setDatos((d) => ({
-        ...d,
-        direccion: place.formatted_address ?? d.direccion,
-        pais: componente(comps, "country"),
-        provincia: componente(comps, "administrative_area_level_2", "administrative_area_level_1"),
-        municipio: componente(comps, "locality", "postal_town"),
-        localidad: componente(comps, "sublocality", "sublocality_level_1", "neighborhood"),
-        latitud: place.geometry?.location?.lat(),
-        longitud: place.geometry?.location?.lng(),
-      }));
-    });
-    return () => sub.remove();
-  }, [mapsListo, paso]);
+    return autocompletarDireccion(direccionRef.current, datos.paisIso, (direccion) =>
+      setDatos((d) => ({ ...d, ...direccion }))
+    );
+  }, [mapsListo, paso, datos.paisIso]);
+
+  /* Cambiar de país invalida lo que Places había rellenado: sin esto una
+     sede de Bogotá podía quedarse con la provincia y las coordenadas de la
+     dirección española elegida antes. */
+  const elegirPais = (iso: string) =>
+    setDatos((d) => ({
+      ...d,
+      paisIso: iso,
+      pais: paises.find((p) => p.isoCode === iso)?.nombre ?? "",
+      direccion: "", provincia: "", region: "", municipio: "", localidad: "",
+      latitud: undefined, longitud: undefined,
+    }));
 
   const validar = (n: number): string | null => {
     if (n === 1) {
@@ -140,14 +198,18 @@ export default function SignupWizard() {
     setEnviando(true);
     setError(null);
     try {
-      const res = await EmpresasApi.registrar({
+      /* De `paisIso` saca el backend la moneda, el impuesto y la zona
+         horaria del negocio, y de `region` los festivos de la sede. */
+      const payload: RegistroNegocioDto = {
         empresaNombre: datos.empresaNombre.trim(),
         telefono: datos.telefono.trim(),
         rubro: datos.rubro || undefined,
         sedeNombre: datos.sedeNombre.trim(),
         direccion: datos.direccion.trim(),
         pais: datos.pais || undefined,
+        paisIso: datos.paisIso || undefined,
         provincia: datos.provincia || undefined,
+        region: datos.region || undefined,
         municipio: datos.municipio || undefined,
         localidad: datos.localidad || undefined,
         latitud: datos.latitud,
@@ -159,7 +221,8 @@ export default function SignupWizard() {
         idioma: locale,
         plan,
         acepta: true,
-      });
+      };
+      const res = await EmpresasApi.registrar(payload);
       if (!res?.token || !res.user) throw new Error(w("signup.errorGeneral"));
 
       /* La cuenta ya existe y el backend devolvió la sesión: se entra con
@@ -267,6 +330,16 @@ export default function SignupWizard() {
                 autoFocus
               />
             </label>
+            {/* El único dato que no se puede deducir ni cambiar después: de él
+                cuelgan la moneda, la zona horaria y el impuesto del negocio. */}
+            <label className={styles.campo}>
+              <span>{t("sedes.pais")}</span>
+              <select value={datos.paisIso} onChange={(e) => elegirPais(e.target.value)}>
+                {paises.map((p) => (
+                  <option key={p.isoCode} value={p.isoCode}>{p.nombre}</option>
+                ))}
+              </select>
+            </label>
             <label className={styles.campo}>
               <span>{w("signup.direccion")}</span>
               <input
@@ -280,11 +353,11 @@ export default function SignupWizard() {
             </label>
             <div className={styles.fila}>
               <label className={styles.campo}>
-                <span>{w("signup.municipio")}</span>
+                <span>{paisElegido?.etiquetaMunicipio ?? w("signup.municipio")}</span>
                 <input value={datos.municipio} onChange={(e) => set("municipio", e.target.value)} />
               </label>
               <label className={styles.campo}>
-                <span>{w("signup.provincia")}</span>
+                <span>{paisElegido?.etiquetaRegion ?? w("signup.provincia")}</span>
                 <input value={datos.provincia} onChange={(e) => set("provincia", e.target.value)} />
               </label>
             </div>

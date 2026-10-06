@@ -10,6 +10,7 @@
    en vez de dividir por cero, y los textos de los ejes van en HTML
    (no dentro del SVG) para que no se deformen al estirar el ancho.
 ============================================================ */
+import { useRegion } from "@/context/RegionContext";
 import styles from "./estadisticas.module.css";
 
 /** Máximo de una serie, nunca cero (evita divisiones infinitas). */
@@ -147,7 +148,8 @@ export function Donut({
   const R = 54;
   const CIRC = 2 * Math.PI * R;
   let acumulado = 0;
-  const fmt = formatoValor ?? ((n: number) => n.toLocaleString("es-ES"));
+  const { pais } = useRegion();
+  const fmt = formatoValor ?? ((n: number) => n.toLocaleString(pais.locale));
 
   return (
     <div className={styles.donutWrap}>
@@ -335,7 +337,8 @@ export function RankingLista({
 }) {
   const total = filas.reduce((a, f) => a + f.valor, 0) || 1;
   const max = tope(filas.map((f) => f.valor));
-  const fmt = formatoValor ?? ((n: number) => n.toLocaleString("es-ES"));
+  const { pais } = useRegion();
+  const fmt = formatoValor ?? ((n: number) => n.toLocaleString(pais.locale));
   return (
     <div className={styles.rank}>
       {filas.map((f, i) => (
@@ -368,6 +371,7 @@ export function BarrasHorizontales({
   filas: { nombre: string; valor: number }[];
   colores: string[];
 }) {
+  const { pais } = useRegion();
   const total = filas.reduce((a, f) => a + f.valor, 0) || 1;
   const max = tope(filas.map((f) => f.valor));
   return (
@@ -381,7 +385,7 @@ export function BarrasHorizontales({
               style={{ width: `${(f.valor / max) * 100}%`, background: colores[i % colores.length] }}
             />
           </span>
-          <span className={styles.hbarValor}>{f.valor.toLocaleString("es-ES")}</span>
+          <span className={styles.hbarValor}>{f.valor.toLocaleString(pais.locale)}</span>
           <span className={styles.hbarPct}>{((f.valor / total) * 100).toFixed(1).replace(".", ",")}%</span>
         </div>
       ))}
@@ -395,6 +399,7 @@ export function Embudo({
 }: {
   pasos: { nombre: string; valor: number; icono: React.ReactNode }[];
 }) {
+  const { pais } = useRegion();
   const base = pasos[0]?.valor || 1;
   return (
     <div className={styles.embudo}>
@@ -403,7 +408,7 @@ export function Embudo({
           <div className={styles.paso}>
             <span className={styles.pasoIcono}>{p.icono}</span>
             <span className={styles.pasoNombre}>{p.nombre}</span>
-            <span className={styles.pasoValor}>{p.valor.toLocaleString("es-ES")}</span>
+            <span className={styles.pasoValor}>{p.valor.toLocaleString(pais.locale)}</span>
             <span className={styles.pasoPct}>{((p.valor / base) * 100).toFixed(1).replace(".", ",")}%</span>
           </div>
           {i < pasos.length - 1 && <span className={styles.flecha} aria-hidden="true">→</span>}

@@ -190,7 +190,6 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
       categoria: sv.category ? String(sv.category) : "General",
       duracion: sv.prices?.[0]?.duration ?? 30,
       precio: sv.prices?.[0]?.amount ?? 0,
-      moneda: sv.prices?.[0]?.currency ?? "EUR",
     }));
   },
 

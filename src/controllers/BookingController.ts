@@ -35,7 +35,7 @@ import {
   construirSlots, ocupacionDeCita, resolverCierres, resolverHorario,
   type Ocupacion,
 } from "@/lib/disponibilidad";
-import { madridDayOfWeek, madridToday, madridYmd } from "@/lib/timezone";
+import { zonaDiaSemana, zonaHoy, zonaYmd } from "@/lib/timezone";
 
 /* ── Interfaces por caso de uso (ISP) ────────────────────── */
 export interface SedesProvider {
@@ -165,7 +165,6 @@ function mapServicio(sv: ApiServicioProfesional): ServicioOpcion {
     categoria: sv.categoria || SIN_CATEGORIA,
     duracion: sv.precios?.[0]?.duration ?? 30,
     precio: sv.precios?.[0]?.amount ?? 0,
-    moneda: sv.precios?.[0]?.currency ?? "EUR",
   };
 }
 
@@ -197,7 +196,7 @@ function buildOcupacion(citas: ApiAppointment[]): Map<string, Ocupacion[]> {
       a.horaFin || new Date(ini.getTime() + (a.duracion || 30) * 60000).toISOString();
     /* La clave es el día en Madrid, no el de UTC: una cita de las 00:30
        de Madrid pertenece al día anterior en UTC. */
-    const key = madridYmd(ini);
+    const key = zonaYmd(ini);
     const arr = map.get(key) || [];
     arr.push(ocupacionDeCita(a.horaInicio, finIso));
     map.set(key, arr);
@@ -220,10 +219,10 @@ interface ContextoAgenda {
  */
 async function fetchContexto(sedeId: string, profesionalId: string): Promise<ContextoAgenda> {
   return cached(`ctx:${sedeId}:${profesionalId}`, async () => {
-    const desde = madridToday();
+    const desde = zonaHoy();
     const hastaDate = new Date();
     hastaDate.setDate(hastaDate.getDate() + DIAS_AGENDABLES + 1);
-    const hasta = madridYmd(hastaDate);
+    const hasta = zonaYmd(hastaDate);
 
     const [sedes, horarios, cierresRaw, dispo] = await Promise.all([
       SedesApi.findOne(Number(sedeId)).catch(() => null),
@@ -236,7 +235,7 @@ async function fetchContexto(sedeId: string, profesionalId: string): Promise<Con
     const disponibilidadPorDia = new Map<string, ApiDisponibilidadProfesional>();
     for (const d of dispo || []) {
       const f = new Date(d.fecha);
-      if (!Number.isNaN(f.getTime())) disponibilidadPorDia.set(madridYmd(f), d);
+      if (!Number.isNaN(f.getTime())) disponibilidadPorDia.set(zonaYmd(f), d);
     }
 
     return {
@@ -255,7 +254,7 @@ function buildSlots(
   duracionMin: number,
   ocupadas: Ocupacion[],
 ): SlotHora[] {
-  const diaSemana = madridDayOfWeek(new Date(`${fecha}T12:00:00Z`));
+  const diaSemana = zonaDiaSemana(new Date(`${fecha}T12:00:00Z`));
   const horarios = resolverHorario(ctx.sede, ctx.horarios, diaSemana);
 
   return construirSlots({
@@ -361,7 +360,7 @@ export const BookingController:
     for (let i = 0; i <= DIAS_AGENDABLES; i++) {
       const d = new Date(base.getTime());
       d.setDate(d.getDate() + i);
-      const key = madridYmd(d);
+      const key = zonaYmd(d);
       if (buildSlots(ctx, key, duracionMin, ocupacion.get(key) || []).length === 0) {
         bloqueados.add(key);
       }

@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 import type { Reserva } from "@/models";
 import type { ApiCitaEnConflicto, ApiEspecialistaLibre, ApiHuecoSugerido } from "@/api/types";
 import { ReservasController } from "@/controllers/ReservasController";
-import { madridHHmm } from "@/lib/timezone";
+import { zonaHHmm } from "@/lib/timezone";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Modal, { Field, ModalActions, ModalText, ModalTitle } from "@/components/ui/Modal";
@@ -33,7 +33,7 @@ import styles from "./ExtenderCitaModal.module.css";
 const OPCIONES = ["reasignar", "reprogramar", "cancelar"] as const;
 type Opcion = (typeof OPCIONES)[number];
 
-const hora = (iso: string | null | undefined) => (iso ? madridHHmm(new Date(iso)) : "—");
+const hora = (iso: string | null | undefined) => (iso ? zonaHHmm(new Date(iso)) : "—");
 const mensajeDe = (e: unknown, fallback: string) =>
   e instanceof Error && e.message ? e.message : fallback;
 

@@ -60,6 +60,7 @@ export interface Factura {
   fecha: string;         // ISO yyyy-mm-dd
   hora?: string;
   total: number;
+  /** Moneda del país de la empresa: el pago del backend no la devuelve. */
   moneda: string;
   estado: EstadoFactura;
   sedeId?: string;
@@ -141,7 +142,7 @@ function metodoPagoDesdePago(p: ApiPaymentFiltered): string | undefined {
 }
 
 /** Pago (PaymentModule, GET /payments/filter) → Factura de la tabla */
-function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
+function facturaDesdePago(p: ApiPaymentFiltered, language: string, moneda: string): Factura {
   const servicio = nombreServicioPago(p, language);
   const total = Number(p.totalAmount || 0);
   return {
@@ -156,7 +157,7 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string): Factura {
     hora: p.createdAt ? p.createdAt.slice(11, 16) : undefined,
     total,
     apiId: p.id,
-    moneda: "EUR",
+    moneda,
     estado: estadoDesdePago(p.status),
     sedeId: p.appointment?.sedeId != null ? String(p.appointment.sedeId) : undefined,
     metodoPago: metodoPagoDesdePago(p),
@@ -297,8 +298,17 @@ export const FacturasController = {
    * @param session  Sesión activa (decide qué userId/sedeId se piden).
    * @param filtros  Incluye los selectores de empresa/sede, si aplican.
    * @param language Idioma para resolver nombres de servicio.
+   * @param moneda   Moneda del país de la empresa (ES → EUR, CO → COP). La
+   *                 aporta la vista, que es quien conoce el país: el pago del
+   *                 backend no trae moneda y antes se cableaba EUR, así que un
+   *                 negocio colombiano veía sus pesos en euros en el PDF.
    */
-  async list(session: Session | null, filtros: FiltrosFactura = {}, language = "es"): Promise<Factura[]> {
+  async list(
+    session: Session | null,
+    filtros: FiltrosFactura = {},
+    language = "es",
+    moneda: string,
+  ): Promise<Factura[]> {
     if (!session) return [];
     const sedeIds = await resolverSedesConsulta(session, filtros);
 
@@ -313,7 +323,7 @@ export const FacturasController = {
     }
 
     return pagos
-      .map((p) => facturaDesdePago(p, language))
+      .map((p) => facturaDesdePago(p, language, moneda))
       .sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id.localeCompare(a.id));
   },
 
@@ -321,9 +331,10 @@ export const FacturasController = {
   async search(
     session: Session | null,
     f: FiltrosFactura,
-    language = "es"
+    language = "es",
+    moneda: string,
   ): Promise<Factura[]> {
-    const all = await this.list(session, f, language);
+    const all = await this.list(session, f, language, moneda);
     return all.filter(
       (x) =>
         (!f.q || match(x.id, f.q) || match(x.cliente, f.q) || match(x.servicio, f.q)) &&

@@ -2,6 +2,7 @@
    BookMy — Modelos e interfaces (capa Model · MVC)
    Todas las entidades del dominio están tipadas aquí.
 ============================================================ */
+import type { ConfigPais } from "@/config/paises";
 
 /* ── Roles y estados ─────────────────────────────────────── */
 /** Roles de la plataforma:
@@ -40,6 +41,10 @@ export interface Negocio {
   /** Bloqueada por el superadmin: ni entran sus admins ni admite reservas */
   bloqueada?: boolean;
   bloqueadaMotivo?: string | null;
+  /** Pais del negocio. Solo lo usa el superadmin, que es el unico que ve
+      empresas de varios mercados a la vez. */
+  paisIso?: string | null;
+  paisNombre?: string | null;
 }
 
 export interface Sede {
@@ -92,6 +97,12 @@ export interface Session {
   profesionalId: string | null;
   /** Plan del negocio: decide qué módulos ve. El superadmin no tiene. */
   plan?: EstadoPlan | null;
+  /** País del negocio (de la empresa, no del usuario): de él salen la
+      moneda, la zona horaria y las etiquetas de todo el panel. Viaja en
+      la sesión para no preguntarlo en cada pantalla.
+      Opcional porque las sesiones ya guardadas no lo llevan y porque el
+      superadmin no es de ningún negocio: sin él rige España. */
+  pais?: ConfigPais | null;
 }
 
 /** Plan de un negocio y estado de su prueba (GET /empresas/:id/plan). */
@@ -305,7 +316,6 @@ export interface ServicioOpcion {
   categoria: string;
   duracion: number; // minutos
   precio: number;
-  moneda: string;
 }
 
 /** Servicios de un profesional agrupados por categoría */
