@@ -129,6 +129,23 @@ export default function KycWizard() {
     );
   }
 
+  /* Quien no es el dueño no ve el asistente: el backend solo acepta el
+     envío del dueño de la empresa (o de un superadmin), así que dejarle
+     rellenar cuatro pasos para que el botón final estuviera apagado era
+     hacerle perder el rato. Ve el estado y quién tiene que enviarlo. */
+  if (!puedeEnviar) {
+    return (
+      <Panel>
+        <PanelHead title={t("kyc.titulo")} sub={t("kyc.sub")} />
+        <div className={styles.estadoCabecera}>
+          <Badge kind={BADGE_KYC[estado]}>{t(`kyc.estados.${estado}`)}</Badge>
+        </div>
+        <p className={styles.bloqueoTitulo}>{t("kyc.soloDuenioTitulo")}</p>
+        <p className={styles.nota}>{t("kyc.soloDuenioDetalle")}</p>
+      </Panel>
+    );
+  }
+
   /* ── Asistente ────────────────────────────────────────────── */
   const indice = PASOS.indexOf(paso);
   const puedeSeguir =
