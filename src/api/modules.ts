@@ -11,7 +11,7 @@ import type {
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
-  ApiPais, ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo,
+  ApiPais, ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo, ApiContextoFestivos,
   ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiEmpresaKyc, ApiKycPendiente, CrearFestivoLocalDto,
@@ -538,6 +538,14 @@ export const FestivosApi = {
    */
   findAll: (params: { anio?: number; sedeId?: number; empresaId?: number } = {}) =>
     http.get<ApiFestivo[]>(EP.festivos + qs(params)),
+
+  /**
+   * GET /festivos/contexto?sedeId=|empresaId= — el país, la región y el
+   * municipio que el backend está aplicando. El calendario lo muestra: así
+   * se ve de dónde salen los festivos y cuándo una sede no tiene municipio.
+   */
+  contexto: (params: { sedeId?: number; empresaId?: number } = {}) =>
+    http.get<ApiContextoFestivos>(EP.festivosContexto + qs(params)),
 
   /**
    * POST /festivos/sincronizar { anio } — baja el calendario oficial completo

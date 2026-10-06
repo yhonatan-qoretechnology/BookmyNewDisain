@@ -81,16 +81,20 @@ export function ModalActions({ children }: { children: React.ReactNode }) {
 export function Field({
   label,
   htmlFor,
+  hint,
   children,
 }: {
   label: string;
   htmlFor?: string;
+  /** Aclaración debajo del campo, para cuando el nombre no basta */
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className={styles.field}>
       <label htmlFor={htmlFor}>{label}</label>
       {children}
+      {hint && <small className={styles.fieldHint}>{hint}</small>}
     </div>
   );
 }

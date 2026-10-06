@@ -193,6 +193,10 @@ export interface ApiSede {
   direccion: string;
   telefono?: string | null;
   provincia?: string | null;
+  /** Municipio: decide las fiestas locales de su calendario. El campo
+      `provincia` es el antiguo y en sedes viejas guarda la provincia. */
+  municipio?: string | null;
+  localidad?: string | null;
   imagenes?: string[];
   empresaId: number;
   profesionales?: ApiProfesional[];
@@ -822,10 +826,38 @@ export type ApiConContinuacion =
 /** Respuesta de POST /festivos/sincronizar. */
 export interface ApiSincronizacionFestivos {
   anio: number;
+  pais: string;
   nacionalesCount: number;
-  autonomicosCount: number;
-  comunidadesFallidas: string[];
+  regionalesCount: number;
+  /** Fiestas del municipio (CSV oficial de la Seguridad Social) */
+  localesCount: number;
+  /** Cuántos municipios distintos quedaron cubiertos */
+  municipiosCount: number;
+  /** Por qué no se cargaron las locales, si no se cargaron (p. ej. otro año) */
+  localesOmitidas: string | null;
+  regionesFallidas: string[];
   fuente: string;
+  fuenteLocales?: string;
+}
+
+/**
+ * De dónde salen los festivos de una sede (o de una empresa): su país, su
+ * región y su municipio, ya resueltos por el backend. El calendario lo
+ * escribe encima para que se vea qué se está aplicando — y para que una
+ * sede con el municipio mal cargado se note.
+ */
+export interface ApiContextoFestivos {
+  pais: string;
+  regiones: string[];
+  municipios: string[];
+  sedes: {
+    sedeId: number;
+    nombre: string;
+    municipio?: string;
+    /** De dónde salió: "provincia" es el campo antiguo, el que miente */
+    origenMunicipio?: "municipio" | "localidad" | "direccion" | "provincia";
+    region?: string;
+  }[];
 }
 
 /** Festivo devuelto por GET /festivos. Es informativo: no bloquea el agendado. */

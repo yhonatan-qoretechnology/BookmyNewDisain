@@ -1014,8 +1014,17 @@ const es = {
     festivosSincronizar: "Sincronizar festivos",
     festivosAnio: "Año",
     festivosSincronizando: "Sincronizando…",
-    festivosResultado: "Se sincronizaron {autonomicos} festivos autonómicos y {nacionales} nacionales para {anio}",
+    festivosResultado: "{anio}: {nacionales} festivos nacionales, {autonomicos} autonómicos y {locales} locales de {municipios} municipios",
     festivosFallidas: "No se pudieron traer: {comunidades}",
+    /* Qué se le está aplicando al calendario: sin esto, dos sedes del mismo
+       pueblo parecen "no refrescar" y una sede con el municipio mal cargado
+       no se nota. */
+    contextoMunicipio: "Festivos de {municipio}",
+    contextoVarios: "Festivos de {n} municipios: {municipios}",
+    contextoSinMunicipio: "Esta sede no tiene municipio cargado: solo se marcan los nacionales y los de su comunidad",
+    contextoRegion: "comunidad {region}",
+    contextoSinLocales: "{municipio} no tiene fiestas locales cargadas todavía",
+    contextoDudoso: "El municipio de {sedes} se ha sacado del campo «provincia»: revísalo en la ficha de la sede",
     festivosCreditos: "Datos de festivos:",
     festivosFuente: "Calendarios Nacionales",
     panelTitle: "Agenda mensual",
@@ -1395,6 +1404,9 @@ const es = {
     editTitle: "Actualizar sede",
     updated: "Sede actualizada",
     province: "Provincia",
+    municipality: "Municipio",
+    municipalityHint: "Decide qué fiestas locales ve el calendario de esta sede. Si se deja vacío, se saca de la dirección.",
+    municipalityPh: "Ej.: Marbella",
     provincePlaceholder: "Ciudad o provincia",
     viewProfesionales: "Profesionales",
     viewResenas: "Reseñas",

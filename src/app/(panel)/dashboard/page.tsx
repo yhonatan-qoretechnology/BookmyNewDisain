@@ -25,6 +25,8 @@ import Badge from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import CalendarGrid from "@/components/ui/CalendarGrid";
+import ContextoFestivos from "@/components/festivos/ContextoFestivos";
+import { mapaFestivos } from "@/components/festivos/mapaFestivos";
 import { PersonRow } from "@/components/ui/People";
 import styles from "./dashboard.module.css";
 
@@ -132,10 +134,7 @@ export default function DashboardPage() {
     [],
   );
 
-  const festivos = useMemo(
-    () => Object.fromEntries((diasFestivos || []).map((f) => [f.fecha.slice(0, 10), f.nombre])),
-    [diasFestivos],
-  );
+  const festivos = useMemo(() => mapaFestivos(diasFestivos), [diasFestivos]);
 
   const calMap = ReservasController.buildCalendarMap(todas);
   const calEvents = Object.fromEntries(
@@ -240,6 +239,11 @@ export default function DashboardPage() {
 
         <Panel>
           <PanelHead title={t("dashboard.calTitle")} sub={t("dashboard.calSub")} />
+          <ContextoFestivos
+            sedeId={session?.sedeId ? Number(session.sedeId) : undefined}
+            empresaId={!session?.sedeId ? Number(session?.negocioId) || undefined : undefined}
+            festivos={diasFestivos || []}
+          />
           <CalendarGrid
             events={calEvents}
             festivos={festivos}

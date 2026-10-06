@@ -100,6 +100,7 @@ export default function EditarSedePage() {
   const [tab, setTab] = useState<"datos" | "imagenes">("datos");
   const [nombre, setNombre] = useState("");
   const [provincia, setProvincia] = useState("");
+  const [municipio, setMunicipio] = useState("");
   const [direccion, setDireccion] = useState("");
   const [telefono, setTelefono] = useState("");
   const [latitud, setLatitud] = useState("");
@@ -117,6 +118,7 @@ export default function EditarSedePage() {
     if (!sede) return;
     setNombre(sede.nombre);
     setProvincia(sede.provincia);
+    setMunicipio(sede.municipio);
     setDireccion(sede.direccion);
     setTelefono(sede.telefono);
     setLatitud(sede.latitud != null ? String(sede.latitud) : "");
@@ -200,7 +202,7 @@ export default function EditarSedePage() {
     setGuardando(true);
     try {
       await SedesController.update(sedeId, {
-        nombre, direccion, telefono, provincia,
+        nombre, direccion, telefono, provincia, municipio,
         latitud: latitud.trim() ? Number(latitud) : null,
         longitud: longitud.trim() ? Number(longitud) : null,
         /* El JSON se sigue guardando como respaldo: es lo que usan las
@@ -262,6 +264,14 @@ export default function EditarSedePage() {
           </Field>
           <Field label={`${t("empresaSedes.province")} *`} htmlFor="sd-prov">
             <input id="sd-prov" value={provincia} onChange={(e) => setProvincia(e.target.value)} />
+          </Field>
+          <Field label={t("empresaSedes.municipality")} htmlFor="sd-mun" hint={t("empresaSedes.municipalityHint")}>
+            <input
+              id="sd-mun"
+              value={municipio}
+              onChange={(e) => setMunicipio(e.target.value)}
+              placeholder={t("empresaSedes.municipalityPh")}
+            />
           </Field>
           <Field label={`${t("sedes.address")} *`} htmlFor="sd-dir">
             <input id="sd-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} />

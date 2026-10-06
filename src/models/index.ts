@@ -70,6 +70,8 @@ export interface SedeDetalle {
   imagenes: string[];
   telefono: string;
   provincia: string;
+  /** Municipio: es lo que decide qué fiestas locales ve su calendario */
+  municipio: string;
   latitud: number | null;
   longitud: number | null;
   /** Horario semanal { lunes: "10:00-19:00", domingo: "Cerrado", … } */

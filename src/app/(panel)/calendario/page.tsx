@@ -16,6 +16,8 @@ import Button from "@/components/ui/Button";
 import CalendarGrid from "@/components/ui/CalendarGrid";
 import { FestivosApi } from "@/api/modules";
 import FestivosLocales from "@/components/festivos/FestivosLocales";
+import ContextoFestivos from "@/components/festivos/ContextoFestivos";
+import { mapaFestivos } from "@/components/festivos/mapaFestivos";
 
 export default function CalendarioPage() {
   const router = useRouter();
@@ -54,14 +56,19 @@ export default function CalendarioPage() {
       const r = await FestivosApi.sincronizar(anioSync);
       toast(
         t("calendario.festivosResultado", {
-          autonomicos: r.autonomicosCount,
+          autonomicos: r.regionalesCount,
           nacionales: r.nacionalesCount,
+          locales: r.localesCount,
+          municipios: r.municipiosCount,
           anio: r.anio,
         }),
         "success",
       );
-      if (r.comunidadesFallidas?.length) {
-        toast(t("calendario.festivosFallidas", { comunidades: r.comunidadesFallidas.join(", ") }), "error");
+      /* Las del municipio solo las publica la fuente oficial del año en
+         curso: si se pide otro, se dice en vez de dejar un 0 sin explicar. */
+      if (r.localesOmitidas) toast(r.localesOmitidas, "default");
+      if (r.regionesFallidas?.length) {
+        toast(t("calendario.festivosFallidas", { comunidades: r.regionesFallidas.join(", ") }), "error");
       }
     } catch (e) {
       toast(e instanceof Error ? e.message : t("common.error"), "error");
@@ -82,12 +89,7 @@ export default function CalendarioPage() {
     ])
   );
 
-  const festivos = useMemo(
-    () => Object.fromEntries(
-      (diasFestivos || []).map((f) => [f.fecha.slice(0, 10), f.nombre]),
-    ),
-    [diasFestivos],
-  );
+  const festivos = useMemo(() => mapaFestivos(diasFestivos), [diasFestivos]);
 
 
   return (
@@ -133,6 +135,13 @@ export default function CalendarioPage() {
         anio={new Date().getFullYear()}
         onClose={() => setLocales(false)}
         onCambios={() => void reloadFestivos()}
+      />
+
+      {/* De qué municipio son los festivos que se están pintando */}
+      <ContextoFestivos
+        sedeId={session?.sedeId ? Number(session.sedeId) : undefined}
+        empresaId={!session?.sedeId ? Number(session?.negocioId) || undefined : undefined}
+        festivos={diasFestivos || []}
       />
 
       <CalendarGrid
