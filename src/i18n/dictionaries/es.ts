@@ -491,7 +491,13 @@ const es = {
     verEmpresa: "Verificación",
     empresaTitulo: "Verificación de {empresa}",
     elegirArchivo: "Abre cada documento para revisarlo:",
-    sinDocumentos: "Este negocio todavía no ha subido su documentación. Tiene que hacerlo desde su panel, en Configuración → Verificación del negocio.",
+    sinDocumentos: "Este negocio todavía no ha subido su documentación.",
+    /* Hay empresas sin cuenta de dueño: si el superadmin no pudiera
+       subirla por ellas, no habría forma de verificarlas nunca. */
+    subirPorEmpresa: "Subirla en su nombre",
+    subirPorEmpresaAyuda: "Para cuando el negocio te manda los papeles por otro canal, o todavía no tiene cuenta de dueño. Queda igual que si la hubiera enviado él: en revisión, a la espera de que la apruebes.",
+    enviarPorEmpresa: "Enviar a revisión",
+    enviadaPorEmpresa: "Documentación enviada. Ya puedes aprobarla o rechazarla.",
     pendientesTitulo: "Verificaciones por revisar",
     pendientesVacio: "Nada esperando revisión.",
     pendientesVacioSub: "Ninguna empresa ha enviado documentación todavía. Abajo tienes el estado de todas.",
@@ -506,6 +512,7 @@ const es = {
     rechazar: "Rechazar",
     rechazarMotivo: "Motivo del rechazo…",
     faltaMotivo: "Escribe el motivo del rechazo.",
+    faltaFrente: "Falta la foto del documento del responsable del negocio.",
     aprobada: "Verificación aprobada",
     rechazada: "Verificación rechazada",
   },
