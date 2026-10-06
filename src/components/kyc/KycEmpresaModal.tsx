@@ -17,7 +17,7 @@ import { useI18n } from "@/i18n";
 import Modal, { ModalActions, ModalText, ModalTitle } from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import { BADGE_KYC } from "./KycPanel";
+import { BADGE_KYC } from "./estados";
 import styles from "./Kyc.module.css";
 
 export default function KycEmpresaModal({

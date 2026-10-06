@@ -12,7 +12,7 @@ import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import ColaKyc from "@/components/kyc/ColaKyc";
-import KycPanel from "@/components/kyc/KycPanel";
+import KycWizard from "@/components/kyc/KycWizard";
 
 export default function VerificacionPage() {
   const { session } = useSession();
@@ -28,5 +28,5 @@ export default function VerificacionPage() {
     );
   }
 
-  return <KycPanel />;
+  return <KycWizard />;
 }

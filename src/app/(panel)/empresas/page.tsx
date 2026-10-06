@@ -27,7 +27,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
 import KycPendientes from "@/components/kyc/KycPendientes";
 import KycEmpresaModal from "@/components/kyc/KycEmpresaModal";
-import { BADGE_KYC } from "@/components/kyc/KycPanel";
+import { BADGE_KYC } from "@/components/kyc/estados";
 import styles from "./empresas.module.css";
 
 export default function EmpresasPage() {
