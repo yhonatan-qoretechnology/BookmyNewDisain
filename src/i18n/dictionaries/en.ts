@@ -273,10 +273,11 @@ const en: Dictionary = {
     filas: "rows",
     tamano: "database size",
     aviso: "The file holds every company's data, their clients' emails and phone numbers, and hashed passwords. Keep it somewhere safe and do not share it.",
-    descargar: "Download backup",
+    descargar: "Download backup (.sql)",
+    descargarJson: "or as JSON",
     generando: "Generating…",
     descargada: "Backup downloaded",
-    nota: "JSON format, one list per table. It does not include uploaded files (photos and documents), which live in separate storage.",
+    nota: "SQL restorable with psql: run \"npx prisma migrate deploy\" first to create the schema, then load the file. The JSON is for inspecting or migrating data, not for restoring. Neither includes uploaded files (photos and documents), which live in separate storage.",
   },
 
   calendario: { title: "Calendar", accent: "" },

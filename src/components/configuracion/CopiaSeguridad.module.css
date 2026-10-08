@@ -41,6 +41,8 @@
 /* El SVG no trae alto propio y dentro de un flex se estira */
 .aviso > svg { flex: 0 0 auto; width: 16px; height: 16px; color: #b26a00; margin-top: 1px; }
 
+.botones { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
 .nota {
   margin: 10px 0 0;
   font-size: 11.5px;

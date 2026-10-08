@@ -301,10 +301,11 @@ const es = {
     filas: "filas",
     tamano: "ocupa la base",
     aviso: "El archivo lleva los datos de todas las empresas, los correos y teléfonos de sus clientes y las contraseñas cifradas. Guárdalo en un sitio seguro y no lo compartas.",
-    descargar: "Descargar copia",
+    descargar: "Descargar copia (.sql)",
+    descargarJson: "o en JSON",
     generando: "Generando…",
     descargada: "Copia descargada",
-    nota: "Formato JSON, una lista por tabla. No incluye los archivos subidos (fotos y documentos), que están en el almacenamiento aparte.",
+    nota: "SQL restaurable con psql: primero «npx prisma migrate deploy» para crear el esquema y después el archivo. El JSON es para mirar o migrar los datos, no para restaurar. Ninguno de los dos incluye los archivos subidos (fotos y documentos), que están en el almacenamiento aparte.",
   },
 
   calendario: { title: "Calendario", accent: "" },

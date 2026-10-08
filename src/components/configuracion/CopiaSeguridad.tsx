@@ -23,18 +23,19 @@ import styles from "./CopiaSeguridad.module.css";
 export default function CopiaSeguridad() {
   const { t } = useI18n();
   const { toast } = useUi();
-  const [descargando, setDescargando] = useState(false);
+  const [descargando, setDescargando] = useState<"sql" | "json" | null>(null);
 
   const { data: resumen } = useData(() => BackupApi.resumen().catch(() => null), [], null);
 
-  const descargar = async () => {
-    setDescargando(true);
+  const descargar = async (formato: "sql" | "json") => {
+    setDescargando(formato);
     try {
-      const { blob, nombre } = await BackupApi.descargar();
+      const { blob, nombre } = await BackupApi.descargar(formato);
       const url = URL.createObjectURL(blob);
       const enlace = document.createElement("a");
       enlace.href = url;
-      enlace.download = nombre ?? `bookmy-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      enlace.download =
+        nombre ?? `bookmy-backup-${new Date().toISOString().slice(0, 10)}.${formato}`;
       document.body.appendChild(enlace);
       enlace.click();
       enlace.remove();
@@ -44,7 +45,7 @@ export default function CopiaSeguridad() {
     } catch (e) {
       toast(e instanceof Error ? e.message : t("common.error"), "error");
     } finally {
-      setDescargando(false);
+      setDescargando(null);
     }
   };
 
@@ -72,9 +73,20 @@ export default function CopiaSeguridad() {
         <span>{t("backup.aviso")}</span>
       </p>
 
-      <Button disabled={descargando} onClick={() => void descargar()}>
-        {descargando ? t("backup.generando") : t("backup.descargar")}
-      </Button>
+      <div className={styles.botones}>
+        <Button disabled={descargando !== null} onClick={() => void descargar("sql")}>
+          {descargando === "sql" ? t("backup.generando") : t("backup.descargar")}
+        </Button>
+        {/* El JSON no restaura: va como opción secundaria para que nadie lo
+            confunda con la copia buena. */}
+        <Button
+          variant="ghost"
+          disabled={descargando !== null}
+          onClick={() => void descargar("json")}
+        >
+          {descargando === "json" ? t("backup.generando") : t("backup.descargarJson")}
+        </Button>
+      </div>
       <p className={styles.nota}>{t("backup.nota")}</p>
     </Panel>
   );

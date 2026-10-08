@@ -537,7 +537,12 @@ export const EstadisticasApi = {
  */
 export const BackupApi = {
   resumen: () => http.get<ApiResumenBackup>(EP.backupResumen),
-  descargar: () => http.download(EP.backup),
+  /**
+   * `sql` es la copia de verdad: se restaura con psql sobre el esquema que
+   * crean las migraciones. `json` sirve para mirar o migrar los datos.
+   */
+  descargar: (formato: "sql" | "json" = "sql") =>
+    http.download(EP.backup + qs({ formato })),
 };
 
 export const FestivosApi = {
