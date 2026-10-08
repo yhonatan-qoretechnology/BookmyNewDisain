@@ -358,6 +358,12 @@ const es = {
     noBranchesMsg: "La empresa no tiene sedes registradas.",
     noClientsTitle: "Sin clientes",
     noClientsMsg: "No hay clientes que coincidan con la búsqueda.",
+    /* Traer a un cliente que aún no ha reservado en el negocio. La
+       búsqueda del backend es exacta, de ahí que se pida completo. */
+    clientOutsideHint: "¿No aparece? Si tienes su correo o su teléfono completos, puedes traerlo.",
+    clientOutsideSearch: "Buscar a {termino} fuera de mis clientes",
+    clientOutsideNotFound: "No hay ningún cliente con {termino}. Comprueba que esté completo.",
+    clientOutsideFound: "Este cliente todavía no había reservado contigo; lo hemos traído por su correo o su teléfono.",
     noProsTitle: "Sin profesionales",
     noProsMsg: "Esta sede no tiene profesionales registrados.",
     noServicesTitle: "Sin servicios",
@@ -438,13 +444,18 @@ const es = {
     aprobadaMsg: "Tu negocio está verificado. No tienes que hacer nada más.",
     enRevisionMsg: "Tu documentación está en revisión. Te avisamos en cuanto se resuelva.",
     /* La etiqueta del documento fiscal la manda el backend
-       (etiquetaFiscal). Esto es una frase, no la etiqueta suelta, y un
-       colombiano no debe leer «NIF/CIF» ni un día; si el formulario ya
-       pinta useRegion().etiqueta("fiscal"), quédate con esa y borra la
-       variante. */
+       (etiquetaFiscal), así que el formulario del negocio usa `campoFiscal`
+       con useRegion().etiqueta("fiscal") y no duplica el nombre.
+       `nifCif` se queda porque la cola del superadmin la sigue usando: él
+       no es de ningún país, así que ahí no hay etiqueta que leer y el
+       desdoble por país es lo único que hay. */
+    campoFiscal: "{fiscal} del negocio",
     nifCif: porPais({ ES: "NIF/CIF del negocio", CO: "NIT del negocio" }),
     nifCifPlaceholder: porPais({ ES: "Ej. B12345678", CO: "Ej. 900.123.456-7" }),
     tipoDocumento: "Tipo de documento",
+    /* El tipo solo dice de qué documento hablamos; identifica el número. */
+    documentoNumero: "Número del documento",
+    documentoNumeroPlaceholder: porPais({ ES: "Ej. 12345678Z", CO: "Ej. 1.020.345.678" }),
     archivos: {
       documentoFrente: "Documento (anverso)",
       documentoDorso: "Documento (reverso)",
@@ -514,6 +525,11 @@ const es = {
     enviando: "Enviando…",
     enviado: "Documentación enviada. Te avisamos cuando se revise.",
     bannerPendiente: "Falta verificar tu negocio. Sube tus documentos cuando puedas: no bloquea nada.",
+    /* El plazo se dice en voz alta porque es verdad que existe, no para
+       amenazar: ni antes ni después se bloquea nada del negocio. */
+    bannerDias: "Te quedan {n} días para verificar tu negocio",
+    bannerUltimoDia: "Hoy es el último día para verificar tu negocio",
+    bannerVencido: "Se te ha pasado el plazo para verificar tu negocio. Envía tu documentación cuanto antes.",
     bannerRechazada: "Tu verificación fue rechazada. Mira el motivo y vuelve a enviarla.",
     bannerCta: "Verificar negocio",
     /* Cola del superadmin */
@@ -1430,11 +1446,17 @@ const es = {
       aprobada: "Aprobada",
       rechazada: "Rechazada",
     },
-    /* Estados vacíos */
-    emptyCatalogTitle: "Sin insumos",
-    emptyCatalogMsg: "No hay resultados para esa búsqueda.",
-    emptyStockTitle: "Sin existencias",
-    emptyStockMsg: "No hay insumos que coincidan con la búsqueda.",
+    /* Estados vacíos. Vacío porque aún no hay nada dado de alta y vacío
+       porque la búsqueda no encuentra son dos mensajes distintos: el
+       negocio nuevo necesita saber qué hacer, no que "no hay resultados". */
+    emptyCatalogTitle: "Aún no hay insumos",
+    emptyCatalogMsg: "Da de alta el primero y lo tendrás disponible en todas tus sedes.",
+    emptyStockTitle: "Aún no hay insumos",
+    emptyStockMsg: "Da de alta un insumo en el catálogo y aquí verás cuánto queda en esta sede.",
+    emptyBranchStockTitle: "Aún no hay insumos",
+    emptyBranchStockMsg: "El dueño del negocio todavía no ha dado de alta insumos, así que no hay existencias que controlar.",
+    noResultsTitle: "Sin resultados",
+    noResultsMsg: "Ningún insumo coincide con “{term}”.",
     emptyRequestsTitle: "Sin solicitudes",
     emptyRequestsMsg: "Las solicitudes de inventario de las sedes aparecerán aquí.",
     emptyMyRequestsMsg: "Aún no has enviado ninguna solicitud de inventario.",

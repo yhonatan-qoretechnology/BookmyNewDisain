@@ -220,6 +220,22 @@ export const EP = {
   categoriasGasto: "/categorias-gasto",
   categoriaGastoById: (id: number) => `/categorias-gasto/${id}`,
 
+  /* @Controller('stock') — catálogo de insumos, existencias por sede y
+     pedidos de reposición. Requiere JWT + rol admin Y plan Pro
+     (PlanProGuard): mientras Pro esté apagado responde 403 a todo.
+     El alcance lo pone el backend a partir del token; `empresaId` solo
+     lo necesita el superadmin, que no es de ningún negocio. */
+  stockInsumos: "/stock/insumos",
+  /** PATCH edita · DELETE archiva (activo: false), no borra */
+  stockInsumoById: (id: number) => `/stock/insumos/${id}`,
+  stockSede: (sedeId: number) => `/stock/sede/${sedeId}`,
+  /** PATCH { stock?, max? } — cantidades ABSOLUTAS, no incrementos */
+  stockSedeInsumo: (sedeId: number, insumoId: number) =>
+    `/stock/sede/${sedeId}/insumo/${insumoId}`,
+  stockSolicitudes: "/stock/solicitudes",
+  /** PATCH { estado } — solo SUPER_ADMIN y COMPANY_ADMIN */
+  stockSolicitudById: (id: number) => `/stock/solicitudes/${id}`,
+
   /* @Controller('notifications') — requiere JWT (JwtAuthGuard).
      Hoy solo BRANCH_ADMIN recibe (nueva reserva en su sede), pero el
      endpoint es genérico por usuario autenticado. */

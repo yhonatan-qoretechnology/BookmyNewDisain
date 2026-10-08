@@ -17,6 +17,8 @@ import type {
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiEmpresaKyc, ApiKycPendiente, CrearFestivoLocalDto,
   ApiServicioAsignable, ApiSincronizacionFestivos, ApiUser, ApiConContinuacion,
+  ApiInsumo, ApiStockSede, ApiSolicitudInventario,
+  CreateInsumoDto, UpdateInsumoDto, CreateSolicitudInventarioDto,
   UpdateServiceSedeProfesionalDto,
   ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
@@ -766,4 +768,63 @@ export const NotificationsApi = {
 
   markAllAsRead: () =>
     http.patch<{ actualizadas: number }>(EP.notificationsReadAll, {}),
+};
+
+/* ── StockModule — @Controller('stock') ─────────────────────
+   Catálogo de insumos de la empresa, existencias por sede y pedidos
+   de reposición. Pasa por PlanProGuard además del guard de roles:
+   mientras Pro esté apagado el backend responde 403 a todas estas
+   rutas, así que quien llame tiene que contemplarlo.
+
+   `empresaId` se manda siempre: el superadmin no es de ningún negocio
+   y el backend se lo exige, y a una sesión de negocio se lo ignora y
+   usa la del token (no hay forma de espiar el inventario ajeno). */
+export const StockApi = {
+  /** GET /stock/insumos — catálogo activo, o con los archivados. */
+  listarInsumos: (params: { empresaId?: number; archivados?: boolean } = {}) =>
+    http.get<ApiInsumo[]>(
+      EP.stockInsumos +
+        qs({
+          empresaId: params.empresaId,
+          archivados: params.archivados ? "true" : undefined,
+        }),
+    ),
+
+  /** POST /stock/insumos — 400 si el negocio ya tiene uno con ese nombre. */
+  crearInsumo: (dto: CreateInsumoDto) => http.post<ApiInsumo>(EP.stockInsumos, dto),
+
+  actualizarInsumo: (id: number, dto: UpdateInsumoDto) =>
+    http.patch<ApiInsumo>(EP.stockInsumoById(id), dto),
+
+  /** DELETE /stock/insumos/:id — lo archiva: las solicitudes antiguas
+      lo citan y borrarlo dejaría huecos en el historial. */
+  archivarInsumo: (id: number, empresaId?: number) =>
+    http.delete<ApiInsumo>(EP.stockInsumoById(id) + qs({ empresaId })),
+
+  /** GET /stock/sede/:sedeId — una fila por insumo del catálogo. */
+  stockDeSede: (sedeId: number, empresaId?: number) =>
+    http.get<ApiStockSede[]>(EP.stockSede(sedeId) + qs({ empresaId })),
+
+  /** PATCH /stock/sede/:sedeId/insumo/:insumoId — valores absolutos. */
+  ajustarStock: (
+    sedeId: number,
+    insumoId: number,
+    dto: { stock?: number; max?: number; empresaId?: number },
+  ) => http.patch<ApiStockSede>(EP.stockSedeInsumo(sedeId, insumoId), dto),
+
+  /** GET /stock/solicitudes — de la más reciente a la más antigua. */
+  listarSolicitudes: (params: { empresaId?: number; sedeId?: number } = {}) =>
+    http.get<ApiSolicitudInventario[]>(EP.stockSolicitudes + qs(params)),
+
+  /** POST /stock/solicitudes — 400 si no va ninguna línea con cantidad. */
+  crearSolicitud: (dto: CreateSolicitudInventarioDto) =>
+    http.post<ApiSolicitudInventario>(EP.stockSolicitudes, dto),
+
+  /** PATCH /stock/solicitudes/:id — aprobar suma las unidades al stock
+      de la sede. Solo SUPER_ADMIN y COMPANY_ADMIN. */
+  resolverSolicitud: (
+    id: number,
+    estado: "APROBADA" | "RECHAZADA",
+    empresaId?: number,
+  ) => http.patch<ApiSolicitudInventario>(EP.stockSolicitudById(id), { estado, empresaId }),
 };

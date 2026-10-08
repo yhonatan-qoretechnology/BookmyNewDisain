@@ -5,7 +5,8 @@
    expone modelos del dominio; la UI no conoce el HTTP):
 
      Sede         · getSedes                 GET /sedes/empresa/:id
-     Cliente      · searchClientes           GET /auth/users (role CLIENT)
+     Cliente      · searchClientes           GET /clients?empresaId= (acotado)
+                  · buscarClientePorContacto POST /clients/search
      Profesional  · getProfesionales         GET /profesionales/by-sede/:id
      Servicio     · getServiciosPorCategoria GET /profesionales/:id/detalle?lang=
      Fecha/Hora   · getDiasNoDisponibles / getSlotsDisponibles
@@ -23,13 +24,14 @@ import type {
 } from "@/models";
 import { DIAS_AGENDABLES } from "@/constants";
 import {
-  AppointmentsApi, AuthApi, DisponibilidadApi, ProfesionalesApi, SedesApi,
+  AppointmentsApi, DisponibilidadApi, ProfesionalesApi, SedesApi,
 } from "@/api/modules";
-import { ApiError, http } from "@/api/http";
+import { ApiError, http, qs } from "@/api/http";
 import { EP } from "@/api/endpoints";
 import type {
-  ApiAppointment, ApiDisponibilidadProfesional, ApiPaymentMethod, ApiRequiereContinuacion,
-  ApiSede, ApiServicioProfesional, ApiUser, CreateAppointmentDto,
+  ApiAppointment, ApiClient, ApiClientsPage, ApiDisponibilidadProfesional,
+  ApiPaymentMethod, ApiRequiereContinuacion, ApiSede, ApiServicioProfesional,
+  CreateAppointmentDto,
 } from "@/api/types";
 import {
   construirSlots, ocupacionDeCita, resolverCierres, resolverHorario,
@@ -42,7 +44,9 @@ export interface SedesProvider {
   getSedes(empresaId: string): Promise<SedeOpcion[]>;
 }
 export interface ClientesProvider {
-  searchClientes(query: string): Promise<ClienteOpcion[]>;
+  /** @param empresaId negocio para el que se reserva (acota al SUPER_ADMIN). */
+  searchClientes(query: string, empresaId?: string): Promise<ClienteOpcion[]>;
+  buscarClientePorContacto(termino: string): Promise<ClienteOpcion | null>;
 }
 export interface ProfesionalesProvider {
   getProfesionales(sedeId: string): Promise<ProfesionalCard[]>;
@@ -144,15 +148,58 @@ function mapSede(s: ApiSede): SedeOpcion {
   };
 }
 
-function mapCliente(u: ApiUser): ClienteOpcion {
+function mapCliente(c: ApiClient): ClienteOpcion {
   return {
-    id: String(u.id),
-    nombre: u.UserData?.name || u.email,
-    email: u.email,
-    telefono: u.UserData?.phone || "",
-    foto: u.fotoPerfil ?? null,
+    id: String(c.id),
+    nombre: c.userData?.name || c.email,
+    email: c.email,
+    telefono: c.userData?.phone || "",
+    foto: c.fotoPerfil ?? null,
     documento: undefined, // el API no expone documento; hook de extensión
   };
+}
+
+/* ── Clientes del negocio (GET /clients) ─────────────────── */
+/* El backend limita la página a 200 (ClientListDto: @Max(200)). Se piden
+   varias de una vez para poder seguir filtrando en el navegador —escribir
+   en el buscador no lanza una petición por tecla— sin dejar fuera a los
+   clientes antiguos de un negocio grande; el tope de páginas evita que una
+   cartera enorme se traiga sola. A quien quede fuera se llega con la
+   búsqueda exacta por correo o teléfono. */
+const CLIENTES_POR_PAGINA = 200;
+const MAX_PAGINAS_CLIENTES = 5;
+
+async function fetchClientes(empresaId?: string): Promise<ApiClient[]> {
+  return cached(`clientes:${empresaId || "sesion"}`, async () => {
+    const todos: ApiClient[] = [];
+    for (let page = 1; page <= MAX_PAGINAS_CLIENTES; page++) {
+      const pagina = await http
+        .get<ApiClientsPage>(EP.clients + qs({ empresaId, page, limit: CLIENTES_POR_PAGINA }))
+        .catch(() => null);
+      if (!pagina?.clients?.length) break;
+      todos.push(...pagina.clients);
+      if (!pagina.pagination?.hasNext) break;
+    }
+    return todos;
+  });
+}
+
+/**
+ * ¿Se puede ir a buscar este término fuera de la cartera del negocio?
+ * Solo si es un correo o un teléfono COMPLETOS: POST /clients/search es
+ * exacta a propósito, para que nadie recorra los clientes de los demás
+ * negocios a base de búsquedas parciales.
+ * @returns el cuerpo que espera el backend, o `null` si no sirve.
+ */
+export function contactoDeBusqueda(termino: string): { email?: string; telefono?: string } | null {
+  const t = termino.trim();
+  if (!t) return null;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t)) return { email: t };
+  /* El teléfono se envía tal cual: el backend lo compara con lo guardado
+     en `user_data`, sin normalizar, así que tiene que escribirse igual. */
+  const digitos = t.match(/\d/g)?.length ?? 0;
+  if (digitos >= 7 && /^\+?[\d\s().-]+$/.test(t)) return { telefono: t };
+  return null;
 }
 
 const SIN_CATEGORIA = "Otros servicios";
@@ -297,18 +344,42 @@ export const BookingController:
   },
 
   /**
-   * Clientes finales filtrados por nombre, documento, teléfono o
-   * correo. El backend no expone búsqueda, así que la lista
-   * (cacheada) se filtra en cliente.
+   * Clientes del negocio para el paso de cliente — GET /clients.
+   *
+   * Antes salía de GET /auth/users filtrando role CLIENT en el navegador,
+   * así que el paso traía la lista entera de usuarios de la plataforma.
+   * /clients llega ya acotado por la sesión; `empresaId` es para el
+   * SUPER_ADMIN, que sí ve a todos y aquí tiene que ver solo los del
+   * negocio para el que está reservando.
+   *
+   * El filtro por nombre, correo o teléfono se aplica sobre la lista
+   * cacheada, no en el servidor, para no pedir una página por tecla.
    */
-  async searchClientes(query: string): Promise<ClienteOpcion[]> {
-    const users = await cached("clientes", () => AuthApi.findAllUsers().catch(() => [] as ApiUser[]));
-    const clientes = (users || []).filter((u) => u.role === "CLIENT").map(mapCliente);
+  async searchClientes(query: string, empresaId?: string): Promise<ClienteOpcion[]> {
+    const clientes = (await fetchClientes(empresaId)).map(mapCliente);
     const q = query.trim().toLowerCase();
     if (!q) return clientes;
     return clientes.filter((c) =>
       [c.nombre, c.email, c.telefono, c.documento || ""].some((v) => v.toLowerCase().includes(q))
     );
+  },
+
+  /**
+   * Trae a un cliente que todavía no ha reservado en el negocio —
+   * POST /clients/search con el correo o el teléfono COMPLETOS.
+   * @returns el cliente, o `null` si no hay ninguno con esos datos o si
+   *   el término no es un correo ni un teléfono.
+   */
+  async buscarClientePorContacto(termino: string): Promise<ClienteOpcion | null> {
+    const contacto = contactoDeBusqueda(termino);
+    if (!contacto) return null;
+    try {
+      return mapCliente(await http.post<ApiClient>(EP.clientsSearch, contacto));
+    } catch (e) {
+      /* 404 es una respuesta de la búsqueda («no existe»), no un fallo. */
+      if (e instanceof ApiError && e.status === 404) return null;
+      throw e;
+    }
   },
 
   /** Profesionales de la sede para el carrusel. */

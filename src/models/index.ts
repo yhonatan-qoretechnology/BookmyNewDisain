@@ -386,6 +386,10 @@ export type EstadoSolicitud = "pendiente" | "aprobada" | "rechazada";
 export interface SolicitudItem {
   insumoId: string;
   cantidad: number;
+  /** Nombre que venía con la línea. El catálogo solo trae los insumos
+      activos, así que sin esto un pedido viejo que cita un insumo ya
+      retirado se quedaría sin nombre que mostrar. */
+  insumoNombre?: string;
 }
 
 /** Pedido de reposición que una sede envía a la administración */

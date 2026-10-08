@@ -88,12 +88,15 @@ function SolicitudCard({
 }) {
   const { t } = useI18n();
   const pendiente = solicitud.estado === "pendiente";
+  /* El id del backend es un número correlativo: con la almohadilla se lee
+     como el nº de pedido que es, y no como una cifra suelta. */
+  const codigo = `#${solicitud.id}`;
   return (
     <article className={styles.solCard}>
       <div className={styles.solHead}>
         <div>
           <h4>
-            {mostrarSede ? solicitud.sedeNombre : solicitud.id}
+            {mostrarSede ? solicitud.sedeNombre : codigo}
             <Badge kind={BADGE_SOLICITUD[solicitud.estado]}>
               {t(`stock.estado.${solicitud.estado}`)}
             </Badge>
@@ -104,7 +107,7 @@ function SolicitudCard({
               : t("stock.sentOn", { fecha: solicitud.fecha })}
           </small>
         </div>
-        {mostrarSede && <b className={styles.solId}>{solicitud.id}</b>}
+        {mostrarSede && <b className={styles.solId}>{codigo}</b>}
       </div>
 
       {solicitud.notas && <div className={styles.solNotes}>{solicitud.notas}</div>}
@@ -113,7 +116,9 @@ function SolicitudCard({
         {solicitud.items.map((it) => (
           <div key={it.insumoId} className={styles.solItemRow}>
             <Icon name="box" width={16} height={16} />
-            <span className={styles.solItemName}>{nombreInsumo(it.insumoId)}</span>
+            <span className={styles.solItemName}>
+              {it.insumoNombre || nombreInsumo(it.insumoId)}
+            </span>
             <span className={styles.solQty}>×{it.cantidad}</span>
           </div>
         ))}
@@ -147,15 +152,15 @@ export default function StockPage() {
 
   const { data: sedes } = useData(() => StockController.getSedes(session), [session?.negocioId], []);
   const { data: catalogo, reload: reloadCatalogo } = useData(
-    () => StockController.getCatalogo(buscarCatalogo),
-    [buscarCatalogo],
+    () => StockController.getCatalogo(session, buscarCatalogo),
+    [session?.negocioId, buscarCatalogo],
     []
   );
   const { data: solicitudes, reload: reloadSolicitudes } = useData(
     () => (esGlobal
-      ? StockController.getSolicitudes()
-      : StockController.getSolicitudesPorSede(session?.sedeId || "")),
-    [esGlobal, session?.sedeId],
+      ? StockController.getSolicitudes(session)
+      : StockController.getSolicitudesPorSede(session, session?.sedeId || "")),
+    [esGlobal, session?.negocioId, session?.sedeId],
     []
   );
 
@@ -170,16 +175,30 @@ export default function StockPage() {
       const filas = await Promise.all(
         sedesVisibles.map(async (s) => ({
           sede: s,
-          items: await StockController.getStockSede(s.id, esGlobal ? "" : buscarStock),
+          items: await StockController.getStockSede(session, s.id),
         }))
       );
       return filas;
     },
-    [sedesVisibles, buscarStock, esGlobal, stockVersion],
+    [sedesVisibles, stockVersion],
     []
   );
 
+  /* Existencias de la sede propia. El buscador recorta aquí y no en la
+     petición: el modal de solicitud necesita el stock de TODOS los
+     insumos, y así escribir no dispara una llamada por tecla. */
+  const misItems = useMemo(() => {
+    const items = stockPorSede[0]?.items ?? [];
+    const q = buscarStock.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((it) =>
+      `${it.insumo.nombre} ${it.insumo.categoria}`.toLowerCase().includes(q)
+    );
+  }, [stockPorSede, buscarStock]);
+
   const pendientes = solicitudes.filter((s) => s.estado === "pendiente").length;
+  /* Respaldo para las líneas antiguas que no traen el nombre; ojo, el
+     catálogo viene filtrado por el buscador, así que solo sirve de apaño. */
   const nombreInsumo = useCallback(
     (id: string) => catalogo.find((i) => i.id === id)?.nombre || "—",
     [catalogo]
@@ -198,12 +217,20 @@ export default function StockPage() {
       toast(t("stock.fillRequired"), "error");
       return;
     }
-    await StockController.addInsumo({
-      nombre: nombre.trim(),
-      categoria: categoria.trim(),
-      unidad: unidad.trim(),
-      precioRef: Number(precio) || 0,
-    });
+    try {
+      await StockController.addInsumo(session, {
+        nombre: nombre.trim(),
+        categoria: categoria.trim(),
+        unidad: unidad.trim(),
+        precioRef: Number(precio) || 0,
+      });
+    } catch (e) {
+      /* El backend ya explica el motivo (nombre repetido, módulo de pago
+         no contratado…), así que se enseña tal cual y el formulario se
+         queda abierto con lo escrito. */
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+      return;
+    }
     setNuevoOpen(false);
     setNombre(""); setCategoria(""); setUnidad(""); setPrecio("");
     await reloadCatalogo();
@@ -217,18 +244,27 @@ export default function StockPage() {
       message: t("stock.deleteMsg", { nombre: insumo.nombre }),
       confirmLabel: t("common.delete"),
       onConfirm: () => {
-        void StockController.removeInsumo(insumo.id).then(() => {
-          void reloadCatalogo();
-          refrescarStock();
-          toast(t("stock.insumoDeleted"), "success");
-        });
+        void StockController.removeInsumo(session, insumo.id)
+          .then(async () => {
+            await reloadCatalogo();
+            refrescarStock();
+            toast(t("stock.insumoDeleted"), "success");
+          })
+          .catch((e: unknown) =>
+            toast(e instanceof Error ? e.message : t("common.error"), "error")
+          );
       },
     });
   };
 
   /* ── Reposición directa (vista global) ──────────────────── */
   const reponer = async (sedeId: string, insumoId: string) => {
-    await StockController.ajustarStock(sedeId, insumoId, 5);
+    try {
+      await StockController.ajustarStock(session, sedeId, insumoId, 5);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+      return;
+    }
     refrescarStock();
     toast(t("stock.stockUpdated"), "success");
   };
@@ -254,18 +290,29 @@ export default function StockPage() {
     const items = Object.entries(cantidades).map(([insumoId, cantidad]) => ({ insumoId, cantidad }));
     try {
       await StockController.crearSolicitud(session, items, notas);
-      setSolicitarOpen(false);
-      await reloadSolicitudes();
-      setTab("mis-sol");
-      toast(t("stock.requestSent"), "success");
-    } catch {
-      toast(t("stock.requestEmpty"), "error");
+    } catch (e) {
+      /* "SIN_ITEMS" lo lanza el controlador antes de llamar al API: ese
+         caso tiene su propio aviso, el resto llega del backend. */
+      const msg = e instanceof Error && e.message !== "SIN_ITEMS"
+        ? e.message
+        : t("stock.requestEmpty");
+      toast(msg, "error");
+      return;
     }
+    setSolicitarOpen(false);
+    await reloadSolicitudes();
+    setTab("mis-sol");
+    toast(t("stock.requestSent"), "success");
   };
 
   /* ── Moderación de solicitudes (vista global) ───────────── */
   const aprobar = async (id: string) => {
-    await StockController.aprobarSolicitud(id);
+    try {
+      await StockController.aprobarSolicitud(session, id);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+      return;
+    }
     await reloadSolicitudes();
     refrescarStock();
     toast(t("stock.requestApproved"), "success");
@@ -277,10 +324,14 @@ export default function StockPage() {
       message: t("stock.rejectMsg"),
       confirmLabel: t("stock.reject"),
       onConfirm: () => {
-        void StockController.rechazarSolicitud(id).then(() => {
-          void reloadSolicitudes();
-          toast(t("stock.requestRejected"), "success");
-        });
+        void StockController.rechazarSolicitud(session, id)
+          .then(async () => {
+            await reloadSolicitudes();
+            toast(t("stock.requestRejected"), "success");
+          })
+          .catch((e: unknown) =>
+            toast(e instanceof Error ? e.message : t("common.error"), "error")
+          );
       },
     });
   };
@@ -333,7 +384,18 @@ export default function StockPage() {
           </Toolbar>
           <Panel>
             {catalogo.length === 0 ? (
-              <EmptyState icon="box" title={t("stock.emptyCatalogTitle")} message={t("stock.emptyCatalogMsg")} />
+              /* Vacío por buscar y vacío por no haber nada son dos cosas
+                 distintas: decirle "sin resultados" a quien aún no ha
+                 dado de alta su primer insumo no le explica nada. */
+              buscarCatalogo.trim() ? (
+                <EmptyState
+                  icon="search"
+                  title={t("stock.noResultsTitle")}
+                  message={t("stock.noResultsMsg", { term: buscarCatalogo.trim() })}
+                />
+              ) : (
+                <EmptyState icon="box" title={t("stock.emptyCatalogTitle")} message={t("stock.emptyCatalogMsg")} />
+              )
             ) : (
               <DataTable
                 headers={[
@@ -381,6 +443,8 @@ export default function StockPage() {
                 <Badge kind="activo">{t("stock.branchActive")}</Badge>
               </h3>
               <Panel>
+                {/* Esta pestaña no tiene buscador: si no hay filas es que el
+                    catálogo está vacío, no que la búsqueda no encuentre. */}
                 {items.length === 0 ? (
                   <EmptyState icon="box" title={t("stock.emptyStockTitle")} message={t("stock.emptyStockMsg")} />
                 ) : (
@@ -446,17 +510,32 @@ export default function StockPage() {
               placeholder={t("stock.searchPlaceholder")}
             />
             <ToolbarActions>
-              <Button onClick={abrirSolicitud}>{t("stock.requestInventory")}</Button>
+              {/* Sin catálogo no hay nada que pedir: el modal saldría vacío. */}
+              <Button onClick={abrirSolicitud} disabled={catalogo.length === 0}>
+                {t("stock.requestInventory")}
+              </Button>
             </ToolbarActions>
           </Toolbar>
           <Panel>
-            {(stockPorSede[0]?.items.length ?? 0) === 0 ? (
-              <EmptyState icon="box" title={t("stock.emptyStockTitle")} message={t("stock.emptyStockMsg")} />
+            {misItems.length === 0 ? (
+              buscarStock.trim() ? (
+                <EmptyState
+                  icon="search"
+                  title={t("stock.noResultsTitle")}
+                  message={t("stock.noResultsMsg", { term: buscarStock.trim() })}
+                />
+              ) : (
+                <EmptyState
+                  icon="box"
+                  title={t("stock.emptyBranchStockTitle")}
+                  message={t("stock.emptyBranchStockMsg")}
+                />
+              )
             ) : (
               <DataTable
                 headers={[t("stock.product"), t("common.category"), t("stock.currentStock"), t("stock.level")]}
               >
-                {stockPorSede[0].items.map((it) => (
+                {misItems.map((it) => (
                   <tr key={it.insumoId}>
                     <td><b>{it.insumo.nombre}</b></td>
                     <td><Tag>{it.insumo.categoria}</Tag></td>

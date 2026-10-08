@@ -132,6 +132,9 @@ export interface ApiEmpresaKyc {
   estado: ApiKycEstado;
   nifCif: string | null;
   documentoTipo: string | null;
+  /** Número del documento del responsable: es el dato que de verdad lo
+      identifica, porque el tipo solo dice de qué documento hablamos. */
+  documentoNumero: string | null;
   /** Rutas relativas ("uploads/kyc/…"): se resuelven con fotoUrl() */
   documentoFrente: string | null;
   documentoDorso: string | null;
@@ -140,6 +143,13 @@ export interface ApiEmpresaKyc {
   enviadoEn: string | null;
   revisadoEn: string | null;
   motivoRechazo: string | null;
+  /* Plazo para verificarse, que el backend cuenta desde el alta de la
+     empresa. Son opcionales porque solo los calcula GET /empresas/:id/kyc:
+     la cola del superadmin y las respuestas de aprobar/rechazar devuelven
+     la fila a secas, así que ahí no llegan. */
+  diasParaVerificar?: number;
+  limiteVerificacion?: string;
+  plazoVencido?: boolean;
 }
 
 /** GET /empresas/kyc/pendientes — cola de revisión del superadmin. */
@@ -927,4 +937,89 @@ export interface ApiRankingVistas {
   vistas: number;
   /** Nombre ya resuelto por el backend (empresa, sede, servicio, profesional o categoría). */
   nombre?: string;
+}
+
+/* ── StockModule (@Controller('stock')) ──────────────────────
+   Catálogo de insumos de cada EMPRESA y existencias de cada SEDE.
+   Todo arranca vacío y a cero: un negocio recién creado no tiene
+   nada hasta que lo da de alta. */
+
+/** Fila de `insumos`. El catálogo es de la empresa, no de la plataforma. */
+export interface ApiInsumo {
+  id: number;
+  empresaId: number;
+  nombre: string;
+  categoria: string;
+  /** Unidad de medida: ud, bote, pack, caja… */
+  unidad: string;
+  /** En la moneda del país del negocio */
+  precioRef: number;
+  /** Un insumo retirado se archiva (activo: false), no se borra */
+  activo: boolean;
+}
+
+/**
+ * Existencias de un insumo en una sede (stock.service.ts → stockDeSede).
+ * Devuelve TODO el catálogo: un insumo del que nunca se compró nada sale
+ * a cero, no desaparece.
+ */
+export interface ApiStockSede {
+  sedeId: number;
+  insumoId: number;
+  insumo: ApiInsumo;
+  stock: number;
+  /** Capacidad objetivo. Arranca a 0: el backend no la fija al dar de alta. */
+  max: number;
+}
+
+export type ApiEstadoSolicitud = "PENDIENTE" | "APROBADA" | "RECHAZADA";
+
+/** Línea de un pedido: cuánto se pide de qué insumo. */
+export interface ApiSolicitudItem {
+  insumoId: number;
+  cantidad: number;
+  insumo?: ApiInsumo;
+}
+
+/**
+ * Pedido de reposición de una sede.
+ * ⚠️ `sede` y `solicitante` solo vienen en el listado: POST y PATCH
+ * devuelven la solicitud con los items y nada más.
+ */
+export interface ApiSolicitudInventario {
+  id: number;
+  sedeId: number;
+  estado: ApiEstadoSolicitud;
+  notas: string | null;
+  createdAt: string;
+  resueltaEn?: string | null;
+  sede?: { id: number; nombre: string };
+  /** UserData es una relación 1-a-1 opcional: sin ficha no hay nombre. */
+  solicitante?: {
+    id: number;
+    email: string;
+    UserData?: { name: string } | null;
+  } | null;
+  items: ApiSolicitudItem[];
+}
+
+/** Cuerpo de POST /stock/insumos. Solo `nombre` es obligatorio. */
+export interface CreateInsumoDto {
+  nombre: string;
+  categoria?: string;
+  unidad?: string;
+  precioRef?: number;
+  /** Obligatorio para el superadmin, que no es de ningún negocio */
+  empresaId?: number;
+}
+
+/** Cuerpo de PATCH /stock/insumos/:id — parcial. */
+export type UpdateInsumoDto = Partial<CreateInsumoDto> & { activo?: boolean };
+
+/** Cuerpo de POST /stock/solicitudes. Las líneas a 0 las descarta el backend. */
+export interface CreateSolicitudInventarioDto {
+  sedeId: number;
+  notas?: string;
+  items: { insumoId: number; cantidad: number }[];
+  empresaId?: number;
 }

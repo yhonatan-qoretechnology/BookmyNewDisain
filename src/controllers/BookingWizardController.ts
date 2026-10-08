@@ -4,7 +4,7 @@
    Casos de uso del flujo (Clean Architecture: esta capa orquesta
    el API y expone modelos del dominio; la UI no conoce el HTTP):
 
-     Paso 1 · searchClientes        GET /auth/users (role CLIENT)
+     Paso 1 · searchClientes        GET /clients (ver BookingController)
      Paso 2 · getProfesionales      GET /profesionales/by-sede/:id
      Paso 3 · getServicios          GET /services/by-sede/:id?language=
      Paso 4/5 · getAgendaProfesional
@@ -19,14 +19,16 @@
 ============================================================ */
 import type { ClienteOpcion, ProfesionalCard, ServicioOpcion, SlotHora, BookingDraft } from "@/models";
 import { DIAS_AGENDABLES, HORARIO_DEFECTO } from "@/constants";
-import { AppointmentsApi, AuthApi, ProfesionalesApi, ServicesApi } from "@/api/modules";
+import { AppointmentsApi, ProfesionalesApi, ServicesApi } from "@/api/modules";
 import { http } from "@/api/http";
 import { EP } from "@/api/endpoints";
-import type { ApiAppointment, ApiPaymentMethod, ApiUser } from "@/api/types";
+import type { ApiAppointment, ApiPaymentMethod } from "@/api/types";
+import { BookingController } from "./BookingController";
 
 /* ── Interfaces por caso de uso (ISP) ────────────────────── */
 export interface ClientesProvider {
-  searchClientes(query: string): Promise<ClienteOpcion[]>;
+  /** @param empresaId negocio para el que se reserva (acota al SUPER_ADMIN). */
+  searchClientes(query: string, empresaId?: string): Promise<ClienteOpcion[]>;
 }
 export interface ProfesionalesProvider {
   getProfesionales(sedeId: string): Promise<ProfesionalCard[]>;
@@ -56,18 +58,6 @@ function invalidateAgenda(profesionalId: string) {
   for (const k of Array.from(cache.keys())) {
     if (k.startsWith(`agenda:${profesionalId}:`)) cache.delete(k);
   }
-}
-
-/* ── Mapeadores API → dominio ────────────────────────────── */
-function mapCliente(u: ApiUser): ClienteOpcion {
-  return {
-    id: String(u.id),
-    nombre: u.UserData?.name || u.email,
-    email: u.email,
-    telefono: u.UserData?.phone || "",
-    foto: u.fotoPerfil || u.AdminProfile?.photoUrl || null,
-    documento: undefined, // el API no expone documento; hook de extensión
-  };
 }
 
 /* ── Utilidades de tiempo ────────────────────────────────── */
@@ -143,18 +133,13 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
   crear(draft: BookingDraft): Promise<{ id: number }>;
 } = {
   /**
-   * Paso 1 — clientes finales filtrados por nombre, documento,
-   * teléfono o correo. El backend no expone búsqueda, así que la
-   * lista (cacheada) se filtra en cliente.
+   * Paso 1 — clientes del negocio. Se delega en BookingController, que
+   * es el que usa el flujo de reservas en producción: así este asistente
+   * no puede volver a traer la lista entera de usuarios de la plataforma
+   * para filtrarla por rol en el navegador, que es lo que hacía.
    */
-  async searchClientes(query: string): Promise<ClienteOpcion[]> {
-    const users = await cached("clientes", () => AuthApi.findAllUsers().catch(() => [] as ApiUser[])); 
-    const clientes = (users || []).filter((u) => u.role === "CLIENT").map(mapCliente);
-    const q = query.trim().toLowerCase();
-    if (!q) return clientes;
-    return clientes.filter((c) =>
-      [c.nombre, c.email, c.telefono, c.documento || ""].some((v) => v.toLowerCase().includes(q))
-    );
+  searchClientes(query: string, empresaId?: string): Promise<ClienteOpcion[]> {
+    return BookingController.searchClientes(query, empresaId);
   },
 
   /** Paso 2 — profesionales de la sede para el carrusel. */

@@ -13,6 +13,7 @@ import type { ApiEmpresaKyc, ApiKycEstado, ApiKycPendiente } from "@/api/types";
 export interface EnvioKyc {
   nifCif?: string;
   documentoTipo?: string;
+  documentoNumero?: string;
   documentoFrente?: File | null;
   documentoDorso?: File | null;
   selfie?: File | null;
@@ -43,6 +44,7 @@ export const KycController = {
     const form = new FormData();
     if (envio.nifCif?.trim()) form.append("nifCif", envio.nifCif.trim());
     if (envio.documentoTipo?.trim()) form.append("documentoTipo", envio.documentoTipo.trim());
+    if (envio.documentoNumero?.trim()) form.append("documentoNumero", envio.documentoNumero.trim());
     for (const campo of ARCHIVOS_KYC) {
       const archivo = envio[campo];
       if (archivo) form.append(campo, archivo, archivo.name);

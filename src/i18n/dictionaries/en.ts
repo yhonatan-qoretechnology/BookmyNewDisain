@@ -332,6 +332,12 @@ const en: Dictionary = {
     noBranchesMsg: "La empresa no tiene sedes registradas.",
     noClientsTitle: "Sin clientes",
     noClientsMsg: "No hay clientes que coincidan con la búsqueda.",
+    /* Bringing in a client who has not booked with the business yet.
+       The backend search is exact, hence asking for the full value. */
+    clientOutsideHint: "Not on the list? If you have their full email or phone number, you can bring them in.",
+    clientOutsideSearch: "Search for {termino} outside my clients",
+    clientOutsideNotFound: "No client matches {termino}. Check that it is complete.",
+    clientOutsideFound: "This client had not booked with you yet; we brought them in by their email or phone number.",
     noProsTitle: "Sin profesionales",
     noProsMsg: "Esta sede no tiene profesionales registrados.",
     noServicesTitle: "Sin servicios",
@@ -408,9 +414,15 @@ const en: Dictionary = {
     motivoRechazo: "Reason for rejection: {motivo}",
     aprobadaMsg: "Your business is verified. Nothing else to do.",
     enRevisionMsg: "Your documents are under review. We'll let you know as soon as it's resolved.",
+    /* El nombre del impuesto lo pone useRegion().etiqueta("fiscal"): en
+       inglés la frase es la misma para los dos países, solo cambia la sigla
+       que se cuela dentro. */
+    campoFiscal: "Business {fiscal}",
     nifCif: "Business tax ID",
     nifCifPlaceholder: porPais({ ES: "e.g. B12345678", CO: "e.g. 900.123.456-7" }),
     tipoDocumento: "Document type",
+    documentoNumero: "Document number",
+    documentoNumeroPlaceholder: porPais({ ES: "e.g. 12345678Z", CO: "e.g. 1.020.345.678" }),
     archivos: {
       documentoFrente: "ID document (front)",
       documentoDorso: "ID document (back)",
@@ -475,6 +487,9 @@ const en: Dictionary = {
     enviando: "Sending…",
     enviado: "Documents sent. We'll let you know once reviewed.",
     bannerPendiente: "Your business isn't verified yet. Upload your documents when you can: nothing is blocked.",
+    bannerDias: "You have {n} days left to verify your business",
+    bannerUltimoDia: "Today is the last day to verify your business",
+    bannerVencido: "The deadline to verify your business has passed. Send your documents as soon as you can.",
     bannerRechazada: "Your verification was rejected. Check the reason and send it again.",
     bannerCta: "Verify business",
     /* Superadmin queue */
@@ -1364,10 +1379,14 @@ const en: Dictionary = {
       rechazada: "Rejected",
     },
     /* Empty states */
-    emptyCatalogTitle: "No supplies",
-    emptyCatalogMsg: "No results for that search.",
-    emptyStockTitle: "No stock",
-    emptyStockMsg: "No supplies match your search.",
+    emptyCatalogTitle: "No supplies yet",
+    emptyCatalogMsg: "Add your first one and it will be available across every branch.",
+    emptyStockTitle: "No supplies yet",
+    emptyStockMsg: "Add a supply to the catalog and you'll see how much is left at this branch.",
+    emptyBranchStockTitle: "No supplies yet",
+    emptyBranchStockMsg: "The business owner hasn't added any supplies yet, so there's no stock to track.",
+    noResultsTitle: "No results",
+    noResultsMsg: "No supply matches “{term}”.",
     emptyRequestsTitle: "No requests",
     emptyRequestsMsg: "Inventory requests from the branches will show up here.",
     emptyMyRequestsMsg: "You haven't sent any inventory requests yet.",
