@@ -860,6 +860,18 @@ export interface ApiContextoFestivos {
   }[];
 }
 
+/** GET /backup/resumen — qué tendría la copia, sin generarla. */
+export interface ApiResumenBackup {
+  /** Tablas que se van a volcar (todas las del esquema) */
+  tablas: number;
+  /** Filas en total */
+  filas: number;
+  /** Filas por tabla, para ver de un vistazo qué pesa */
+  detalle: Record<string, number>;
+  /** Tamaño que ocupa la base en disco ("13 MB"); null si no se pudo leer */
+  tamanoBase: string | null;
+}
+
 /** Festivo devuelto por GET /festivos. Es informativo: no bloquea el agendado. */
 export interface ApiFestivo {
   id: number;

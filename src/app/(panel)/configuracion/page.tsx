@@ -13,6 +13,7 @@ import { AuthApi, ImagenesApi } from "@/api/modules";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import ImageUpload from "@/components/ui/ImageUpload";
+import CopiaSeguridad from "@/components/configuracion/CopiaSeguridad";
 import styles from "./configuracion.module.css";
 
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -187,6 +188,10 @@ export default function ConfiguracionPage() {
             </select>
           </div>
         </Panel>
+
+        {/* La copia de seguridad lleva los datos de todas las empresas:
+            solo el superadmin, igual que en el backend. */}
+        {session?.role === "superadmin" && <CopiaSeguridad />}
       </div>
 
       <div className={styles.dangerZone}>

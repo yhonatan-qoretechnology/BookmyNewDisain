@@ -172,6 +172,10 @@ export const EP = {
   paymentItemById: (itemId: number) => `/payments/items/${itemId}`,
 
   /* @Controller('festivos') — publico; informativos, no bloquean el agendado */
+  /* @Controller('backup') — solo SUPER_ADMIN */
+  backup: "/backup",
+  backupResumen: "/backup/resumen",
+
   festivos: "/festivos",
   /* Qué país/región/municipio se le está aplicando a una sede */
   festivosContexto: "/festivos/contexto",

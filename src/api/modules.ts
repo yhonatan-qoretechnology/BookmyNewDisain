@@ -12,6 +12,7 @@ import type {
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
   ApiNotification, ApiNotificationsListResponse,
   ApiPais, ApiPayment, ApiPaymentFiltered, ApiPaymentItem, ApiFestivo, ApiContextoFestivos,
+  ApiResumenBackup,
   ApiRankingReservas, ApiRankingEmpleado, ApiRankingCiudad, ApiRankingVistas, EstadisticasFiltro, ApiProfesional, ApiProfesionalAcceso, ApiProfesionalDeSede,
   ApiProfesionalCreateResponse, ApiResena, ApiSede, ApiService,
   ApiEmpresaKyc, ApiKycPendiente, CrearFestivoLocalDto,
@@ -527,6 +528,16 @@ export const EstadisticasApi = {
     tipo: "EMPRESA" | "SEDE" | "SERVICIO" | "PROFESIONAL" | "CATEGORIA",
     f: EstadisticasFiltro = {},
   ) => http.get<ApiRankingVistas[]>(EP.estMasVistos(tipo) + qs(f as Record<string, string | number | undefined>)),
+};
+
+/**
+ * Copia de seguridad de la base (solo SUPER_ADMIN). El volcado lleva los
+ * datos de todas las empresas, así que el backend no lo deja en ninguna URL
+ * pública: se descarga por una petición autenticada.
+ */
+export const BackupApi = {
+  resumen: () => http.get<ApiResumenBackup>(EP.backupResumen),
+  descargar: () => http.download(EP.backup),
 };
 
 export const FestivosApi = {

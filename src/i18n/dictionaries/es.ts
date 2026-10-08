@@ -293,7 +293,21 @@ const es = {
     gastos: { title: "Control de", accent: "Gastos" },
     estadisticas: { title: "Estadísticas", accent: "" },
     servicios: { title: "Catálogo de", accent: "Servicios" },
-    calendario: { title: "Calendario", accent: "" },
+    /* Copia de seguridad de la base — solo superadmin */
+  backup: {
+    titulo: "Copia de seguridad",
+    sub: "Un volcado de toda la base de datos, para guardarlo fuera de la plataforma",
+    tablas: "tablas",
+    filas: "filas",
+    tamano: "ocupa la base",
+    aviso: "El archivo lleva los datos de todas las empresas, los correos y teléfonos de sus clientes y las contraseñas cifradas. Guárdalo en un sitio seguro y no lo compartas.",
+    descargar: "Descargar copia",
+    generando: "Generando…",
+    descargada: "Copia descargada",
+    nota: "Formato JSON, una lista por tabla. No incluye los archivos subidos (fotos y documentos), que están en el almacenamiento aparte.",
+  },
+
+  calendario: { title: "Calendario", accent: "" },
     personal: { title: "Equipo y", accent: "Personal" },
     resenas: { title: "Reseñas de", accent: "Clientes" },
     sedes: { title: "Mis", accent: "Sedes" },

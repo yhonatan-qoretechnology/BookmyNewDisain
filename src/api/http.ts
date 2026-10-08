@@ -110,4 +110,32 @@ export const http = {
       por su posición (PUT /sedes/:id/imagenes/:index). */
   putForm: <T>(path: string, form: FormData) =>
     request<T>(path, { method: "PUT", body: form }),
+
+  /**
+   * Descarga un archivo que el backend sirve en una ruta autenticada (la
+   * copia de seguridad). No vale un enlace normal: el token va en la
+   * cabecera, así que hay que pedirlo por fetch y crear el enlace a mano.
+   * @returns el contenido y el nombre que mande el servidor, si lo manda.
+   */
+  download: async (path: string): Promise<{ blob: Blob; nombre: string | null }> => {
+    const token = getToken();
+    const res = await fetch(`${API_URL}${path}`, {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) {
+      let mensaje = `Error ${res.status}`;
+      try {
+        const cuerpo = await res.json();
+        mensaje = (cuerpo as { message?: string }).message || mensaje;
+      } catch { /* el cuerpo no era JSON */ }
+      throw new ApiError(res.status, mensaje);
+    }
+    /* El nombre viaja en Content-Disposition; solo se puede leer si el
+       backend lo expone por CORS, así que quien llama tiene su propio
+       nombre de respaldo. */
+    const cabecera = res.headers.get("Content-Disposition") || "";
+    const nombre = /filename="?([^"]+)"?/.exec(cabecera)?.[1] ?? null;
+    return { blob: await res.blob(), nombre };
+  },
 };
