@@ -158,18 +158,21 @@
 
 .topActions { display: flex; align-items: center; gap: 8px; }
 
-.themeBtn {
-  display: grid;
-  place-items: center;
-  width: 38px;
+/* Enlace para volver al login de BookMy (QoreTech no tiene modo claro/oscuro) */
+.switchBtn {
+  display: inline-flex;
+  align-items: center;
   height: 38px;
+  padding: 0 14px;
   border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
   background: var(--q-card);
   border: 1px solid var(--q-border);
   color: var(--q-fg);
-  transition: background .2s ease, color .2s ease, border-color .2s ease;
+  transition: color .2s ease, border-color .2s ease;
 }
-.themeBtn:hover { color: var(--q-violet-text); border-color: var(--q-violet-text); }
+.switchBtn:hover { color: var(--q-violet-text); border-color: var(--q-violet-text); }
 .formMark { display: block; width: 44px; height: auto; margin-bottom: 14px; }
 
 /* Tarjeta del formulario */

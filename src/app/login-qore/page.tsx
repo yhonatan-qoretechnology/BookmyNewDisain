@@ -12,7 +12,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants";
 import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
-import { useTheme } from "@/context/ThemeContext";
 import { useI18n } from "@/i18n";
 import { LanguageToggle } from "@/components/layout/Topbar";
 import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
@@ -32,7 +31,6 @@ function LoginQore() {
   const params = useSearchParams();
   const { session, login } = useSession();
   const { t } = useI18n();
-  const { theme, toggleTheme } = useTheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -120,18 +118,9 @@ function LoginQore() {
           </Link>
           <div className={styles.topActions}>
             <LanguageToggle />
-            <button
-              type="button"
-              className={styles.themeBtn}
-              onClick={toggleTheme}
-              aria-label={theme === "dark" ? t("topbar.lightMode") : t("topbar.darkMode")}
-            >
-              {theme === "dark" ? (
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden><circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="1.8" /><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>
-              )}
-            </button>
+            <Link href="/login" className={styles.switchBtn}>
+              Ver login BookMy
+            </Link>
           </div>
         </div>
 

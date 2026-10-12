@@ -171,6 +171,22 @@
 }
 .themeBtn:hover { color: var(--teal-600); border-color: var(--teal-400); }
 
+/* Enlace para pasar al login con la identidad de QoreTech */
+.switchBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--navy-700);
+  transition: color .2s ease, border-color .2s ease;
+}
+.switchBtn:hover { color: var(--teal-600); border-color: var(--teal-400); }
+
 /* Tarjeta del formulario */
 .card {
   width: min(430px, 100%);
