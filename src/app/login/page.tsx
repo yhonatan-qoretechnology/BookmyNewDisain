@@ -127,6 +127,9 @@ function Login() {
           </Link>
           <div className={styles.topActions}>
             <LanguageToggle />
+            <Link href="/login-qore" className={styles.switchBtn}>
+              Ver login QoreTech
+            </Link>
             <button
               type="button"
               className={styles.themeBtn}
