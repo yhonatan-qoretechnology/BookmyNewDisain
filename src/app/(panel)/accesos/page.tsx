@@ -89,6 +89,7 @@ export default function AccesosPage() {
   }, [session, router]);
 
   const [search, setSearch] = useState("");
+  const [pais, setPais] = useState("");
   const [soloFallidos, setSoloFallidos] = useState(false);
   const [fDesde, setFDesde] = useState("");
   const [fHasta, setFHasta] = useState("");
@@ -96,18 +97,23 @@ export default function AccesosPage() {
 
   /* Al cambiar cualquier filtro, la página 7 del resultado anterior
      casi nunca tiene sentido en el nuevo: se vuelve a la primera. */
-  useEffect(() => { setPage(1); }, [search, soloFallidos, fDesde, fHasta]);
+  useEffect(() => { setPage(1); }, [search, pais, soloFallidos, fDesde, fHasta]);
 
   const { data: pagina, loading, error } = useData(
     () => AuthApi.accesos.list({
       page,
       limit: LIMIT,
       email: search.trim() || undefined,
+      /* El código llega tal cual lo escriben (geoip-lite devuelve el país
+         en ISO-3166 de dos letras, p. ej. "ES", "AR"): no hay un catálogo
+         de países vistos para ofrecer como select, así que es texto libre
+         y se normaliza a mayúsculas acá, no en el backend. */
+      pais: pais.trim() ? pais.trim().toUpperCase() : undefined,
       soloFallidos: soloFallidos || undefined,
       desde: fDesde || undefined,
       hasta: fHasta || undefined,
     }),
-    [page, search, soloFallidos, fDesde, fHasta],
+    [page, search, pais, soloFallidos, fDesde, fHasta],
     PAGINA_VACIA
   );
 
@@ -173,6 +179,15 @@ export default function AccesosPage() {
               onChange={setSearch}
               placeholder={t("accesos.searchPlaceholder")}
             />
+            {/* Texto libre en vez de un select: no hay un catálogo de países
+                vistos para ofrecer como opciones (ver comentario en useData
+                más arriba). */}
+            <SearchBox
+              compact
+              value={pais}
+              onChange={setPais}
+              placeholder={t("accesos.filterPaisPlaceholder")}
+            />
             {/* El backend solo filtra por "soloFallidos" (booleano): no hay
                 un "soloExitosos" propio, así que el select es binario. */}
             <FilterSelect
@@ -199,7 +214,7 @@ export default function AccesosPage() {
         ) : (
           <DataTable
             paginacion={paginacion}
-            resetKey={`${search}|${soloFallidos}|${fDesde}|${fHasta}|${page}`}
+            resetKey={`${search}|${pais}|${soloFallidos}|${fDesde}|${fHasta}|${page}`}
             headers={[
               t("accesos.colFecha"),
               t("accesos.colEmail"),

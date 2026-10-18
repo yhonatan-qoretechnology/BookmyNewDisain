@@ -333,6 +333,7 @@ const es = {
     delPeriodo: "últimos {dias} días",
     searchPlaceholder: "Buscar por email…",
     filterPais: "País",
+    filterPaisPlaceholder: "País (ES, AR…)",
     filterEstado: "Estado",
     soloExitosos: "Solo exitosos",
     soloFallidos: "Solo fallidos",

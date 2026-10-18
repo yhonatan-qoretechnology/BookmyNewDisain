@@ -306,6 +306,7 @@ const en: Dictionary = {
     delPeriodo: "last {dias} days",
     searchPlaceholder: "Search by email…",
     filterPais: "Country",
+    filterPaisPlaceholder: "Country (ES, AR…)",
     filterEstado: "Status",
     soloExitosos: "Successful only",
     soloFallidos: "Failed only",
