@@ -6,6 +6,7 @@
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import type {
+  ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
@@ -49,6 +50,22 @@ export const AuthApi = {
   /** PATCH /auth/users/:id/password { currentPassword, newPassword } */
   changePassword: (id: number, currentPassword: string, newPassword: string) =>
     http.patch(EP.userPassword(id), { currentPassword, newPassword }),
+
+  /**
+   * Auditoría de login — pantalla "Seguimiento y Control" (solo SUPER_ADMIN).
+   * El backend ya pagina y filtra: acá solo se reenvían los parámetros.
+   */
+  accesos: {
+    list: (params?: {
+      page?: number; limit?: number; userId?: number; email?: string;
+      pais?: string; soloFallidos?: boolean; desde?: string; hasta?: string;
+    }) =>
+      http.get<ApiAccesosPage>(
+        EP.accesos + qs({ ...params, soloFallidos: params?.soloFallidos ? "true" : undefined })
+      ),
+    resumen: (dias?: number) =>
+      http.get<ApiAccesosResumen>(EP.accesosResumen + qs({ dias })),
+  },
 };
 
 /* ── AdminManagementModule — altas de COMPANY_ADMIN / BRANCH_ADMIN ──

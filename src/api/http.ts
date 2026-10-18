@@ -65,7 +65,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 /** Rutas del panel: cualquier otra (la web pública) no necesita sesión. */
-const RUTAS_PRIVADAS = /^\/(dashboard|reservas|clientes|servicios|personal|calendario|resenas|sedes|estadisticas|facturacion|stock|comunicacion|configuracion|empresas|administradores|employee-dashboard)/;
+const RUTAS_PRIVADAS = /^\/(dashboard|reservas|clientes|servicios|personal|calendario|resenas|sedes|estadisticas|facturacion|stock|comunicacion|configuracion|empresas|administradores|accesos|employee-dashboard)/;
 
 /** Se llama una sola vez aunque fallen varias peticiones a la vez. */
 let cerrando = false;

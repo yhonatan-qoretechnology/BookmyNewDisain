@@ -28,6 +28,10 @@ export const EP = {
   /** PATCH multipart — campo "fotoPerfil". Devuelve el Users actualizado. */
   userFoto: (id: number) => `/auth/users/${id}/foto`,
 
+  /* Auditoría de login (IP, país, dispositivo) — solo SUPER_ADMIN */
+  accesos: "/auth/accesos",
+  accesosResumen: "/auth/accesos/resumen",
+
   /* @Controller('clients') — clientes finales (role CLIENT).
      Requiere JWT + rol admin. Preferir esto a /auth/users: viene
      paginado, ya filtrado por rol y sin el resto de usuarios. */

@@ -487,6 +487,48 @@ export interface Paginated<T> {
   };
 }
 
+/** Motivo de fallo de un intento de login — mismo `code` de AuthApi.login() */
+export type ApiAccesoMotivo =
+  | "USER_NOT_FOUND"
+  | "ACCOUNT_INTEGRITY"
+  | "INVALID_PASSWORD"
+  | "ACCOUNT_INACTIVE"
+  | "EMPRESA_BLOQUEADA";
+
+/** GET /auth/accesos — una fila de la auditoría de login (AccesoUsuario) */
+export interface ApiAccesoUsuario {
+  id: number;
+  userId: number | null;
+  email: string;
+  exito: boolean;
+  motivoFallo: ApiAccesoMotivo | string | null;
+  ipAddress: string;
+  pais: string | null;
+  region: string | null;
+  ciudad: string | null;
+  userAgent: string | null;
+  dispositivo: string | null;
+  navegador: string | null;
+  sistemaOperativo: string | null;
+  createdAt: string;
+  user: { id: number; email: string; role: ApiRole } | null;
+}
+
+/** GET /auth/accesos — paginación propia del endpoint (sin hasNext/hasPrev) */
+export interface ApiAccesosPage {
+  items: ApiAccesoUsuario[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+/** GET /auth/accesos/resumen */
+export interface ApiAccesosResumen {
+  dias: number;
+  total: number;
+  fallidos: number;
+  exitosos: number;
+  paisesDistintos: number;
+}
+
 /** GET /categories?language= (CategoryTranslation resuelta) */
 export interface ApiCategory {
   id: number;
