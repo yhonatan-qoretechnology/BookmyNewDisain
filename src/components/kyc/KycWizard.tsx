@@ -16,7 +16,8 @@ import { KycController } from "@/controllers/KycController";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
-import { useI18n } from "@/i18n";
+import { useRegion } from "@/context/RegionContext";
+import { useI18n, esPaisIso, PAIS_POR_DEFECTO, type PaisIso } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -25,7 +26,19 @@ import SubidaArchivo from "./SubidaArchivo";
 import { BADGE_KYC } from "./estados";
 import styles from "./KycWizard.module.css";
 
-const TIPOS_DOCUMENTO = ["DNI", "NIE", "Pasaporte"] as const;
+/* Los documentos de identidad no se parecen entre países: pedirle un DNI a
+   un colombiano es pedirle algo que no existe. El país cuelga de la empresa
+   y se fija en el alta, así que la lista se elige sola y no hay que
+   preguntar nada. Se guardan las siglas tal cual, como ya se hacía con las
+   españolas: son las que el superadmin lee en la cola de revisión. */
+const TIPOS_DOCUMENTO: Record<PaisIso, readonly string[]> = {
+  ES: ["DNI", "NIE", "Pasaporte"],
+  CO: ["CC", "CE", "Pasaporte", "NIT"],
+};
+
+/* Ninguno de estos tiene reverso que fotografiar: pedirlo solo confunde. */
+const SIN_REVERSO = ["Pasaporte", "NIT"];
+
 const PASOS = ["datos", "documento", "selfie", "repaso"] as const;
 type Paso = (typeof PASOS)[number];
 
@@ -48,6 +61,10 @@ export default function KycWizard() {
   const { session } = useSession();
   const { toast } = useUi();
   const { t } = useI18n();
+  /* El nombre del documento fiscal sale del país de la empresa (NIF/CIF o
+     NIT), que es lo que manda el backend en GET /paises: así no hay dos
+     verdades sobre cómo se llama el mismo dato. */
+  const { pais, etiqueta } = useRegion();
 
   const empresaId = Number(session?.negocioId) || 0;
   /* La envía cualquier administrador de la empresa, dueño o de sede: hay
@@ -65,6 +82,7 @@ export default function KycWizard() {
   const [corrigiendo, setCorrigiendo] = useState(false);
   const [nifCif, setNifCif] = useState("");
   const [documentoTipo, setDocumentoTipo] = useState("");
+  const [documentoNumero, setDocumentoNumero] = useState("");
   const [archivos, setArchivos] = useState<Archivos>(SIN_ARCHIVOS);
   const [enviando, setEnviando] = useState(false);
 
@@ -80,8 +98,15 @@ export default function KycWizard() {
   const estado = kyc?.estado ?? "PENDIENTE";
   const nif = nifCif || kyc?.nifCif || "";
   const tipo = documentoTipo || kyc?.documentoTipo || "";
-  /* El pasaporte no tiene reverso: pedirlo solo confunde. */
-  const pideDorso = tipo !== "Pasaporte";
+  const numero = documentoNumero || kyc?.documentoNumero || "";
+  const pideDorso = !SIN_REVERSO.includes(tipo);
+
+  const iso = pais.isoCode;
+  const tiposDelPais = TIPOS_DOCUMENTO[esPaisIso(iso) ? iso : PAIS_POR_DEFECTO];
+  /* Un tipo ya guardado que no esté en la lista del país (empresas dadas de
+     alta cuando solo se vendía en España) seguiría elegido por dentro pero
+     el desplegable se vería vacío, y al guardar se perdería sin avisar. */
+  const tipos = tipo && !tiposDelPais.includes(tipo) ? [...tiposDelPais, tipo] : tiposDelPais;
   const tieneFrente = !!archivos.documentoFrente || !!kyc?.documentoFrente;
   /* Hay algo elegido que todavía no ha salido del navegador: mientras no se
      pulse Enviar, el superadmin no ve nada y las dos pantallas parecen
@@ -159,8 +184,11 @@ export default function KycWizard() {
 
   /* ── Asistente ────────────────────────────────────────────── */
   const indice = PASOS.indexOf(paso);
+  /* El número va con el tipo: sin él la verificación llega sin el dato que
+     identifica al responsable, que es justo lo que el superadmin compara
+     con la foto del documento. */
   const puedeSeguir =
-    (paso === "datos" && !!nif.trim() && !!tipo) ||
+    (paso === "datos" && !!nif.trim() && !!tipo && !!numero.trim()) ||
     (paso === "documento" && tieneFrente) ||
     paso === "selfie" ||
     paso === "repaso";
@@ -168,7 +196,12 @@ export default function KycWizard() {
   const enviar = async () => {
     setEnviando(true);
     try {
-      await KycController.enviar(empresaId, { nifCif: nif, documentoTipo: tipo, ...archivos });
+      await KycController.enviar(empresaId, {
+        nifCif: nif,
+        documentoTipo: tipo,
+        documentoNumero: numero,
+        ...archivos,
+      });
       setArchivos(SIN_ARCHIVOS);
       setCorrigiendo(false);
       setPaso("datos");
@@ -211,15 +244,24 @@ export default function KycWizard() {
             <p className={styles.lead}>{t("kyc.pasoDatosLead")}</p>
             <div className={styles.rejilla}>
               <label className={styles.campo}>
-                <span>{t("kyc.nifCif")}</span>
+                <span>{t("kyc.campoFiscal", { fiscal: etiqueta("fiscal") })}</span>
                 <input value={nif} onChange={(e) => setNifCif(e.target.value)} placeholder={t("kyc.nifCifPlaceholder")} />
               </label>
               <label className={styles.campo}>
                 <span>{t("kyc.tipoDocumento")}</span>
                 <select value={tipo} onChange={(e) => setDocumentoTipo(e.target.value)}>
                   <option value="">{t("reservas.selectPlaceholder")}</option>
-                  {TIPOS_DOCUMENTO.map((d) => <option key={d} value={d}>{d}</option>)}
+                  {tipos.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
+              </label>
+              <label className={styles.campo}>
+                <span>{t("kyc.documentoNumero")}</span>
+                <input
+                  value={numero}
+                  onChange={(e) => setDocumentoNumero(e.target.value)}
+                  placeholder={t("kyc.documentoNumeroPlaceholder")}
+                  autoComplete="off"
+                />
               </label>
             </div>
           </>
@@ -278,8 +320,9 @@ export default function KycWizard() {
             </div>
 
             <ul className={styles.repaso}>
-              <li><span>{t("kyc.nifCif")}</span><b>{nif || "—"}</b></li>
+              <li><span>{t("kyc.campoFiscal", { fiscal: etiqueta("fiscal") })}</span><b>{nif || "—"}</b></li>
               <li><span>{t("kyc.tipoDocumento")}</span><b>{tipo || "—"}</b></li>
+              <li><span>{t("kyc.documentoNumero")}</span><b>{numero || "—"}</b></li>
               {(["documentoFrente", "selfie"] as const).map((campo) => {
                 const elegido = !!archivos[campo];
                 const enviado = !!kyc?.[campo];

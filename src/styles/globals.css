@@ -3,6 +3,14 @@
    Los estilos de componentes viven en CSS Modules. */
 
 :root {
+  /* Le dice al navegador en que modo esta la pagina, para que pinte en
+     consecuencia TODO lo que dibuja el sistema y no el CSS del sitio: la
+     lista de un desplegable, el calendario de un campo de fecha, las
+     casillas, los selectores de numero y el autorrelleno. Sin esto, en
+     Mac y en iPhone el color de un <option> se ignora y la lista sale
+     blanca por mucho que el CSS diga otra cosa. */
+  color-scheme: light;
+
   /* ── Marca ────────────────────────────────────────────
      Los verdes son los mismos de bookmy.es para que la web y
      el panel se reconozcan como el mismo producto; el panel
@@ -78,6 +86,8 @@
    DARK MODE — variables base (sobreescriben :root)
 ══════════════════════════════════════════════════════ */
 [data-theme="dark"] {
+  color-scheme: dark;
+
   /* El oscuro toma el negro verdoso de la web en vez del azulado
      de antes: la misma familia de color en los dos sitios. */
   --page-bg:   #0c1411;
@@ -120,6 +130,19 @@ body {
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; }
 input, select, textarea { font-family: inherit; }
+
+/* La lista desplegada de un <select> la pinta el sistema operativo, no el
+   CSS del sitio: hereda el color del texto pero NO el fondo. En modo
+   oscuro eso dejaba texto claro sobre el blanco del sistema, y la lista
+   se veia en blanco salvo la opcion resaltada. Pasaba en todos los
+   desplegables del panel menos en dos, que lo arreglaban por su cuenta.
+   Aqui se resuelve de una vez para los diecisiete. */
+[data-theme="dark"] select option,
+[data-theme="dark"] select optgroup {
+  background: var(--surface-2);
+  color: var(--navy-900);
+}
+
 ul, ol { list-style: none; }
 h1, h2, h3, h4, h5 { font-weight: 700; line-height: 1.2; }
 img { max-width: 100%; }

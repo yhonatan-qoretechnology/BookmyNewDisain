@@ -19,9 +19,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DIAS_AGENDABLES, ROUTES, fmtFechaLarga } from "@/constants";
-import type { CategoriaServicios, MetodoPago, SedeOpcion, SlotHora } from "@/models";
+import type { ClienteOpcion, CategoriaServicios, MetodoPago, SedeOpcion, SlotHora } from "@/models";
 import {
-  BookingController, ErrorRequiereContinuacion, type DatosContinuacion,
+  BookingController, ErrorRequiereContinuacion, contactoDeBusqueda,
+  type DatosContinuacion,
 } from "@/controllers/BookingController";
 import { zonaHHmm } from "@/lib/timezone";
 import { FestivosApi } from "@/api/modules";
@@ -126,13 +127,54 @@ export default function NuevaReservaPage() {
 
   /* ── Datos por paso (lazy + caché en el controlador) ───── */
   const [query, setQuery] = useState("");
+  /* El negocio va en la petición porque el superadmin ve a todos los
+     clientes de la plataforma: sin acotarlo, en este paso le saldrían
+     los de cualquier otro negocio. Al resto el backend ya les devuelve
+     solo los suyos. */
   const { data: clientes, loading: lC, error: eC } = useData(
     () => (step === "cliente"
-      ? BookingController.searchClientes(query)
+      ? BookingController.searchClientes(query, empresaId)
       : Promise.resolve([])),
-    [query, step],
+    [query, step, empresaId],
     []
   );
+
+  /* ── Cliente de fuera de la cartera del negocio ─────────── */
+  /* Se guarda junto al término con el que se encontró: así deja de salir
+     en cuanto se busca otra cosa, pero sigue a la vista si ya se eligió
+     para la reserva (si no, al borrar el buscador desaparecía la tarjeta
+     del cliente seleccionado). */
+  const [externo, setExterno] = useState<{ termino: string; cliente: ClienteOpcion | null } | null>(null);
+  const [buscandoFuera, setBuscandoFuera] = useState(false);
+
+  const termino = query.trim();
+  /* Solo se puede buscar fuera por correo o teléfono completos: la
+     búsqueda del backend es exacta para que nadie recorra la cartera de
+     los demás negocios. */
+  const sePuedeBuscarFuera = contactoDeBusqueda(query) !== null;
+  const buscadoAhora = externo?.termino === termino;
+  const clienteDeFuera =
+    externo?.cliente && (buscadoAhora || externo.cliente.id === draft.cliente?.id)
+      ? externo.cliente
+      : null;
+
+  const clientesVisibles = useMemo(() => {
+    if (!clienteDeFuera || clientes.some((c) => c.id === clienteDeFuera.id)) return clientes;
+    return [clienteDeFuera, ...clientes];
+  }, [clientes, clienteDeFuera]);
+
+  const buscarFuera = useCallback(async () => {
+    const valor = query.trim();
+    setBuscandoFuera(true);
+    try {
+      setExterno({ termino: valor, cliente: await BookingController.buscarClientePorContacto(valor) });
+    } catch (e) {
+      /* Un 404 no llega aquí: el controlador lo traduce a «no existe». */
+      toast(e instanceof Error ? e.message : t("booking.clientOutsideNotFound", { termino: valor }), "error");
+    } finally {
+      setBuscandoFuera(false);
+    }
+  }, [query, toast, t]);
 
   const { data: profesionales, loading: lP, error: eP } = useData(
     () => (draft.sedeId && step === "profesional"
@@ -347,10 +389,34 @@ export default function NuevaReservaPage() {
         <>
           <SearchBox value={query} onChange={setQuery} placeholder={t("booking.clientSearch")} />
           {eC && <ErrorBox>{eC}</ErrorBox>}
-          {lC ? <Loading label={t("booking.loading")} /> : clientes.length === 0 ? (
-            <EmptyState icon="users" title={t("booking.noClientsTitle")} message={t("booking.noClientsMsg")} />
+          {lC ? <Loading label={t("booking.loading")} /> : clientesVisibles.length === 0 ? (
+            <>
+              <EmptyState icon="users" title={t("booking.noClientsTitle")} message={t("booking.noClientsMsg")} />
+              {/* No está entre los clientes del negocio, pero puede existir
+                  en la plataforma: con el correo o el teléfono completos se
+                  trae sin salir del paso. */}
+              {sePuedeBuscarFuera && (
+                <div className={styles.contextBar}>
+                  {buscadoAhora && !externo?.cliente ? (
+                    <span>{t("booking.clientOutsideNotFound", { termino })}</span>
+                  ) : (
+                    <>
+                      <span>{t("booking.clientOutsideHint")}</span>
+                      <Button size="sm" variant="ghost" onClick={buscarFuera} disabled={buscandoFuera}>
+                        {buscandoFuera ? "…" : t("booking.clientOutsideSearch", { termino })}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+            </>
           ) : (
-            <ClienteGrid clientes={clientes} selectedId={draft.cliente?.id} onSelect={booking.setCliente} />
+            <>
+              {clienteDeFuera && (
+                <div className={styles.contextBar}>{t("booking.clientOutsideFound")}</div>
+              )}
+              <ClienteGrid clientes={clientesVisibles} selectedId={draft.cliente?.id} onSelect={booking.setCliente} />
+            </>
           )}
         </>
       )}

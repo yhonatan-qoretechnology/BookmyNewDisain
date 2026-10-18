@@ -14,7 +14,18 @@ import StepsSection from "@/components/web/StepsSection";
 import { useWebT } from "@/components/web/useWebT";
 
 const MARCAS = ["Glow", "Rituals by Glow", "Qore Technology", "Lash by Glow", "Ink Nova"];
-const CIUDADES = ["Benalmádena", "Fuengirola", "Marbella", "Málaga", "Torremolinos"];
+/* Las ciudades donde ya hay negocios. Bogotá y Medellín abren la lista a
+   Colombia, que es el segundo mercado.
+
+   Van al final y juntas, no intercaladas por orden alfabético: la fila se
+   lee como un recorrido —los pueblos de la Costa del Sol y luego el salto
+   a Colombia— y en una pantalla estrecha solo se ve un trozo del carril,
+   así que intercaladas saldría "Bogotá · Marbella · Medellín" y no se
+   entendería nada. */
+const CIUDADES = [
+  "Benalmádena", "Fuengirola", "Marbella", "Málaga", "Torremolinos",
+  "Bogotá", "Medellín",
+];
 
 export default function HomePage() {
   const { w, locale } = useWebT();

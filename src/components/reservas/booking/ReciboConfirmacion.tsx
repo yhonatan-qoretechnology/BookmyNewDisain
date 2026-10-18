@@ -11,14 +11,12 @@ import { memo, useMemo, useState } from "react";
 import type {
   ClienteOpcion, MetodoPago, ProfesionalCard, SedeOpcion, ServicioOpcion,
 } from "@/models";
-import { fmtFechaLarga, initials } from "@/constants";
+import { fmtFechaLarga, IMG_BASE_URL, initials } from "@/constants";
 import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import { Field } from "@/components/ui/Modal";
 import styles from "./booking.module.css";
-
-const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
 
 export interface CardDraft { number: string; expiry: string; cvv: string }
 

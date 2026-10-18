@@ -7,7 +7,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Reserva } from "@/models";
 import { ReservasController } from "@/controllers/ReservasController";
-import { fmtFechaLarga } from "@/constants";
+import { fmtFechaLarga, IMG_BASE_URL } from "@/constants";
 import type { ApiCitaEnConflicto } from "@/api/types";
 import { zonaHHmm } from "@/lib/timezone";
 import { useI18n } from "@/i18n";
@@ -21,8 +21,6 @@ import Icon, { WhatsAppIcon } from "@/components/ui/Icon";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { EASE_OUT, SPRING_SOFT } from "@/components/animations";
 import styles from "./ReservaPopup.module.css";
-
-const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
 
 interface ReservaPopupValue {
   /**

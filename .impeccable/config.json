@@ -11,6 +11,24 @@
         ],
         "createdAt": "2026-10-06T13:12:33.187Z",
         "reason": "Convencion ya establecida en el proyecto: el mismo borde de 3px marca los avisos en resenas, stock, ReservaPopup, Calendar y KycWizard. Cambiarlo solo aqui rompe la coherencia; cambiarlo en los siete sitios es una decision de diseno del usuario, no de este encargo."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/components/kyc/KycWizard.module.css"
+        ],
+        "createdAt": "2026-10-08T15:36:00.302Z",
+        "reason": "claude: .motivo es el recuadro del motivo de rechazo, no una tarjeta decorada. El borde rojo a la izquierda sobre fondo teñido es la convencion de siempre para un aviso, como una cita; no es el side-tab ornamental que busca la regla."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/app/(panel)/stock/stock.module.css"
+        ],
+        "createdAt": "2026-10-08T15:36:00.315Z",
+        "reason": "claude: .solNotes son las notas escritas a mano en un pedido, en cursiva y apagadas. El borde a la izquierda marca una cita, que es exactamente lo que son; no es un acento decorativo sobre una tarjeta."
       }
     ]
   }

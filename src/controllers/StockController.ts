@@ -1,46 +1,39 @@
 /* ============================================================
    StockController — catálogo de insumos, existencias por sede y
-   solicitudes de reposición.
+   solicitudes de reposición (StockModule del backend).
+   GET/POST/PATCH/DELETE /stock/insumos · GET/PATCH /stock/sede/:id ·
+   GET/POST/PATCH /stock/solicitudes
    ------------------------------------------------------------
-   ⚠️ SIN BACKEND TODAVÍA
-   El backend no expone ningún módulo de stock/insumos (no hay
-   rutas en `src/api/endpoints.ts`), así que el catálogo, las
-   existencias y las solicitudes viven en memoria durante la
-   sesión de navegador y se pierden al recargar.
+   El catálogo es de cada EMPRESA y las existencias de cada SEDE, y
+   todo arranca vacío: un negocio recién creado no ve nada hasta que
+   da de alta su primer insumo.
 
-   Las SEDES sí son reales: se leen de GET /sedes/empresa/:id a
-   través de NegociosController, para que el módulo trabaje sobre
-   las sedes del negocio y no sobre datos inventados.
-
-   ⚙️ PARA CONECTARLO: todos los métodos ya son asíncronos y
-   devuelven modelos del dominio, así que basta sustituir el
-   cuerpo de cada uno por la llamada al API correspondiente
-   (p. ej. `InsumosApi.findAll()`) sin tocar la vista.
+   Aquí se cruzan dos idiomas: el backend trabaja con ids numéricos y
+   estados en MAYÚSCULAS, y el panel con ids de texto y estados en
+   minúsculas. La traducción vive en este fichero —es el trabajo del
+   controlador— para que la vista siga leyendo los mismos modelos.
 ============================================================ */
 import type {
-  Insumo, NivelStock, Session, SolicitudInventario, SolicitudItem, StockItem,
+  EstadoSolicitud, Insumo, NivelStock, Session, SolicitudInventario,
+  SolicitudItem, StockItem,
 } from "@/models";
+import { StockApi } from "@/api/modules";
+import { ApiError } from "@/api/http";
+import type {
+  ApiEstadoSolicitud, ApiInsumo, ApiSolicitudInventario, ApiStockSede,
+} from "@/api/types";
 import { NegociosController } from "./NegociosController";
 
-/* ── Catálogo global de insumos (semilla de demostración) ── */
-const insumos: Insumo[] = [
-  { id: "i1", nombre: "Esmalte semipermanente rojo", categoria: "Uñas", unidad: "ud", precioRef: 4.5 },
-  { id: "i2", nombre: "Esmalte semipermanente nude", categoria: "Uñas", unidad: "ud", precioRef: 4.5 },
-  { id: "i3", nombre: "Cera depilatoria roll-on", categoria: "Depilación", unidad: "bote", precioRef: 8 },
-  { id: "i4", nombre: "Crema facial hidratante", categoria: "Facial", unidad: "ud", precioRef: 12 },
-  { id: "i5", nombre: "Aceite de masaje relajante", categoria: "Masajes", unidad: "ud", precioRef: 9.5 },
-  { id: "i6", nombre: "Algodón cosmético (pack 100)", categoria: "General", unidad: "pack", precioRef: 3.2 },
-  { id: "i7", nombre: "Tiras de cera fría", categoria: "Depilación", unidad: "caja", precioRef: 6.8 },
-  { id: "i8", nombre: "Tinte para pestañas negro", categoria: "Facial", unidad: "ud", precioRef: 7.5 },
-];
-
-/** Existencias registradas: clave `${sedeId}:${insumoId}` */
-const existencias = new Map<string, { stock: number; max: number }>();
-const solicitudes: SolicitudInventario[] = [];
-
-/** Capacidad objetivo por defecto de un insumo en una sede */
-const MAX_DEFECTO = 30;
-const clave = (sedeId: string, insumoId: string) => `${sedeId}:${insumoId}`;
+/**
+ * Último recurso si el backend no manda objetivo.
+ *
+ * Ya no debería hacer falta: cada insumo lleva su `maxPorDefecto` y el
+ * backend lo usa cuando la sede no tiene uno propio. Se deja por si
+ * responde una versión anterior del API, porque con el objetivo a cero
+ * `nivelDe` marcaría como crítico incluso un almacén lleno y "Reponer"
+ * saldría siempre apagado.
+ */
+const MAX_OBJETIVO = 10;
 
 /** Umbrales del indicador de nivel (ratio stock/max) */
 export function nivelDe(stock: number, max: number): NivelStock {
@@ -50,90 +43,197 @@ export function nivelDe(stock: number, max: number): NivelStock {
   return "ok";
 }
 
+/* ── Traducción API ⇄ panel ────────────────────────────────── */
+
+const mapInsumo = (i: ApiInsumo): Insumo => ({
+  id: String(i.id),
+  nombre: i.nombre,
+  categoria: i.categoria || "General",
+  unidad: i.unidad || "ud",
+  precioRef: Number(i.precioRef) || 0,
+});
+
+const objetivo = (max: number | undefined) => (max && max > 0 ? max : MAX_OBJETIVO);
+
+const mapStock = (s: ApiStockSede): StockItem => ({
+  sedeId: String(s.sedeId),
+  insumoId: String(s.insumoId),
+  insumo: mapInsumo(s.insumo),
+  stock: Number(s.stock) || 0,
+  max: objetivo(Number(s.max)),
+});
+
+const ESTADOS: Record<ApiEstadoSolicitud, EstadoSolicitud> = {
+  PENDIENTE: "pendiente",
+  APROBADA: "aprobada",
+  RECHAZADA: "rechazada",
+};
+
+const mapSolicitud = (s: ApiSolicitudInventario): SolicitudInventario => ({
+  id: String(s.id),
+  sedeId: String(s.sedeId),
+  /* POST y PATCH devuelven la solicitud sin la sede ni el solicitante:
+     solo vienen en el listado, que es donde se pintan. */
+  sedeNombre: s.sede?.nombre || "—",
+  solicitanteId: s.solicitante?.id ? String(s.solicitante.id) : "",
+  solicitanteNombre: s.solicitante?.UserData?.name || s.solicitante?.email || "—",
+  fecha: (s.createdAt || "").slice(0, 10),
+  estado: ESTADOS[s.estado] ?? "pendiente",
+  notas: s.notas || "",
+  items: (s.items || []).map((it) => ({
+    insumoId: String(it.insumoId),
+    cantidad: Number(it.cantidad) || 0,
+    insumoNombre: it.insumo?.nombre,
+  })),
+});
+
+/* ── Alcance y plan ────────────────────────────────────────── */
+
+/**
+ * Empresa con la que trabaja esta sesión. El backend se la exige al
+ * superadmin (no es de ningún negocio) y se la ignora al resto, que
+ * siempre operan sobre la del token.
+ * @returns undefined si el superadmin aún no ha elegido negocio (negocioId "0").
+ */
+function empresaDe(session: Session | null): number | undefined {
+  const id = Number(session?.negocioId);
+  return Number.isFinite(id) && id > 0 ? id : undefined;
+}
+
+/**
+ * Stock e insumos forma parte de Bookmy CRM Pro y hoy Pro está
+ * apagado, así que el backend responde 403 a todas sus rutas. Las
+ * lecturas lo tratan como "sin datos" en vez de como un fallo: del
+ * aviso al negocio ya se encarga PlanProLock en el layout del panel,
+ * y una pantalla en blanco es mejor que una pantalla roja.
+ */
+async function sinPro<T>(peticion: Promise<T>, vacio: T): Promise<T> {
+  try {
+    return await peticion;
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 403) return vacio;
+    throw e;
+  }
+}
+
+/** Búsqueda libre por nombre o categoría — el backend no filtra. */
+const coincide = (i: Insumo, term: string) =>
+  `${i.nombre} ${i.categoria}`.toLowerCase().includes(term.trim().toLowerCase());
+
 export const StockController = {
   /* ── Catálogo ──────────────────────────────────────────── */
 
   /**
-   * Catálogo global filtrado por nombre o categoría.
-   * @param term Texto de búsqueda.
+   * Catálogo de insumos del negocio — GET /stock/insumos.
+   * @param term Búsqueda por nombre o categoría (se filtra en el panel).
    */
-  async getCatalogo(term = ""): Promise<Insumo[]> {
-    const q = term.trim().toLowerCase();
-    return insumos.filter((i) => `${i.nombre} ${i.categoria}`.toLowerCase().includes(q));
+  async getCatalogo(session: Session | null, term = ""): Promise<Insumo[]> {
+    const empresaId = empresaDe(session);
+    if (!empresaId) return [];
+    const rows = await sinPro(StockApi.listarInsumos({ empresaId }), []);
+    return rows.map(mapInsumo).filter((i) => coincide(i, term));
   },
 
-  /** Alta de un producto en el catálogo global. */
-  async addInsumo(input: Omit<Insumo, "id">): Promise<Insumo> {
-    const insumo: Insumo = { ...input, id: `i${Date.now()}` };
-    insumos.push(insumo);
-    return insumo;
+  /**
+   * Alta de un producto en el catálogo — POST /stock/insumos.
+   * @throws ApiError 400 si el negocio ya tiene un insumo con ese nombre.
+   */
+  async addInsumo(session: Session | null, input: Omit<Insumo, "id">): Promise<Insumo> {
+    const creado = await StockApi.crearInsumo({
+      nombre: input.nombre,
+      categoria: input.categoria,
+      unidad: input.unidad,
+      precioRef: input.precioRef,
+      empresaId: empresaDe(session),
+    });
+    return mapInsumo(creado);
   },
 
-  /** Baja del catálogo: también retira sus existencias en todas las sedes. */
-  async removeInsumo(id: string): Promise<void> {
-    const idx = insumos.findIndex((i) => i.id === id);
-    if (idx > -1) insumos.splice(idx, 1);
-    for (const k of Array.from(existencias.keys())) {
-      if (k.endsWith(`:${id}`)) existencias.delete(k);
-    }
+  /**
+   * Retira un insumo del catálogo — DELETE /stock/insumos/:id.
+   * El backend lo archiva en vez de borrarlo: las solicitudes antiguas
+   * lo citan, así que deja de ofrecerse pero el historial se conserva.
+   */
+  async removeInsumo(session: Session | null, id: string): Promise<void> {
+    await StockApi.archivarInsumo(Number(id), empresaDe(session));
   },
 
   /* ── Existencias ───────────────────────────────────────── */
 
   /**
-   * Existencias de una sede: devuelve una fila por cada producto del
-   * catálogo (las que nunca se han registrado arrancan en 0), para
-   * que la sede pueda reponer cualquier insumo sin darlo de alta antes.
+   * Existencias de una sede — GET /stock/sede/:sedeId. Devuelve una fila
+   * por cada insumo del catálogo: el que nunca se ha comprado sale a
+   * cero, para que la sede pueda reponerlo sin darlo de alta antes.
+   *
+   * Sin filtro de búsqueda a propósito: la lista entera la necesita el
+   * modal de solicitud, que enseña cuánto queda de cada insumo. Buscar
+   * recorta la tabla en la vista, no la petición.
    * @param sedeId Sede real del negocio.
-   * @param term Búsqueda por nombre o categoría.
    */
-  async getStockSede(sedeId: string, term = ""): Promise<StockItem[]> {
-    const q = term.trim().toLowerCase();
-    return insumos
-      .filter((i) => `${i.nombre} ${i.categoria}`.toLowerCase().includes(q))
-      .map((insumo) => {
-        const reg = existencias.get(clave(sedeId, insumo.id));
-        return {
-          sedeId,
-          insumoId: insumo.id,
-          insumo,
-          stock: reg?.stock ?? 0,
-          max: reg?.max ?? MAX_DEFECTO,
-        };
-      });
+  async getStockSede(session: Session | null, sedeId: string): Promise<StockItem[]> {
+    const empresaId = empresaDe(session);
+    if (!empresaId || !Number(sedeId)) return [];
+    const rows = await sinPro(StockApi.stockDeSede(Number(sedeId), empresaId), []);
+    return rows.map(mapStock);
   },
 
   /**
-   * Suma (o resta) unidades a una sede, acotado entre 0 y el máximo.
+   * Suma (o resta) unidades a una sede, sin bajar de 0 y sin pasarse del
+   * objetivo que tenga fijado la sede. El backend guarda cantidades
+   * absolutas, así que hay que leer lo que hay antes de escribir.
    * @param delta Unidades a sumar; negativo para descontar.
    */
-  async ajustarStock(sedeId: string, insumoId: string, delta: number): Promise<void> {
-    const k = clave(sedeId, insumoId);
-    const reg = existencias.get(k) ?? { stock: 0, max: MAX_DEFECTO };
-    reg.stock = Math.max(0, Math.min(reg.max, reg.stock + delta));
-    existencias.set(k, reg);
+  async ajustarStock(
+    session: Session | null,
+    sedeId: string,
+    insumoId: string,
+    delta: number
+  ): Promise<void> {
+    const empresaId = empresaDe(session);
+    const filas = await StockApi.stockDeSede(Number(sedeId), empresaId);
+    const fila = filas.find((f) => f.insumoId === Number(insumoId));
+    const actual = Number(fila?.stock) || 0;
+    /* El techo se mide contra el objetivo REAL de la sede, nunca contra
+       MAX_OBJETIVO: ese es de presentación, y usarlo aquí guardaría en la
+       base un número que nadie ha fijado (un «+5» sobre 28 escribiría 30
+       en vez de 33). Sin objetivo fijado no hay techo que imponer. */
+    const techo = Number(fila?.max) || 0;
+    const sumado = Math.max(0, actual + delta);
+    const stock = techo > 0 ? Math.min(techo, sumado) : sumado;
+    /* Sin cambio no se llama al API: el botón ya sale apagado al llegar
+       al objetivo, pero una carrera de clics no tiene por qué escribir. */
+    if (stock === actual) return;
+    await StockApi.ajustarStock(Number(sedeId), Number(insumoId), { stock, empresaId });
   },
 
   /* ── Solicitudes de reposición ─────────────────────────── */
 
-  /** Todas las solicitudes, de la más reciente a la más antigua. */
-  async getSolicitudes(): Promise<SolicitudInventario[]> {
-    return [...solicitudes].reverse();
+  /** Solicitudes del negocio — GET /stock/solicitudes. */
+  async getSolicitudes(session: Session | null): Promise<SolicitudInventario[]> {
+    const empresaId = empresaDe(session);
+    if (!empresaId) return [];
+    const rows = await sinPro(StockApi.listarSolicitudes({ empresaId }), []);
+    return rows.map(mapSolicitud);
   },
 
-  /** Solicitudes enviadas por una sede concreta. */
-  async getSolicitudesPorSede(sedeId: string): Promise<SolicitudInventario[]> {
-    return [...solicitudes].reverse().filter((s) => s.sedeId === sedeId);
-  },
-
-  /** Nº de solicitudes aún sin resolver (badge de la pestaña). */
-  async contarPendientes(): Promise<number> {
-    return solicitudes.filter((s) => s.estado === "pendiente").length;
+  /** Solicitudes de una sede concreta — GET /stock/solicitudes?sedeId=. */
+  async getSolicitudesPorSede(
+    session: Session | null,
+    sedeId: string
+  ): Promise<SolicitudInventario[]> {
+    const empresaId = empresaDe(session);
+    if (!empresaId || !Number(sedeId)) return [];
+    const rows = await sinPro(
+      StockApi.listarSolicitudes({ empresaId, sedeId: Number(sedeId) }),
+      []
+    );
+    return rows.map(mapSolicitud);
   },
 
   /**
-   * Registra una solicitud de la sede de la sesión.
+   * Registra una solicitud para la sede de la sesión — POST /stock/solicitudes.
    * @throws Error("SIN_ITEMS") si no se pidió ninguna unidad.
+   * @throws ApiError si el backend rechaza el pedido.
    */
   async crearSolicitud(
     session: Session | null,
@@ -141,40 +241,29 @@ export const StockController = {
     notas: string
   ): Promise<SolicitudInventario> {
     const utiles = items.filter((i) => i.cantidad > 0);
-    if (!utiles.length) throw new Error("SIN_ITEMS");
-    const sedeId = session?.sedeId || "";
-    const solicitud: SolicitudInventario = {
-      id: `SOL-${String(Date.now()).slice(-4)}`,
-      sedeId,
-      sedeNombre: session?.sedeName || "—",
-      solicitanteId: session?.id || "",
-      solicitanteNombre: session?.name || "—",
-      fecha: new Date().toISOString().slice(0, 10),
-      estado: "pendiente",
-      notas: notas.trim(),
-      items: utiles,
-    };
-    solicitudes.push(solicitud);
-    return solicitud;
+    if (!utiles.length || !Number(session?.sedeId)) throw new Error("SIN_ITEMS");
+    const creada = await StockApi.crearSolicitud({
+      sedeId: Number(session!.sedeId),
+      notas: notas.trim() || undefined,
+      items: utiles.map((i) => ({ insumoId: Number(i.insumoId), cantidad: i.cantidad })),
+      empresaId: empresaDe(session),
+    });
+    return mapSolicitud(creada);
   },
 
   /**
-   * Aprueba una solicitud y suma las unidades pedidas al stock de
-   * su sede (una solicitud aprobada es una entrada de mercancía).
+   * Aprueba una solicitud — PATCH /stock/solicitudes/:id. El backend suma
+   * las unidades pedidas al stock de la sede: una solicitud aprobada es
+   * una entrada de mercancía.
+   * @throws ApiError 400 si ya estaba resuelta.
    */
-  async aprobarSolicitud(id: string): Promise<void> {
-    const sol = solicitudes.find((s) => s.id === id);
-    if (!sol || sol.estado !== "pendiente") return;
-    sol.estado = "aprobada";
-    for (const item of sol.items) {
-      await this.ajustarStock(sol.sedeId, item.insumoId, item.cantidad);
-    }
+  async aprobarSolicitud(session: Session | null, id: string): Promise<void> {
+    await StockApi.resolverSolicitud(Number(id), "APROBADA", empresaDe(session));
   },
 
   /** Rechaza una solicitud sin tocar las existencias. */
-  async rechazarSolicitud(id: string): Promise<void> {
-    const sol = solicitudes.find((s) => s.id === id);
-    if (sol?.estado === "pendiente") sol.estado = "rechazada";
+  async rechazarSolicitud(session: Session | null, id: string): Promise<void> {
+    await StockApi.resolverSolicitud(Number(id), "RECHAZADA", empresaDe(session));
   },
 
   /* ── Sedes reales sobre las que opera el módulo ────────── */
