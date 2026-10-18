@@ -17,6 +17,29 @@
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
+/* ── Aviso: NEXT_PUBLIC_API_URL vacía en el BUILD ─────────────
+   Es el fallo más caro de diagnosticar de todo el despliegue. Si la
+   variable falta cuando se compila, API_URL queda en cadena vacía y
+   `fetch(`${API_URL}${path}`)` se convierte en una petición RELATIVA
+   al propio panel: el login pide /auth/login a bookmy.es y recibe el
+   404 de Next en HTML. El build sale verde, la web se ve perfecta y
+   nadie puede entrar, sin un solo error que apunte a la causa.
+
+   El aviso va en consola y solo en el navegador (en el servidor no
+   hay nada que avisar y ensuciaría el log de arranque). No se lanza
+   ninguna excepción ni se rompe el build a propósito: cuando la
+   variable está puesta —hoy, en local y en producción— esto no se
+   ejecuta nunca y el comportamiento es exactamente el de siempre. */
+if (typeof window !== "undefined" && API_URL.length === 0) {
+  console.error(
+    "[BookMy] NEXT_PUBLIC_API_URL no estaba definida al compilar el panel: " +
+    "todas las peticiones están saliendo contra " + window.location.origin +
+    " en vez de contra el API, así que el login devolverá un 404 en HTML. " +
+    "Hay que definir la variable y VOLVER A DESPLEGAR: se incrusta en tiempo " +
+    "de compilación, no basta con ponerla y reiniciar el servidor."
+  );
+}
+
 /** true → se usa el backend real; false → modo demo en memoria */
 export const isApiEnabled = (): boolean => API_URL.length > 0;
 

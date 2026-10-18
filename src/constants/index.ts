@@ -193,7 +193,23 @@ export const DIAS_AGENDABLES = 60;
 export const ESTADOS_RESERVA = ["todos", "pendiente", "confirmada", "atendida", "cancelado", "noShow"] as const;
 
 /* ── Imágenes servidas por el backend ────────────────────── */
-/** Base de las imágenes (fotos de perfil, logos, fotos de sede) */
+/**
+ * Base de las imágenes (fotos de perfil, logos, fotos de sede).
+ *
+ * FUENTE ÚNICA: esta misma línea estaba copiada tal cual en
+ * SedeSelector, ReciboConfirmacion y ReservaPopupContext, y de cada
+ * copia había que acordarse por separado. Ahora los tres importan de
+ * aquí.
+ *
+ * El valor por defecto sigue siendo bookmy.es a propósito: es lo que
+ * hace hoy producción y cambiarlo rompería todas las fotos mientras no
+ * exista el host nuevo. El día del cambio de dominio basta con poner
+ * NEXT_PUBLIC_API_BASE_URL_IMG al host de los ficheros y volver a
+ * desplegar (NEXT_PUBLIC_* se incrusta al compilar, no se lee al
+ * arrancar). Lo que esta variable NO arregla son las URLs absolutas ya
+ * guardadas en la base de datos: de eso se encarga el rewrite de
+ * /uploads de next.config.mjs.
+ */
 export const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
 
 /**
