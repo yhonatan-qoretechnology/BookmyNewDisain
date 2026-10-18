@@ -32,11 +32,17 @@ import type { PaginationProps } from "@/components/ui/Pagination";
 const LIMIT = 20;
 const RESUMEN_DIAS = 30;
 
+/** Estado inicial antes de la primera respuesta del API — una página vacía
+    pero con la forma real de ApiAccesosPage, para no pelear con undefined. */
 const PAGINA_VACIA: ApiAccesosPage = {
   items: [],
   pagination: { page: 1, limit: LIMIT, total: 0, totalPages: 1 },
 };
 
+/** geoip-lite (en el backend) devuelve el país como código ISO-3166
+    ("US", "AR"...): acá se traduce a un nombre legible en el idioma
+    activo del panel. Si el código no es válido, se muestra tal cual
+    en vez de romper la fila entera. */
 function nombrePais(iso: string | null, locale: string): string | null {
   if (!iso) return null;
   try {
@@ -51,11 +57,17 @@ function ubicacion(row: ApiAccesoUsuario, locale: string): string {
   return partes.length ? partes.join(", ") : "—";
 }
 
+/** `dispositivo` (mobile/desktop/tablet) siempre llega, pero navegador y SO
+    pueden faltar (p. ej. un login sin user-agent): se arma la frase con lo
+    que haya, sin dejar un "· " colgando. */
 function dispositivo(row: ApiAccesoUsuario): string {
   const partes = [row.navegador, row.sistemaOperativo].filter(Boolean);
   return partes.length ? `${row.dispositivo || "—"} · ${partes.join(" / ")}` : row.dispositivo || "—";
 }
 
+/** `es-ES`/`en-GB` fijos a propósito: el locale del panel es "es"/"en" sin
+    país, y DateTimeFormat con solo el idioma usa el formato de EE. UU.
+    (mm/dd) para "en", que no es lo que espera nadie acá. */
 function fmtFechaHora(iso: string, locale: string): string {
   try {
     return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "es-ES", {
@@ -105,6 +117,9 @@ export default function AccesosPage() {
     { dias: RESUMEN_DIAS, total: 0, fallidos: 0, exitosos: 0, paisesDistintos: 0 } as ApiAccesosResumen
   );
 
+  /* <Pagination> espera {pagina, totalPaginas, total, desde, hasta, irA}
+     (ver usePaginacion), pero acá no hay un array completo que recortar:
+     se arma el mismo contrato a mano con lo que ya pagino el backend. */
   const paginacion: PaginationProps = useMemo(() => {
     const p = pagina.pagination;
     return {
@@ -158,6 +173,8 @@ export default function AccesosPage() {
               onChange={setSearch}
               placeholder={t("accesos.searchPlaceholder")}
             />
+            {/* El backend solo filtra por "soloFallidos" (booleano): no hay
+                un "soloExitosos" propio, así que el select es binario. */}
             <FilterSelect
               icon="shield"
               label={t("accesos.filterEstado")}
@@ -198,6 +215,9 @@ export default function AccesosPage() {
               <tr key={row.id}>
                 <td>{fmtFechaHora(row.createdAt, locale)}</td>
                 <td>{row.email}</td>
+                {/* Tag en vez de RoleBadge: los clientes finales también
+                    inician sesión por acá y CLIENT no es uno de los roles
+                    que RoleBadge sabe pintar. */}
                 <td>{row.user ? <Tag>{row.user.role}</Tag> : "—"}</td>
                 <td>
                   <Badge kind={row.exito ? "activo" : "cancelado"}>
