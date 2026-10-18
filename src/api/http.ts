@@ -37,6 +37,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...((init.headers as Record<string, string>) || {}),
   };
 
+  /* Si API_URL estuviera vacía (NEXT_PUBLIC_API_URL sin definir en el
+     build), esto sería una petición relativa al propio panel y la
+     respuesta, el 404 de Next en HTML. Por eso config.ts avisa por
+     consola al arrancar en el navegador. */
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers,

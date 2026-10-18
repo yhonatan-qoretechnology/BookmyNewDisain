@@ -10,13 +10,11 @@
 import { memo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { SedeOpcion } from "@/models";
-import { resumenHorario } from "@/constants";
+import { IMG_BASE_URL, resumenHorario } from "@/constants";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
 import styles from "./booking.module.css";
-
-const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https://bookmy.es/";
 
 /* Lazy Loading del mapa: el SDK de Maps solo existe en cliente */
 const SedeMap = dynamic(() => import("./SedeMap"), {
