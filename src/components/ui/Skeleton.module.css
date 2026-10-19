@@ -1,0 +1,135 @@
+/* ============================================================
+   Skeleton — placeholders de carga para los loading.tsx
+   ------------------------------------------------------------
+   Los contenedores (panel, statGrid, cardGrid) reutilizan las
+   clases reales de cada componente, así el esqueleto ocupa el
+   mismo espacio que la vista y no hay salto al montar.
+============================================================ */
+.root {
+  --sk-base: #e8f0ec;
+  --sk-shine: rgba(255, 255, 255, .75);
+  display: flex; flex-direction: column; gap: 20px;
+  /* Entra con un leve retraso: en navegaciones rápidas no llega a
+     verse y se evita el parpadeo esqueleto → contenido. */
+  animation: skIn var(--t-med) var(--ease) .12s both;
+}
+:global([data-theme="dark"]) .root {
+  --sk-base: rgba(255, 255, 255, .06);
+  --sk-shine: rgba(255, 255, 255, .06);
+}
+
+@keyframes skIn { from { opacity: 0; } to { opacity: 1; } }
+
+.bone {
+  position: relative; overflow: hidden;
+  display: block; flex: none;
+  background: var(--sk-base);
+  border-radius: var(--r-sm);
+}
+/* El brillo se mueve con transform (compositor), no con
+   background-position, para no repintar en cada frame. */
+.bone::after {
+  content: ""; position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--sk-shine), transparent);
+  animation: skShine 1.4s ease-in-out infinite;
+}
+@keyframes skShine { to { transform: translateX(100%); } }
+
+.circle { border-radius: 50%; }
+.pill   { border-radius: 999px; }
+
+/* ── Bloques compuestos ──────────────────────────────────── */
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 16px; }
+.headText { display: flex; flex-direction: column; gap: 8px; }
+
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.toolbarGroup { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.stat { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.statIcon { position: absolute; top: -20px; left: 20px; border-radius: var(--r-lg); }
+.statFooter { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 12px; }
+
+.table { display: flex; flex-direction: column; }
+.tr {
+  display: grid; align-items: center; gap: 16px;
+  grid-template-columns: var(--sk-cols);
+  padding: 14px 4px; border-bottom: 1px solid var(--border);
+}
+.tr:last-child { border-bottom: none; }
+.th { padding-top: 4px; }
+.person { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.card { display: flex; flex-direction: column; gap: 10px; }
+.cardTags { display: flex; gap: 7px; margin-top: 6px; }
+
+.calHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.calGrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.calCell { aspect-ratio: 1.25; width: 100%; border-radius: var(--r-md); }
+
+.chart { display: flex; align-items: flex-end; gap: 10px; height: 200px; padding-top: 8px; }
+.chart > * { flex: 1; }
+
+.field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: none; }
+
+/* Grillas de página */
+.cols2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.cols4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.sideMain { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; }
+
+/* Comunicación: lista de canales + chat */
+.chatWrap {
+  display: grid; grid-template-columns: 320px minmax(0, 1fr);
+  min-height: calc(100vh - var(--topbar-h) - 80px);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-xl); box-shadow: var(--shadow-md); overflow: hidden;
+}
+.channels { border-right: 1px solid var(--border); padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.channelItem { display: flex; align-items: center; gap: 12px; padding: 10px 4px; }
+.chat { display: flex; flex-direction: column; }
+.chatHead { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.msgs { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 22px; }
+.msg { display: flex; align-items: flex-end; gap: 10px; }
+.msgOut { flex-direction: row-reverse; }
+.bubble { border-radius: 16px; }
+.composer { padding: 16px 22px; border-top: 1px solid var(--border); }
+
+/* Asistente de reserva */
+.steps { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.steps > .stepLine { flex: 1; }
+
+.flex1 { flex: 1; min-width: 0; }
+
+/* Texto solo para lectores de pantalla */
+.srOnly {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+@media (max-width: 1280px) {
+  .cols4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sideMain { grid-template-columns: 260px minmax(0, 1fr); }
+}
+@media (max-width: 1024px) {
+  .sideMain, .cols2 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .chatWrap { grid-template-columns: minmax(0, 1fr); }
+  .chat { display: none; }
+  .channels { border-right: none; }
+}
+@media (max-width: 600px) {
+  .cols4 { grid-template-columns: minmax(0, 1fr); }
+  /* En móvil la tabla se reduce a sus dos primeras columnas */
+  .tr { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  .tr > :nth-child(n + 3) { display: none; }
+  .calGrid { gap: 4px; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root { animation: none; }
+  .bone::after { animation: none; display: none; }
+}

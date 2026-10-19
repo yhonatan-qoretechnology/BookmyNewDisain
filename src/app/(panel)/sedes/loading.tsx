@@ -1,0 +1,13 @@
+/* Skeleton del listado de sedes */
+import { SkeletonPage, SkPanel, SkToolbar, SkCards } from "@/components/ui/Skeleton";
+
+export default function Loading() {
+  return (
+    <SkeletonPage>
+      <SkPanel>
+        <SkToolbar actions={1} />
+        <SkCards count={6} image />
+      </SkPanel>
+    </SkeletonPage>
+  );
+}
