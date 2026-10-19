@@ -9,8 +9,8 @@ import Link from "next/link";
 import Reveal from "@/components/web/Reveal";
 import { useWebT } from "@/components/web/useWebT";
 
-const ENDPOINT = "https://formsubmit.co/ajax/spartansbikers10@gmail.com";
-const CORREO = "spartansbikers10@gmail.com";
+const ENDPOINT = "https://formsubmit.co/ajax/contacto@bookmy.es";
+const CORREO = "contacto@bookmy.es";
 
 export default function ContactoPage() {
   const { w, locale } = useWebT();
