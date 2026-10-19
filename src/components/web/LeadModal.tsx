@@ -8,8 +8,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useWebT } from "./useWebT";
 
-const ENDPOINT = "https://formsubmit.co/ajax/spartansbikers10@gmail.com";
-const CORREO = "spartansbikers10@gmail.com";
+const ENDPOINT = "https://formsubmit.co/ajax/contacto@bookmy.es";
+const CORREO = "contacto@bookmy.es";
 
 interface Valor { abrir: (plan?: string) => void }
 const Ctx = createContext<Valor>({ abrir: () => {} });
