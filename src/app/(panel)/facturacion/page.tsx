@@ -22,7 +22,7 @@ import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
-import Toolbar, { SearchBox, FilterDate, FilterGroup, FilterSelect } from "@/components/ui/Toolbar";
+import Toolbar, { SearchBox, FilterDate, FilterGroup, FilterSelect, ToolbarActions } from "@/components/ui/Toolbar";
 import DataTable from "@/components/ui/DataTable";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Button, { IconButton } from "@/components/ui/Button";
@@ -31,6 +31,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
 import PlanProLock from "@/components/plan/PlanProLock";
 import FacturaViewModal from "@/components/facturacion/FacturaViewModal";
+import NuevaFacturaModal from "@/components/facturacion/NuevaFacturaModal";
 import { descargarFacturaPdf } from "@/components/facturacion/facturaPdf";
 import styles from "@/components/facturacion/facturacion.module.css";
 
@@ -49,6 +50,7 @@ export default function FacturacionPage() {
   const [fSedeId, setFSedeId] = useState("");
   const [ver, setVer] = useState<Factura | null>(null);
   const [bajando, setBajando] = useState<string | null>(null);
+  const [nuevaOpen, setNuevaOpen] = useState(false);
 
   /* Opciones de los selectores de empresa/sede, según el rol de la sesión */
   const { data: empresasOpt } = useData(
@@ -220,6 +222,9 @@ export default function FacturacionPage() {
             )}
             <FilterDate value={fFecha} onChange={setFFecha} label={t("common.date")} />
           </FilterGroup>
+          <ToolbarActions>
+            <Button onClick={() => setNuevaOpen(true)}>{t("facturacion.nuevaFactura")}</Button>
+          </ToolbarActions>
         </Toolbar>
 
         {lista.length === 0 ? (
@@ -271,6 +276,14 @@ export default function FacturacionPage() {
 
       {/* Popup: ver factura, imprimir y descargar PDF */}
       <FacturaViewModal factura={ver} emisor={emisor} onClose={() => setVer(null)} onActualizada={() => reload()} />
+
+      {/* Alta manual: para lo que no nace de una reserva por el asistente */}
+      <NuevaFacturaModal
+        open={nuevaOpen}
+        onClose={() => setNuevaOpen(false)}
+        session={session}
+        onCreated={() => { setNuevaOpen(false); void reload(); }}
+      />
     </>
   );
 }

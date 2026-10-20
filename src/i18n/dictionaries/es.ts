@@ -77,6 +77,7 @@ const es = {
     edit: "Editar",
     add: "Agregar",
     duration: "Duración",
+    change: "Cambiar",
   },
 
   roles: {
@@ -830,6 +831,26 @@ const es = {
     generando: "Generando PDF…",
     pdfListo: "Factura descargada",
     pdfError: "No se pudo generar el PDF",
+    /* Alta manual — ver NuevaFacturaModal */
+    nuevaFactura: "Crear factura",
+    nuevaTitulo: "Nueva factura",
+    nuevaEmpresaPlaceholder: "Elige la empresa",
+    nuevaSedePlaceholder: "Elige la sede",
+    nuevaClienteHint: "Escribe al menos 2 letras para buscar",
+    nuevaClientePlaceholder: "Nombre, correo o teléfono…",
+    nuevaServicioPlaceholder: "Elige el servicio",
+    nuevaTarifa: "Tarifa",
+    nuevaProfesionalPlaceholder: "Elige el profesional",
+    nuevaHora: "Hora",
+    metodoPago: "Método de pago",
+    efectivo: "Efectivo",
+    tarjeta: "Tarjeta",
+    numeroTarjeta: "Número de tarjeta",
+    vencimientoTarjeta: "Vencimiento (MM/AA)",
+    nuevaCrear: "Crear factura",
+    nuevaCreando: "Creando…",
+    nuevaCreada: "Factura creada",
+    nuevaError: "No se pudo crear la factura",
   },
 
   /* Servicios que presta cada profesional en una sede */

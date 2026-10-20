@@ -326,3 +326,31 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
 /* Botón "Quitar" de los adicionales: columna estrecha que no sale al imprimir */
 .quitarCol { width: 1%; white-space: nowrap; text-align: right; }
 @media print { .quitarCol { display: none; } }
+
+/* ── NuevaFacturaModal ───────────────────────────────────── */
+.filaDoble { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 480px) { .filaDoble { grid-template-columns: 1fr; } }
+
+.clienteElegido {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  background: var(--teal-50); font-size: 13.5px; font-weight: 600; color: var(--navy-900);
+}
+.clienteElegido button {
+  flex: none; border: none; background: none; cursor: pointer;
+  font-size: 12.5px; font-weight: 700; color: var(--teal-700);
+}
+:global([data-theme="dark"]) .clienteElegido { background: rgba(15,207,174,.1); }
+
+.clienteResultados {
+  list-style: none; margin: 6px 0 0; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  max-height: 180px; overflow-y: auto;
+}
+.clienteResultados li + li { border-top: 1px solid var(--border); }
+.clienteResultados button {
+  width: 100%; text-align: left; padding: 9px 12px;
+  border: none; background: var(--surface); cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--navy-900);
+}
+.clienteResultados button:hover { background: var(--hover-surface); }

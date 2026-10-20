@@ -54,6 +54,7 @@ const en: Dictionary = {
     edit: "Edit",
     add: "Add",
     duration: "Duration",
+    change: "Change",
   },
 
   roles: {
@@ -781,6 +782,26 @@ const en: Dictionary = {
     generando: "Generating PDF…",
     pdfListo: "Invoice downloaded",
     pdfError: "The PDF could not be generated",
+    /* Manual create — see NuevaFacturaModal */
+    nuevaFactura: "Create invoice",
+    nuevaTitulo: "New invoice",
+    nuevaEmpresaPlaceholder: "Choose the company",
+    nuevaSedePlaceholder: "Choose the branch",
+    nuevaClienteHint: "Type at least 2 letters to search",
+    nuevaClientePlaceholder: "Name, email or phone…",
+    nuevaServicioPlaceholder: "Choose the service",
+    nuevaTarifa: "Rate",
+    nuevaProfesionalPlaceholder: "Choose the professional",
+    nuevaHora: "Time",
+    metodoPago: "Payment method",
+    efectivo: "Cash",
+    tarjeta: "Card",
+    numeroTarjeta: "Card number",
+    vencimientoTarjeta: "Expiry (MM/YY)",
+    nuevaCrear: "Create invoice",
+    nuevaCreando: "Creating…",
+    nuevaCreada: "Invoice created",
+    nuevaError: "The invoice could not be created",
   },
 
   /* Services each professional offers at a branch */

@@ -16,8 +16,12 @@
 ============================================================ */
 import type { Session } from "@/models";
 import { fotoUrl } from "@/constants";
-import { CategoriasGastoApi, EmpresasApi, GastosApi, PaymentsApi, SedesApi } from "@/api/modules";
-import type { ApiGasto, ApiPaymentFiltered } from "@/api/types";
+import {
+  AppointmentsApi, CategoriasGastoApi, EmpresasApi, GastosApi,
+  PaymentsApi, ProfesionalesApi, SedesApi, ServicesApi,
+} from "@/api/modules";
+import type { ApiGasto, ApiPaymentFiltered, ApiPaymentMethod, ApiPrice, ApiProfesional, ApiService } from "@/api/types";
+import { BookingController } from "./BookingController";
 
 /* ============================================================
    Tipos
@@ -348,6 +352,85 @@ export const FacturasController = {
     const cobrado = lista.filter((f) => f.estado === "pagado").reduce((s, f) => s + f.total, 0);
     const pendiente = lista.filter((f) => f.estado === "pendiente").reduce((s, f) => s + f.total, 0);
     return { emitidas: lista.length, total, cobrado, pendiente };
+  },
+
+  /**
+   * Factura manual: no todo lo cobrado pasa por el asistente de reservas
+   * (un cliente sin cita previa, algo que se cobró fuera del sistema y hay
+   * que dejar registrado…). No existe un endpoint de "factura suelta": se
+   * crea la cita que la origina — en el mismo instante, ya COMPLETED — y
+   * el backend genera su Payment automáticamente (igual que la reserva
+   * normal, ver AppointmentService.create → PaymentService.createPayment).
+   * `fecha`/`hora` son locales (no UTC): el patrón `${fecha}T${hora}:00.000Z`
+   * es el mismo que usa BookingWizardController, para que la hora que se
+   * ve en el formulario sea la misma que queda guardada.
+   */
+  async crear(input: {
+    sedeId: string;
+    clienteId: string;
+    servicioId: string;
+    profesionalId: string;
+    fecha: string;       // yyyy-mm-dd
+    hora: string;        // HH:mm
+    duracion: number;    // minutos
+    precio: number;
+    metodoPago: "efectivo" | "tarjeta";
+    tarjeta?: { numero: string; vencimiento: string; cvv: string };
+  }): Promise<{ id: number }> {
+    const [hh, mm] = input.hora.split(":").map(Number);
+    const finMin = hh * 60 + mm + input.duracion;
+    const horaFin = `${String(Math.floor(finMin / 60)).padStart(2, "0")}:${String(finMin % 60).padStart(2, "0")}`;
+    const horaInicio = `${input.fecha}T${input.hora}:00.000Z`;
+
+    const paymentMethod: ApiPaymentMethod = input.metodoPago === "tarjeta" ? "CARD" : "CASH";
+
+    const creada = await AppointmentsApi.create({
+      fecha: horaInicio,
+      horaInicio,
+      horaFin: `${input.fecha}T${horaFin}:00.000Z`,
+      duracion: input.duracion,
+      estado: "COMPLETED",
+      sedeId: Number(input.sedeId),
+      serviceId: Number(input.servicioId),
+      profesionalId: Number(input.profesionalId),
+      userId: Number(input.clienteId),
+      paymentMethod,
+      paymentAmount: input.precio,
+      ...(paymentMethod === "CARD" && input.tarjeta
+        ? {
+            cardNumber: input.tarjeta.numero,
+            expiryDate: input.tarjeta.vencimiento,
+            cvv: input.tarjeta.cvv,
+          }
+        : {}),
+    });
+    return { id: creada.id };
+  },
+};
+
+/* ============================================================
+   NuevaFacturaController
+   Opciones del formulario de alta manual (sede → cliente/servicio/
+   profesional): reutiliza exactamente las mismas fuentes que el
+   asistente de reservas, para no duplicar reglas de alcance por rol.
+============================================================ */
+export const NuevaFacturaController = {
+  /** Cliente del negocio (o de toda la plataforma para superadmin). */
+  buscarClientes(query: string, empresaId?: string) {
+    return BookingController.searchClientes(query, empresaId);
+  },
+
+  async servicios(sedeId: string, language = "es"): Promise<ApiService[]> {
+    return ServicesApi.findBySede(Number(sedeId), language).catch(() => []);
+  },
+
+  async profesionales(sedeId: string): Promise<ApiProfesional[]> {
+    return ProfesionalesApi.findBySede(Number(sedeId)).catch(() => []);
+  },
+
+  /** Tarifas del servicio elegido, para que el formulario sugiera precio/duración. */
+  precios(servicio: ApiService): ApiPrice[] {
+    return servicio.prices || [];
   },
 };
 
