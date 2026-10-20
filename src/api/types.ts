@@ -539,6 +539,65 @@ export interface ApiAccesosResumen {
   paisesDistintos: number;
 }
 
+/* ── Monitoreo manual de Bookmy CRM Pro ─────────────────── */
+export type ApiEstadoPagoPlan = "PENDIENTE" | "PAGADO" | "VENCIDO";
+
+export interface ApiEmpresaPlanPago {
+  id: number;
+  empresaId: number;
+  monto: number;
+  vence: string;
+  pagadoEn: string | null;
+  estado: ApiEstadoPagoPlan;
+  notificado: boolean;
+  createdAt: string;
+  empresa?: { id: number; nombre: string };
+}
+
+export interface ApiEmpresaPlanPagosPage {
+  items: ApiEmpresaPlanPago[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface ApiEmpresaPlanPagosResumen {
+  pendientes: number;
+  vencidas: number;
+  pagadasEsteMes: number;
+}
+
+/* ── Liquidaciones Wise (scaffold) ───────────────────────── */
+export type ApiEstadoLiquidacionWise = "PENDIENTE" | "ENVIADA" | "COMPLETADA" | "FALLIDA";
+
+export interface ApiLiquidacionWise {
+  id: number;
+  empresaId: number;
+  monto: number;
+  moneda: string;
+  estado: ApiEstadoLiquidacionWise;
+  createdAt: string;
+  empresa?: { id: number; nombre: string };
+}
+
+/* ── Telemetría del panel/web + distribución de la app ──── */
+export interface ApiTelemetriaResumen {
+  dias: number;
+  pageviews: number;
+  appSessions: number;
+  visitantesDistintos: number;
+  paisesDistintos: number;
+}
+
+export interface ApiRankingPagina {
+  ruta: string;
+  visitas: number;
+}
+
+export interface ApiDistribucionPlataforma {
+  plataforma: string | null;
+  pais: string | null;
+  sesiones: number;
+}
+
 /** GET /categories?language= (CategoryTranslation resuelta) */
 export interface ApiCategory {
   id: number;

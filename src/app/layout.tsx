@@ -7,6 +7,7 @@ import { I18nProvider } from "@/i18n";
 import { RegionProvider } from "@/context/RegionContext";
 import { ReservaPopupProvider } from "@/components/reservas/ReservaPopupContext";
 import { BookingProvider } from "@/context/BookingContext";
+import PageviewTracker from "@/components/telemetry/PageviewTracker";
 import "@/styles/globals.css";
 
 /* Plus Jakarta para todo, que es la tipografia del producto.
@@ -71,7 +72,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   {/* Estado global del asistente de reservas (empresa, sede,
                       cliente, profesional, servicio, fecha, hora, pago) */}
                   <BookingProvider>
-                    <ReservaPopupProvider>{children}</ReservaPopupProvider>
+                    <ReservaPopupProvider>
+                      <PageviewTracker />
+                      {children}
+                    </ReservaPopupProvider>
                   </BookingProvider>
                 </UiProvider>
               </RegionProvider>

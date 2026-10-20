@@ -8,6 +8,8 @@ import { EP } from "./endpoints";
 import type {
   ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
+  ApiDistribucionPlataforma, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
+  ApiEstadoPagoPlan, ApiLiquidacionWise, ApiRankingPagina, ApiTelemetriaResumen,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
@@ -237,6 +239,26 @@ export const EmpresasApi = {
   desbloquear: (id: number) => http.patch<ApiEmpresa>(EP.empresaDesbloquear(id)),
   /** DELETE /empresas/:id — solo SUPER_ADMIN; el resto recibe 403. */
   remove: (id: number) => http.delete(EP.empresaById(id)),
+
+  /**
+   * Monitoreo manual de Bookmy CRM Pro: no hay cobro automático todavía
+   * (PlanService.PRO_SE_OFRECE), así que el SUPER_ADMIN carga cada
+   * vencimiento a mano y el backend avisa por email cuando se pasa la fecha.
+   */
+  planPagos: {
+    /** GET /empresas/plan-pagos?estado&page&limit — oversight global. */
+    listarTodas: (params?: { estado?: ApiEstadoPagoPlan; page?: number; limit?: number }) =>
+      http.get<ApiEmpresaPlanPagosPage>(EP.planPagosTodos + qs(params as Record<string, string | number | undefined>)),
+    resumen: () => http.get<ApiEmpresaPlanPagosResumen>(EP.planPagosResumen),
+    /** PATCH /empresas/plan-pagos/:id/marcar-pagado */
+    marcarPagado: (pagoId: number) => http.patch<ApiEmpresaPlanPago>(EP.planPagoMarcarPagado(pagoId)),
+    /** POST /empresas/:id/plan-pagos — registra un cobro para una empresa. */
+    crear: (empresaId: number, data: { monto: number; vence: string }) =>
+      http.post<ApiEmpresaPlanPago>(EP.empresaPlanPagosCrear(empresaId), data),
+    /** GET /empresas/:id/plan-pagos — de una sola empresa. */
+    listarDeEmpresa: (empresaId: number) =>
+      http.get<ApiEmpresaPlanPago[]>(EP.empresaPlanPagos(empresaId)),
+  },
 };
 
 /* ── Verificación del negocio (KYC) ─────────────────────────
@@ -844,4 +866,36 @@ export const StockApi = {
     estado: "APROBADA" | "RECHAZADA",
     empresaId?: number,
   ) => http.patch<ApiSolicitudInventario>(EP.stockSolicitudById(id), { estado, empresaId }),
+};
+
+/**
+ * Liquidaciones a negocios vía Wise — Bookmy les paga/liquida fondos, no
+ * cobra tarjetas de clientes. Scaffold: sin WISE_API_KEY/URL/PROFILE_ID
+ * en el backend, el registro queda en PENDIENTE sin llamar a Wise.
+ */
+export const WiseApi = {
+  crear: (data: { empresaId: number; monto: number; moneda?: string }) =>
+    http.post<ApiLiquidacionWise>(EP.wiseLiquidaciones, data),
+  listar: (empresaId?: number) =>
+    http.get<ApiLiquidacionWise[]>(EP.wiseLiquidaciones + qs({ empresaId })),
+};
+
+/**
+ * Telemetría del panel/web pública de bookmy-next + apertura de la app
+ * móvil como proxy de distribución por plataforma (el conteo real de
+ * descargas necesita credenciales de App Store/Play que no existen).
+ */
+export const TelemetriaApi = {
+  /** POST /telemetria/pageview — público, lo llama PageviewTracker. */
+  pageview: (data: { ruta: string; sesionId: string }) =>
+    http.post<void>(EP.telemetriaPageview, data),
+  /** POST /telemetria/app-session — lo llamaría la app móvil al abrir. */
+  appSession: (data: { plataforma: "ios" | "android" }) =>
+    http.post<void>(EP.telemetriaAppSession, data),
+  resumen: (dias?: number) =>
+    http.get<ApiTelemetriaResumen>(EP.telemetriaResumen + qs({ dias })),
+  paginasMasVistas: (dias?: number, limit?: number) =>
+    http.get<ApiRankingPagina[]>(EP.telemetriaPaginasMasVistas + qs({ dias, limit })),
+  distribucionPlataformas: (dias?: number) =>
+    http.get<ApiDistribucionPlataforma[]>(EP.telemetriaDistribucionPlataformas + qs({ dias })),
 };

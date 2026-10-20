@@ -75,6 +75,14 @@ export const EP = {
   /** PATCH sin cuerpo — devuelve el acceso. Solo SUPER_ADMIN. */
   empresaDesbloquear: (id: number) => `/empresas/${id}/desbloquear`,
 
+  /* Monitoreo manual de Bookmy CRM Pro (no hay cobro automático todavía).
+     "plan-pagos" va antes de /empresas/:id en el backend. */
+  planPagosTodos: "/empresas/plan-pagos",
+  planPagosResumen: "/empresas/plan-pagos/resumen",
+  planPagoMarcarPagado: (pagoId: number) => `/empresas/plan-pagos/${pagoId}/marcar-pagado`,
+  empresaPlanPagosCrear: (empresaId: number) => `/empresas/${empresaId}/plan-pagos`,
+  empresaPlanPagos: (empresaId: number) => `/empresas/${empresaId}/plan-pagos`,
+
   /* @Controller('sedes') */
   sedes: "/sedes",
   sedeById: (id: number) => `/sedes/${id}`,
@@ -179,6 +187,17 @@ export const EP = {
   /* @Controller('backup') — solo SUPER_ADMIN */
   backup: "/backup",
   backupResumen: "/backup/resumen",
+
+  /* @Controller('wise/liquidaciones') — solo SUPER_ADMIN, scaffold sin credenciales */
+  wiseLiquidaciones: "/wise/liquidaciones",
+  wiseLiquidacionById: (id: number) => `/wise/liquidaciones/${id}`,
+
+  /* @Controller('telemetria') — pageview/app-session públicos, el resto SUPER_ADMIN */
+  telemetriaPageview: "/telemetria/pageview",
+  telemetriaAppSession: "/telemetria/app-session",
+  telemetriaResumen: "/telemetria/resumen",
+  telemetriaPaginasMasVistas: "/telemetria/paginas-mas-vistas",
+  telemetriaDistribucionPlataformas: "/telemetria/distribucion-plataformas",
 
   festivos: "/festivos",
   /* Qué país/región/municipio se le está aplicando a una sede */

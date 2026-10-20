@@ -29,6 +29,12 @@ export const ROUTES = {
   verificacion: "/verificacion",
   /** Auditoría de login (IP, país, dispositivo) — solo SUPER_ADMIN */
   accesos: "/accesos",
+  /** Monitoreo manual de Bookmy CRM Pro (vencimientos + avisos) — solo SUPER_ADMIN */
+  planMonitoreo: "/plan-monitoreo",
+  /** Telemetría del panel/web + distribución de la app — solo SUPER_ADMIN */
+  telemetria: "/telemetria",
+  /** Liquidaciones a negocios vía Wise (scaffold) — solo SUPER_ADMIN */
+  liquidaciones: "/liquidaciones",
 } as const;
 
 /** Vista de edición de una sede (Datos + Imágenes) — reemplaza el
@@ -151,6 +157,9 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
     { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
     { id: "accesos", label: "Seguimiento y Control", href: ROUTES.accesos, icon: "shield" },
+    { id: "planMonitoreo", label: "Monitoreo Pro", href: ROUTES.planMonitoreo, icon: "clock" },
+    { id: "telemetria", label: "Telemetría", href: ROUTES.telemetria, icon: "barChart" },
+    { id: "liquidaciones", label: "Liquidaciones Wise", href: ROUTES.liquidaciones, icon: "wallet" },
     { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
     { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
   ],
