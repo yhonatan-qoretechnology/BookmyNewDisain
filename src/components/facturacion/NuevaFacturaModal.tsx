@@ -166,7 +166,7 @@ export default function NuevaFacturaModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} contentScroll maxWidth={560}>
+    <Modal open={open} onClose={onClose} maxWidth={560}>
       <ModalTitle>{t("facturacion.nuevaTitulo")}</ModalTitle>
 
       {esSuperadmin && (
