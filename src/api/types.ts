@@ -230,6 +230,8 @@ export interface ApiProfesional {
   nombre: string;
   biografia?: string | null;
   imagen?: string | null;
+  /** Ruta relativa del PDF/doc de la hoja de vida (fotoUrl() la resuelve igual que `imagen`). */
+  hojaVidaUrl?: string | null;
   phone?: string;
   state?: string;
   sedeId: number;
@@ -598,6 +600,19 @@ export interface ApiDistribucionPlataforma {
   sesiones: number;
 }
 
+/* ── Cómo cobra online el negocio (Wise o banco) ─────────── */
+export type ApiMetodoCobroOnline = "WISE" | "BANCO";
+
+export interface ApiEmpresaCuentaPago {
+  id: number;
+  empresaId: number;
+  metodo: ApiMetodoCobroOnline;
+  wiseEmail: string | null;
+  bancoTitular: string | null;
+  bancoNumero: string | null;
+  bancoTipoCuenta: string | null;
+}
+
 /** GET /categories?language= (CategoryTranslation resuelta) */
 export interface ApiCategory {
   id: number;
@@ -908,6 +923,9 @@ export interface ApiPaymentItem {
   concepto: string;
   cantidad: number;
   precioUnitario: number;
+  /** ISO 4217 ("EUR"/"USD") solo si se cobró en una moneda distinta a la
+      del negocio; null = la moneda de la factura. */
+  moneda?: string | null;
 }
 
 /**

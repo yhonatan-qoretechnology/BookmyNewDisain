@@ -14,6 +14,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import ImageUpload from "@/components/ui/ImageUpload";
 import CopiaSeguridad from "@/components/configuracion/CopiaSeguridad";
+import CuentaPago from "@/components/configuracion/CuentaPago";
 import styles from "./configuracion.module.css";
 
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -188,6 +189,10 @@ export default function ConfiguracionPage() {
             </select>
           </div>
         </Panel>
+
+        {/* Cómo cobra online el negocio: solo el dueño la gestiona (es de
+            toda la empresa, no de una sede) — mismo alcance que el backend. */}
+        {session?.role === "owner" && <CuentaPago />}
 
         {/* La copia de seguridad lleva los datos de todas las empresas:
             solo el superadmin, igual que en el backend. */}

@@ -32,6 +32,7 @@ import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import { PersonRow } from "@/components/ui/People";
 import ImageUpload from "@/components/ui/ImageUpload";
+import DocumentUpload from "@/components/ui/DocumentUpload";
 import styles from "./personal.module.css";
 
 /** Correo sugerido a partir del nombre: "Ana Ruiz" → "ana.ruiz" */
@@ -112,7 +113,7 @@ export default function PersonalPage() {
       /* Mostrar el correo que generó el backend + la contraseña que
          se envió, para que el admin se la entregue al profesional. */
       setAccesoDe({
-        id: 0, nombre: nombreCreado, rol: "", foto: null, sede: "", sedeId: "",
+        id: 0, nombre: nombreCreado, rol: "", foto: null, hojaVida: null, sede: "", sedeId: "",
         telefono: "", reservas: 0, activo: true, tieneAcceso: true, accesoEmail: email,
       });
       setCredenciales({ email, password });
@@ -148,6 +149,16 @@ export default function PersonalPage() {
     const actualizado = await ImagenesApi.profesional(Number(empleado.id), file);
     const ruta = actualizado?.imagen ?? null;
     setEditando((prev) => (prev ? { ...prev, foto: ruta } : prev));
+    await reload();
+    toast(t("imagen.actualizada"), "success");
+    return ruta;
+  };
+
+  /** PATCH /profesionales/:id/hoja-vida (multipart, campo "hojaVida"). */
+  const subirHojaVidaProfesional = async (empleado: Empleado, file: File) => {
+    const actualizado = await ImagenesApi.profesionalHojaVida(Number(empleado.id), file);
+    const ruta = actualizado?.hojaVidaUrl ?? null;
+    setEditando((prev) => (prev ? { ...prev, hojaVida: ruta } : prev));
     await reload();
     toast(t("imagen.actualizada"), "success");
     return ruta;
@@ -404,6 +415,14 @@ export default function PersonalPage() {
             label={t("imagen.fotoProfesional")}
             hint={t("imagen.hint")}
             onUpload={(file) => subirFotoProfesional(editando, file)}
+          />
+        )}
+        {editando && (
+          <DocumentUpload
+            value={editando.hojaVida}
+            label={t("personal.hojaVida")}
+            hint={t("personal.hojaVidaHint")}
+            onUpload={(file) => subirHojaVidaProfesional(editando, file)}
           />
         )}
         <Field label={t("common.fullName")} htmlFor="ep-nombre">

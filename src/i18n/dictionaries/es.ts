@@ -868,6 +868,7 @@ const es = {
   facturacion: {
     anadirAdicionales: "Añadir adicionales",
     adicionalConcepto: "Concepto (ej. recubrimiento en gel)",
+    adicionalMoneda: "Moneda del adicional",
     adicionalAnadido: "Adicional añadido y total actualizado",
     adicionalInvalido: "Escribe un concepto, una cantidad y un precio válidos",
     adicionalError: "No se pudo añadir el adicional",
@@ -970,6 +971,12 @@ const es = {
     errTipo: "El archivo debe ser una imagen (JPG, PNG, WEBP o GIF).",
     errPeso: "La imagen supera 10 MB. Elige una más liviana.",
     errSubida: "No se pudo subir la imagen.",
+    /* DocumentUpload — hoja de vida y otros documentos (no imágenes) */
+    errTipoDoc: "El archivo debe ser PDF o Word (.doc/.docx).",
+    sinDocumento: "Sin archivo",
+    verDocumento: "Ver documento",
+    subirDocumento: "Subir",
+    cambiarDocumento: "Cambiar",
   },
 
   gastos: {
@@ -1272,6 +1279,8 @@ const es = {
     editTitle: "Editar integrante",
     editAria: "Editar a {nombre}",
     updated: "Integrante actualizada",
+    hojaVida: "Hoja de vida",
+    hojaVidaHint: "PDF o Word · hasta 10 MB",
     /* Acceso al panel (usuario + contraseña) */
     access: "Acceso",
     hasAccess: "Con acceso",
@@ -1706,6 +1715,22 @@ const es = {
     logoutConfirmTitle: "Cerrar sesión",
     logoutConfirmMsg: "¿Seguro que quieres salir del panel?",
     logoutBtn: "Cerrar sesión",
+    /* Cómo cobra online el negocio — ver CuentaPago.tsx */
+    cuentaTitle: "Cobros online",
+    cuentaSub: "Cómo te liquida Bookmy: Wise o cuenta bancaria",
+    cuentaMetodo: "Método",
+    cuentaBanco: "Cuenta bancaria",
+    cuentaWiseEmail: "Email de la cuenta Wise",
+    cuentaTitular: "Titular de la cuenta",
+    cuentaNumeroES: "IBAN",
+    cuentaNumeroCO: "Número de cuenta",
+    cuentaTipo: "Tipo de cuenta",
+    cuentaAhorros: "Ahorros",
+    cuentaCorriente: "Corriente",
+    cuentaFaltaWise: "Escribe el email de la cuenta Wise",
+    cuentaFaltaBanco: "Completa el titular y el número de cuenta",
+    cuentaGuardando: "Guardando…",
+    cuentaGuardada: "Datos de cobro guardados",
   },
 
   /* Extender una cita en curso y resolver conflictos */

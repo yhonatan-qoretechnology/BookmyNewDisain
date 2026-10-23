@@ -82,6 +82,8 @@ export const EP = {
   planPagoMarcarPagado: (pagoId: number) => `/empresas/plan-pagos/${pagoId}/marcar-pagado`,
   empresaPlanPagosCrear: (empresaId: number) => `/empresas/${empresaId}/plan-pagos`,
   empresaPlanPagos: (empresaId: number) => `/empresas/${empresaId}/plan-pagos`,
+  /** Cómo cobra online el negocio (Wise o banco) — GET/POST, lo gestiona su dueño. */
+  empresaCuentaPago: (empresaId: number) => `/empresas/${empresaId}/cuenta-pago`,
 
   /* @Controller('sedes') */
   sedes: "/sedes",
@@ -105,6 +107,8 @@ export const EP = {
   profesionalDetalle: (id: number) => `/profesionales/${id}/detalle`,
   /** PATCH multipart — campo "imagen". Devuelve el Profesional actualizado. */
   profesionalImagen: (id: number) => `/profesionales/${id}/imagen`,
+  /** PATCH multipart — campo "hojaVida" (PDF/Word). Devuelve el Profesional actualizado. */
+  profesionalHojaVida: (id: number) => `/profesionales/${id}/hoja-vida`,
   /** PATCH { email, password } — da acceso al panel a un profesional
       viejo que aún no tiene login (acceso.tieneAcceso === false). */
   profesionalVincularAcceso: (id: number) => `/profesionales/${id}/vincular-acceso`,

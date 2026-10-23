@@ -46,6 +46,9 @@ export interface FacturaItem {
   concepto: string;
   cantidad: number;
   precio: number;
+  /** ISO 4217 ("EUR"/"USD") solo si esta línea se cobró en una moneda
+      distinta a la de la factura (`Factura.moneda`); si no, null. */
+  moneda?: string | null;
   /** id del payment_item cuando la línea es un adicional; la del servicio no lo lleva y no se puede quitar. */
   itemId?: number;
 }
@@ -172,7 +175,7 @@ function facturaDesdePago(p: ApiPaymentFiltered, language: string, moneda: strin
     items: (p.items && p.items.length > 0)
       ? [
           { concepto: servicio, cantidad: 1, precio: Number((total - p.items.reduce((s2, it) => s2 + it.cantidad * it.precioUnitario, 0)).toFixed(2)) },
-          ...p.items.map((it) => ({ concepto: it.concepto, cantidad: it.cantidad, precio: it.precioUnitario, itemId: it.id })),
+          ...p.items.map((it) => ({ concepto: it.concepto, cantidad: it.cantidad, precio: it.precioUnitario, moneda: it.moneda ?? null, itemId: it.id })),
         ]
       : [{ concepto: servicio, cantidad: 1, precio: total }],
   };
@@ -280,7 +283,7 @@ export const FacturasController = {
    */
   async anadirAdicional(
     apiId: number,
-    datos: { concepto: string; cantidad: number; precioUnitario: number },
+    datos: { concepto: string; cantidad: number; precioUnitario: number; moneda?: string },
   ): Promise<void> {
     await PaymentsApi.addItem(apiId, datos);
   },

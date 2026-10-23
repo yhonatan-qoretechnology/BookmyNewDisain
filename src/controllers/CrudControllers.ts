@@ -443,6 +443,7 @@ export const PersonalController = {
         rol: p.biografia || "Profesional",
         /* Misma fuente que el carrusel de profesionales del agendado */
         foto: p.imagen || null,
+        hojaVida: p.hojaVidaUrl || null,
         sede: nombreSede.get(String(p.sedeId)) || "—",
         sedeId: String(p.sedeId),
         telefono: p.phone || "",
@@ -466,6 +467,9 @@ export const PersonalController = {
       nombre: p.nombre,
       rol: p.biografia || "Profesional",
       foto: p.imagen || null,
+      /* ApiProfesionalDeSede no trae hojaVidaUrl: esta lista es para el
+         drill-down de Sedes, no para editar al profesional. */
+      hojaVida: null,
       sede: sedeNombre,
       sedeId: String(p.sedeId),
       telefono: p.phone || "",

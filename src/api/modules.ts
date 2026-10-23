@@ -8,8 +8,8 @@ import { EP } from "./endpoints";
 import type {
   ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
-  ApiDistribucionPlataforma, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
-  ApiEstadoPagoPlan, ApiLiquidacionWise, ApiRankingPagina, ApiTelemetriaResumen,
+  ApiDistribucionPlataforma, ApiEmpresaCuentaPago, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
+  ApiEstadoPagoPlan, ApiLiquidacionWise, ApiMetodoCobroOnline, ApiRankingPagina, ApiTelemetriaResumen,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
@@ -258,6 +258,24 @@ export const EmpresasApi = {
     /** GET /empresas/:id/plan-pagos — de una sola empresa. */
     listarDeEmpresa: (empresaId: number) =>
       http.get<ApiEmpresaPlanPago[]>(EP.empresaPlanPagos(empresaId)),
+  },
+
+  /** Cómo cobra online el negocio (Wise o banco). Lo carga su dueño en
+      Configuración, una vez; el backend hace upsert. */
+  cuentaPago: {
+    /** GET /empresas/:id/cuenta-pago — null si todavía no la cargó. */
+    obtener: (empresaId: number) =>
+      http.get<ApiEmpresaCuentaPago | null>(EP.empresaCuentaPago(empresaId)),
+    guardar: (
+      empresaId: number,
+      data: {
+        metodo: ApiMetodoCobroOnline;
+        wiseEmail?: string;
+        bancoTitular?: string;
+        bancoNumero?: string;
+        bancoTipoCuenta?: string;
+      },
+    ) => http.post<ApiEmpresaCuentaPago>(EP.empresaCuentaPago(empresaId), data),
   },
 };
 
@@ -542,8 +560,9 @@ export const PaymentsApi = {
   /* ── Adicionales de factura ── */
   /** GET /payments/:id/items */
   items: (id: number) => http.get<ApiPaymentItem[]>(EP.paymentItems(id)),
-  /** POST /payments/:id/items — devuelve la factura con el total ya recalculado. */
-  addItem: (id: number, data: { concepto: string; cantidad: number; precioUnitario: number }) =>
+  /** POST /payments/:id/items — devuelve la factura con el total ya recalculado.
+      `moneda` solo si este adicional se cobró en una distinta a la del negocio. */
+  addItem: (id: number, data: { concepto: string; cantidad: number; precioUnitario: number; moneda?: string }) =>
     http.post<ApiPayment>(EP.paymentItems(id), data),
   /** DELETE /payments/items/:itemId — devuelve la factura con el total recalculado. */
   removeItem: (itemId: number) => http.delete<ApiPayment>(EP.paymentItemById(itemId)),
@@ -651,6 +670,10 @@ export const ImagenesApi = {
   /** PATCH /profesionales/:id/imagen — campo "imagen". */
   profesional: (id: number, file: File) =>
     http.patchForm<ApiProfesional>(EP.profesionalImagen(id), formData("imagen", file)),
+
+  /** PATCH /profesionales/:id/hoja-vida — campo "hojaVida" (PDF/Word, hasta 10MB). */
+  profesionalHojaVida: (id: number, file: File) =>
+    http.patchForm<ApiProfesional>(EP.profesionalHojaVida(id), formData("hojaVida", file)),
 
   /** PATCH /empresas/:id/logo — campo "logo". */
   empresaLogo: (id: number, file: File) =>

@@ -39,16 +39,17 @@
 
 .formCol { display: flex; flex-direction: column; gap: 14px; }
 .formCol label { font-size: 12.5px; font-weight: 700; color: var(--navy-700); display: block; margin-bottom: 6px; }
-.formCol input {
+.formCol input, .formCol select {
   width: 100%; padding: 11px 13px;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   font-size: 13.5px; outline: none;
   background: var(--input-bg); color: var(--navy-900);
 }
-.formCol input:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(15,207,174,.12); }
+.formCol input:focus, .formCol select:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(15,207,174,.12); }
 :global([data-theme="dark"]) .formCol label { color: var(--slate-500); }
-:global([data-theme="dark"]) .formCol input { background: rgba(255,255,255,.05); border-color: var(--border); color: var(--navy-900); }
+:global([data-theme="dark"]) .formCol input,
+:global([data-theme="dark"]) .formCol select { background: rgba(255,255,255,.05); border-color: var(--border); color: var(--navy-900); }
 
 .dangerZone {
   border: 1px solid rgba(245,54,92,.3);

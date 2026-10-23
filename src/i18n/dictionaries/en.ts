@@ -825,6 +825,7 @@ const en: Dictionary = {
   facturacion: {
     anadirAdicionales: "Add extras",
     adicionalConcepto: "Item (e.g. gel coating)",
+    adicionalMoneda: "Extra's currency",
     adicionalAnadido: "Extra added and total updated",
     adicionalInvalido: "Enter a valid item, quantity and price",
     adicionalError: "The extra could not be added",
@@ -921,6 +922,12 @@ const en: Dictionary = {
     errTipo: "The file must be an image (JPG, PNG, WEBP or GIF).",
     errPeso: "The image is over 10 MB. Choose a lighter one.",
     errSubida: "The image could not be uploaded.",
+    /* DocumentUpload — CV and other non-image documents */
+    errTipoDoc: "The file must be PDF or Word (.doc/.docx).",
+    sinDocumento: "No file",
+    verDocumento: "View document",
+    subirDocumento: "Upload",
+    cambiarDocumento: "Change",
   },
 
   gastos: {
@@ -1209,6 +1216,8 @@ const en: Dictionary = {
     editTitle: "Edit team member",
     editAria: "Edit {nombre}",
     updated: "Team member updated",
+    hojaVida: "CV / Resume",
+    hojaVidaHint: "PDF or Word · up to 10 MB",
     /* Panel access (username + password) */
     access: "Access",
     hasAccess: "Has access",
@@ -1637,6 +1646,22 @@ const en: Dictionary = {
     logoutConfirmTitle: "Log out",
     logoutConfirmMsg: "Are you sure you want to leave the panel?",
     logoutBtn: "Log out",
+    /* How the business gets paid online — see CuentaPago.tsx */
+    cuentaTitle: "Online payouts",
+    cuentaSub: "How Bookmy pays you: Wise or bank account",
+    cuentaMetodo: "Method",
+    cuentaBanco: "Bank account",
+    cuentaWiseEmail: "Wise account email",
+    cuentaTitular: "Account holder",
+    cuentaNumeroES: "IBAN",
+    cuentaNumeroCO: "Account number",
+    cuentaTipo: "Account type",
+    cuentaAhorros: "Savings",
+    cuentaCorriente: "Checking",
+    cuentaFaltaWise: "Enter the Wise account email",
+    cuentaFaltaBanco: "Fill in the account holder and number",
+    cuentaGuardando: "Saving…",
+    cuentaGuardada: "Payout details saved",
   },
 
   /* Extending an in-progress appointment and resolving conflicts */

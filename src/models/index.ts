@@ -235,6 +235,8 @@ export interface Empleado {
   rol: string;
   /** Ruta de la foto del profesional (columna `imagen` del backend) */
   foto: string | null;
+  /** Ruta del PDF/doc de la hoja de vida (columna `hojaVidaUrl`) */
+  hojaVida: string | null;
   /** Nombre de la sede ya resuelto (o "—" si no se pudo resolver) */
   sede: string;
   sedeId: string;

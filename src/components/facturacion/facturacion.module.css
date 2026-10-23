@@ -315,12 +315,14 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
 
 /* Alta rápida de un concepto adicional, bajo la tabla de la factura. */
 .adicionalForm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0 4px; }
-.adicionalForm input { padding: 7px 10px; font-size: 13px; font-family: inherit;
+.adicionalForm input, .adicionalForm select { padding: 7px 10px; font-size: 13px; font-family: inherit;
   border: 1px solid var(--border); border-radius: var(--r-sm);
   background: var(--surface); color: var(--navy-900); min-width: 0; }
 .adicionalForm input:first-child { flex: 1 1 180px; }
 .adicionalForm input[type="number"] { width: 88px; }
-:global([data-theme="dark"]) .adicionalForm input {
+.adicionalForm select { width: 92px; }
+:global([data-theme="dark"]) .adicionalForm input,
+:global([data-theme="dark"]) .adicionalForm select {
   background: rgba(255,255,255,.04); border-color: var(--border); color: var(--navy-900); }
 
 /* Botón "Quitar" de los adicionales: columna estrecha que no sale al imprimir */
