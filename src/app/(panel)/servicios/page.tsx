@@ -5,7 +5,7 @@
    tarjetas de sus servicios. Al buscar, las categorías con
    coincidencias se abren solas.
 ============================================================ */
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Servicio } from "@/models";
 import { ServiciosController } from "@/controllers/CrudControllers";
 import { useData } from "@/hooks/useData";
@@ -20,61 +20,9 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
-import ImageUpload from "@/components/ui/ImageUpload";
 import ImageGallery from "@/components/ui/ImageGallery";
-import galleryStyles from "@/components/ui/ImageGallery.module.css";
+import ImagenesNuevas from "@/components/ui/ImagenesNuevas";
 import styles from "./servicios.module.css";
-
-/**
- * Imágenes elegidas ANTES de que el servicio exista todavía (alta).
- * No sube nada: guarda los File en memoria y los manda recién al crear
- * (ServiciosController.create los envía como multipart). Usa las mismas
- * clases que ImageGallery para verse igual que la galería de edición.
- */
-function ImagenesNuevas({
-  archivos,
-  onChange,
-}: {
-  archivos: File[];
-  onChange: (files: File[]) => void;
-}) {
-  const { t } = useI18n();
-  /* Un blob URL por archivo, memoizado: si no se recalcula así, cada
-     tecleo en el resto del modal (que re-renderiza este hijo con el
-     mismo array) generaría URLs nuevas sin liberar las anteriores. */
-  const urls = useMemo(() => archivos.map((f) => URL.createObjectURL(f)), [archivos]);
-  useEffect(() => () => { urls.forEach((u) => URL.revokeObjectURL(u)); }, [urls]);
-
-  return (
-    <div className={galleryStyles.wrap}>
-      <span className={galleryStyles.label}>{t("servicios.imagesLabel")}</span>
-      <div className={galleryStyles.grid}>
-        {archivos.map((file, i) => (
-          <figure key={`${file.name}-${i}`} className={galleryStyles.item}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={urls[i]} alt="" />
-            <button
-              type="button"
-              className={galleryStyles.quitar}
-              onClick={() => onChange(archivos.filter((_, idx) => idx !== i))}
-              title={t("common.delete")}
-              aria-label={`${t("common.delete")}: ${file.name}`}
-            >
-              <Icon name="x" />
-            </button>
-          </figure>
-        ))}
-        <ImageUpload
-          key={archivos.length}
-          variant="card"
-          value={null}
-          hint={t("imagen.hint")}
-          onUpload={(file) => { onChange([...archivos, file]); return Promise.resolve(null); }}
-        />
-      </div>
-    </div>
-  );
-}
 
 export default function ServiciosPage() {
   const { toast, confirm } = useUi();
@@ -321,7 +269,11 @@ export default function ServiciosPage() {
             onRemove={(ruta) => ServiciosController.borrarImagen(editando.id, ruta)}
           />
         ) : (
-          <ImagenesNuevas archivos={imagenesNuevas} onChange={setImagenesNuevas} />
+          <ImagenesNuevas
+            label={t("servicios.imagesLabel")}
+            archivos={imagenesNuevas}
+            onChange={setImagenesNuevas}
+          />
         )}
 
         <ModalActions>

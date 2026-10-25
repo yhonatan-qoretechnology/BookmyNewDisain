@@ -1063,6 +1063,9 @@ export interface ApiRankingVistas {
    Todo arranca vacío y a cero: un negocio recién creado no tiene
    nada hasta que lo da de alta. */
 
+/** Distintivo de la tarjeta del producto en la web (o ninguno: null). */
+export type ApiEtiquetaInsumo = "Nuevo" | "Top" | "Oferta";
+
 /** Fila de `insumos`. El catálogo es de la empresa, no de la plataforma. */
 export interface ApiInsumo {
   id: number;
@@ -1071,10 +1074,32 @@ export interface ApiInsumo {
   categoria: string;
   /** Unidad de medida: ud, bote, pack, caja… */
   unidad: string;
-  /** En la moneda del país del negocio */
+  /** En la moneda del país del negocio. En la web es el precio de venta. */
   precioRef: number;
+  /** Objetivo de existencias de las sedes que no tienen uno propio (10 al darlo de alta) */
+  maxPorDefecto: number;
   /** Un insumo retirado se archiva (activo: false), no se borra */
   activo: boolean;
+
+  /* ── Ficha para la web del negocio (GET /catalogo-web/:empresaId) ──
+     Opcionales: un backend anterior al catálogo web no los manda. */
+  /** Sale en el catálogo público */
+  publicadoWeb?: boolean;
+  subcategoria?: string | null;
+  marca?: string | null;
+  etiqueta?: ApiEtiquetaInsumo | null;
+  /** Texto corto de la tarjeta (hasta 500 caracteres) */
+  descripcion?: string | null;
+  /** Texto de la página del producto */
+  descripcionLarga?: string | null;
+  /** La primera es la principal. URL absoluta (espacio web) o "uploads/…" (disco local) */
+  imagenes?: string[];
+  /** Pares [nombre, valor]: hasta 20, cada texto hasta 120 caracteres */
+  especificaciones?: [string, string][] | null;
+  /** «Con opciones de capacidad y color» en la página del producto */
+  conVariantes?: boolean;
+  /** Orden en la web: ascendente y, sin número, al final */
+  ordenWeb?: number | null;
 }
 
 /**
@@ -1128,12 +1153,31 @@ export interface CreateInsumoDto {
   categoria?: string;
   unidad?: string;
   precioRef?: number;
+  maxPorDefecto?: number;
   /** Obligatorio para el superadmin, que no es de ningún negocio */
   empresaId?: number;
 }
 
+/** Ficha web de un insumo tal como la recibe PATCH. `null` borra el valor. */
+export interface FichaWebInsumoDto {
+  publicadoWeb?: boolean;
+  subcategoria?: string | null;
+  marca?: string | null;
+  etiqueta?: ApiEtiquetaInsumo | null;
+  descripcion?: string | null;
+  descripcionLarga?: string | null;
+  /** Sin especificaciones va [] y no null: es una columna JSON */
+  especificaciones?: [string, string][];
+  conVariantes?: boolean;
+  ordenWeb?: number | null;
+}
+
 /** Cuerpo de PATCH /stock/insumos/:id — parcial. */
-export type UpdateInsumoDto = Partial<CreateInsumoDto> & { activo?: boolean };
+export type UpdateInsumoDto = Partial<CreateInsumoDto> & FichaWebInsumoDto & {
+  activo?: boolean;
+  /** Reordena la galería (la primera es la principal) o pone URLs externas */
+  imagenes?: string[];
+};
 
 /** Cuerpo de POST /stock/solicitudes. Las líneas a 0 las descarta el backend. */
 export interface CreateSolicitudInventarioDto {

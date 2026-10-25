@@ -1,12 +1,15 @@
 /* ============================================================
    StockController — catálogo de insumos, existencias por sede y
    solicitudes de reposición (StockModule del backend).
-   GET/POST/PATCH/DELETE /stock/insumos · GET/PATCH /stock/sede/:id ·
+   GET/POST/PATCH/DELETE /stock/insumos · POST/DELETE
+   /stock/insumos/:id/imagenes · GET/PATCH /stock/sede/:id ·
    GET/POST/PATCH /stock/solicitudes
    ------------------------------------------------------------
    El catálogo es de cada EMPRESA y las existencias de cada SEDE, y
    todo arranca vacío: un negocio recién creado no ve nada hasta que
-   da de alta su primer insumo.
+   da de alta su primer insumo. Cada insumo lleva además su ficha
+   para la web del negocio (publicado, marca, descripciones, fotos…),
+   que es lo que sirve el catálogo público.
 
    Aquí se cruzan dos idiomas: el backend trabaja con ids numéricos y
    estados en MAYÚSCULAS, y el panel con ids de texto y estados en
@@ -14,13 +17,14 @@
    controlador— para que la vista siga leyendo los mismos modelos.
 ============================================================ */
 import type {
-  EstadoSolicitud, Insumo, NivelStock, Session, SolicitudInventario,
-  SolicitudItem, StockItem,
+  EstadoSolicitud, EtiquetaInsumo, Insumo, InsumoDatos, NivelStock, Session,
+  SolicitudInventario, SolicitudItem, StockItem,
 } from "@/models";
 import { StockApi } from "@/api/modules";
 import { ApiError } from "@/api/http";
 import type {
   ApiEstadoSolicitud, ApiInsumo, ApiSolicitudInventario, ApiStockSede,
+  FichaWebInsumoDto,
 } from "@/api/types";
 import { NegociosController } from "./NegociosController";
 
@@ -43,15 +47,124 @@ export function nivelDe(stock: number, max: number): NivelStock {
   return "ok";
 }
 
+/**
+ * Cantidad escrita en un input numérico: un número igual o mayor que 0.
+ * @returns null si está vacío o no lo es (el backend rechaza los negativos).
+ */
+export function cantidadDe(texto: string): number | null {
+  if (!texto.trim()) return null;
+  const n = Number(texto);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+/* Precios a la española: la coma es el decimal y el punto separa los miles */
+const PRECIO_CON_COMA = /^(\d+|[1-9]\d{0,2}(?:\.\d{3})+),(\d{1,2})$/; // 1.469,90 · 39,9
+const PRECIO_CON_MILES = /^[1-9]\d{0,2}(?:\.\d{3})+$/;                 // 1.469 · 12.500
+const PRECIO_CON_PUNTO = /^\d+(?:\.\d{1,2})?$/;                        // 1469 · 4.50
+
+/**
+ * Precio escrito a mano: «1.469,90», «39,90», «1.469 €» o «4.50». Con
+ * coma, la coma es el decimal y los puntos separan los miles; solo con
+ * puntos, «d.ddd» son miles y si no el punto es el decimal. Dos
+ * decimales como mucho.
+ * @returns 0 si está vacío, como en el alta de siempre; null si no es un precio.
+ */
+export function precioDe(texto: string): number | null {
+  if (!texto.trim()) return 0;
+  const limpio = texto.replace(/[\s€]/g, "");
+  const conComa = PRECIO_CON_COMA.exec(limpio);
+  if (conComa) return Number(`${conComa[1].replace(/\./g, "")}.${conComa[2]}`);
+  if (PRECIO_CON_MILES.test(limpio)) return Number(limpio.replace(/\./g, ""));
+  return PRECIO_CON_PUNTO.test(limpio) ? Number(limpio) : null;
+}
+
+/** Un precio escrito como lo lee precioDe: 1469.9 → «1.469,90» · 1469 → «1.469» · 4.5 → «4,50». */
+export function textoDePrecio(precio: number): string {
+  const [entero, decimales] = precio.toFixed(2).split(".");
+  const conMiles = entero.replace(/\B(?=(\d{3})+$)/g, ".");
+  return decimales === "00" ? conMiles : `${conMiles},${decimales}`;
+}
+
+/* ── Ficha web: valores y topes que admite el backend ─────── */
+
+/** Distintivos que entiende la web; se guardan tal cual */
+export const ETIQUETAS_INSUMO: readonly EtiquetaInsumo[] = ["Nuevo", "Top", "Oferta"];
+export const MAX_DESCRIPCION = 500;
+/** La columna es TEXT, pero el backend corta en 20.000 (y su aviso sale en inglés) */
+export const MAX_DESCRIPCION_LARGA = 20000;
+export const MAX_ESPECIFICACIONES = 20;
+export const MAX_TEXTO_ESPECIFICACION = 120;
+
+const esEtiqueta = (valor: unknown): valor is EtiquetaInsumo =>
+  ETIQUETAS_INSUMO.includes(valor as EtiquetaInsumo);
+
+/** La columna es JSON libre: solo se aceptan pares [texto, texto]. */
+function paresDe(valor: unknown): Array<[string, string]> {
+  if (!Array.isArray(valor)) return [];
+  return valor
+    .filter((par): par is unknown[] => Array.isArray(par) && par.length >= 2)
+    .map(([nombre, dato]): [string, string] => [String(nombre ?? ""), String(dato ?? "")]);
+}
+
 /* ── Traducción API ⇄ panel ────────────────────────────────── */
 
-const mapInsumo = (i: ApiInsumo): Insumo => ({
-  id: String(i.id),
-  nombre: i.nombre,
-  categoria: i.categoria || "General",
-  unidad: i.unidad || "ud",
-  precioRef: Number(i.precioRef) || 0,
+const mapInsumo = (i: ApiInsumo): Insumo => {
+  const max = Number(i.maxPorDefecto);
+  return {
+    id: String(i.id),
+    nombre: i.nombre,
+    categoria: i.categoria || "General",
+    unidad: i.unidad || "ud",
+    precioRef: Number(i.precioRef) || 0,
+    maxPorDefecto: Number.isFinite(max) ? max : MAX_OBJETIVO,
+    publicadoWeb: !!i.publicadoWeb,
+    subcategoria: i.subcategoria || "",
+    marca: i.marca || "",
+    etiqueta: esEtiqueta(i.etiqueta) ? i.etiqueta : null,
+    descripcion: i.descripcion || "",
+    descripcionLarga: i.descripcionLarga || "",
+    imagenes: Array.isArray(i.imagenes) ? i.imagenes : [],
+    especificaciones: paresDe(i.especificaciones),
+    conVariantes: !!i.conVariantes,
+    ordenWeb: typeof i.ordenWeb === "number" ? i.ordenWeb : null,
+  };
+};
+
+/** Datos que acepta también el alta (POST) */
+const basicosDe = (d: InsumoDatos) => ({
+  nombre: d.nombre.trim(),
+  categoria: d.categoria.trim(),
+  unidad: d.unidad.trim(),
+  precioRef: d.precioRef,
+  maxPorDefecto: d.maxPorDefecto,
 });
+
+/** Un texto vacío viaja como null: así se borra de verdad en la base. */
+const textoONulo = (texto: string) => texto.trim() || null;
+
+/** Ficha web lista para PATCH. Las filas de especificaciones vacías no viajan. */
+const fichaWebDe = (d: InsumoDatos): FichaWebInsumoDto => ({
+  publicadoWeb: d.publicadoWeb,
+  subcategoria: textoONulo(d.subcategoria),
+  marca: textoONulo(d.marca),
+  etiqueta: d.etiqueta,
+  descripcion: textoONulo(d.descripcion),
+  descripcionLarga: textoONulo(d.descripcionLarga),
+  especificaciones: d.especificaciones
+    .map(([nombre, dato]): [string, string] => [nombre.trim(), dato.trim()])
+    .filter(([nombre, dato]) => nombre || dato),
+  conVariantes: d.conVariantes,
+  ordenWeb: d.ordenWeb,
+});
+
+/** ¿El alta trae algo de ficha web que mandar después? */
+const tieneFichaWeb = (d: InsumoDatos): boolean => {
+  const f = fichaWebDe(d);
+  return !!(
+    f.publicadoWeb || f.subcategoria || f.marca || f.etiqueta || f.descripcion ||
+    f.descripcionLarga || f.especificaciones?.length || f.conVariantes || f.ordenWeb != null
+  );
+};
 
 const objetivo = (max: number | undefined) => (max && max > 0 ? max : MAX_OBJETIVO);
 
@@ -135,18 +248,54 @@ export const StockController = {
   },
 
   /**
-   * Alta de un producto en el catálogo — POST /stock/insumos.
+   * Alta de un producto en el catálogo — POST /stock/insumos, con los
+   * datos básicos. La ficha web va después (completarAlta) y las fotos,
+   * al final (subirImagenes).
    * @throws ApiError 400 si el negocio ya tiene un insumo con ese nombre.
    */
-  async addInsumo(session: Session | null, input: Omit<Insumo, "id">): Promise<Insumo> {
-    const creado = await StockApi.crearInsumo({
-      nombre: input.nombre,
-      categoria: input.categoria,
-      unidad: input.unidad,
-      precioRef: input.precioRef,
+  async addInsumo(session: Session | null, datos: InsumoDatos): Promise<Insumo> {
+    const creado = await StockApi.crearInsumo({ ...basicosDe(datos), empresaId: empresaDe(session) });
+    return mapInsumo(creado);
+  },
+
+  /**
+   * Lo que el alta no lleva: la ficha web, por PATCH (el contrato con el
+   * backend la garantiza ahí, no en el POST). Va aparte porque el insumo
+   * ya existe: si esto falla, se reintenta editándolo y no creándolo
+   * otra vez, que repetiría el nombre.
+   */
+  async completarAlta(session: Session | null, id: string, datos: InsumoDatos): Promise<void> {
+    if (!tieneFichaWeb(datos)) return;
+    await StockApi.actualizarInsumo(Number(id), { ...fichaWebDe(datos), empresaId: empresaDe(session) });
+  },
+
+  /**
+   * Edita un insumo — PATCH /stock/insumos/:id con la ficha entera, así
+   * que lo que se vacía en el formulario se borra también en la base.
+   */
+  async updateInsumo(session: Session | null, id: string, datos: InsumoDatos): Promise<Insumo> {
+    const actualizado = await StockApi.actualizarInsumo(Number(id), {
+      ...basicosDe(datos),
+      ...fichaWebDe(datos),
       empresaId: empresaDe(session),
     });
-    return mapInsumo(creado);
+    return mapInsumo(actualizado);
+  },
+
+  /**
+   * Añade fotos al final de la galería — POST /stock/insumos/:id/imagenes.
+   * El backend las sube todas o ninguna.
+   * @returns la galería actualizada.
+   */
+  async subirImagenes(session: Session | null, id: string, files: File[]): Promise<string[]> {
+    const actualizado = await StockApi.subirImagenes(Number(id), files, empresaDe(session));
+    return actualizado?.imagenes ?? [];
+  },
+
+  /** Quita una foto — DELETE /stock/insumos/:id/imagenes { imagenes: [ruta] }. */
+  async borrarImagen(session: Session | null, id: string, ruta: string): Promise<string[]> {
+    const actualizado = await StockApi.borrarImagenes(Number(id), [ruta], empresaDe(session));
+    return actualizado?.imagenes ?? [];
   },
 
   /**
@@ -204,6 +353,24 @@ export const StockController = {
        al objetivo, pero una carrera de clics no tiene por qué escribir. */
     if (stock === actual) return;
     await StockApi.ajustarStock(Number(sedeId), Number(insumoId), { stock, empresaId });
+  },
+
+  /**
+   * Fija las existencias de un insumo en una sede y, si se pasa, su
+   * objetivo — PATCH /stock/sede/:sedeId/insumo/:insumoId, con valores
+   * ABSOLUTOS. Un `max` de 0 devuelve la sede al máximo por defecto del
+   * insumo.
+   */
+  async fijarStock(
+    session: Session | null,
+    sedeId: string,
+    insumoId: string,
+    valores: { stock: number; max?: number }
+  ): Promise<void> {
+    await StockApi.ajustarStock(Number(sedeId), Number(insumoId), {
+      ...valores,
+      empresaId: empresaDe(session),
+    });
   },
 
   /* ── Solicitudes de reposición ─────────────────────────── */

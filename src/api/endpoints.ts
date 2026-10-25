@@ -255,6 +255,8 @@ export const EP = {
   stockInsumos: "/stock/insumos",
   /** PATCH edita · DELETE archiva (activo: false), no borra */
   stockInsumoById: (id: number) => `/stock/insumos/${id}`,
+  /** POST multipart (campo "imagenes") añade · DELETE { imagenes: [...] } quita */
+  stockInsumoImagenes: (id: number) => `/stock/insumos/${id}/imagenes`,
   stockSede: (sedeId: number) => `/stock/sede/${sedeId}`,
   /** PATCH { stock?, max? } — cantidades ABSOLUTAS, no incrementos */
   stockSedeInsumo: (sedeId: number, insumoId: number) =>

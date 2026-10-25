@@ -171,6 +171,28 @@
 }
 
 .rowEnd { text-align: right; }
+/* Varias acciones por fila (editar y borrar, ajustar y reponer) */
+.rowActions {
+  display: inline-flex; align-items: center; justify-content: flex-end;
+  flex-wrap: wrap; gap: 8px;
+}
+
+/* ── Producto del catálogo: miniatura, nombre y marca «Web» ── */
+.productCell { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.productName {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px;
+  min-width: 0;
+}
+.thumb {
+  flex: none;
+  display: grid; place-items: center;
+  width: 40px; height: 40px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--slate-300);
+}
 
 @media (max-width: 640px) {
   .requestRow { grid-template-columns: 1fr; gap: 8px; }

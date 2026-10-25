@@ -13,18 +13,10 @@ import { AuthApi, ImagenesApi } from "@/api/modules";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import ImageUpload from "@/components/ui/ImageUpload";
+import Switch from "@/components/ui/Switch";
 import CopiaSeguridad from "@/components/configuracion/CopiaSeguridad";
 import CuentaPago from "@/components/configuracion/CuentaPago";
 import styles from "./configuracion.module.css";
-
-function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
-  return (
-    <span className={styles.switch}>
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} aria-label={label} />
-      <span className={styles.slider} />
-    </span>
-  );
-}
 
 export default function ConfiguracionPage() {
   const router = useRouter();

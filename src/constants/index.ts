@@ -228,12 +228,13 @@ export const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https:/
 
 /**
  * URL absoluta de una imagen del backend. Las rutas que ya vienen
- * absolutas (http/https o data:) se devuelven tal cual.
- * @param ruta Ruta relativa guardada en la BD (p. ej. "uploads/ab.jpg").
+ * absolutas (http/https o data:) se devuelven tal cual: es lo que guardan
+ * los insumos cuando las fotos van al espacio web (la URL pública entera).
+ * @param ruta Ruta relativa guardada en la BD (p. ej. "uploads/ab.jpg") o URL.
  */
 export function fotoUrl(ruta: string | null | undefined): string | null {
   if (!ruta) return null;
-  return /^(https?:|data:)/.test(ruta) ? ruta : `${IMG_BASE_URL}${ruta}`;
+  return /^(https?:|data:)/i.test(ruta) ? ruta : `${IMG_BASE_URL}${ruta}`;
 }
 
 /* ── Web de QORE Technology ──────────────────────────────── */

@@ -11,16 +11,21 @@
 
    El flujo de reposición es: la sede solicita → la administración
    aprueba → las unidades aprobadas entran al stock de esa sede.
+
+   La ficha de cada insumo (InsumoModal) lleva también lo que enseña
+   la web del negocio: publicarlo, descripciones, fotos…
 ============================================================ */
 import { useCallback, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { SPRING } from "@/components/animations";
 import type { Insumo, SolicitudInventario, StockItem } from "@/models";
-import { StockController, nivelDe } from "@/controllers/StockController";
+import { StockController, cantidadDe, nivelDe } from "@/controllers/StockController";
+import { fotoUrl } from "@/constants";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
+import InsumoModal from "@/components/stock/InsumoModal";
 import Panel from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import Tabs from "@/components/ui/Tabs";
@@ -55,6 +60,29 @@ function NivelBar({ stock, max }: { stock: number; max: number }) {
         transition={reduce ? { duration: 0 } : SPRING}
       />
     </div>
+  );
+}
+
+/* ── Miniatura de la foto principal en el catálogo ───────── */
+function Miniatura({ ruta }: { ruta?: string }) {
+  /* Una foto que ya no existe deja el hueco, no el icono roto */
+  const [fallo, setFallo] = useState(false);
+  const src = fallo ? null : fotoUrl(ruta);
+  return src ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      className={styles.thumb}
+      src={src}
+      alt=""
+      width={40}
+      height={40}
+      loading="lazy"
+      onError={() => setFallo(true)}
+    />
+  ) : (
+    <span className={styles.thumb} aria-hidden>
+      <Icon name="image" width={18} height={18} />
+    </span>
   );
 }
 
@@ -205,37 +233,18 @@ export default function StockPage() {
   );
   const refrescarStock = () => setStockVersion((v) => v + 1);
 
-  /* ── Alta de insumo (catálogo global) ───────────────────── */
-  const [nuevoOpen, setNuevoOpen] = useState(false);
-  const [nombre, setNombre] = useState("");
-  const [categoria, setCategoria] = useState("");
-  const [unidad, setUnidad] = useState("");
-  const [precio, setPrecio] = useState("");
-
-  const crearInsumo = async () => {
-    if (!nombre.trim() || !categoria.trim() || !unidad.trim()) {
-      toast(t("stock.fillRequired"), "error");
-      return;
-    }
-    try {
-      await StockController.addInsumo(session, {
-        nombre: nombre.trim(),
-        categoria: categoria.trim(),
-        unidad: unidad.trim(),
-        precioRef: Number(precio) || 0,
-      });
-    } catch (e) {
-      /* El backend ya explica el motivo (nombre repetido, módulo de pago
-         no contratado…), así que se enseña tal cual y el formulario se
-         queda abierto con lo escrito. */
-      toast(e instanceof Error ? e.message : t("common.error"), "error");
-      return;
-    }
-    setNuevoOpen(false);
-    setNombre(""); setCategoria(""); setUnidad(""); setPrecio("");
+  /* ── Ficha de insumo: alta y edición (catálogo global) ──── */
+  /* `version` vuelve a montar la ficha en cada apertura: arranca limpia
+     (o con el insumo elegido) sin cortar la animación de cierre. */
+  const [ficha, setFicha] = useState<{ abierta: boolean; insumo: Insumo | null; version: number }>(
+    { abierta: false, insumo: null, version: 0 }
+  );
+  const abrirFicha = (insumo: Insumo | null) =>
+    setFicha((f) => ({ abierta: true, insumo, version: f.version + 1 }));
+  const cerrarFicha = () => setFicha((f) => ({ ...f, abierta: false }));
+  const fichaGuardada = async () => {
     await reloadCatalogo();
     refrescarStock();
-    toast(t("stock.insumoCreated"), "success");
   };
 
   const eliminarInsumo = (insumo: Insumo) => {
@@ -265,6 +274,48 @@ export default function StockPage() {
       toast(e instanceof Error ? e.message : t("common.error"), "error");
       return;
     }
+    refrescarStock();
+    toast(t("stock.stockUpdated"), "success");
+  };
+
+  /* ── Ajuste exacto de existencias y objetivo (vista global) ── */
+  const [ajuste, setAjuste] = useState<{ sede: { id: string; nombre: string }; item: StockItem } | null>(null);
+  const [ajusteAbierto, setAjusteAbierto] = useState(false);
+  const [ajusteStock, setAjusteStock] = useState("");
+  const [ajusteMax, setAjusteMax] = useState("");
+  const [ajustando, setAjustando] = useState(false);
+
+  const abrirAjuste = (sede: { id: string; nombre: string }, item: StockItem) => {
+    setAjuste({ sede, item });
+    setAjusteStock(String(item.stock));
+    setAjusteMax(String(item.max));
+    setAjusteAbierto(true);
+  };
+
+  const guardarAjuste = async () => {
+    if (!ajuste || ajustando) return;
+    const stock = cantidadDe(ajusteStock);
+    const max = cantidadDe(ajusteMax);
+    if (stock === null || max === null) {
+      toast(t("stock.adjustInvalid"), "error");
+      return;
+    }
+    setAjustando(true);
+    try {
+      await StockController.fijarStock(session, ajuste.sede.id, ajuste.item.insumoId, {
+        stock,
+        /* El objetivo solo viaja si se ha cambiado: el que se ve puede ser
+           el máximo por defecto del insumo, y mandarlo lo dejaría fijado en
+           la sede sin que nadie lo haya pedido. */
+        ...(max !== ajuste.item.max ? { max } : {}),
+      });
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+      return;
+    } finally {
+      setAjustando(false);
+    }
+    setAjusteAbierto(false);
     refrescarStock();
     toast(t("stock.stockUpdated"), "success");
   };
@@ -379,7 +430,7 @@ export default function StockPage() {
               placeholder={t("stock.searchPlaceholder")}
             />
             <ToolbarActions>
-              <Button onClick={() => setNuevoOpen(true)}>{t("stock.newInsumo")}</Button>
+              <Button onClick={() => abrirFicha(null)}>{t("stock.newInsumo")}</Button>
             </ToolbarActions>
           </Toolbar>
           <Panel>
@@ -405,21 +456,39 @@ export default function StockPage() {
               >
                 {catalogo.map((i) => (
                   <tr key={i.id}>
-                    <td><b>{i.nombre}</b></td>
+                    <td>
+                      <div className={styles.productCell}>
+                        <Miniatura key={i.imagenes[0] ?? ""} ruta={i.imagenes[0]} />
+                        <span className={styles.productName}>
+                          <b>{i.nombre}</b>
+                          {i.publicadoWeb && <Badge kind="activo">{t("stock.webBadge")}</Badge>}
+                        </span>
+                      </div>
+                    </td>
                     <td><Tag>{i.categoria}</Tag></td>
                     <td>{i.unidad}</td>
                     <PriceCell value={i.precioRef} />
                     <td className={styles.rowEnd}>
-                      {/* Eliminar es exclusivo del superadmin */}
-                      {session?.role === "superadmin" && (
-                        <IconButton
-                          danger
-                          aria-label={t("stock.deleteAria", { nombre: i.nombre })}
-                          onClick={() => eliminarInsumo(i)}
+                      <div className={styles.rowActions}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label={t("stock.editAria", { nombre: i.nombre })}
+                          onClick={() => abrirFicha(i)}
                         >
-                          <Icon name="trash" />
-                        </IconButton>
-                      )}
+                          {t("common.edit")}
+                        </Button>
+                        {/* Eliminar es exclusivo del superadmin */}
+                        {session?.role === "superadmin" && (
+                          <IconButton
+                            danger
+                            aria-label={t("stock.deleteAria", { nombre: i.nombre })}
+                            onClick={() => eliminarInsumo(i)}
+                          >
+                            <Icon name="trash" />
+                          </IconButton>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -461,14 +530,24 @@ export default function StockPage() {
                         <td><StockCell item={it} criticoLabel={t("stock.critical")} /></td>
                         <td><NivelBar stock={it.stock} max={it.max} /></td>
                         <td className={styles.rowEnd}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => void reponer(sede.id, it.insumoId)}
-                            disabled={it.stock >= it.max}
-                          >
-                            {t("stock.restock")}
-                          </Button>
+                          <div className={styles.rowActions}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              aria-label={t("stock.adjustAria", { nombre: it.insumo.nombre, sede: sede.nombre })}
+                              onClick={() => abrirAjuste(sede, it)}
+                            >
+                              {t("stock.adjust")}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => void reponer(sede.id, it.insumoId)}
+                              disabled={it.stock >= it.max}
+                            >
+                              {t("stock.restock")}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -567,43 +646,56 @@ export default function StockPage() {
         )
       )}
 
-      {/* ── Modal: nuevo insumo ── */}
-      <Modal open={nuevoOpen} onClose={() => setNuevoOpen(false)}>
-        <ModalTitle>{t("stock.newInsumoTitle")}</ModalTitle>
-        <ModalText>{t("stock.newInsumoSub")}</ModalText>
-        <Field label={t("stock.product")} htmlFor="ni-nombre">
-          <input id="ni-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-        </Field>
-        <Field label={t("common.category")} htmlFor="ni-cat">
+      {/* ── Ficha de insumo: alta y edición ── */}
+      <InsumoModal
+        key={ficha.version}
+        open={ficha.abierta}
+        insumo={ficha.insumo}
+        onClose={cerrarFicha}
+        onGuardado={fichaGuardada}
+      />
+
+      {/* ── Modal: ajustar existencias de una sede ── */}
+      <Modal open={ajusteAbierto} onClose={() => setAjusteAbierto(false)}>
+        <ModalTitle>{t("stock.adjustTitle")}</ModalTitle>
+        <ModalText>
+          {t("stock.adjustSub", { nombre: ajuste?.item.insumo.nombre ?? "", sede: ajuste?.sede.nombre ?? "" })}
+        </ModalText>
+        <Field
+          label={t("stock.adjustStock", { unidad: ajuste?.item.insumo.unidad ?? "" })}
+          htmlFor="aj-stock"
+          hint={t("stock.adjustStockHint")}
+        >
           <input
-            id="ni-cat"
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
-            placeholder={t("stock.categoryPlaceholder")}
-          />
-        </Field>
-        <Field label={t("stock.unit")} htmlFor="ni-unidad">
-          <input
-            id="ni-unidad"
-            value={unidad}
-            onChange={(e) => setUnidad(e.target.value)}
-            placeholder={t("stock.unitPlaceholder")}
-          />
-        </Field>
-        <Field label={t("stock.refPriceEur")} htmlFor="ni-precio">
-          <input
-            id="ni-precio"
+            id="aj-stock"
             type="number"
             min="0"
-            step="0.01"
-            value={precio}
-            onChange={(e) => setPrecio(e.target.value)}
-            placeholder="4.50"
+            step="any"
+            inputMode="decimal"
+            value={ajusteStock}
+            onChange={(e) => setAjusteStock(e.target.value)}
+          />
+        </Field>
+        <Field
+          label={t("stock.adjustMax", { unidad: ajuste?.item.insumo.unidad ?? "" })}
+          htmlFor="aj-max"
+          hint={t("stock.adjustMaxHint")}
+        >
+          <input
+            id="aj-max"
+            type="number"
+            min="0"
+            step="any"
+            inputMode="decimal"
+            value={ajusteMax}
+            onChange={(e) => setAjusteMax(e.target.value)}
           />
         </Field>
         <ModalActions>
-          <Button variant="ghost" block onClick={() => setNuevoOpen(false)}>{t("common.cancel")}</Button>
-          <Button block onClick={() => void crearInsumo()}>{t("stock.createInsumo")}</Button>
+          <Button variant="ghost" block onClick={() => setAjusteAbierto(false)}>{t("common.cancel")}</Button>
+          <Button block onClick={() => void guardarAjuste()} disabled={ajustando}>
+            {ajustando ? t("common.saving") : t("common.save")}
+          </Button>
         </ModalActions>
       </Modal>
 

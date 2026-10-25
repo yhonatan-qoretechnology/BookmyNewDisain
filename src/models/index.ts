@@ -359,7 +359,10 @@ export interface BookingDraft {
 }
 
 /* ── Stock e insumos ─────────────────────────────────────── */
-/** Producto del catálogo global de insumos (lo define el superadmin) */
+/** Distintivo de la tarjeta del producto en la web */
+export type EtiquetaInsumo = "Nuevo" | "Top" | "Oferta";
+
+/** Producto del catálogo de insumos del negocio */
 export interface Insumo {
   id: string;
   nombre: string;
@@ -367,7 +370,27 @@ export interface Insumo {
   /** Unidad de medida: ud, bote, pack, caja… */
   unidad: string;
   precioRef: number;
+  /** Objetivo de existencias de las sedes que no tienen uno propio */
+  maxPorDefecto: number;
+  /* Ficha para la web del negocio. Los textos vacíos son "" */
+  publicadoWeb: boolean;
+  subcategoria: string;
+  marca: string;
+  etiqueta: EtiquetaInsumo | null;
+  descripcion: string;
+  descripcionLarga: string;
+  /** Rutas o URLs; la primera es la foto principal */
+  imagenes: string[];
+  /** Pares [nombre, valor] */
+  especificaciones: Array<[string, string]>;
+  /** «Con opciones de capacidad y color» */
+  conVariantes: boolean;
+  /** Orden en la web; null = al final */
+  ordenWeb: number | null;
 }
+
+/** Lo que se edita en la ficha de un insumo (las imágenes van aparte) */
+export type InsumoDatos = Omit<Insumo, "id" | "imagenes">;
 
 /** Existencias de un insumo en una sede concreta */
 export interface StockItem {
