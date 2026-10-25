@@ -8,6 +8,7 @@
 ============================================================ */
 import { API_URL, getToken, setToken } from "./config";
 import { SESSION_STORAGE_KEY } from "@/constants";
+import { rutaDeLogin } from "@/lib/loginOrigen";
 
 export class ApiError extends Error {
   status: number;
@@ -82,8 +83,10 @@ function cerrarSesionCaducada() {
     sessionStorage.removeItem(SESSION_STORAGE_KEY);
   } catch { /* almacenamiento bloqueado */ }
 
+  /* A la misma puerta por la que se entró: el equipo de QORE vuelve
+     al login de QoreTech, no al de BookMy. */
   if (RUTAS_PRIVADAS.test(window.location.pathname)) {
-    window.location.replace("/login?caducada=1");
+    window.location.replace(`${rutaDeLogin()}?caducada=1`);
   } else {
     cerrando = false;
   }

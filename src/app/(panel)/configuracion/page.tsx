@@ -4,11 +4,11 @@
 ============================================================ */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useUi } from "@/context/UiContext";
 import { LOCALES, useI18n } from "@/i18n";
+import { rutaDeLogin } from "@/lib/loginOrigen";
 import { AuthApi, ImagenesApi } from "@/api/modules";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
@@ -91,7 +91,7 @@ export default function ConfiguracionPage() {
       confirmLabel: t("configuracion.logoutBtn"),
       onConfirm: () => {
         logout();
-        router.push(ROUTES.login);
+        router.push(rutaDeLogin());
       },
     });
   };

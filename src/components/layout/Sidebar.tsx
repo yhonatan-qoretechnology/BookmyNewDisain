@@ -8,10 +8,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { navParaSesion, ROUTES, initials } from "@/constants";
+import { navParaSesion, initials } from "@/constants";
 import type { NavItem, Rol } from "@/models";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
+import { rutaDeLogin } from "@/lib/loginOrigen";
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { SPRING } from "@/components/animations";
 import Icon from "@/components/ui/Icon";
@@ -57,10 +58,13 @@ export default function Sidebar({
   const toggleGrupo = (id: string) =>
     setAbiertos((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  /* Se sale por la misma puerta por la que se entró (BookMy o QoreTech) */
+  const loginHref = rutaDeLogin();
+
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     logout();
-    router.push(ROUTES.login);
+    router.push(loginHref);
   };
 
   return (
@@ -135,7 +139,7 @@ export default function Sidebar({
             return (
               <Link
                 key={item.id}
-                href={item.href}
+                href={isLogout ? loginHref : item.href}
                 className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
                 onClick={isLogout ? handleLogout : onClose}
               >

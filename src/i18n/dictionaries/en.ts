@@ -231,6 +231,22 @@ const en: Dictionary = {
     invalid: "Invalid credentials.",
     apiNotConfigured: "NEXT_PUBLIC_API_URL (.env.local) must point to the backend URL.",
     clientRole: "Your account is a client account: use the client app to book.",
+    switchToQore: "View QoreTech login",
+  },
+
+  /* QoreTech sign-in (/login-qore) for the QORE Technology team */
+  loginQore: {
+    backToSite: "Back to qoretechnology.com",
+    switchToBookmy: "View BookMy login",
+    badge: "Management panel",
+    quote: "“QORE's store, workshop and clients, in a single panel.”",
+    point1: "Online store catalog and stock",
+    point2: "Repair and diagnosis appointments",
+    point3: "Clients and staff in one place",
+    foot: "For the QORE Technology team only",
+    lede: "Sign in to manage QORE Technology's catalog, appointments and clients.",
+    emailPlaceholder: "yourname@qoretechnology.com",
+    noAccess: "No access yet? Ask your QORE Technology manager.",
   },
 
   /* Password recovery via OTP */

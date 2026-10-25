@@ -8,6 +8,7 @@ import { ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import AppShell from "@/components/layout/AppShell";
 import { useI18n } from "@/i18n";
+import { rutaDeLogin } from "@/lib/loginOrigen";
 import Icon from "@/components/ui/Icon";
 
 export default function EmployeeLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +20,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (loading) return;
-    if (!session) { router.replace(ROUTES.login); return; }
+    if (!session) { router.replace(rutaDeLogin()); return; }
     if (session.role !== "employee") router.replace(ROUTES.dashboard);
   }, [session, loading, router]);
 

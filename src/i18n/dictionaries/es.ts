@@ -258,6 +258,23 @@ const es = {
     invalid: "Credenciales incorrectas.",
     apiNotConfigured: "Falta configurar NEXT_PUBLIC_API_URL (.env.local) con la URL del backend.",
     clientRole: "Tu cuenta es de cliente final: usa la app de clientes para reservar.",
+    switchToQore: "Ver login QoreTech",
+  },
+
+  /* Acceso de QoreTech (/login-qore): el mismo login para el equipo de
+     QORE Technology. Lo que no está aquí lo comparte con login.* */
+  loginQore: {
+    backToSite: "Volver a qoretechnology.com",
+    switchToBookmy: "Ver login BookMy",
+    badge: "Panel de gestión",
+    quote: "“La tienda, el taller y los clientes de QORE, en un solo panel.”",
+    point1: "Catálogo y stock de la tienda online",
+    point2: "Citas de reparación y diagnóstico",
+    point3: "Clientes y equipo en un mismo sitio",
+    foot: "Acceso solo para el equipo de QORE Technology",
+    lede: "Entra para gestionar el catálogo, las citas y los clientes de QORE Technology.",
+    emailPlaceholder: "tunombre@qoretechnology.com",
+    noAccess: "¿No tienes acceso? Pídeselo al responsable de QORE Technology.",
   },
 
   /* Recuperación de contraseña por OTP */

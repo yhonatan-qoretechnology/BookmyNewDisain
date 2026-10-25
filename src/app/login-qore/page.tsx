@@ -3,16 +3,20 @@
    Acceso al panel con la identidad visual de QoreTech.
    ------------------------------------------------------------
    Ruta alterna a /login (que sigue intacta): misma autenticación
-   (AuthController.login) y mismos textos, con la paleta violeta /
-   magenta / lima y el logo de QoreTech.
+   (AuthController.login), con la paleta violeta / magenta / lima,
+   el logo de QoreTech y textos propios para el equipo de QORE
+   Technology (loginQore.*). El logo y «Volver» llevan a la web de
+   QORE (NEXT_PUBLIC_QORE_URL), y la sesión recuerda que entró por
+   aquí para volver a esta pantalla al salir o al caducar.
 ============================================================ */
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { QORE_URL, ROUTES } from "@/constants";
 import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
+import { recordarOrigenLogin } from "@/lib/loginOrigen";
 import { LanguageToggle } from "@/components/layout/Topbar";
 import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
 import styles from "./login-qore.module.css";
@@ -68,6 +72,7 @@ function LoginQore() {
         );
         return;
       }
+      recordarOrigenLogin("qore");
       login(s);
       router.push(s.role === "employee" ? ROUTES.employeeDashboard : ROUTES.dashboard);
     } catch (ex) {
@@ -83,20 +88,20 @@ function LoginQore() {
       <aside className={styles.art}>
         <div className={styles.artGlow} aria-hidden />
         <div className={styles.artTop}>
-          <Link href="/" className={styles.artBrand}>
+          <a href={QORE_URL} className={styles.artBrand}>
             <img src="/qore/qore-logo-claro.png" alt="QoreTech" width={150} height={50} className={styles.artLogo} />
-          </Link>
+          </a>
         </div>
 
         <div className={styles.artBody}>
-          <h2 className={styles.artTitle}>{t("login.quote")}</h2>
+          <h2 className={styles.artTitle}>{t("loginQore.quote")}</h2>
           <ul className={styles.artList}>
             {[1, 2, 3].map((n) => (
               <li key={n}>
                 <span className={styles.artCheck} aria-hidden>
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </span>
-                {t(`login.point${n}`)}
+                {t(`loginQore.point${n}`)}
               </li>
             ))}
           </ul>
@@ -106,29 +111,29 @@ function LoginQore() {
           </div>
         </div>
 
-        <p className={styles.artFoot}>{t("login.foot")}</p>
+        <p className={styles.artFoot}>{t("loginQore.foot")}</p>
       </aside>
 
       {/* ── Mitad del formulario ───────────────────────── */}
       <main className={styles.formSide}>
         <div className={styles.topBar}>
-          <Link href="/" className={styles.back}>
+          <a href={QORE_URL} className={styles.back}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            {t("login.backToSite")}
-          </Link>
+            {t("loginQore.backToSite")}
+          </a>
           <div className={styles.topActions}>
             <LanguageToggle />
-            <Link href="/login" className={styles.switchBtn}>
-              Ver login BookMy
+            <Link href={ROUTES.login} className={styles.switchBtn}>
+              {t("loginQore.switchToBookmy")}
             </Link>
           </div>
         </div>
 
         <form className={styles.card} onSubmit={submit} noValidate>
           <img src="/qore/qore-marca.png" alt="QoreTech" width={44} height={42} className={styles.formMark} />
-          <span className={styles.badge}>{t("login.badge")}</span>
+          <span className={styles.badge}>{t("loginQore.badge")}</span>
           <h1 className={styles.title}>{t("login.welcome")}</h1>
-          <p className={styles.lede}>{t("login.lede")}</p>
+          <p className={styles.lede}>{t("loginQore.lede")}</p>
 
           {caducada && !error && (
             <div className={styles.aviso} role="status">
@@ -159,7 +164,7 @@ function LoginQore() {
               <input
                 id="lg-email"
                 type="email"
-                placeholder={t("login.emailPlaceholder")}
+                placeholder={t("loginQore.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -225,9 +230,9 @@ function LoginQore() {
             )}
           </button>
 
-          <p className={styles.alt}>
-            {t("login.noAccount")} <Link href="/#planes">{t("login.seePlans")}</Link>
-          </p>
+          {/* Aquí no se venden planes de BookMy: las cuentas del equipo
+              las da de alta QORE. */}
+          <p className={styles.alt}>{t("loginQore.noAccess")}</p>
         </form>
       </main>
 
