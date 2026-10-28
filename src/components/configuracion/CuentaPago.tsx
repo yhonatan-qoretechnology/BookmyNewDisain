@@ -127,6 +127,16 @@ export default function CuentaPago() {
           </>
         )}
 
+        {/* Wise valida el IBAN o el email al guardar; si lo rechaza, el
+            motivo llega en el toast de error. */}
+        {cuenta ? (
+          <p className={cuenta.wiseRecipientId ? styles.cuentaOk : styles.cuentaPendiente}>
+            {cuenta.wiseRecipientId
+              ? t("configuracion.cuentaVerificada")
+              : t("configuracion.cuentaSinVerificar")}
+          </p>
+        ) : null}
+
         <div><Button onClick={() => void guardar()} disabled={guardando}>
           {guardando ? t("configuracion.cuentaGuardando") : t("configuracion.saveChanges")}
         </Button></div>

@@ -1662,6 +1662,8 @@ const en: Dictionary = {
     cuentaFaltaBanco: "Fill in the account holder and number",
     cuentaGuardando: "Saving…",
     cuentaGuardada: "Payout details saved",
+    cuentaVerificada: "Account verified by Wise: you can now receive online payments.",
+    cuentaSinVerificar: "Saved, pending verification with Wise. Online payments will be paid out once it is verified.",
   },
 
   /* Extending an in-progress appointment and resolving conflicts */

@@ -1731,6 +1731,8 @@ const es = {
     cuentaFaltaBanco: "Completa el titular y el número de cuenta",
     cuentaGuardando: "Guardando…",
     cuentaGuardada: "Datos de cobro guardados",
+    cuentaVerificada: "Cuenta verificada por Wise: ya puedes recibir los pagos online.",
+    cuentaSinVerificar: "Guardada, pendiente de verificar con Wise. Los pagos online se liquidarán cuando quede verificada.",
   },
 
   /* Extender una cita en curso y resolver conflictos */

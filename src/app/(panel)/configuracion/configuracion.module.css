@@ -80,3 +80,8 @@
   border-color: var(--border);
   color: var(--navy-900);
 }
+
+/* Estado de la cuenta de cobro frente a Wise */
+.cuentaOk, .cuentaPendiente { margin: 0; font-size: 12.5px; line-height: 1.45; }
+.cuentaOk { color: var(--teal-500); }
+.cuentaPendiente { color: var(--slate-500); }

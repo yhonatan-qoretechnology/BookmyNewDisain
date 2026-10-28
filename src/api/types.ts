@@ -611,6 +611,9 @@ export interface ApiEmpresaCuentaPago {
   bancoTitular: string | null;
   bancoNumero: string | null;
   bancoTipoCuenta: string | null;
+  /** Destinatario creado en Wise: si está, Wise ya validó la cuenta y se
+      le puede liquidar. Null si Wise aún no está configurado en Bookmy. */
+  wiseRecipientId: string | null;
 }
 
 /** GET /categories?language= (CategoryTranslation resuelta) */
