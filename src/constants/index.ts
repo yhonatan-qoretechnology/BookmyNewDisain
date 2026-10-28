@@ -3,6 +3,8 @@ import type { NavItem } from "@/models";
 /* ── Constantes de rutas ─────────────────────────────────── */
 export const ROUTES = {
   login: "/login",
+  /** El mismo acceso con la identidad de QoreTech (equipo de QORE Technology) */
+  loginQore: "/login-qore",
   dashboard: "/dashboard",
   employeeDashboard: "/employee-dashboard",
   employeeCalendario: "/employee-dashboard/calendario",
@@ -226,13 +228,23 @@ export const IMG_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_IMG || "https:/
 
 /**
  * URL absoluta de una imagen del backend. Las rutas que ya vienen
- * absolutas (http/https o data:) se devuelven tal cual.
- * @param ruta Ruta relativa guardada en la BD (p. ej. "uploads/ab.jpg").
+ * absolutas (http/https o data:) se devuelven tal cual: es lo que guardan
+ * los insumos cuando las fotos van al espacio web (la URL pública entera).
+ * @param ruta Ruta relativa guardada en la BD (p. ej. "uploads/ab.jpg") o URL.
  */
 export function fotoUrl(ruta: string | null | undefined): string | null {
   if (!ruta) return null;
-  return /^(https?:|data:)/.test(ruta) ? ruta : `${IMG_BASE_URL}${ruta}`;
+  return /^(https?:|data:)/i.test(ruta) ? ruta : `${IMG_BASE_URL}${ruta}`;
 }
+
+/* ── Web de QORE Technology ──────────────────────────────── */
+/**
+ * Web pública de QORE Technology: a ella llevan el logo y el enlace
+ * «Volver a qoretechnology.com» del acceso de QoreTech (/login-qore).
+ * En local, la web de QORE corre en http://localhost:3000. Como toda
+ * NEXT_PUBLIC_*, se incrusta al compilar: cambiarla pide volver a desplegar.
+ */
+export const QORE_URL = process.env.NEXT_PUBLIC_QORE_URL || "https://qoretechnology.com";
 
 /* ── Helpers de formato compartidos ──────────────────────── */
 export function initials(name: string): string {

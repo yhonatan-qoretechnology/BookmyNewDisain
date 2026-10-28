@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { moduloDePago, ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
+import { rutaDeLogin } from "@/lib/loginOrigen";
 import AppShell from "@/components/layout/AppShell";
 import PageTransition from "@/components/animations/PageTransition";
 import PlanProLock from "@/components/plan/PlanProLock";
@@ -50,7 +51,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (loading) return;
     if (!session) {
-      router.replace(ROUTES.login);
+      router.replace(rutaDeLogin());
       return;
     }
     // Las especialistas usan su propio panel (excepto configuración)

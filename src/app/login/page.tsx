@@ -14,6 +14,7 @@ import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useI18n } from "@/i18n";
+import { recordarOrigenLogin } from "@/lib/loginOrigen";
 import { LanguageToggle } from "@/components/layout/Topbar";
 import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
 import styles from "./login.module.css";
@@ -70,6 +71,8 @@ function Login() {
         );
         return;
       }
+      /* Borra la marca de QoreTech si la pestaña venía de allí */
+      recordarOrigenLogin("bookmy");
       login(s);
       router.push(s.role === "employee" ? ROUTES.employeeDashboard : ROUTES.dashboard);
     } catch (ex) {
@@ -127,6 +130,9 @@ function Login() {
           </Link>
           <div className={styles.topActions}>
             <LanguageToggle />
+            <Link href={ROUTES.loginQore} className={styles.switchBtn}>
+              {t("login.switchToQore")}
+            </Link>
             <button
               type="button"
               className={styles.themeBtn}

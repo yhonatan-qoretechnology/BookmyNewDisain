@@ -841,6 +841,9 @@ export const NotificationsApi = {
    `empresaId` se manda siempre: el superadmin no es de ningún negocio
    y el backend se lo exige, y a una sesión de negocio se lo ignora y
    usa la del token (no hay forma de espiar el inventario ajeno). */
+/** Tope de archivos por envío en POST /stock/insumos/:id/imagenes */
+export const MAX_ARCHIVOS_INSUMO = 8;
+
 export const StockApi = {
   /** GET /stock/insumos — catálogo activo, o con los archivados. */
   listarInsumos: (params: { empresaId?: number; archivados?: boolean } = {}) =>
@@ -855,6 +858,7 @@ export const StockApi = {
   /** POST /stock/insumos — 400 si el negocio ya tiene uno con ese nombre. */
   crearInsumo: (dto: CreateInsumoDto) => http.post<ApiInsumo>(EP.stockInsumos, dto),
 
+  /** PATCH /stock/insumos/:id — solo cambia lo que se manda; `null` borra. */
   actualizarInsumo: (id: number, dto: UpdateInsumoDto) =>
     http.patch<ApiInsumo>(EP.stockInsumoById(id), dto),
 
@@ -862,6 +866,26 @@ export const StockApi = {
       lo citan y borrarlo dejaría huecos en el historial. */
   archivarInsumo: (id: number, empresaId?: number) =>
     http.delete<ApiInsumo>(EP.stockInsumoById(id) + qs({ empresaId })),
+
+  /**
+   * POST /stock/insumos/:id/imagenes — multipart, campo "imagenes" (JPG,
+   * PNG, WEBP o GIF de hasta 10 MB). Las añade al final de la galería y
+   * devuelve el insumo actualizado.
+   */
+  subirImagenes: (id: number, files: File[], empresaId?: number) => {
+    const form = new FormData();
+    files.slice(0, MAX_ARCHIVOS_INSUMO).forEach((f) => form.append("imagenes", f, f.name));
+    /* empresaId (solo cuenta para el superadmin) va en el formulario, como
+       los demás campos de un multipart, y repetido en la query, como en
+       DELETE /stock/insumos/:id: el backend lo encuentra lo lea de donde lo lea. */
+    if (empresaId != null) form.append("empresaId", String(empresaId));
+    return http.postForm<ApiInsumo>(EP.stockInsumoImagenes(id) + qs({ empresaId }), form);
+  },
+
+  /** DELETE /stock/insumos/:id/imagenes — quita esas rutas de la galería
+      (y el archivo, si lo guardó el backend). Devuelve el insumo. */
+  borrarImagenes: (id: number, imagenes: string[], empresaId?: number) =>
+    http.delete<ApiInsumo>(EP.stockInsumoImagenes(id), { imagenes, empresaId }),
 
   /** GET /stock/sede/:sedeId — una fila por insumo del catálogo. */
   stockDeSede: (sedeId: number, empresaId?: number) =>

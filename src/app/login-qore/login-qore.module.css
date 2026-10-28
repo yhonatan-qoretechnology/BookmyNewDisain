@@ -1,0 +1,399 @@
+/* ============================================================
+   Acceso con identidad QoreTech (ruta /login-qore).
+   Paleta del design system de QoreTech: tinta violeta (ink),
+   violeta primario, magenta de marca y lima de señal. Pantalla
+   oscura de punta a punta, como la web de QoreTech.
+============================================================ */
+
+.screen {
+  --q-bg: #0b0a10;
+  --q-card: #15131e;
+  --q-field: #100e17;
+  --q-border: rgba(255, 255, 255, .09);
+  --q-input: #6f6985;
+  --q-fg: #f7f6fa;
+  --q-muted: #a39db4;
+  --q-violet: #5a4bff;
+  --q-violet-hover: #6e5eff;
+  --q-violet-text: #8b7bff;
+  --q-magenta: #d6215e;
+  --q-magenta-text: #ff5c8a;
+  --q-lime: #d6e94a;
+  --q-red: #ff6b78;
+  --q-green: #57e08a;
+  --q-amber: #f5b83d;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--q-bg);
+}
+
+/* ── Mitad de marca ──────────────────────────────────── */
+.art {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 40px 48px;
+  color: #f7f6fa;
+  background:
+    radial-gradient(1100px 620px at 18% -10%, rgba(90, 75, 255, .32), transparent 60%),
+    radial-gradient(900px 500px at 90% 110%, rgba(214, 33, 94, .24), transparent 55%),
+    linear-gradient(160deg, #1a1550 0%, #15131e 55%, #0b0a10 100%);
+}
+
+/* Halo que respira detrás del contenido */
+.artGlow {
+  position: absolute;
+  inset: auto -20% -35% -20%;
+  height: 70%;
+  background: radial-gradient(closest-side, rgba(214, 33, 94, .2), transparent);
+  filter: blur(10px);
+  animation: latido 9s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes latido {
+  0%, 100% { transform: translateY(0) scale(1); opacity: .85; }
+  50%      { transform: translateY(-14px) scale(1.04); opacity: 1; }
+}
+
+.artTop { position: relative; z-index: 1; }
+
+.artBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  transition: transform .2s ease;
+}
+.artBrand:hover { transform: translateX(2px); }
+
+.artLogo { display: block; width: 150px; height: auto; }
+
+.artBody { position: relative; z-index: 1; }
+
+.artTitle {
+  max-width: 15ch;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  font-weight: 800;
+  margin-bottom: 26px;
+}
+
+.artList { display: grid; gap: 12px; margin-bottom: 34px; }
+.artList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  color: rgba(247, 246, 250, .82);
+}
+.artCheck {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border-radius: 50%;
+  color: #0b0a10;
+  background: var(--q-lime);
+}
+
+/* Ilustracion asomada desde abajo. Va recortada contra el fondo, sin marco:
+   es un PNG transparente, asi que un borde o una caja la delatarian. La
+   sombra se aplica a la silueta con drop-shadow, no al rectangulo. */
+.artShot {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+}
+.artShot img {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  opacity: .9;
+  filter: drop-shadow(0 18px 44px rgba(214, 33, 94, .45));
+}
+
+.artFoot {
+  position: relative;
+  z-index: 1;
+  font-size: 12.5px;
+  color: rgba(247, 246, 250, .6);
+}
+
+/* ── Mitad del formulario ────────────────────────────── */
+.formSide {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 24px clamp(20px, 5vw, 64px) 40px;
+  background: var(--q-bg);
+}
+
+/* En móvil no caben en una fila: las acciones bajan a la siguiente, a la
+   derecha, en vez de partir los textos en dos o tres líneas. */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: auto;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--q-muted);
+  transition: background .2s ease, color .2s ease, transform .2s ease;
+}
+.back:hover { background: rgba(255, 255, 255, .06); color: var(--q-fg); transform: translateX(-2px); }
+
+.topActions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* Enlace para volver al login de BookMy (QoreTech no tiene modo claro/oscuro) */
+.switchBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--q-card);
+  border: 1px solid var(--q-border);
+  color: var(--q-fg);
+  transition: color .2s ease, border-color .2s ease;
+}
+.switchBtn:hover { color: var(--q-violet-text); border-color: var(--q-violet-text); }
+/* Zona táctil mínima de 44 px en pantallas táctiles (design system) */
+@media (hover: none) {
+  .back, .switchBtn { min-height: 44px; }
+}
+.formMark { display: block; width: 44px; height: auto; margin-bottom: 14px; }
+
+/* Tarjeta del formulario */
+.card {
+  width: min(430px, 100%);
+  margin: auto;
+  padding: 34px 30px 30px;
+  border-radius: 22px;
+  background: var(--q-card);
+  border: 1px solid var(--q-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+  animation: entrar .5s cubic-bezier(.2, .8, .2, 1) both;
+}
+@keyframes entrar {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--q-violet-text);
+  background: rgba(90, 75, 255, .2);
+}
+
+.title {
+  color: var(--q-fg);
+  font-size: 27px;
+  letter-spacing: -.02em;
+  margin-bottom: 8px;
+}
+.lede {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--q-muted);
+  margin-bottom: 24px;
+}
+
+.error, .exito {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  animation: entrar .25s ease both;
+}
+.error { color: var(--q-red); background: rgba(255, 107, 120, .12); }
+.exito { color: var(--q-green); background: rgba(87, 224, 138, .14); }
+.error svg, .exito svg { flex: 0 0 16px; margin-top: 1px; }
+
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--q-fg);
+}
+
+.control { position: relative; display: flex; align-items: center; }
+.control .icon {
+  position: absolute;
+  left: 13px;
+  display: grid;
+  place-items: center;
+  color: var(--q-muted);
+  pointer-events: none;
+  transition: color .2s ease;
+}
+.control input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px 0 42px;
+  border-radius: 12px;
+  border: 1px solid var(--q-input);
+  background: var(--q-field);
+  color: var(--q-fg);
+  font-size: 14.5px;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.control input::placeholder { color: var(--q-input); }
+.control input:focus {
+  outline: none;
+  border-color: var(--q-violet-text);
+  box-shadow: 0 0 0 4px rgba(90, 75, 255, .2);
+}
+.control:focus-within .icon { color: var(--q-violet-text); }
+
+.verPass {
+  position: absolute;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--q-muted);
+  transition: color .2s ease, background .2s ease;
+}
+.verPass:hover { color: var(--q-fg); background: rgba(255, 255, 255, .06); }
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 22px;
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--q-fg);
+  cursor: pointer;
+}
+.checkboxRow input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--q-violet);
+  cursor: pointer;
+}
+
+.forgot {
+  background: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--q-violet-text);
+  transition: color .2s ease;
+}
+.forgot:hover { color: var(--q-fg); text-decoration: underline; }
+
+.submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 50px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--q-magenta), var(--q-violet));
+  box-shadow: 0 10px 24px rgba(90, 75, 255, .35);
+  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+.submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(90, 75, 255, .45); }
+.submit:active:not(:disabled) { transform: translateY(0); }
+.submit:disabled { opacity: .72; cursor: default; }
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .45);
+  border-top-color: #fff;
+  animation: spin .8s linear infinite;
+}
+
+.alt {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--q-muted);
+}
+.alt a { font-weight: 600; color: var(--q-violet-text); }
+.alt a:hover { text-decoration: underline; }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 980px) {
+  .screen { grid-template-columns: 1fr; }
+  .art {
+    padding: 22px 24px 26px;
+    gap: 18px;
+  }
+  .artTitle { font-size: 24px; max-width: 26ch; margin-bottom: 18px; }
+  .artList, .artShot, .artFoot { display: none; }
+  .formSide { padding: 20px 20px 36px; }
+  .card { margin: 26px auto 0; padding: 28px 22px 26px; box-shadow: none; }
+}
+
+@media (max-width: 420px) {
+  .card { border: 0; background: transparent; padding: 22px 2px; }
+  .fieldRow { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+
+/* Aviso de sesión caducada (se llega con ?caducada=1) */
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--q-amber);
+  background: color-mix(in srgb, var(--q-amber) 12%, transparent);
+  animation: entrar .25s ease both;
+}
+.aviso svg { flex: 0 0 16px; margin-top: 1px; }

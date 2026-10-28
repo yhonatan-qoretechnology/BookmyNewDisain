@@ -19,6 +19,7 @@ import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
 import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 import { autocompletarDireccion } from "@/lib/places";
+import { recordarOrigenLogin } from "@/lib/loginOrigen";
 import { setPaisActivo, useI18n } from "@/i18n";
 import { ROUTES } from "@/constants";
 import { useWebT } from "./useWebT";
@@ -230,7 +231,11 @@ export default function SignupWizard() {
          los nombres de empresa y sede resueltos. */
       setListo(true);
       const { session } = await AuthController.login(datos.email.trim().toLowerCase(), datos.password);
-      if (session) login(session);
+      if (session) {
+        /* Sesión de BookMy: borra la marca de QoreTech si la pestaña venía de allí */
+        recordarOrigenLogin("bookmy");
+        login(session);
+      }
       router.push(ROUTES.dashboard);
     } catch (ex) {
       setError(ex instanceof Error ? ex.message : w("signup.errorGeneral"));
