@@ -90,7 +90,7 @@
 .trailStep.active::before { background: var(--teal-500); }
 .trailStep.active .trailMark {
   background: var(--grad-teal); border-color: var(--teal-500); color: #fff;
-  box-shadow: 0 4px 12px rgba(15, 207, 174, .35);
+  box-shadow: 0 4px 12px rgba(var(--marca-glow), .35);
 }
 
 [data-theme="dark"] .trailMark { background: rgba(255, 255, 255, .04); border-color: var(--border); }
@@ -212,7 +212,7 @@
   background: var(--grad-teal);
   color: #fff;
   transform: translateY(-50%) scale(1.15);
-  box-shadow: 0 6px 25px rgba(15, 207, 174, 0.6);
+  box-shadow: 0 6px 25px rgba(var(--marca-glow), 0.6);
 }
 .sedeCarouselNav.prev {
   left: 20px;
@@ -401,7 +401,7 @@
   position: absolute; top: 10px; right: 10px;
   padding: 4px 10px; border-radius: 999px;
   font-size: 10.5px; font-weight: 800; letter-spacing: .3px;
-  background: rgba(15, 207, 174, .92); color: #043a31;
+  background: rgba(var(--marca-glow), .92); color: #043a31;
 }
 .proEstado.inactivo { background: rgba(15, 20, 40, .62); color: #fff; }
 .proBody { display: flex; flex-direction: column; gap: 6px; padding: 13px 14px 12px; flex: 1; }

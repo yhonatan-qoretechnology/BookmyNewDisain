@@ -20,7 +20,7 @@
 .chip:disabled { opacity: .5; cursor: default; }
 .chipActivo {
   border-color: var(--teal-500);
-  background: rgba(15, 207, 174, .12);
+  background: rgba(var(--marca-glow), .12);
 }
 
 /* Citas en conflicto */
@@ -37,7 +37,7 @@
   border-radius: var(--r-lg);
   padding: 14px;
 }
-.citaResuelta { border-color: rgba(15, 207, 174, .5); }
+.citaResuelta { border-color: rgba(var(--marca-glow), .5); }
 .citaHead {
   display: flex;
   justify-content: space-between;
@@ -75,7 +75,7 @@
 .opcion:disabled { opacity: .5; cursor: default; }
 .opcionActiva {
   border-color: var(--teal-500);
-  background: rgba(15, 207, 174, .12);
+  background: rgba(var(--marca-glow), .12);
 }
 .opcionPeligro.opcionActiva {
   border-color: var(--red);

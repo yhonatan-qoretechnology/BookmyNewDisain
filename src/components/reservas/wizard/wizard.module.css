@@ -33,7 +33,7 @@
   border-color: var(--teal-500); color: #fff;
   background: var(--teal-500); 
   transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(15, 207, 174, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--marca-glow), 0.4);
 }
 .step.done .stepDot {
   border-color: var(--teal-500); 

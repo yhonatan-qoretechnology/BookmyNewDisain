@@ -38,7 +38,7 @@
   font-size: 12.5px; font-weight: 700; color: var(--slate-500); cursor: pointer;
 }
 .segBtn:hover { color: var(--navy-900); }
-.segActivo { background: var(--grad-teal); color: #fff; box-shadow: 0 6px 14px rgba(15,207,174,.28); }
+.segActivo { background: var(--grad-teal); color: #fff; box-shadow: 0 6px 14px rgba(var(--marca-glow),.28); }
 .segActivo:hover { color: #fff; }
 .sep { width: 1px; height: 24px; background: var(--border); }
 .expLabel {

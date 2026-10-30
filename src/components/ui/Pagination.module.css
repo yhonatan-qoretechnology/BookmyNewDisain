@@ -49,7 +49,7 @@
 }
 :global([data-theme="dark"]) .numero:hover:not(.activa),
 :global([data-theme="dark"]) .flecha:hover:not(:disabled) {
-  background: rgba(15,207,174,.10); color: var(--teal-500); border-color: var(--teal-500);
+  background: rgba(var(--marca-glow),.10); color: var(--teal-500); border-color: var(--teal-500);
 }
 :global([data-theme="dark"]) .activa {
   background: var(--teal-500); border-color: var(--teal-500); color: #06231e;

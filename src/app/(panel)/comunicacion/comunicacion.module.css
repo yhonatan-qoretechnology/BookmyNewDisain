@@ -74,7 +74,7 @@
   color: #00a884;
 }
 :global([data-theme="dark"]) .addContactBtn:hover {
-  background: rgba(15,207,174,.12);
+  background: rgba(var(--marca-glow),.12);
 }
 
 .modalOverlay {
@@ -249,7 +249,7 @@
 .comItemActive .comName { color: var(--teal-700, var(--navy-900)); }
 :global([data-theme="dark"]) .comItem:hover { background: rgba(255,255,255,.05); }
 :global([data-theme="dark"]) .comItemActive,
-:global([data-theme="dark"]) .comItemActive:hover { background: rgba(15,207,174,.12); }
+:global([data-theme="dark"]) .comItemActive:hover { background: rgba(var(--marca-glow),.12); }
 
 /* Avatar (foto o iniciales) */
 .comAv {
@@ -288,7 +288,7 @@
   border-radius: 999px;
   display: flex; align-items: center; justify-content: center;
   flex: none;
-  box-shadow: 0 2px 4px rgba(15, 207, 174, 0.3);
+  box-shadow: 0 2px 4px rgba(var(--marca-glow), 0.3);
   position: absolute;
   top: 8px;
   right: 8px;
@@ -296,7 +296,7 @@
 }
 :global([data-theme="dark"]) .unread {
   background: var(--teal-500);
-  box-shadow: 0 2px 4px rgba(15, 207, 174, 0.4);
+  box-shadow: 0 2px 4px rgba(var(--marca-glow), 0.4);
 }
 
 /* Zona de chat */
@@ -337,7 +337,7 @@
   border-color: var(--border); background: rgba(255,255,255,.04); color: var(--slate-500);
 }
 :global([data-theme="dark"]) .exportBtn:hover:not(:disabled) {
-  border-color: rgba(15,207,174,.5); color: var(--teal-500); background: rgba(15,207,174,.10);
+  border-color: rgba(var(--marca-glow),.5); color: var(--teal-500); background: rgba(var(--marca-glow),.10);
 }
 
 @media (max-width: 640px) {

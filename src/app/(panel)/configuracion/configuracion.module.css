@@ -28,7 +28,7 @@
   font-size: 13.5px; outline: none;
   background: var(--input-bg); color: var(--navy-900);
 }
-.formCol input:focus, .formCol select:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(15,207,174,.12); }
+.formCol input:focus, .formCol select:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(var(--marca-glow),.12); }
 :global([data-theme="dark"]) .formCol label { color: var(--slate-500); }
 :global([data-theme="dark"]) .formCol input,
 :global([data-theme="dark"]) .formCol select { background: rgba(255,255,255,.05); border-color: var(--border); color: var(--navy-900); }

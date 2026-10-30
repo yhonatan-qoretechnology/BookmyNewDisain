@@ -126,7 +126,9 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: bottom center;
+  /* Pegada a la derecha: centrada dejaba un hueco a ese lado, porque la caja
+     es mas ancha que la foto una vez ajustada por alto. */
+  object-position: bottom right 3%;
   filter: drop-shadow(0 18px 34px rgba(0, 0, 0, .45));
   /* El brazo llega al borde de abajo del archivo: se desvanece ese tramo para
      que se funda con el panel en vez de cortarse en recto. */
@@ -369,10 +371,10 @@
   font-weight: 700;
   color: #fff;
   background: var(--grad-teal);
-  box-shadow: 0 10px 24px rgba(15, 207, 174, .3);
+  box-shadow: 0 10px 24px rgba(var(--marca-glow), .3);
   transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
 }
-.submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(15, 207, 174, .38); }
+.submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(var(--marca-glow), .38); }
 .submit:active:not(:disabled) { transform: translateY(0); }
 .submit:disabled { opacity: .72; cursor: default; }
 

@@ -19,10 +19,10 @@
   font-size: 12px; font-weight: 800;
   background: var(--surface); border: 1.5px solid var(--border); color: var(--slate-500);
 }
-.pasoActual { border-color: var(--teal-500); color: var(--navy-900); background: rgba(15,207,174,.08); }
+.pasoActual { border-color: var(--teal-500); color: var(--navy-900); background: rgba(var(--marca-glow),.08); }
 .pasoActual .pasoNum { background: var(--teal-500); border-color: var(--teal-500); color: #fff; }
 .pasoHecho { color: var(--teal-600); }
-.pasoHecho .pasoNum { background: rgba(15,207,174,.16); border-color: transparent; color: var(--teal-600); }
+.pasoHecho .pasoNum { background: rgba(var(--marca-glow),.16); border-color: transparent; color: var(--teal-600); }
 :global([data-theme="dark"]) .pasoActual { color: #e8edf5; }
 
 .cuerpo { min-height: 240px; }
@@ -45,8 +45,8 @@
   border: 1.5px dashed var(--border); border-radius: var(--r-lg);
   background: var(--surface-2); transition: border-color .15s, background .15s;
 }
-.zona:hover, .zonaEncima { border-color: var(--teal-500); background: rgba(15,207,174,.07); }
-.zonaLista { border-style: solid; border-color: rgba(15,207,174,.5); }
+.zona:hover, .zonaEncima { border-color: var(--teal-500); background: rgba(var(--marca-glow),.07); }
+.zonaLista { border-style: solid; border-color: rgba(var(--marca-glow),.5); }
 .zonaError { border-color: #e5484d; }
 .vacia { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; color: var(--slate-500); }
 .vacia b { font-size: 13px; color: var(--navy-900); }

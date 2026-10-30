@@ -22,7 +22,7 @@
 }
 .item:hover:not(:disabled) {
   border-color: var(--teal-500);
-  background: rgba(15, 207, 174, .08);
+  background: rgba(var(--marca-glow), .08);
 }
 .item:disabled { opacity: .55; cursor: default; }
 .guardando {

@@ -78,7 +78,7 @@
   border-left: 3px solid var(--teal-400);
 }
 :global([data-theme="dark"]) .solNotes {
-  background: rgba(15, 207, 174, .06);
+  background: rgba(var(--marca-glow), .06);
   color: var(--slate-300);
   border-left-color: var(--teal-500);
 }
@@ -100,7 +100,7 @@
   padding: 3px 10px; border-radius: 999px;
 }
 :global([data-theme="dark"]) .solItemRow { background: rgba(255, 255, 255, .04); color: var(--slate-500); }
-:global([data-theme="dark"]) .solQty { background: rgba(15, 207, 174, .12); color: var(--teal-500); }
+:global([data-theme="dark"]) .solQty { background: rgba(var(--marca-glow), .12); color: var(--teal-500); }
 
 .solActions { display: flex; gap: 10px; }
 

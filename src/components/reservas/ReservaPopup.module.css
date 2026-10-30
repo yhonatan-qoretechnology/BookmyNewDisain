@@ -127,7 +127,7 @@
   grid-column: 1 / -1;
   display: flex; flex-direction: column; gap: 8px;
   padding: 10px 12px; border-radius: var(--r-md);
-  background: rgba(15,207,174,.08); border: 1.5px solid rgba(15,207,174,.35);
+  background: rgba(var(--marca-glow),.08); border: 1.5px solid rgba(var(--marca-glow),.35);
 }
 .extLabel { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--teal-600); }
 .extChips { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 6px; }

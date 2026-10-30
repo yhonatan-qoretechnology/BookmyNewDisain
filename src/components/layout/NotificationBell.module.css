@@ -69,7 +69,7 @@
 :global([data-theme="dark"]) .item { border-color: var(--border); }
 .item:last-child { border-bottom: none; }
 .item:hover { background: var(--teal-50); }
-:global([data-theme="dark"]) .item:hover { background: rgba(15,207,174,.08); }
+:global([data-theme="dark"]) .item:hover { background: rgba(var(--marca-glow),.08); }
 .itemUnread { background: var(--hover-surface); }
 
 .itemTitleRow { display: flex; align-items: center; gap: 7px; }

@@ -21,7 +21,7 @@
   display: flex; align-items: center; justify-content: center; color: var(--slate-500);
 }
 .navArrow:hover { background: var(--teal-50); color: var(--teal-600); }
-:global([data-theme="dark"]) .navArrow:hover { background: rgba(15,207,174,.12); color: var(--teal-500); }
+:global([data-theme="dark"]) .navArrow:hover { background: rgba(var(--marca-glow),.12); color: var(--teal-500); }
 
 .viewToggle { display: flex; background: var(--hover-surface); border-radius: var(--r-md); padding: 3px; }
 .viewToggle button {
@@ -31,7 +31,7 @@
 }
 .viewToggle button.viewActive {
   background: var(--grad-teal); color: #fff;
-  box-shadow: 0 3px 8px rgba(15,207,174,.35);
+  box-shadow: 0 3px 8px rgba(var(--marca-glow),.35);
 }
 
 /* minmax(0,1fr) y no 1fr: con 1fr el mínimo es el contenido, así que un

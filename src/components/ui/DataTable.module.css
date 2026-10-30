@@ -26,7 +26,7 @@
 .priceCell { color: var(--teal-600); font-weight: 700; }
 
 :global([data-theme="dark"]) .dataTable tbody td { color: var(--slate-500); }
-:global([data-theme="dark"]) .dataTable tbody tr:hover td { background: rgba(15,207,174,.06); }
+:global([data-theme="dark"]) .dataTable tbody tr:hover td { background: rgba(var(--marca-glow),.06); }
 :global([data-theme="dark"]) .priceCell { color: var(--teal-500); }
 
 

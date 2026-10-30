@@ -24,6 +24,10 @@
   --teal-600:  #0d9d6d;
   --teal-700:  #0a7b56;
   --neon:      #39ff8c;
+  /* Turquesa heredado de los resplandores del panel (#0fcfae). Va como canales
+     RGB sueltos para poder usarlo en rgba() con la opacidad de cada sitio. En
+     BookMy resuelve al mismo color de siempre; bajo otra marca, al suyo. */
+  --marca-glow: 15, 207, 174;
 
   --navy-900:  #101a24;
   --navy-700:  #2c3a48;
@@ -162,6 +166,7 @@ img { max-width: 100%; }
    que no toca lo sigue poniendo el tema.
 ============================================================ */
 [data-marca="qore"] {
+  --marca-glow: 110, 94, 255;
   --teal-50:   #efecff;
   --teal-100:  #dcd6ff;
   --teal-400:  #8b7bff;

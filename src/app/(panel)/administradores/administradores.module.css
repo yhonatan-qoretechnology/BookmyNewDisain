@@ -13,8 +13,8 @@
   margin-bottom: 4px;
 }
 :global([data-theme="dark"]) .credBox {
-  background: rgba(15,207,174,.08);
-  border-color: rgba(15,207,174,.5);
+  background: rgba(var(--marca-glow),.08);
+  border-color: rgba(var(--marca-glow),.5);
 }
 .credRow {
   display: flex; justify-content: space-between; align-items: center; gap: 12px;

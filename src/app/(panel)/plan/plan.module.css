@@ -16,8 +16,8 @@
   padding: 20px; border-radius: var(--r-lg);
   border: 1.5px solid var(--border); background: var(--surface);
 }
-.cardPro { border-color: rgba(15, 207, 174, .45); }
-.actual { box-shadow: 0 0 0 3px rgba(15, 207, 174, .14); }
+.cardPro { border-color: rgba(var(--marca-glow), .45); }
+.actual { box-shadow: 0 0 0 3px rgba(var(--marca-glow), .14); }
 
 .cardHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .cardHead h3 {
@@ -28,7 +28,7 @@
 .chipActual {
   font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
   padding: 4px 9px; border-radius: 999px;
-  background: rgba(15, 207, 174, .14); color: var(--teal-600);
+  background: rgba(var(--marca-glow), .14); color: var(--teal-600);
 }
 .cardLead { margin: 0; font-size: 13px; color: var(--slate-500); line-height: 1.55; }
 

@@ -4,7 +4,7 @@
   background: var(--grad-teal);
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 12px; color: #fff;
-  box-shadow: 0 3px 8px rgba(15,207,174,.3); flex: none;
+  box-shadow: 0 3px 8px rgba(var(--marca-glow),.3); flex: none;
   overflow: hidden;
 }
 /* Foto de perfil: rellena el avatar sin deformarse */
