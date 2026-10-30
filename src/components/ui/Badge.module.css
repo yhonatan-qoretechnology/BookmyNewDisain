@@ -34,9 +34,17 @@
   font-size: 11px; font-weight: 800; letter-spacing: .04em;
 }
 .superadmin { background: linear-gradient(135deg,#8b5cf6,#4c1d95); color: #fff; }
-.owner      { background: linear-gradient(135deg, #2fd39a, #0a7b56); color: #fff; }
+.owner      { background: linear-gradient(135deg, var(--teal-400), #0a7b56); color: #fff; }
 .admin      { background: var(--grad-teal); color: #fff; }
 .employee   { background: var(--grad-amber); color: #fff; }
+
+/* El extremo profundo sigue escrito a mano a proposito: en oscuro
+   --teal-700 vale #6bf7b4, un menta claro pensado para texto, y el
+   distintivo saldria casi blanco. Cuando manda otra marca se repinta
+   con tokens, que ahi si valen lo mismo en claro y en oscuro. */
+:global([data-marca="qore"]) .owner {
+  background: linear-gradient(135deg, var(--teal-400), var(--teal-700));
+}
 
 /* Tag pequeño */
 .tag {

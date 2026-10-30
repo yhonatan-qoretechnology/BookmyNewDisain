@@ -12,7 +12,16 @@
   margin-bottom: 18px;
   border-radius: var(--r-lg);
   color: #eaf6ef;
-  background: linear-gradient(120deg, #0d9d6d, #0a4434 78%);
+  /* El verde de marca y el fondo profundo van en variables locales: el
+     token --teal-600 cambia de valor en oscuro y el aviso de BookMy se
+     veria distinto, y el tono profundo no tiene token. Otra marca solo
+     redefine estas variables, nunca el `background`, para que los
+     estados con significado (urgente en ambar, caducada en gris) sigan
+     ganando por orden de cascada. */
+  --aviso-marca:  #0d9d6d;
+  --aviso-oferta: #12b981;
+  --aviso-fondo:  #0a4434;
+  background: linear-gradient(120deg, var(--aviso-marca), var(--aviso-fondo) 78%);
   box-shadow: var(--shadow-md);
   animation: entrarAviso .4s var(--ease) both;
 }
@@ -23,7 +32,13 @@
 
 .urgente { background: linear-gradient(120deg, #f59e0b, #b45309 78%); }
 .caducada { background: linear-gradient(120deg, #475569, #1e293b 78%); }
-.oferta { background: linear-gradient(120deg, #12b981, #0a4434 78%); }
+.oferta { background: linear-gradient(120deg, var(--aviso-oferta), var(--aviso-fondo) 78%); }
+
+:global([data-marca="qore"]) .banner {
+  --aviso-marca:  var(--teal-600);
+  --aviso-oferta: var(--teal-500);
+  --aviso-fondo:  color-mix(in srgb, var(--teal-700) 55%, #000);
+}
 
 .icono {
   display: grid;

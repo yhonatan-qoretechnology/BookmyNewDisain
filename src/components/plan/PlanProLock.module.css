@@ -22,9 +22,13 @@
   overflow: hidden;
   border-radius: var(--r-xl);
   color: #eaf6ef;
+  /* El extremo claro de los degradados de marca (#6bf7b4) no tiene token;
+     va en una variable local para que otra marca lo sustituya de una vez
+     en el distintivo, el boton y el icono, que cuelgan de esta tarjeta. */
+  --pro-claro: #6bf7b4;
   background:
-    radial-gradient(900px 500px at 12% -20%, rgba(57, 255, 140, .22), transparent 60%),
-    radial-gradient(700px 420px at 95% 115%, rgba(47, 211, 154, .18), transparent 55%),
+    radial-gradient(900px 500px at 12% -20%, color-mix(in srgb, var(--neon) 22%, transparent), transparent 60%),
+    radial-gradient(700px 420px at 95% 115%, color-mix(in srgb, var(--teal-400) 18%, transparent), transparent 55%),
     linear-gradient(155deg, #0f2a22 0%, #101a24 58%, #0a1014 100%);
   box-shadow: var(--shadow-lg);
 }
@@ -56,8 +60,8 @@
   letter-spacing: .12em;
   text-transform: uppercase;
   color: #06140f;
-  background: linear-gradient(135deg, #6bf7b4, #2fd39a);
-  box-shadow: 0 8px 20px rgba(57, 255, 140, .3);
+  background: linear-gradient(135deg, var(--pro-claro), var(--teal-400));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--neon) 30%, transparent);
 }
 .badge svg { width: 13px; height: 13px; }
 
@@ -99,7 +103,7 @@
   margin-top: 1px;
   border-radius: 50%;
   color: #06140f;
-  background: #39ff8c;
+  background: var(--neon);
 }
 .check svg { width: 12px; height: 12px; }
 
@@ -132,10 +136,10 @@
 }
 .cta {
   color: #06140f;
-  background: linear-gradient(135deg, #6bf7b4, #2fd39a);
-  box-shadow: 0 12px 28px rgba(57, 255, 140, .28);
+  background: linear-gradient(135deg, var(--pro-claro), var(--teal-400));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--neon) 28%, transparent);
 }
-.cta:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 34px rgba(57, 255, 140, .36); }
+.cta:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 34px color-mix(in srgb, var(--neon) 36%, transparent); }
 .cta:disabled { opacity: .7; cursor: default; }
 .cta svg { width: 16px; height: 16px; }
 
@@ -171,8 +175,8 @@
   height: 62px;
   border-radius: var(--r-lg);
   color: #06140f;
-  background: linear-gradient(140deg, #6bf7b4, #2fd39a);
-  box-shadow: 0 14px 30px rgba(57, 255, 140, .3);
+  background: linear-gradient(140deg, var(--pro-claro), var(--teal-400));
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--neon) 30%, transparent);
 }
 .visualIcon svg { width: 27px; height: 27px; }
 
@@ -191,9 +195,11 @@
   display: grid;
   place-items: center;
   background: linear-gradient(160deg, rgba(10, 16, 20, .55), rgba(10, 16, 20, .8));
-  color: #39ff8c;
+  color: var(--neon);
 }
 .visualLock svg { width: 40px; height: 40px; }
+
+:global([data-marca="qore"]) .card { --pro-claro: var(--neon); }
 
 /* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 1080px) {

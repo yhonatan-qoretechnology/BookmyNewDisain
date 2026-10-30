@@ -87,6 +87,14 @@ function Login() {
       {/* ── Mitad de marca ─────────────────────────────── */}
       <aside className={styles.art}>
         <div className={styles.artGlow} aria-hidden />
+        {/* Decorativa y de fondo: va fuera de .artBody para poder anclarse al
+            borde del panel y sangrar por abajo, como en el diseno. */}
+        <div className={styles.artShot} aria-hidden>
+          <picture>
+            <source srcSet="/web/img/bookmy-app-movil.webp" type="image/webp" />
+            <img src="/web/img/bookmy-app-movil.png" alt="" loading="lazy" decoding="async" />
+          </picture>
+        </div>
         <div className={styles.artTop}>
           <Link href="/" className={styles.artBrand}>
             <span className={styles.artBrandMark}>B</span>
@@ -110,12 +118,6 @@ function Login() {
             ))}
           </ul>
 
-          <div className={styles.artShot}>
-            <picture>
-              <source srcSet="/web/img/bookmy-app-movil.webp" type="image/webp" />
-              <img src="/web/img/bookmy-app-movil.png" alt="" loading="lazy" decoding="async" />
-            </picture>
-          </div>
         </div>
 
         <p className={styles.artFoot}>{t("login.foot")}</p>

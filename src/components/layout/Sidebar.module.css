@@ -90,6 +90,12 @@
   background: var(--grad-teal);
   box-shadow: 0 5px 12px rgba(13, 157, 109, .34);
 }
+/* El halo no puede salir de --teal-600: ese token cambia de valor en
+   oscuro y el panel de BookMy se veria distinto. Se deja el verde a mano
+   y se deriva del token solo cuando manda otra marca. */
+:global([data-marca="qore"]) .navItemActive .navIcon {
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--teal-600) 34%, transparent);
+}
 .navItemActive .navIcon svg { color: #fff; }
 
 :global([data-theme="dark"]) .navItem { color: var(--slate-300); }
@@ -189,11 +195,22 @@
    marino y desentonaba con el resto del panel. */
 .help {
   flex-shrink: 0;
-  background: linear-gradient(155deg, #0d9d6d 0%, #0a4434 55%, #06251c 100%);
+  /* Los dos tonos profundos no tienen token y --teal-600 cambia de valor
+     en oscuro, asi que el degradado se arma con variables locales: BookMy
+     conserva sus verdes exactos y otra marca sustituye solo las tres. */
+  --ayuda-1: #0d9d6d;
+  --ayuda-2: #0a4434;
+  --ayuda-3: #06251c;
+  background: linear-gradient(155deg, var(--ayuda-1) 0%, var(--ayuda-2) 55%, var(--ayuda-3) 100%);
   border-radius: var(--r-lg);
   padding: 18px 14px 16px;
   margin-top: auto;
   color: #fff; text-align: center;
+}
+:global([data-marca="qore"]) .help {
+  --ayuda-1: var(--teal-600);
+  --ayuda-2: color-mix(in srgb, var(--teal-700) 55%, #000);
+  --ayuda-3: color-mix(in srgb, var(--teal-700) 30%, #000);
 }
 .navGroup { margin-bottom: 16px; }
 .helpIcon {

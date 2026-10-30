@@ -389,6 +389,11 @@
   border-radius: 12px 2px 12px 12px;
   box-shadow: 0 4px 12px rgba(13, 157, 109, .22);
 }
+/* El fondo ya es --grad-teal; la sombra no tiene token y --teal-600 cambia
+   en oscuro, asi que se deriva del token solo cuando manda otra marca. */
+:global([data-marca="qore"]) .msgOut .bubble {
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--teal-600) 22%, transparent);
+}
 .msgIn .bubble {
   border-radius: 2px 12px 12px 12px;
 }

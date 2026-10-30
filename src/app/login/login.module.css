@@ -19,7 +19,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 28px;
   padding: 40px 48px;
   /* Altura DEFINIDA, no solo minima: es lo que permite que la foto de abajo
@@ -76,19 +76,9 @@
 .artBrandText b { font-size: 18px; letter-spacing: -.01em; }
 .artBrandText span { font-size: 12.5px; color: rgba(234, 246, 239, .68); }
 
-.artBody {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  /* min-height:0 es imprescindible: sin el, un hijo flex nunca encoge por
-     debajo de su contenido y la foto volveria a empujar el pie fuera. */
-  min-height: 0;
-}
+.artBody { position: relative; z-index: 1; }
 
 .artTitle {
-  flex: 0 0 auto;
   max-width: 15ch;
   font-size: clamp(30px, 3.4vw, 46px);
   line-height: 1.12;
@@ -97,8 +87,7 @@
   margin-bottom: 26px;
 }
 
-.artList {
-  flex: 0 0 auto; display: grid; gap: 12px; margin-bottom: 34px; }
+.artList { display: grid; gap: 12px; margin-bottom: 34px; }
 .artList li {
   display: flex;
   align-items: center;
@@ -121,33 +110,35 @@
    es un PNG transparente, asi que un borde o una caja la delatarian. La
    sombra se aplica a la silueta con drop-shadow, no al rectangulo. */
 .artShot {
-  /* Caja que se queda con el hueco sobrante. La foto va dentro en absoluto
-     para que se ajuste SIEMPRE: con la foto en flujo normal, el max-height en
-     porcentaje no resuelve (la altura de un item flex es indefinida para los
-     porcentajes) y la imagen crecia hasta tapar el titulo. */
-  position: relative;
-  margin-top: 18px;
-  flex: 1 1 0;
-  min-height: 0;
+  /* Elemento decorativo del panel, no parte de la columna de texto: anclado
+     abajo a la derecha y mas alto que el hueco libre, de modo que sangra por
+     el borde inferior. El overflow:hidden de .art lo recorta. Va por detras
+     del texto (.artTop, .artBody y .artFoot llevan z-index 1). */
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  width: min(54%, 470px);
+  height: min(68%, 660px);
+  pointer-events: none;
 }
 .artShot img {
-  /* Llena la caja sin deformarse y apoyada abajo, como en el diseno. */
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 18px 34px rgba(0, 0, 0, .45));
-  /* El brazo llega al borde de abajo de la foto y queda cortado en plano, lo
-     que dibuja una linea recta contra el fondo: se desvanece ese tramo. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+  /* El brazo llega al borde de abajo del archivo: se desvanece ese tramo para
+     que se funda con el panel en vez de cortarse en recto. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
 }
 
 .artFoot {
   position: relative;
   z-index: 1;
+  /* Empuja el pie al fondo ahora que la columna no reparte con space-between. */
+  margin-top: auto;
   font-size: 12.5px;
   color: rgba(234, 246, 239, .6);
 }

@@ -17,8 +17,14 @@
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .btn svg { width: 15px; height: 15px; }
 
-.primary { background: var(--grad-teal); color: #fff; box-shadow: 0 6px 16px rgba(13, 157, 109, .28); }
+.primary { background: var(--grad-teal); color: #fff; box-shadow: var(--shadow-icon); }
 .primary:hover:not(:disabled) { box-shadow: 0 10px 24px rgba(13, 157, 109, .38); }
+/* La del reposo es exactamente --shadow-icon, que ya sigue a la marca. La
+   del hover no tiene token y --teal-600 cambia en oscuro, asi que se
+   deriva del token solo cuando manda otra marca. */
+:global([data-marca="qore"]) .primary:hover:not(:disabled) {
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--teal-600) 38%, transparent);
+}
 
 .ghost { background: var(--surface); color: var(--slate-500); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .ghost:hover:not(:disabled) { background: var(--hover-surface); color: var(--navy-900); border-color: var(--slate-300); }
