@@ -54,6 +54,9 @@ export const EP = {
      que se elige de una empresa y lo único que luego no cambia. */
   paises: "/paises",
 
+  /** Formularios públicos de la web (contacto y solicitud de plan) — con reCAPTCHA */
+  contacto: "/contacto",
+
   /* @Controller('empresas') */
   empresas: "/empresas",
   empresaById: (id: number) => `/empresas/${id}`,

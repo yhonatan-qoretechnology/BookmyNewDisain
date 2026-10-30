@@ -71,6 +71,21 @@ export interface ApiAdminCreateResponse {
  * ⚠️ PUNTO DE AJUSTE: si el CreateUserDto del backend nombra los campos
  * de otra forma (p. ej. `nombre`/`telefono`), cámbialos aquí.
  */
+/** POST /contacto — formularios públicos de bookmy.es. */
+export interface ContactoDto {
+  origen: "contacto" | "solicitud";
+  nombre: string;
+  correo: string;
+  telefono?: string;
+  motivo?: string;
+  mensaje?: string;
+  plan?: string;
+  pais?: string;
+  tipoEmpresa?: string;
+  /** Trampa para bots (campo oculto) */
+  honey?: string;
+}
+
 /** POST /clients — alta manual de un cliente desde el panel. */
 export interface CreateClientDto {
   name: string;

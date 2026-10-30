@@ -5,6 +5,7 @@
 ============================================================ */
 import { http, qs } from "./http";
 import { EP } from "./endpoints";
+import { cabecerasRecaptcha } from "@/lib/recaptcha";
 import type {
   ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
@@ -23,7 +24,7 @@ import type {
   ApiInsumo, ApiStockSede, ApiSolicitudInventario,
   CreateInsumoDto, UpdateInsumoDto, CreateSolicitudInventarioDto,
   UpdateServiceSedeProfesionalDto,
-  ClientListParams, ClientUpdatePayload, CreateClientDto, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
+  ClientListParams, ClientUpdatePayload, ContactoDto, CreateClientDto, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
   RegisterUserDto, RegistroNegocioDto, SendMessageDto, UpdateGastoDto, UpdateServiceDto,
 } from "./types";
@@ -32,8 +33,9 @@ import type {
 export const AuthApi = {
   /** POST /auth/login → { user, token } | { error } (además el
       backend deja el cookie httpOnly `access_token`) */
-  login: (email: string, password: string) =>
-    http.post<LoginResponse>(EP.login, { email, password }),
+  /* reCAPTCHA opcional en el backend: si hay token, se verifica */
+  login: async (email: string, password: string) =>
+    http.post<LoginResponse>(EP.login, { email, password }, await cabecerasRecaptcha("login")),
 
   /** GET /auth/users (requiere JWT). Devuelve la lista de usuarios;
       los clientes finales tienen role === "CLIENT". */
@@ -95,13 +97,19 @@ export const AdminApi = {
 /* ── Recuperación de contraseña por OTP ─────────────────────
    Flujo de tres pasos contra AuthModule. Son endpoints públicos:
    quien ha olvidado la contraseña no tiene token. */
+/** Formularios públicos de bookmy.es — POST /contacto, con reCAPTCHA obligatorio. */
+export const ContactoApi = {
+  enviar: async (dto: ContactoDto) =>
+    http.post<{ ok: true }>(EP.contacto, dto, await cabecerasRecaptcha("contacto")),
+};
+
 export const PasswordSetupApi = {
   /** GET — comprueba el enlace sin gastarlo. */
   validar: (token: string) =>
     http.get<{ valido: true; email: string }>(EP.passwordSetupValidate + qs({ token })),
   /** PATCH — fija la contrasena y gasta el token. */
-  completar: (token: string, password: string) =>
-    http.patch<{ message: string }>(EP.passwordSetupComplete, { token, password }),
+  completar: async (token: string, password: string) =>
+    http.patch<{ message: string }>(EP.passwordSetupComplete, { token, password }, await cabecerasRecaptcha("fijar_password")),
 };
 
 export const PasswordRecoveryApi = {
@@ -111,8 +119,8 @@ export const PasswordRecoveryApi = {
    * y lo envía por correo.
    * @throws ApiError 404 si el correo no está registrado.
    */
-  solicitar: (email: string) =>
-    http.post<{ message: string }>(EP.passwordOtpRequest, { email }),
+  solicitar: async (email: string) =>
+    http.post<{ message: string }>(EP.passwordOtpRequest, { email }, await cabecerasRecaptcha("recuperar_password")),
 
   /**
    * Paso 2 — POST /auth/users/password/otp/validate { email, code }.
@@ -221,8 +229,9 @@ export const PaisesApi = {
 
 export const EmpresasApi = {
   /** POST /empresas/registro — alta desde la web. Devuelve { user, token }. */
-  registrar: (dto: RegistroNegocioDto) =>
-    http.post<LoginResponse>(EP.registroNegocio, dto),
+  /* reCAPTCHA obligatorio en el backend (solo existe en la web) */
+  registrar: async (dto: RegistroNegocioDto) =>
+    http.post<LoginResponse>(EP.registroNegocio, dto, await cabecerasRecaptcha("registro_negocio")),
 
   /** GET /empresas/:id/plan — plan del negocio y estado de su prueba. */
   plan: (id: number) => http.get<ApiEstadoPlan>(EP.empresaPlan(id)),

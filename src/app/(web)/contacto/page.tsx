@@ -1,15 +1,18 @@
 "use client";
 /* ============================================================
-   Contacto — mismo formulario que la web estática (formsubmit.co)
-   con estados de envío, error con alternativa por correo y aviso
-   de éxito accesible.
+   Contacto — se envía a POST /contacto del backend, que verifica
+   reCAPTCHA v3 y manda el correo a contacto@bookmy.es. Antes iba
+   directo a formsubmit.co desde el navegador, sin forma de
+   comprobar el CAPTCHA en un servidor. Mantiene los estados de
+   envío, el error con alternativa por correo y el aviso de éxito.
 ============================================================ */
 import { useState } from "react";
 import Link from "next/link";
 import Reveal from "@/components/web/Reveal";
 import { useWebT } from "@/components/web/useWebT";
+import { ContactoApi } from "@/api/modules";
 
-const ENDPOINT = "https://formsubmit.co/ajax/contacto@bookmy.es";
+const texto = (d: FormData, k: string) => String(d.get(k) ?? "").trim() || undefined;
 const CORREO = "contacto@bookmy.es";
 
 export default function ContactoPage() {
@@ -27,8 +30,15 @@ export default function ContactoPage() {
     setRespaldo(null);
     const datos = new FormData(e.currentTarget);
     try {
-      const res = await fetch(ENDPOINT, { method: "POST", headers: { Accept: "application/json" }, body: datos });
-      if (!res.ok) throw new Error("network");
+      await ContactoApi.enviar({
+        origen: "contacto",
+        nombre: texto(datos, "nombre") ?? "",
+        correo: texto(datos, "correo") ?? "",
+        telefono: texto(datos, "telefono"),
+        motivo: texto(datos, "motivo"),
+        mensaje: texto(datos, "mensaje"),
+        honey: texto(datos, "_honey"),
+      });
       setExito(true);
     } catch {
       setError(w("contact.error"));
@@ -72,9 +82,6 @@ export default function ContactoPage() {
               <h2>{w("contact.formTitle")}</h2>
               <form onSubmit={enviar}>
                 <input type="text" name="_honey" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
-                <input type="hidden" name="_subject" value="Nuevo mensaje de contacto Bookmy" />
-                <input type="hidden" name="_captcha" value="false" />
-                <input type="hidden" name="_template" value="table" />
 
                 <div className="field">
                   <label htmlFor="c-nombre">{w("contact.name")}</label>

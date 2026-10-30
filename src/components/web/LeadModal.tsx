@@ -1,14 +1,15 @@
 "use client";
 /* ============================================================
    Modal de solicitud de plan.
-   Igual que el de la web estática: envía a formsubmit.co y, si
-   ese servicio falla, ofrece el mismo contenido por correo.
+   Envía a POST /contacto del backend (reCAPTCHA v3 verificado en
+   el servidor) y, si falla, ofrece el mismo contenido por correo.
    Se abre desde cualquier botón de plan mediante el contexto.
 ============================================================ */
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useWebT } from "./useWebT";
+import { ContactoApi } from "@/api/modules";
 
-const ENDPOINT = "https://formsubmit.co/ajax/contacto@bookmy.es";
+const texto = (d: FormData, k: string) => String(d.get(k) ?? "").trim() || undefined;
 const CORREO = "contacto@bookmy.es";
 
 interface Valor { abrir: (plan?: string) => void }
@@ -59,8 +60,16 @@ export function LeadModalProvider({ children }: { children: React.ReactNode }) {
     setCorreoRespaldo(null);
     const datos = new FormData(e.currentTarget);
     try {
-      const res = await fetch(ENDPOINT, { method: "POST", headers: { Accept: "application/json" }, body: datos });
-      if (!res.ok) throw new Error("network");
+      await ContactoApi.enviar({
+        origen: "solicitud",
+        nombre: texto(datos, "nombre") ?? "",
+        correo: texto(datos, "correo") ?? "",
+        telefono: texto(datos, "telefono"),
+        pais: texto(datos, "pais"),
+        tipoEmpresa: texto(datos, "tipo_empresa"),
+        plan: texto(datos, "plan"),
+        honey: texto(datos, "_honey"),
+      });
       setExito(true);
     } catch {
       setError(w("modal.error"));
@@ -95,9 +104,6 @@ export function LeadModalProvider({ children }: { children: React.ReactNode }) {
             <form ref={formRef} onSubmit={enviar} noValidate={false}>
               <input type="hidden" name="plan" value={plan} readOnly />
               <input type="text" name="_honey" style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
-              <input type="hidden" name="_subject" value="Nueva solicitud Bookmy" />
-              <input type="hidden" name="_captcha" value="false" />
-              <input type="hidden" name="_template" value="table" />
 
               <div className="field">
                 <label htmlFor="lead-nombre">{w("modal.name")}</label>

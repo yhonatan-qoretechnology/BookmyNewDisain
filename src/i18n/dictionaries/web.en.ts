@@ -457,7 +457,7 @@ const webEn: WebDictionary = {
     row4Purpose: "Show relevant content in campaigns, only if you accept this category.",
     row4Duration: "Up to 12 months",
     s3Title: "Third-party cookies",
-    s3Text: "Some of our providers (such as analytics tools or social networks) may set their own cookies when you interact with embedded content on our site. We don't directly control these cookies; we recommend reviewing each provider's privacy policy.",
+    s3Text: "Some of our providers (such as analytics tools or social networks) may set their own cookies when you interact with embedded content on our site. We don't directly control these cookies; we recommend reviewing each provider's privacy policy. Our forms (contact, sign-up and sign-in) are protected by Google reCAPTCHA, which uses technical Google cookies to tell people apart from automated programs; Google's Privacy Policy (https://policies.google.com/privacy) and Terms (https://policies.google.com/terms) apply.",
     s4Title: "How to manage your preferences",
     s4Text: "You can manage your cookie preferences at any time using the button below, or by configuring your browser to block or delete cookies. Keep in mind that disabling essential cookies may affect how the site works.",
     s4Btn: "Manage my cookie preferences",

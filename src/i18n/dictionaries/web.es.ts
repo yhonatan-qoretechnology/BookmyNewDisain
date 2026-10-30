@@ -464,7 +464,7 @@ const webEs = {
     row4Purpose: "Muestran contenido relevante en campañas, solo si aceptas esta categoría.",
     row4Duration: "Hasta 12 meses",
     s3Title: "Cookies de terceros",
-    s3Text: "Algunos de nuestros proveedores (como herramientas de analítica o redes sociales) pueden instalar sus propias cookies cuando interactúas con contenido embebido en nuestro sitio. No controlamos directamente estas cookies; te recomendamos revisar las políticas de privacidad de cada proveedor.",
+    s3Text: "Algunos de nuestros proveedores (como herramientas de analítica o redes sociales) pueden instalar sus propias cookies cuando interactúas con contenido embebido en nuestro sitio. No controlamos directamente estas cookies; te recomendamos revisar las políticas de privacidad de cada proveedor. Los formularios (contacto, crear cuenta e inicio de sesión) están protegidos con Google reCAPTCHA, que usa cookies técnicas de Google para distinguir personas de programas automáticos; se aplican la Política de privacidad (https://policies.google.com/privacy) y las Condiciones (https://policies.google.com/terms) de Google.",
     s4Title: "Cómo gestionar tus preferencias",
     s4Text: "Puedes gestionar tus preferencias de cookies en cualquier momento desde el siguiente botón, o configurando tu navegador para bloquear o eliminar cookies. Ten en cuenta que desactivar las cookies esenciales puede afectar el funcionamiento del sitio.",
     s4Btn: "Gestionar mis preferencias de cookies",

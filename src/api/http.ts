@@ -94,10 +94,11 @@ function cerrarSesionCaducada() {
 
 export const http = {
   get:   <T>(path: string) => request<T>(path),
-  post:  <T>(path: string, data?: unknown) =>
-    request<T>(path, { method: "POST", body: data !== undefined ? JSON.stringify(data) : undefined }),
-  patch: <T>(path: string, data?: unknown) =>
-    request<T>(path, { method: "PATCH", body: data !== undefined ? JSON.stringify(data) : undefined }),
+  /** `headers` extra: p. ej. el token de reCAPTCHA (ver lib/recaptcha). */
+  post:  <T>(path: string, data?: unknown, headers?: Record<string, string>) =>
+    request<T>(path, { method: "POST", body: data !== undefined ? JSON.stringify(data) : undefined, headers }),
+  patch: <T>(path: string, data?: unknown, headers?: Record<string, string>) =>
+    request<T>(path, { method: "PATCH", body: data !== undefined ? JSON.stringify(data) : undefined, headers }),
   put:   <T>(path: string, data?: unknown) =>
     request<T>(path, { method: "PUT", body: data !== undefined ? JSON.stringify(data) : undefined }),
   /** DELETE admite cuerpo: algunos endpoints lo exigen, como
