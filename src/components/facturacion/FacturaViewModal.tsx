@@ -47,12 +47,6 @@ function Contenido({
   const [concepto, setConcepto] = useState("");
   const [cantidad, setCantidad] = useState("1");
   const [precio, setPrecio] = useState("");
-  /* Por defecto, la moneda de la propia factura (si es EUR o USD; si no,
-     EUR) — la mayoría de los adicionales no cambian de moneda, así que
-     no se manda nada salvo que el admin elija una distinta a propósito. */
-  const [monedaItem, setMonedaItem] = useState(() =>
-    factura.moneda === "USD" ? "USD" : "EUR"
-  );
   const [guardandoItem, setGuardandoItem] = useState(false);
 
   const f = factura;
@@ -77,13 +71,15 @@ function Contenido({
     try {
       await FacturasController.anadirAdicional(f.apiId as number, {
         concepto: concepto.trim(), cantidad: uds, precioUnitario: importe,
-        /* Solo se manda si es distinta a la de la factura: así no se
-           "inventa" una moneda en los adicionales que de verdad son
-           del mismo negocio. */
-        moneda: monedaItem !== f.moneda ? monedaItem : undefined,
+        /* La moneda del adicional NO se manda: CreatePaymentItemDto del
+           backend que corre hoy no la declara, y con forbidNonWhitelisted
+           un campo de mas tumba la peticion entera con un 400. En Colombia
+           fallaba siempre, porque la factura va en COP y este selector solo
+           ofrecia EUR y USD, asi que nunca coincidian. Se vuelve a mandar
+           -y vuelve el selector de abajo- cuando el backend con multidivisa
+           este desplegado. */
       });
       setConcepto(""); setCantidad("1"); setPrecio("");
-      setMonedaItem(f.moneda === "USD" ? "USD" : "EUR");
       setAnadiendo(false);
       toast(t("facturacion.adicionalAnadido"), "success");
       await onActualizada?.();
@@ -305,17 +301,6 @@ function Contenido({
               placeholder={t("facturacion.precio")}
               aria-label={t("facturacion.precio")}
             />
-            {/* Casi siempre es la moneda de la factura: este selector es
-                solo para el caso puntual de un adicional cobrado aparte
-                (ej. un depósito en USD en un negocio que factura en EUR). */}
-            <select
-              value={monedaItem}
-              onChange={(e) => setMonedaItem(e.target.value)}
-              aria-label={t("facturacion.adicionalMoneda")}
-            >
-              <option value="EUR">€ EUR</option>
-              <option value="USD">$ USD</option>
-            </select>
             <Button size="sm" disabled={guardandoItem} onClick={() => void guardarAdicional()}>
               {guardandoItem ? t("booking.loading") : t("common.save")}
             </Button>
