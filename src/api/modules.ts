@@ -9,7 +9,7 @@ import { cabecerasRecaptcha } from "@/lib/recaptcha";
 import type {
   ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
-  ApiDistribucionPlataforma, ApiEmpresaCuentaPago, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
+  ApiBancoWise, ApiDistribucionPlataforma, ApiEmpresaCuentaPago, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
   ApiEstadoPagoPlan, ApiLiquidacionWise, ApiMetodoCobroOnline, ApiRankingPagina, ApiTelemetriaResumen,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
@@ -290,8 +290,18 @@ export const EmpresasApi = {
         bancoTitular?: string;
         bancoNumero?: string;
         bancoTipoCuenta?: string;
+        bancoCodigo?: string;
+        titularDocumentoTipo?: string;
+        titularDocumentoNumero?: string;
+        titularTelefono?: string;
+        titularDireccion?: string;
+        titularCiudad?: string;
+        titularCodigoPostal?: string;
       },
     ) => http.post<ApiEmpresaCuentaPago>(EP.empresaCuentaPago(empresaId), data),
+    /** Bancos de Wise para la moneda; [] si Wise aún no tiene credenciales. */
+    bancos: (moneda = "COP") =>
+      http.get<ApiBancoWise[]>(EP.cuentaPagoBancos + qs({ moneda })),
   },
 };
 

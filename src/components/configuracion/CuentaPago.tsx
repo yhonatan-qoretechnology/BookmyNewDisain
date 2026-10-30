@@ -94,7 +94,23 @@ export default function CuentaPago() {
   const [bancoTitular, setBancoTitular] = useState("");
   const [bancoNumero, setBancoNumero] = useState("");
   const [bancoTipoCuenta, setBancoTipoCuenta] = useState("ahorros");
+  /* Solo Colombia: Wise exige estos datos del titular */
+  const [bancoCodigo, setBancoCodigo] = useState("");
+  const [docTipo, setDocTipo] = useState("CC");
+  const [docNumero, setDocNumero] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [direccion, setDireccion] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [codigoPostal, setCodigoPostal] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  /* Bancos que Wise admite en COP; vacío sin credenciales de Wise, y
+     entonces el banco se escribe a mano. */
+  const { data: bancos } = useData(
+    () => (esColombia ? EmpresasApi.cuentaPago.bancos("COP").catch(() => []) : Promise.resolve([])),
+    [esColombia],
+    []
+  );
 
   /* Carga lo ya guardado; al cambiar de empresa sin datos, se vacía */
   useEffect(() => {
@@ -103,6 +119,13 @@ export default function CuentaPago() {
     setBancoTitular(cuenta?.bancoTitular || "");
     setBancoNumero(cuenta?.bancoNumero ? (esColombia ? cuenta.bancoNumero : agruparIban(cuenta.bancoNumero)) : "");
     setBancoTipoCuenta(cuenta?.bancoTipoCuenta || "ahorros");
+    setBancoCodigo(cuenta?.bancoCodigo || "");
+    setDocTipo(cuenta?.titularDocumentoTipo || "CC");
+    setDocNumero(cuenta?.titularDocumentoNumero || "");
+    setTelefono(cuenta?.titularTelefono || "");
+    setDireccion(cuenta?.titularDireccion || "");
+    setCiudad(cuenta?.titularCiudad || "");
+    setCodigoPostal(cuenta?.titularCodigoPostal || "");
   }, [cuenta]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const guardar = async () => {
@@ -120,6 +143,10 @@ export default function CuentaPago() {
         toast(t("configuracion.cuentaIbanInvalido"), "error");
         return;
       }
+      if (esColombia && [bancoCodigo, docNumero, telefono, direccion, ciudad].some((v) => !v.trim())) {
+        toast(t("configuracion.cuentaFaltaCO"), "error");
+        return;
+      }
     }
     setGuardando(true);
     try {
@@ -131,6 +158,17 @@ export default function CuentaPago() {
           ? (esColombia ? bancoNumero.replace(/\s+/g, "") : normalizarIban(bancoNumero))
           : undefined,
         bancoTipoCuenta: metodo === "BANCO" && esColombia ? bancoTipoCuenta : undefined,
+        ...(metodo === "BANCO" && esColombia
+          ? {
+              bancoCodigo: bancoCodigo.trim(),
+              titularDocumentoTipo: docTipo,
+              titularDocumentoNumero: docNumero.trim(),
+              titularTelefono: telefono.trim(),
+              titularDireccion: direccion.trim(),
+              titularCiudad: ciudad.trim(),
+              titularCodigoPostal: codigoPostal.trim() || undefined,
+            }
+          : {}),
       });
       toast(t("configuracion.cuentaGuardada"), "success");
       await reload();
@@ -228,13 +266,60 @@ export default function CuentaPago() {
                   />
                 </div>
                 {esColombia && (
-                  <div>
-                    <label htmlFor="cp-tipo">{t("configuracion.cuentaTipo")}</label>
-                    <select id="cp-tipo" value={bancoTipoCuenta} onChange={(e) => setBancoTipoCuenta(e.target.value)}>
-                      <option value="ahorros">{t("configuracion.cuentaAhorros")}</option>
-                      <option value="corriente">{t("configuracion.cuentaCorriente")}</option>
-                    </select>
-                  </div>
+                  <>
+                    <div>
+                      <label htmlFor="cp-tipo">{t("configuracion.cuentaTipo")}</label>
+                      <select id="cp-tipo" value={bancoTipoCuenta} onChange={(e) => setBancoTipoCuenta(e.target.value)}>
+                        <option value="ahorros">{t("configuracion.cuentaAhorros")}</option>
+                        <option value="corriente">{t("configuracion.cuentaCorriente")}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="cp-banco">{t("configuracion.cuentaBancoNombre")}</label>
+                      {bancos.length > 0 ? (
+                        <select id="cp-banco" value={bancoCodigo} onChange={(e) => setBancoCodigo(e.target.value)}>
+                          <option value="">{t("configuracion.cuentaBancoElige")}</option>
+                          {bancos.map((b) => <option key={b.codigo} value={b.codigo}>{b.nombre}</option>)}
+                        </select>
+                      ) : (
+                        <input id="cp-banco" value={bancoCodigo} onChange={(e) => setBancoCodigo(e.target.value)} placeholder="Bancolombia" />
+                      )}
+                    </div>
+                    <div className={styles.filaCO}>
+                      <div>
+                        <label htmlFor="cp-doctipo">{t("configuracion.cuentaDocTipo")}</label>
+                        <select id="cp-doctipo" value={docTipo} onChange={(e) => setDocTipo(e.target.value)}>
+                          <option value="CC">{t("configuracion.docCC")}</option>
+                          <option value="CE">{t("configuracion.docCE")}</option>
+                          <option value="PASSPORT">{t("configuracion.docPasaporte")}</option>
+                          <option value="NIT">NIT</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="cp-docnum">{t("configuracion.cuentaDocNumero")}</label>
+                        <input id="cp-docnum" inputMode="numeric" value={docNumero} onChange={(e) => setDocNumero(e.target.value)} />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="cp-tel">{t("configuracion.cuentaTitularTelefono")}</label>
+                      <input id="cp-tel" type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+57 300 123 4567" />
+                    </div>
+                    <div>
+                      <label htmlFor="cp-dir">{t("configuracion.cuentaTitularDireccion")}</label>
+                      <input id="cp-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Calle 10 # 20-30" />
+                    </div>
+                    <div className={styles.filaCO}>
+                      <div>
+                        <label htmlFor="cp-ciudad">{t("configuracion.cuentaTitularCiudad")}</label>
+                        <input id="cp-ciudad" value={ciudad} onChange={(e) => setCiudad(e.target.value)} />
+                      </div>
+                      <div>
+                        <label htmlFor="cp-cp">{t("configuracion.cuentaTitularCP")}</label>
+                        <input id="cp-cp" inputMode="numeric" value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)} />
+                      </div>
+                    </div>
+                    <p className={styles.cuentaPendiente}>{t("configuracion.cuentaAvisoCO")}</p>
+                  </>
                 )}
               </>
             )}

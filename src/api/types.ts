@@ -656,6 +656,22 @@ export interface ApiEmpresaCuentaPago {
   /** Destinatario creado en Wise: si está, Wise ya validó la cuenta y se
       le puede liquidar. Null si Wise aún no está configurado en Bookmy. */
   wiseRecipientId: string | null;
+  /** Moneda en la que recibe: EUR, o COP si cobra en un banco colombiano */
+  moneda?: string;
+  /* Solo Colombia (COP): lo que Wise exige del titular */
+  bancoCodigo?: string | null;
+  titularDocumentoTipo?: string | null;
+  titularDocumentoNumero?: string | null;
+  titularTelefono?: string | null;
+  titularDireccion?: string | null;
+  titularCiudad?: string | null;
+  titularCodigoPostal?: string | null;
+}
+
+/** GET /empresas/cuenta-pago/bancos — bancos que Wise admite (vacío sin Wise) */
+export interface ApiBancoWise {
+  codigo: string;
+  nombre: string;
 }
 
 /** GET /categories?language= (CategoryTranslation resuelta) */

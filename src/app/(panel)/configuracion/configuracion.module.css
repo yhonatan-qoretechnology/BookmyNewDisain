@@ -66,6 +66,9 @@
 /* Estado de la cuenta de cobro frente a Wise */
 .cuentaOk, .cuentaPendiente { margin: 0; font-size: 12.5px; line-height: 1.45; }
 .cuentaOk { color: var(--teal-500); }
+/* Colombia: dos campos por fila (documento, ciudad/CP) */
+.filaCO { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 600px) { .filaCO { grid-template-columns: minmax(0, 1fr); } }
 .cuentaPendiente { color: var(--slate-500); }
 
 /* Método de cobro: dos tarjetas en lugar de un desplegable, para que

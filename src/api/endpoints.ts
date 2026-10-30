@@ -87,6 +87,8 @@ export const EP = {
   empresaPlanPagos: (empresaId: number) => `/empresas/${empresaId}/plan-pagos`,
   /** Cómo cobra online el negocio (Wise o banco) — GET/POST, lo gestiona su dueño. */
   empresaCuentaPago: (empresaId: number) => `/empresas/${empresaId}/cuenta-pago`,
+  /** Bancos que Wise admite como destino en una moneda (COP) */
+  cuentaPagoBancos: "/empresas/cuenta-pago/bancos",
 
   /* @Controller('sedes') */
   sedes: "/sedes",
