@@ -307,12 +307,35 @@ export default function NuevaReservaPage() {
     }
     setSaving(true);
     try {
-      await BookingController.crear({ ...draft, card: needsCard ? card : undefined });
+      const { payment } = await BookingController.crear({ ...draft, card: needsCard ? card : undefined });
       /* Finalización: éxito + limpiar estado + invalidar consultas
          + redirección automática al Dashboard principal */
       booking.reset();
       BookingController.invalidateAll();
       toast(t("booking.created"), "success");
+
+      /* Transferencia (Wise): no hay pasarela que abrir — el pago queda
+         pendiente hasta que Bookmy confirme la llegada a su cuenta. Se le
+         muestran los datos al cliente antes de salir de la pantalla, porque
+         después de redirigir ya no están disponibles. */
+      const cuenta = payment?.bankResponse?.cuenta;
+      if (payment?.method === "WISE") {
+        confirm({
+          title: t("booking.wiseTransferTitle"),
+          message: cuenta
+            ? [
+                `IBAN: ${cuenta.iban}`,
+                `Titular: ${cuenta.titular}`,
+                `Referencia: ${payment.bankResponse?.referencia ?? ""}`,
+                `Monto: ${payment.bankResponse?.monto ?? payment.totalAmount} ${payment.bankResponse?.moneda ?? "EUR"}`,
+              ].join("\n")
+            : t("booking.wiseTransferNoAccount"),
+          confirmLabel: t("common.understood"),
+          onConfirm: () => router.push(ROUTES.dashboard),
+        });
+        return;
+      }
+
       router.push(ROUTES.dashboard);
     } catch (e) {
       /* No es un fallo: el servicio se puede hacer en dos días */
@@ -332,7 +355,7 @@ export default function NuevaReservaPage() {
       setSaving(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, needsCard, card, booking, toast, t, router, pedirContinuacion]);
+  }, [draft, needsCard, card, booking, toast, confirm, t, router, pedirContinuacion]);
 
   /* ── Render ────────────────────────────────────────────── */
   const canNext =

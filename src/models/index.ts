@@ -14,8 +14,10 @@ export type Rol = "superadmin" | "owner" | "admin" | "employee";
 
 /** Métodos de pago disponibles al agendar una cita */
 /** Métodos de pago del panel — espejo del enum PaymentMethod
-    del backend: efectivo→CASH · tarjeta→CARD */
-export type MetodoPago = "efectivo" | "tarjeta";
+    del backend: efectivo→CASH · tarjeta→CARD · transferencia→WISE
+    (transferencia bancaria manual, el cliente transfiere a la cuenta de
+    Bookmy; no hay pasarela que abrir). */
+export type MetodoPago = "efectivo" | "tarjeta" | "transferencia";
 
 /** Estados alineados con AppointmentStatus del backend:
     PENDING→pendiente · CONFIRMED→confirmada · COMPLETED→atendida

@@ -27,7 +27,7 @@
 
 /* Entrada y salida las anima AnimatePresence en Modal.tsx */
 .box h3 { font-size: 19px; font-weight: 800; margin-bottom: 5px; color: var(--navy-900); }
-.muted { color: var(--slate-500); font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
+.muted { color: var(--slate-500); font-size: 13px; margin-bottom: 16px; line-height: 1.6; white-space: pre-line; }
 .actions { display: flex; gap: 10px; margin-top: 20px; }
 
 @media (max-width: 600px) {

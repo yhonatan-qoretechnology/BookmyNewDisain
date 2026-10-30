@@ -22,7 +22,7 @@ import { DIAS_AGENDABLES, HORARIO_DEFECTO } from "@/constants";
 import { AppointmentsApi, ProfesionalesApi, ServicesApi } from "@/api/modules";
 import { http } from "@/api/http";
 import { EP } from "@/api/endpoints";
-import type { ApiAppointment, ApiPaymentMethod } from "@/api/types";
+import type { ApiAppointment, ApiPayment, ApiPaymentMethod } from "@/api/types";
 import { BookingController } from "./BookingController";
 
 /* ── Interfaces por caso de uso (ISP) ────────────────────── */
@@ -130,7 +130,7 @@ async function fetchAgenda(profesionalId: string, sedeId: string): Promise<ApiAp
 
 /* ── Controlador (implementa todas las interfaces) ───────── */
 export const BookingWizardController: ClientesProvider & ProfesionalesProvider & ServiciosProvider & AgendaProvider & {
-  crear(draft: BookingDraft): Promise<{ id: number }>;
+  crear(draft: BookingDraft): Promise<{ id: number; payment?: ApiPayment | null }>;
 } = {
   /**
    * Paso 1 — clientes del negocio. Se delega en BookingController, que
@@ -208,7 +208,7 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
    * (sin caché) y registra la cita con el CreateAppointmentDto.
    * @throws Error si la franja fue tomada o falta información.
    */
-  async crear(draft: BookingDraft): Promise<{ id: number }> {
+  async crear(draft: BookingDraft): Promise<{ id: number; payment?: ApiPayment | null }> {
     const { cliente, profesional, servicio, fecha, slot, metodoPago, sedeId } = draft;
     if (!cliente || !profesional || !servicio || !fecha || !slot || !metodoPago || !sedeId) {
       throw new Error("INCOMPLETE");
@@ -219,7 +219,8 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
     const libres = await this.getSlotsDisponibles(profesional.id, sedeId, fecha, servicio.duracion);
     if (!libres.some((s) => s.hora === slot.hora)) throw new Error("SLOT_TAKEN");
 
-    const paymentMethod: ApiPaymentMethod = metodoPago === "tarjeta" ? "CARD" : "CASH";
+    const paymentMethod: ApiPaymentMethod =
+      metodoPago === "tarjeta" ? "CARD" : metodoPago === "transferencia" ? "WISE" : "CASH";
     const created = await AppointmentsApi.create({
       fecha: slot.inicioISO,
       horaInicio: slot.inicioISO,
@@ -238,6 +239,6 @@ export const BookingWizardController: ClientesProvider & ProfesionalesProvider &
 
     /* La agenda del profesional cambió: invalidar caché */
     invalidateAgenda(profesional.id);
-    return { id: created.id };
+    return { id: created.id, payment: created.Payment };
   },
 };

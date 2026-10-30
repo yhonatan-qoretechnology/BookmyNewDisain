@@ -181,7 +181,7 @@ function ReciboConfirmacionBase({
         <section className={styles.reciboBlock}>
           <h4 className={styles.pagoTitulo}>{t("booking.paymentMethod")}</h4>
           <div className={styles.payRow}>
-            {(["tarjeta", "efectivo"] as MetodoPago[]).map((m) => (
+            {(["tarjeta", "efectivo", "transferencia"] as MetodoPago[]).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -189,10 +189,16 @@ function ReciboConfirmacionBase({
                 onClick={() => onMetodoPago(m)}
                 aria-pressed={metodoPago === m}
               >
-                {m === "tarjeta" ? t("booking.payCard") : t("booking.payCash")}
+                {m === "tarjeta" ? t("booking.payCard") : m === "efectivo" ? t("booking.payCash") : t("booking.payTransfer")}
               </button>
             ))}
           </div>
+
+          {metodoPago === "transferencia" && (
+            <p className={styles.reciboSub} style={{ marginTop: 10 }}>
+              {t("booking.transferNotice")}
+            </p>
+          )}
 
           {needsCard && (
             <div className={styles.cardFields}>

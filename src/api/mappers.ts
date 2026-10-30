@@ -102,7 +102,10 @@ const diaMadrid = (iso: string): string => zonaYmd(new Date(iso));
  */
 export function mapAppointment(a: ApiAppointment, serviceNames?: Map<number, string>): Reserva {
   const metodo: MetodoPago | undefined =
-    a.Payment?.method === "CARD" ? "tarjeta" : a.Payment?.method === "CASH" ? "efectivo" : undefined;
+    a.Payment?.method === "CARD" ? "tarjeta"
+    : a.Payment?.method === "CASH" ? "efectivo"
+    : a.Payment?.method === "WISE" ? "transferencia"
+    : undefined;
   return {
     id: `R-${a.id}`,
     apiId: a.id,

@@ -141,6 +141,7 @@ function nombreServicioPago(p: ApiPaymentFiltered, language: string): string {
 /** Método de pago legible: tarjeta saneada (marca + últimos 4) o efectivo */
 function metodoPagoDesdePago(p: ApiPaymentFiltered): string | undefined {
   if (p.method === "CASH") return "Efectivo";
+  if (p.method === "WISE") return "Transferencia (Wise)";
   if (p.method === "CARD") {
     const partes = [p.card?.brand?.toUpperCase(), p.card?.last4 ? `•••• ${p.card.last4}` : null].filter(Boolean);
     return partes.length ? partes.join(" ") : "Tarjeta";

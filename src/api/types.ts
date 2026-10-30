@@ -11,7 +11,7 @@ import type { ConfigPais } from "@/config/paises";
 /* Enums de la BD (schema.prisma) */
 export type ApiRole = "SUPER_ADMIN" | "COMPANY_ADMIN" | "BRANCH_ADMIN" | "EMPLOYEE" | "CLIENT";
 export type ApiAppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
-export type ApiPaymentMethod = "CARD" | "CASH";
+export type ApiPaymentMethod = "CARD" | "CASH" | "WISE";
 export type ApiPaymentStatus = "PENDING" | "RESERVED" | "PAID" | "FAILED" | "CANCELLED";
 export type ApiResenaState = "PENDIENTE" | "APROBADA" | "RECHAZADA";
 
@@ -409,6 +409,14 @@ export interface ApiPayment {
   totalAmount: number;
   createdAt?: string;
   user?: { id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string } | null };
+  /** Con method WISE: datos de la transferencia (ver WiseService.cuentaReceptora). */
+  bankResponse?: {
+    method?: string;
+    referencia?: string;
+    monto?: number;
+    moneda?: string;
+    cuenta?: { iban: string; titular: string } | null;
+  } | null;
 }
 
 /** Referencia a un servicio dentro de un pago (con o sin traducciones) */

@@ -30,7 +30,7 @@ import { ApiError, http, qs } from "@/api/http";
 import { EP } from "@/api/endpoints";
 import type {
   ApiAppointment, ApiClient, ApiClientsPage, ApiDisponibilidadProfesional,
-  ApiPaymentMethod, ApiRequiereContinuacion, ApiSede, ApiServicioProfesional,
+  ApiPayment, ApiPaymentMethod, ApiRequiereContinuacion, ApiSede, ApiServicioProfesional,
   CreateAppointmentDto,
 } from "@/api/types";
 import {
@@ -59,7 +59,7 @@ export interface AgendaProvider {
   getSlotsDisponibles(profesionalId: string, sedeId: string, fecha: string, duracionMin: number, excludeAppointmentId?: number): Promise<SlotHora[]>;
 }
 export interface ReservaCreator {
-  crear(draft: BookingDraft): Promise<{ id: number }>;
+  crear(draft: BookingDraft): Promise<{ id: number; payment?: ApiPayment | null }>;
   /** Confirma el servicio partido en dos días (POST /appointments/con-continuacion). */
   crearConContinuacion(draft: BookingDraft): Promise<{ partes: ApiAppointment[] }>;
 }
@@ -96,7 +96,8 @@ function payloadDeReserva(draft: BookingDraft): CreateAppointmentDto {
   if (!cliente || !profesional || !servicio || !slot || !sedeId || !metodoPago) {
     throw new Error("INCOMPLETE");
   }
-  const paymentMethod: ApiPaymentMethod = metodoPago === "tarjeta" ? "CARD" : "CASH";
+  const paymentMethod: ApiPaymentMethod =
+    metodoPago === "tarjeta" ? "CARD" : metodoPago === "transferencia" ? "WISE" : "CASH";
   return {
     fecha: slot.inicioISO,
     horaInicio: slot.inicioISO,
@@ -457,7 +458,7 @@ export const BookingController:
    * Al finalizar invalida las consultas afectadas.
    * @throws Error si la franja fue tomada o falta información.
    */
-  async crear(draft: BookingDraft): Promise<{ id: number }> {
+  async crear(draft: BookingDraft): Promise<{ id: number; payment?: ApiPayment | null }> {
     const { cliente, profesional, servicio, fecha, slot, metodoPago, sedeId } = draft;
     if (!cliente || !profesional || !servicio || !fecha || !slot || !metodoPago || !sedeId) {
       throw new Error("INCOMPLETE");
@@ -472,7 +473,7 @@ export const BookingController:
       const created = await AppointmentsApi.create(payloadDeReserva(draft));
       /* La agenda del profesional y su detalle cambiaron: invalidar */
       invalidate([`agenda:${profesional.id}:`, `detalle:${profesional.id}:`]);
-      return { id: created.id };
+      return { id: created.id, payment: created.Payment };
     } catch (e) {
       /* El servicio no entra completo antes del cierre pero admite partirse
          en dos días: no es un fallo, hay que preguntárselo al cliente. */

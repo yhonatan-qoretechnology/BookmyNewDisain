@@ -296,7 +296,8 @@ export const ReservasController = {
     const inicio = new Date(input.fechaHora);
     const duracion = input.servicio.duracion ?? 30;
     const fin = new Date(inicio.getTime() + duracion * 60000);
-    const paymentMethod: ApiPaymentMethod = input.metodoPago === "tarjeta" ? "CARD" : "CASH";
+    const paymentMethod: ApiPaymentMethod =
+      input.metodoPago === "tarjeta" ? "CARD" : input.metodoPago === "transferencia" ? "WISE" : "CASH";
     const created = await AppointmentsApi.create({
       fecha: inicio.toISOString(),
       horaInicio: inicio.toISOString(),
