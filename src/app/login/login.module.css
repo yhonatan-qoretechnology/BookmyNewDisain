@@ -22,6 +22,11 @@
   justify-content: space-between;
   gap: 28px;
   padding: 40px 48px;
+  /* Altura DEFINIDA, no solo minima: es lo que permite que la foto de abajo
+     se quede con el hueco sobrante y encoja cuando el titulo ocupa mas (en
+     ingles son cinco lineas en vez de cuatro). Con solo min-height la columna
+     crece con el contenido y la foto se come el pie. */
+  height: 100dvh;
   color: #eaf6ef;
   background:
     radial-gradient(1100px 620px at 18% -10%, rgba(57, 255, 140, .22), transparent 60%),
@@ -71,9 +76,19 @@
 .artBrandText b { font-size: 18px; letter-spacing: -.01em; }
 .artBrandText span { font-size: 12.5px; color: rgba(234, 246, 239, .68); }
 
-.artBody { position: relative; z-index: 1; }
+.artBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  /* min-height:0 es imprescindible: sin el, un hijo flex nunca encoge por
+     debajo de su contenido y la foto volveria a empujar el pie fuera. */
+  min-height: 0;
+}
 
 .artTitle {
+  flex: 0 0 auto;
   max-width: 15ch;
   font-size: clamp(30px, 3.4vw, 46px);
   line-height: 1.12;
@@ -82,7 +97,8 @@
   margin-bottom: 26px;
 }
 
-.artList { display: grid; gap: 12px; margin-bottom: 34px; }
+.artList {
+  flex: 0 0 auto; display: grid; gap: 12px; margin-bottom: 34px; }
 .artList li {
   display: flex;
   align-items: center;
@@ -105,18 +121,28 @@
    es un PNG transparente, asi que un borde o una caja la delatarian. La
    sombra se aplica a la silueta con drop-shadow, no al rectangulo. */
 .artShot {
+  /* Caja que se queda con el hueco sobrante. La foto va dentro en absoluto
+     para que se ajuste SIEMPRE: con la foto en flujo normal, el max-height en
+     porcentaje no resuelve (la altura de un item flex es indefinida para los
+     porcentajes) y la imagen crecia hasta tapar el titulo. */
   position: relative;
-  margin-top: auto;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  margin-top: 18px;
+  flex: 1 1 0;
+  min-height: 0;
 }
 .artShot img {
-  display: block;
+  /* Llena la caja sin deformarse y apoyada abajo, como en el diseno. */
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-width: 460px;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
   filter: drop-shadow(0 18px 34px rgba(0, 0, 0, .45));
+  /* El brazo llega al borde de abajo de la foto y queda cortado en plano, lo
+     que dibuja una linea recta contra el fondo: se desvanece ese tramo. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
 }
 
 .artFoot {
@@ -378,11 +404,23 @@
 .alt a:hover { text-decoration: underline; }
 
 /* ── Responsive ──────────────────────────────────────── */
+/* Pantallas bajas (portatiles de 13-14 pulgadas con la barra del navegador).
+   El titulo a 46px se come el sitio de la foto y la deja en nada, asi que en
+   vertical apretado se reduce el texto y se recortan los huecos. Es lo que
+   mas espacio libera sin tocar la composicion. */
+@media (max-height: 820px) {
+  .art { gap: 18px; padding: 28px 48px; }
+  .artTitle { font-size: clamp(26px, 2.6vw, 34px); margin-bottom: 16px; }
+  .artShot { margin-top: 10px; }
+}
+
 @media (max-width: 980px) {
   .screen { grid-template-columns: 1fr; }
   .art {
     padding: 22px 24px 26px;
     gap: 18px;
+    /* Aqui es una cabecera, no una columna a pantalla completa. */
+    height: auto;
   }
   .artTitle { font-size: 24px; max-width: 26ch; margin-bottom: 18px; }
   .artList, .artShot, .artFoot { display: none; }

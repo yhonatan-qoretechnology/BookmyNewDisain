@@ -49,6 +49,15 @@ const themeInitScript = `
       (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     document.documentElement.setAttribute("data-theme", t);
   } catch (e) {}
+  /* Marca por la que se entró (ver src/lib/loginOrigen.ts). Va aquí y no en
+     React porque si no, al recargar el panel se vería un destello verde de
+     BookMy antes de que el violeta de QoreTech llegara a pintarse.
+     La clave tiene que ser la misma que usa loginOrigen: "bm_login_origen". */
+  try {
+    if (sessionStorage.getItem("bm_login_origen") === "qore") {
+      document.documentElement.setAttribute("data-marca", "qore");
+    }
+  } catch (e) {}
 })();
 `;
 

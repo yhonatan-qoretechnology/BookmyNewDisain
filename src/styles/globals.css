@@ -146,6 +146,40 @@ input, select, textarea { font-family: inherit; }
 ul, ol { list-style: none; }
 h1, h2, h3, h4, h5 { font-weight: 700; line-height: 1.2; }
 img { max-width: 100%; }
+
+/* ============================================================
+   Marca QoreTech
+   ------------------------------------------------------------
+   Quien entra por /login-qore se lleva el panel en los colores de
+   QORE Technology. Solo se redefine la ESCALA DE MARCA (los --teal-*,
+   que es como se llaman los tokens de acento en todo el proyecto) y lo
+   que deriva de ella. Los colores con significado propio -verde de
+   exito, rojo de error, ambar de aviso- se quedan como estan: un
+   "guardado correctamente" en violeta no se entenderia.
+
+   Se combina con el claro/oscuro: este bloque va despues del de
+   [data-theme="dark"], asi que con la misma especificidad gana, y lo
+   que no toca lo sigue poniendo el tema.
+============================================================ */
+[data-marca="qore"] {
+  --teal-50:   #efecff;
+  --teal-100:  #dcd6ff;
+  --teal-400:  #8b7bff;
+  --teal-500:  #7a68ff;
+  --teal-600:  #6e5eff;  /* el violeta de marca de QoreTech */
+  --teal-700:  #5646d6;
+  --neon:      #aca1ff;
+
+  --grad-teal:   linear-gradient(140deg, #8b7bff, #6e5eff);
+  --shadow-icon: 0 6px 16px rgba(110, 94, 255, .28);
+}
+
+/* En oscuro el halo del foco esta escrito a mano, no sale de --teal-50,
+   asi que hay que repetirlo aqui. Dos atributos ganan a uno. */
+[data-marca="qore"][data-theme="dark"] {
+  --ring: 0 0 0 4px rgba(139, 123, 255, .22);
+}
+
 ::selection { background: var(--teal-100); }
 
 a:focus-visible, button:focus-visible,
