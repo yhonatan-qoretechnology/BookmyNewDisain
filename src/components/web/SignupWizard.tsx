@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { EmpresasApi, PaisesApi } from "@/api/modules";
+import { EmpresasApi, PaisesApi, ReferidosApi } from "@/api/modules";
 import type { ApiPais, RegistroNegocioDto } from "@/api/types";
 import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
@@ -96,6 +96,18 @@ export default function SignupWizard() {
   const { ready: mapsListo } = useGoogleMaps();
 
   const [plan, setPlan] = useState<Plan>(params.get("plan") === "free" ? "free" : "pro");
+  /* Invitación de otro negocio: bookmy.es/crear-cuenta?ref=CODIGO. Se
+     comprueba para enseñar quién invita; si no es válido, se ignora. */
+  const codigoRef = (params.get("ref") || "").trim().toUpperCase().slice(0, 20);
+  const [invitadoPor, setInvitadoPor] = useState<string | null>(null);
+  useEffect(() => {
+    if (!codigoRef) return;
+    let vigente = true;
+    ReferidosApi.validar(codigoRef)
+      .then((r) => { if (vigente && r.valido) setInvitadoPor(r.empresa); })
+      .catch(() => undefined);
+    return () => { vigente = false; };
+  }, [codigoRef]);
   const [paso, setPaso] = useState(1);
   const [datos, setDatos] = useState<Datos>(VACIO);
   const [error, setError] = useState<string | null>(null);
@@ -222,6 +234,7 @@ export default function SignupWizard() {
         idioma: locale,
         plan,
         acepta: true,
+        codigoReferido: codigoRef || undefined,
       };
       const res = await EmpresasApi.registrar(payload);
       if (!res?.token || !res.user) throw new Error(w("signup.errorGeneral"));
@@ -270,6 +283,11 @@ export default function SignupWizard() {
     <div className={styles.grid}>
       {/* ── Formulario ─────────────────────────────────── */}
       <form className={styles.form} onSubmit={enviar} noValidate>
+        {invitadoPor && (
+          <p className={styles.invitado} role="status">
+            {w("signup.invitadoPor").replace("{empresa}", invitadoPor)}
+          </p>
+        )}
         <ol className={styles.pasos}>
           {[1, 2, 3].map((n) => (
             <li key={n} className={`${styles.paso} ${paso === n ? styles.pasoActivo : ""} ${paso > n ? styles.pasoHecho : ""}`}>

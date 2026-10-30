@@ -40,6 +40,8 @@ const PAGE_KEY: Record<string, string> = {
   [ROUTES.planMonitoreo]: "planMonitoreo",
   [ROUTES.telemetria]: "telemetria",
   [ROUTES.liquidaciones]: "liquidaciones",
+  [ROUTES.referidos]: "referidos",
+  [ROUTES.automatizaciones]: "automatizaciones",
 };
 
 export default function PanelLayout({ children }: { children: React.ReactNode }) {

@@ -9,6 +9,8 @@ import { cabecerasRecaptcha } from "@/lib/recaptcha";
 import type {
   ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
+  ApiAutomatizacion, ApiCampanaEmail, ApiEjecucionAutomatizacion, ApiEventoAutomatizable,
+  ApiReferidosAdmin, ApiReferidosMio, ApiSegmentoCampana, ApiUsoEmpresaPro, AutomatizacionDto, CampanaDto,
   ApiBancoWise, ApiDistribucionPlataforma, ApiEmpresaCuentaPago, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
   ApiEstadoPagoPlan, ApiLiquidacionWise, ApiMetodoCobroOnline, ApiRankingPagina, ApiTelemetriaResumen,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
@@ -971,4 +973,44 @@ export const TelemetriaApi = {
     http.get<ApiRankingPagina[]>(EP.telemetriaPaginasMasVistas + qs({ dias, limit })),
   distribucionPlataformas: (dias?: number) =>
     http.get<ApiDistribucionPlataforma[]>(EP.telemetriaDistribucionPlataformas + qs({ dias })),
+};
+
+/* ── Monitoreo de uso de Bookmy CRM Pro (SUPER_ADMIN) ─────── */
+export const UsoProApi = {
+  listar: () => http.get<ApiUsoEmpresaPro[]>(EP.usoPro),
+  /** Lanza ahora la revisión semanal (envía solo los avisos que tocan). */
+  revisar: () => http.post<{ revisadas: number; enviados: number }>(EP.usoProRevisar),
+  /** Aviso de buen uso a un negocio; con `mensaje`, uno escrito a mano. */
+  avisar: (empresaId: number, mensaje?: string) =>
+    http.post<{ enviado: boolean }>(EP.usoProAvisar(empresaId), { mensaje }),
+};
+
+/* ── Referidos ────────────────────────────────────────────── */
+export const ReferidosApi = {
+  /** Público: para el formulario de crear cuenta (?ref=). */
+  validar: (codigo: string) =>
+    http.get<{ valido: true; empresa: string } | { valido: false }>(EP.referidoValidar(codigo)),
+  mio: () => http.get<ApiReferidosMio>(EP.referidosMio),
+  admin: () => http.get<ApiReferidosAdmin>(EP.referidosAdmin),
+  /** Negativo = canje; positivo = ajuste a favor. */
+  movimiento: (empresaId: number, puntos: number, motivo: string) =>
+    http.post(EP.referidosMovimientos, { empresaId, puntos, motivo }),
+  anular: (id: number) => http.post(EP.referidoAnular(id)),
+};
+
+/* ── Automatizaciones y campañas (SUPER_ADMIN) ────────────── */
+export const AutomatizacionesApi = {
+  eventos: () => http.get<{ eventos: ApiEventoAutomatizable[]; variables: string[] }>(EP.automatizacionesEventos),
+  listar: () => http.get<ApiAutomatizacion[]>(EP.automatizaciones),
+  crear: (dto: AutomatizacionDto) => http.post<ApiAutomatizacion>(EP.automatizaciones, dto),
+  actualizar: (id: number, dto: Partial<AutomatizacionDto>) =>
+    http.patch<ApiAutomatizacion>(EP.automatizacionById(id), dto),
+  eliminar: (id: number) => http.delete(EP.automatizacionById(id)),
+  ejecuciones: () => http.get<ApiEjecucionAutomatizacion[]>(EP.automatizacionesEjecuciones),
+  campanas: () => http.get<ApiCampanaEmail[]>(EP.campanas),
+  crearCampana: (dto: CampanaDto) => http.post<ApiCampanaEmail>(EP.campanas, dto),
+  actualizarCampana: (id: number, dto: Partial<CampanaDto>) => http.patch<ApiCampanaEmail>(EP.campanaById(id), dto),
+  cancelarCampana: (id: number) => http.post<ApiCampanaEmail>(EP.campanaCancelar(id)),
+  destinatarios: (segmento: ApiSegmentoCampana) =>
+    http.get<{ segmento: ApiSegmentoCampana; destinatarios: number }>(EP.campanasDestinatarios + qs({ segmento })),
 };

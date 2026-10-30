@@ -200,6 +200,8 @@ export interface ApiEstadoPlan {
 
 /** POST /empresas/registro — alta de un negocio desde la web. */
 export interface RegistroNegocioDto {
+  /** Código de invitación de otro negocio (?ref= en crear cuenta) */
+  codigoReferido?: string;
   empresaNombre: string;
   telefono: string;
   rubro?: string;
@@ -1246,4 +1248,148 @@ export interface CreateSolicitudInventarioDto {
   notas?: string;
   items: { insumoId: number; cantidad: number }[];
   empresaId?: number;
+}
+
+/* ── Monitoreo de uso de Bookmy CRM Pro ───────────────────── */
+export type ApiEstadoUsoPro = "ACTIVO" | "BAJO_USO" | "INACTIVO" | "USO_INUSUAL";
+export type ApiTipoAvisoUso = "BAJO_USO" | "USO_INUSUAL" | "MANUAL";
+
+/** GET /empresas/uso-pro — una fila por negocio con Pro o en prueba */
+export interface ApiUsoEmpresaPro {
+  empresaId: number;
+  empresa: string;
+  email: string | null;
+  enPrueba: boolean;
+  citas30: number;
+  canceladas30: number;
+  actividad30: number;
+  accesosFallidos7: number;
+  ultimoAcceso: string | null;
+  ultimaActividad: string | null;
+  profesionales: number;
+  estado: ApiEstadoUsoPro;
+  motivo: string;
+  ultimoAviso: { tipo: ApiTipoAvisoUso; fecha: string } | null;
+}
+
+/* ── Referidos ────────────────────────────────────────────── */
+export type ApiEstadoReferido = "PENDIENTE" | "RECOMPENSADO" | "ANULADO";
+
+export interface ApiMovimientoPuntos {
+  id: number;
+  empresaId: number;
+  puntos: number;
+  motivo: string;
+  createdAt: string;
+}
+
+/** GET /referidos/mio — vista del dueño del negocio */
+export interface ApiReferidosMio {
+  codigo: string;
+  saldo: number;
+  puntosPorReferido: number;
+  puntosBienvenida: number;
+  referidos: {
+    id: number;
+    empresa: string;
+    estado: ApiEstadoReferido;
+    puntos: number;
+    createdAt: string;
+    recompensadoEn: string | null;
+  }[];
+  movimientos: ApiMovimientoPuntos[];
+}
+
+/** GET /referidos/admin — panel del superadmin */
+export interface ApiReferidosAdmin {
+  resumen: { codigos: number; referidos: number; recompensados: number; puntosEmitidos: number; puntosCanjeados: number };
+  ranking: { empresaId: number; empresa: string; codigo: string; referidos: number; recompensados: number; saldo: number }[];
+  referidos: {
+    id: number;
+    codigo: string;
+    referidor: { id: number; nombre: string };
+    referida: { id: number; nombre: string };
+    estado: ApiEstadoReferido;
+    puntosReferidor: number;
+    puntosReferida: number;
+    createdAt: string;
+    recompensadoEn: string | null;
+  }[];
+}
+
+/* ── Automatizaciones y campañas ──────────────────────────── */
+export type ApiAccionAutomatizacion = "EMAIL" | "NOTIFICACION";
+export type ApiDestinoAutomatizacion = "EMPRESA" | "SUPERADMINS";
+export type ApiEstadoEjecucion = "PENDIENTE" | "ENVIADA" | "FALLIDA" | "OMITIDA";
+export type ApiEstadoCampana = "BORRADOR" | "PROGRAMADA" | "ENVIANDO" | "ENVIADA" | "CANCELADA";
+export type ApiSegmentoCampana = "TODAS" | "PRO" | "FREE" | "PRUEBA";
+
+export interface ApiEventoAutomatizable {
+  evento: string;
+  etiqueta: string;
+  grupo: string;
+}
+
+export interface ApiAutomatizacion {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  evento: string;
+  retrasoMinutos: number;
+  accion: ApiAccionAutomatizacion;
+  destino: ApiDestinoAutomatizacion;
+  asunto: string;
+  mensaje: string;
+  activa: boolean;
+  createdAt: string;
+  _count?: { ejecuciones: number };
+  ejecuciones?: { estado: ApiEstadoEjecucion; createdAt: string }[];
+}
+
+export interface AutomatizacionDto {
+  nombre: string;
+  descripcion?: string;
+  evento: string;
+  retrasoMinutos?: number;
+  accion?: ApiAccionAutomatizacion;
+  destino?: ApiDestinoAutomatizacion;
+  asunto: string;
+  mensaje: string;
+  activa?: boolean;
+}
+
+export interface ApiEjecucionAutomatizacion {
+  id: number;
+  automatizacionId: number;
+  empresaId: number | null;
+  estado: ApiEstadoEjecucion;
+  programadaPara: string;
+  ejecutadaEn: string | null;
+  error: string | null;
+  createdAt: string;
+  automatizacion: { nombre: string };
+}
+
+export interface ApiCampanaEmail {
+  id: number;
+  nombre: string;
+  asunto: string;
+  mensaje: string;
+  segmento: ApiSegmentoCampana;
+  estado: ApiEstadoCampana;
+  programadaPara: string | null;
+  enviadaEn: string | null;
+  destinatarios: number;
+  enviados: number;
+  fallidos: number;
+  createdAt: string;
+}
+
+export interface CampanaDto {
+  nombre: string;
+  asunto: string;
+  mensaje: string;
+  segmento?: ApiSegmentoCampana;
+  /** ISO; sin fecha queda en borrador */
+  programadaPara?: string | null;
 }

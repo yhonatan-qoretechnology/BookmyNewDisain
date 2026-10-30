@@ -478,6 +478,7 @@ const webEn: WebDictionary = {
     point3: "Reviews and business statistics",
   },
   signup: {
+    invitadoPor: "Invited by {empresa}: you'll get welcome points when you pay your first month of Pro.",
     back: "← Back",
     eyebrow: "Create your account",
     title1: "Your business up and running",

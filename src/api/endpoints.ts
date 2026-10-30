@@ -57,6 +57,28 @@ export const EP = {
   /** Formularios públicos de la web (contacto y solicitud de plan) — con reCAPTCHA */
   contacto: "/contacto",
 
+  /* Monitoreo de uso de Pro — solo SUPER_ADMIN */
+  usoPro: "/empresas/uso-pro",
+  usoProRevisar: "/empresas/uso-pro/revisar",
+  usoProAvisar: (empresaId: number) => `/empresas/${empresaId}/uso-pro/avisar`,
+
+  /* Referidos */
+  referidoValidar: (codigo: string) => `/referidos/validar/${encodeURIComponent(codigo)}`,
+  referidosMio: "/referidos/mio",
+  referidosAdmin: "/referidos/admin",
+  referidosMovimientos: "/referidos/movimientos",
+  referidoAnular: (id: number) => `/referidos/${id}/anular`,
+
+  /* Automatizaciones y campañas — solo SUPER_ADMIN */
+  automatizaciones: "/automatizaciones",
+  automatizacionById: (id: number) => `/automatizaciones/${id}`,
+  automatizacionesEventos: "/automatizaciones/eventos",
+  automatizacionesEjecuciones: "/automatizaciones/ejecuciones",
+  campanas: "/automatizaciones/campanas",
+  campanaById: (id: number) => `/automatizaciones/campanas/${id}`,
+  campanaCancelar: (id: number) => `/automatizaciones/campanas/${id}/cancelar`,
+  campanasDestinatarios: "/automatizaciones/campanas/destinatarios",
+
   /* @Controller('empresas') */
   empresas: "/empresas",
   empresaById: (id: number) => `/empresas/${id}`,

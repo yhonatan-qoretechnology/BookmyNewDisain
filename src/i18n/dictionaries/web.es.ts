@@ -485,6 +485,7 @@ const webEs = {
     point3: "Reseñas y estadísticas de tu negocio",
   },
   signup: {
+    invitadoPor: "Te invita {empresa}: al pagar tu primer mes de Pro recibirás puntos de bienvenida.",
     /* Cabecera */
     back: "← Volver",
     eyebrow: "Crea tu cuenta",

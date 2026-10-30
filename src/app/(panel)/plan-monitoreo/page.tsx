@@ -27,6 +27,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import type { PaginationProps } from "@/components/ui/Pagination";
+import UsoProPanel from "@/components/plan/UsoProPanel";
 
 const LIMIT = 20;
 
@@ -136,6 +137,9 @@ export default function PlanMonitoreoPage() {
 
   return (
     <>
+      {/* Seguimiento del uso de Pro y avisos de buen uso */}
+      <UsoProPanel />
+
       <StatGrid>
         <StatCard color="amber" icon={<Icon name="clock" />} label={t("planMonitoreo.statPendientes")} count={resumen.pendientes} />
         <StatCard color="red" icon={<Icon name="x" />} label={t("planMonitoreo.statVencidas")} count={resumen.vencidas} />

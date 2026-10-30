@@ -1,0 +1,4 @@
+.panel { margin-bottom: 20px; }
+.nota { margin: -6px 0 16px; font-size: 12.5px; line-height: 1.5; color: var(--slate-500); }
+.sub { display: block; margin-top: 3px; font-size: 12px; color: var(--slate-500); max-width: 260px; }
+.prueba { font-size: 12px; font-weight: 700; color: var(--amber); }

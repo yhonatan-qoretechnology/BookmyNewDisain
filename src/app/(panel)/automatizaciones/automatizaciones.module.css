@@ -1,0 +1,30 @@
+.contenido { margin-top: 4px; }
+.acciones { display: flex; gap: 6px; justify-content: flex-end; }
+.sub { display: block; margin-top: 3px; font-size: 12px; color: var(--slate-500); }
+.error { font-size: 12.5px; color: var(--slate-500); max-width: 360px; overflow-wrap: anywhere; }
+
+.modalCuerpo { display: flex; flex-direction: column; }
+.fila2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+.fila3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 14px; }
+
+/* Interruptor de activa/inactiva en la propia tabla */
+.switch {
+  position: relative; width: 40px; height: 22px; padding: 0; border: none; cursor: pointer;
+  border-radius: 999px; background: var(--slate-300);
+  transition: background var(--t-fast) var(--ease);
+}
+.switch span {
+  position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  transition: transform var(--t-fast) var(--ease);
+}
+.switchOn { background: var(--teal-500); }
+.switchOn span { transform: translateX(18px); }
+.switch:focus-visible { outline: none; box-shadow: var(--ring); }
+
+@media (max-width: 600px) {
+  .fila2, .fila3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch, .switch span { transition: none; }
+}

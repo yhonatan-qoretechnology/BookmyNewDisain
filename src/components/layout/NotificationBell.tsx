@@ -75,9 +75,14 @@ export default function NotificationBell() {
     setUnreadCount((prev) => Math.max(0, prev - 1));
     void NotificationsController.markAsRead(n.id);
 
-    // Lleva a la reserva de la que habla la notificación (ej. "Nueva reserva").
+    // Lleva a la pantalla de la que habla la notificación: la reserva o,
+    // en los avisos de actividad del panel, la ruta que manda el backend.
     const appointmentId = n.datos?.appointmentId;
-    if (typeof appointmentId === "number") {
+    const ruta = n.datos?.ruta;
+    if (typeof ruta === "string" && ruta.startsWith("/")) {
+      setOpen(false);
+      router.push(ruta);
+    } else if (typeof appointmentId === "number") {
       setOpen(false);
       router.push(ROUTES.reservas);
     }

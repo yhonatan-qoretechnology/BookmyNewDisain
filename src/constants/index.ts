@@ -37,6 +37,10 @@ export const ROUTES = {
   telemetria: "/telemetria",
   /** Liquidaciones a negocios vía Wise (scaffold) — solo SUPER_ADMIN */
   liquidaciones: "/liquidaciones",
+  /** Referidos: panel del superadmin y vista del dueño (código y puntos) */
+  referidos: "/referidos",
+  /** Automatizaciones y campañas de correo — solo SUPER_ADMIN */
+  automatizaciones: "/automatizaciones",
 } as const;
 
 /** Vista de edición de una sede (Datos + Imágenes) — reemplaza el
@@ -59,6 +63,7 @@ const ADMIN_ITEMS_FREE: NavItem[] = [
   { id: "resenas", label: "Reseñas", href: ROUTES.resenas, icon: "star" },
   { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
   { id: "plan", label: "Plan", href: ROUTES.plan, icon: "star" },
+  { id: "referidos", label: "Invita y gana", href: ROUTES.referidos, icon: "tag" },
   { id: "verificacion", label: "Verificación", href: ROUTES.verificacion, icon: "shield" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
@@ -82,6 +87,7 @@ const ADMIN_ITEMS_PRO: NavItem[] = [
   { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
   { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
   { id: "plan", label: "Plan", href: ROUTES.plan, icon: "star" },
+  { id: "referidos", label: "Invita y gana", href: ROUTES.referidos, icon: "tag" },
   { id: "verificacion", label: "Verificación", href: ROUTES.verificacion, icon: "shield" },
   { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
   { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
@@ -162,6 +168,8 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { id: "planMonitoreo", label: "Monitoreo Pro", href: ROUTES.planMonitoreo, icon: "clock" },
     { id: "telemetria", label: "Telemetría", href: ROUTES.telemetria, icon: "barChart" },
     { id: "liquidaciones", label: "Liquidaciones Wise", href: ROUTES.liquidaciones, icon: "wallet" },
+    { id: "referidos", label: "Referidos", href: ROUTES.referidos, icon: "tag" },
+    { id: "automatizaciones", label: "Automatizaciones", href: ROUTES.automatizaciones, icon: "bot" },
     { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },
     { id: "logout", label: "Cerrar sesión", href: ROUTES.login, icon: "logOut" },
   ],
@@ -177,7 +185,9 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
  */
 export function navParaSesion(role: string, pro: boolean): NavItem[] {
   if (role === "superadmin" || role === "employee") return NAV_BY_ROLE[role] ?? [];
-  return pro ? ADMIN_ITEMS_PRO : ADMIN_ITEMS_FREE;
+  const items = pro ? ADMIN_ITEMS_PRO : ADMIN_ITEMS_FREE;
+  /* Los referidos son del negocio entero: solo los gestiona su dueño. */
+  return role === "owner" ? items : items.filter((i) => i.id !== "referidos");
 }
 
 /* ── Constantes de almacenamiento ─────────────────────────── */
