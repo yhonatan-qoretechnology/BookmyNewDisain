@@ -265,14 +265,23 @@ export default function PersonalPage() {
     });
   };
 
-  const eliminar = (id: number, nombreEmp: string) => {
+  /** `alTerminar` cierra el modal de edición cuando se borra desde ahí. */
+  const eliminar = (id: number, nombreEmp: string, alTerminar?: () => void) => {
     confirm({
       title: t("personal.deleteTitle"),
       message: t("personal.deleteMsg", { nombre: nombreEmp }),
       confirmLabel: t("common.delete"),
-      onConfirm: () => {
-        void PersonalController.remove(id).then(reload);
-        toast(t("personal.deleted"), "success");
+      /* El aviso de éxito espera a la respuesta: antes salía aunque el
+         backend rechazara el borrado. */
+      onConfirm: async () => {
+        try {
+          await PersonalController.remove(id);
+          toast(t("personal.deleted"), "success");
+          alTerminar?.();
+          await reload();
+        } catch (e) {
+          toast(e instanceof Error ? e.message : t("common.error"), "error");
+        }
       },
     });
   };
@@ -443,6 +452,17 @@ export default function PersonalPage() {
           </select>
         </Field>
         <ModalActions>
+          {puedeEliminar && editando && (
+            <Button
+              variant="dangerGhost"
+              className={styles.eliminarEnModal}
+              onClick={() => eliminar(editando.id, editando.nombre, () => setEditando(null))}
+              disabled={guardando}
+            >
+              <Icon name="trash" width={15} height={15} />
+              {t("common.delete")}
+            </Button>
+          )}
           <Button variant="ghost" onClick={() => setEditando(null)} disabled={guardando}>{t("common.cancel")}</Button>
           <Button onClick={() => void guardarEdicion()} disabled={guardando}>{t("common.save")}</Button>
         </ModalActions>

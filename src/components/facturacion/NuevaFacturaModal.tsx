@@ -27,6 +27,7 @@ import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import NuevoClienteModal from "@/components/clientes/NuevoClienteModal";
 import styles from "./facturacion.module.css";
 
 function hoyYmd() {
@@ -60,6 +61,8 @@ export default function NuevaFacturaModal({
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [clientesOpt, setClientesOpt] = useState<ClienteOpcion[]>([]);
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
+  /* Alta de un cliente que todavía no tiene cuenta */
+  const [creandoCliente, setCreandoCliente] = useState(false);
 
   const [servicios, setServicios] = useState<ApiService[]>([]);
   const [servicioId, setServicioId] = useState("");
@@ -166,7 +169,9 @@ export default function NuevaFacturaModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} maxWidth={560}>
+    <>
+    {/* Con el alta de cliente abierta, Escape solo debe cerrar esa */}
+    <Modal open={open} onClose={() => { if (!creandoCliente) onClose(); }} maxWidth={560}>
       <ModalTitle>{t("facturacion.nuevaTitulo")}</ModalTitle>
 
       {esSuperadmin && (
@@ -215,6 +220,14 @@ export default function NuevaFacturaModal({
                 ))}
               </ul>
             )}
+            <button
+              type="button"
+              className={styles.clienteNuevo}
+              onClick={() => setCreandoCliente(true)}
+              disabled={!sedeEfectiva}
+            >
+              {t("facturacion.nuevaClienteNuevo")}
+            </button>
           </>
         )}
       </Field>
@@ -286,5 +299,14 @@ export default function NuevaFacturaModal({
         </Button>
       </ModalActions>
     </Modal>
+
+    {/* Hermano del modal de factura, no hijo: ver NuevoClienteModal */}
+    <NuevoClienteModal
+      open={creandoCliente}
+      textoInicial={busquedaCliente}
+      onClose={() => setCreandoCliente(false)}
+      onCreado={(c) => { setCliente(c); setClientesOpt([]); }}
+    />
+    </>
   );
 }

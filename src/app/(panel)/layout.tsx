@@ -94,6 +94,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
      igualdad exacta — se resuelven por prefijo antes del fallback. */
   const key = PAGE_KEY[pathname]
     || (pathname.startsWith(`${ROUTES.sedes}/`) ? "sedes" : "")
+    || (pathname.startsWith(`${ROUTES.accesos}/`) ? "accesos" : "")
     || "dashboard";
   const title = t(`pages.${key}.title`);
   const accent = t(`pages.${key}.accent`);

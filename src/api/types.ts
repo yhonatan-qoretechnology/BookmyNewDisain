@@ -78,6 +78,16 @@ export interface RegisterUserDto {
   phone?: string;
   role?: ApiRole;
   idioma?: string;
+  /* Obligatorios en el RegisterDto del backend para dar de alta un
+     cliente (role CLIENT); sin ellos responde 400. */
+  gender?: string;
+  countryId?: number;
+  acceptTerms?: boolean;
+  acceptPolitics?: boolean;
+  clientType?: "people" | "business";
+  state?: ApiClientState;
+  /** YYYY-MM-DD */
+  birthdate?: string;
 }
 
 /**

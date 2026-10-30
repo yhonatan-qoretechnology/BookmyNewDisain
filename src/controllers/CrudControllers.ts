@@ -3,11 +3,11 @@
    Cada bloque es el espejo de un módulo NestJS del backend.
 ============================================================ */
 import type {
-  CategoriaCatalogo, CredencialesEmpleado, Cliente, Empleado, Factura, Reserva,
+  CategoriaCatalogo, ClienteOpcion, CredencialesEmpleado, Cliente, Empleado, Factura, Reserva,
   Resena, SedeDetalle, Servicio, Session,
 } from "@/models";
 import {
-  AsignacionesApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
+  AsignacionesApi, AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
 import type {
@@ -18,6 +18,24 @@ import { zonaHoy } from "@/lib/timezone";
 import { ReservasController } from "./ReservasController";
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
+/** Valores de género que se guardan (el backend lo exige no vacío). */
+export const GENEROS_CLIENTE = ["Femenino", "Masculino", "Otro"] as const;
+const GENERO_SIN_ESPECIFICAR = "No especificado";
+
+/** Datos del formulario de alta manual de un cliente. */
+export interface NuevoClienteDatos {
+  nombre: string;
+  email: string;
+  telefono: string;
+  password: string;
+  /** Vacío = sin especificar */
+  genero: string;
+  /** YYYY-MM-DD o vacío */
+  fechaNacimiento: string;
+  idioma: string;
+  paisId: number;
+}
+
 /** Nº de visitas y última visita, calculadas desde las citas. */
 interface EstadisticasCliente {
   visitas: number;
@@ -108,6 +126,44 @@ export const ClientesController = {
    * la cuenta se borrará o solo se anonimizará.
    */
   getDetalle: (id: number) => ClientsApi.findOne(id),
+
+  /**
+   * Alta manual de un cliente final — POST /auth/register con role
+   * CLIENT (el controlador de /clients no tiene POST). El backend pide
+   * país, idioma, género y la aceptación de términos y privacidad;
+   * esa aceptación la confirma el admin en el formulario.
+   *
+   * ⚠️ Para un admin de empresa o de sede, GET /clients solo lista
+   * clientes con alguna cita en su negocio: el recién creado no
+   * aparece en su listado hasta su primera cita.
+   */
+  async crear(datos: NuevoClienteDatos): Promise<ClienteOpcion> {
+    const res = await AuthApi.register({
+      role: "CLIENT",
+      name: datos.nombre.trim(),
+      email: datos.email.trim().toLowerCase(),
+      phone: datos.telefono.trim(),
+      password: datos.password,
+      gender: datos.genero || GENERO_SIN_ESPECIFICAR,
+      idioma: datos.idioma,
+      countryId: datos.paisId,
+      birthdate: datos.fechaNacimiento || undefined,
+      acceptTerms: true,
+      acceptPolitics: true,
+      clientType: "people",
+      state: "enabled",
+    });
+    /* Según versión el backend responde { user } o el usuario a secas */
+    const id = res.user?.id ?? res.id;
+    if (id == null) throw new Error("El backend no devolvió el id del cliente");
+    return {
+      id: String(id),
+      nombre: datos.nombre.trim(),
+      email: datos.email.trim().toLowerCase(),
+      telefono: datos.telefono.trim(),
+      foto: null,
+    };
+  },
 
   /**
    * PATCH /clients/:id. Solo se envían los campos con valor para no

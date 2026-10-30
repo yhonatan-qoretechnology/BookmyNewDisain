@@ -28,6 +28,9 @@ import Badge, { Tag } from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import type { PaginationProps } from "@/components/ui/Pagination";
+import Link from "next/link";
+import styles from "./accesos.module.css";
+import { dispositivo, fmtFechaHora, ubicacion } from "@/components/accesos/formato";
 
 const LIMIT = 20;
 const RESUMEN_DIAS = 30;
@@ -38,45 +41,6 @@ const PAGINA_VACIA: ApiAccesosPage = {
   items: [],
   pagination: { page: 1, limit: LIMIT, total: 0, totalPages: 1 },
 };
-
-/** geoip-lite (en el backend) devuelve el país como código ISO-3166
-    ("US", "AR"...): acá se traduce a un nombre legible en el idioma
-    activo del panel. Si el código no es válido, se muestra tal cual
-    en vez de romper la fila entera. */
-function nombrePais(iso: string | null, locale: string): string | null {
-  if (!iso) return null;
-  try {
-    return new Intl.DisplayNames([locale], { type: "region" }).of(iso) ?? iso;
-  } catch {
-    return iso;
-  }
-}
-
-function ubicacion(row: ApiAccesoUsuario, locale: string): string {
-  const partes = [row.ciudad, nombrePais(row.pais, locale)].filter(Boolean);
-  return partes.length ? partes.join(", ") : "—";
-}
-
-/** `dispositivo` (mobile/desktop/tablet) siempre llega, pero navegador y SO
-    pueden faltar (p. ej. un login sin user-agent): se arma la frase con lo
-    que haya, sin dejar un "· " colgando. */
-function dispositivo(row: ApiAccesoUsuario): string {
-  const partes = [row.navegador, row.sistemaOperativo].filter(Boolean);
-  return partes.length ? `${row.dispositivo || "—"} · ${partes.join(" / ")}` : row.dispositivo || "—";
-}
-
-/** `es-ES`/`en-GB` fijos a propósito: el locale del panel es "es"/"en" sin
-    país, y DateTimeFormat con solo el idioma usa el formato de EE. UU.
-    (mm/dd) para "en", que no es lo que espera nadie acá. */
-function fmtFechaHora(iso: string, locale: string): string {
-  try {
-    return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "es-ES", {
-      day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export default function AccesosPage() {
   const router = useRouter();
@@ -229,7 +193,15 @@ export default function AccesosPage() {
             {pagina.items.map((row) => (
               <tr key={row.id}>
                 <td>{fmtFechaHora(row.createdAt, locale)}</td>
-                <td>{row.email}</td>
+                {/* Con cuenta, el correo abre su ficha de seguimiento; los
+                    intentos contra correos inexistentes no tienen ficha. */}
+                <td>
+                  {row.userId ? (
+                    <Link href={`${ROUTES.accesos}/${row.userId}`} className={styles.enlaceUsuario}>
+                      {row.email}
+                    </Link>
+                  ) : row.email}
+                </td>
                 {/* Tag en vez de RoleBadge: los clientes finales también
                     inician sesión por acá y CLIENT no es uno de los roles
                     que RoleBadge sabe pintar. */}

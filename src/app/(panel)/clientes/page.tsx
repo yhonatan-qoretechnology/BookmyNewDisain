@@ -3,20 +3,23 @@
    Clientes — listado y ficha editable (View)
 ============================================================ */
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ClientesController } from "@/controllers/CrudControllers";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/context/SessionContext";
-import { fmtFechaCorta } from "@/constants";
+import { fmtFechaCorta, ROUTES } from "@/constants";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
-import Toolbar, { SearchBox } from "@/components/ui/Toolbar";
+import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import DataTable from "@/components/ui/DataTable";
 import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
-import { IconButton } from "@/components/ui/Button";
+import Button, { IconButton } from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import { PersonRow } from "@/components/ui/People";
 import ClienteModal from "@/components/clientes/ClienteModal";
+import NuevoClienteModal from "@/components/clientes/NuevoClienteModal";
+import { useUi } from "@/context/UiContext";
 import styles from "./clientes.module.css";
 
 export default function ClientesPage() {
@@ -25,6 +28,11 @@ export default function ClientesPage() {
   const [search, setSearch] = useState("");
   /* Ficha abierta; null con el modal cerrado */
   const [editando, setEditando] = useState<number | null>(null);
+  const [creando, setCreando] = useState(false);
+  const { toast } = useUi();
+  const router = useRouter();
+  /* La auditoría de login (/auth/accesos) es solo de superadmin */
+  const veSeguimiento = session?.role === "superadmin";
 
   /* La sesión delimita las citas con las que se calculan las visitas */
   const { data: lista, reload } = useData(
@@ -39,8 +47,9 @@ export default function ClientesPage() {
         <PanelHead title={t("clientes.panelTitle")} sub={t("common.results", { n: lista.length })} />
         <Toolbar>
           <SearchBox value={search} onChange={setSearch} placeholder={t("clientes.searchPlaceholder")} />
-          {/* Los clientes finales se registran desde la app de
-              clientes (POST /auth/register); aquí solo consulta. */}
+          <ToolbarActions>
+            <Button onClick={() => setCreando(true)}>{t("clientes.new")}</Button>
+          </ToolbarActions>
         </Toolbar>
 
         {lista.length === 0 ? (
@@ -71,6 +80,15 @@ export default function ClientesPage() {
                 <td>{c.ultima === "—" ? "—" : fmtFechaCorta(c.ultima)}</td>
                 <td>
                   <div className={styles.rowActions}>
+                    {veSeguimiento && (
+                      <IconButton
+                        title={t("accesos.verSeguimiento")}
+                        aria-label={t("accesos.verSeguimientoAria", { nombre: c.nombre })}
+                        onClick={() => router.push(`${ROUTES.accesos}/${c.id}`)}
+                      >
+                        <Icon name="shield" />
+                      </IconButton>
+                    )}
                     <IconButton
                       aria-label={t("clientes.editAria", { nombre: c.nombre })}
                       onClick={() => setEditando(c.id)}
@@ -90,6 +108,18 @@ export default function ClientesPage() {
         clienteId={editando}
         onClose={() => setEditando(null)}
         onGuardado={reload}
+      />
+
+      {/* Alta manual: para quien no se registró desde la app */}
+      <NuevoClienteModal
+        open={creando}
+        onClose={() => setCreando(false)}
+        onCreado={async () => {
+          await reload();
+          /* GET /clients acota a los admins de empresa/sede a clientes
+             con citas en su negocio: el nuevo aún no tiene ninguna. */
+          if (session?.role !== "superadmin") toast(t("clientes.addedScopeHint"), "default");
+        }}
       />
     </>
   );

@@ -67,3 +67,43 @@
 .cuentaOk, .cuentaPendiente { margin: 0; font-size: 12.5px; line-height: 1.45; }
 .cuentaOk { color: var(--teal-500); }
 .cuentaPendiente { color: var(--slate-500); }
+
+/* Método de cobro: dos tarjetas en lugar de un desplegable, para que
+   se vea qué implica cada opción antes de elegirla. */
+.cuentaLabel { font-size: 12.5px; font-weight: 700; color: var(--navy-700); display: block; margin-bottom: 8px; }
+:global([data-theme="dark"]) .cuentaLabel { color: var(--slate-500); }
+.metodoGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.metodo {
+  display: flex; align-items: flex-start; gap: 12px; text-align: left;
+  padding: 14px; cursor: pointer; font: inherit;
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface); color: var(--navy-900);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.metodo:hover { border-color: var(--slate-300); background: var(--hover-surface); }
+.metodo:focus-visible { outline: none; box-shadow: var(--ring); border-color: var(--teal-500); }
+.metodoActivo, .metodoActivo:hover { border-color: var(--teal-500); background: var(--teal-50); }
+:global([data-theme="dark"]) .metodo { background: rgba(255,255,255,.03); }
+:global([data-theme="dark"]) .metodoActivo,
+:global([data-theme="dark"]) .metodoActivo:hover { background: rgba(18,185,129,.1); }
+.metodoIcono {
+  flex: none; width: 36px; height: 36px; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--hover-surface); color: var(--slate-500);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.metodoIcono svg { width: 18px; height: 18px; }
+.metodoActivo .metodoIcono { background: var(--grad-teal); color: #fff; }
+.metodoTexto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.metodoTexto b { font-size: 13.5px; }
+.metodoTexto span { font-size: 12px; line-height: 1.45; color: var(--slate-500); }
+.metodoRadio {
+  flex: none; width: 18px; height: 18px; margin-top: 2px; border-radius: 50%;
+  border: 2px solid var(--slate-300);
+  transition: border-color var(--t-fast) var(--ease), border-width var(--t-fast) var(--ease);
+}
+.metodoActivo .metodoRadio { border-color: var(--teal-500); border-width: 5px; }
+@media (max-width: 600px) { .metodoGrid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) {
+  .metodo, .metodoIcono, .metodoRadio { transition: none; }
+}

@@ -42,3 +42,8 @@
   font-size: 12px; line-height: 1.5;
   color: var(--slate-500);
 }
+
+/* Eliminar en el modal de edición: separado a la izquierda de
+   Cancelar/Guardar para que no se pulse por inercia. */
+.eliminarEnModal { margin-right: auto; }
+@media (max-width: 600px) { .eliminarEnModal { margin-right: 0; order: 1; } }

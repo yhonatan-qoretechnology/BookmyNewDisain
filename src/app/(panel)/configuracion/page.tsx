@@ -182,9 +182,10 @@ export default function ConfiguracionPage() {
           </div>
         </Panel>
 
-        {/* Cómo cobra online el negocio: solo el dueño la gestiona (es de
-            toda la empresa, no de una sede) — mismo alcance que el backend. */}
-        {session?.role === "owner" && <CuentaPago />}
+        {/* Pagos online: los gestiona el dueño (es de toda la empresa, no
+            de una sede) y el superadmin eligiendo la empresa — mismo
+            alcance que el backend. */}
+        {(session?.role === "owner" || session?.role === "superadmin") && <CuentaPago />}
 
         {/* La copia de seguridad lleva los datos de todas las empresas:
             solo el superadmin, igual que en el backend. */}
