@@ -304,6 +304,7 @@ export default function NuevaFacturaModal({
     <NuevoClienteModal
       open={creandoCliente}
       textoInicial={busquedaCliente}
+      empresaId={esSuperadmin ? empresaId || undefined : undefined}
       onClose={() => setCreandoCliente(false)}
       onCreado={(c) => { setCliente(c); setClientesOpt([]); }}
     />

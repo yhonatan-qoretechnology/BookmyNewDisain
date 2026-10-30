@@ -66,3 +66,20 @@
   .identidadTexto h2 { font-size: 17px; }
   .avatar { width: 46px; height: 46px; font-size: 16px; }
 }
+
+/* Mapa de accesos */
+.mapa {
+  width: 100%; height: 320px; border-radius: var(--r-md);
+  border: 1px solid var(--border); overflow: hidden; background: var(--hover-surface);
+}
+.mapaAviso { margin: 0; font-size: 13px; color: var(--slate-500); line-height: 1.5; }
+.mapaLeyenda {
+  display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0;
+  font-size: 12px; color: var(--slate-500);
+}
+.mapaLeyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.puntoOk, .puntoFallo { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.puntoOk { background: #12b981; }
+.puntoFallo { background: #ef4444; }
+@media (max-width: 600px) { .mapa { height: 240px; } }
+.seccionMapa { margin-bottom: 20px; }

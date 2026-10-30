@@ -7,7 +7,7 @@ import type {
   Resena, SedeDetalle, Servicio, Session,
 } from "@/models";
 import {
-  AsignacionesApi, AuthApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
+  AsignacionesApi, CategoriesApi, ClientsApi, ImagenesApi, PaymentsApi, ProfesionalesApi,
   ResenasApi, SedesApi, ServicesApi, ServicesWriteApi,
 } from "@/api/modules";
 import type {
@@ -34,6 +34,8 @@ export interface NuevoClienteDatos {
   fechaNacimiento: string;
   idioma: string;
   paisId: number;
+  /** Solo superadmin: negocio al que se vincula el cliente */
+  empresaId?: number;
 }
 
 /** Nº de visitas y última visita, calculadas desde las citas. */
@@ -128,18 +130,14 @@ export const ClientesController = {
   getDetalle: (id: number) => ClientsApi.findOne(id),
 
   /**
-   * Alta manual de un cliente final — POST /auth/register con role
-   * CLIENT (el controlador de /clients no tiene POST). El backend pide
-   * país, idioma, género y la aceptación de términos y privacidad;
-   * esa aceptación la confirma el admin en el formulario.
-   *
-   * ⚠️ Para un admin de empresa o de sede, GET /clients solo lista
-   * clientes con alguna cita en su negocio: el recién creado no
-   * aparece en su listado hasta su primera cita.
+   * Alta manual de un cliente final — POST /clients. El backend reutiliza
+   * el registro normal y vincula el cliente al negocio de quien lo crea
+   * (al elegido, si es el superadmin), así que aparece enseguida en su
+   * listado. La aceptación de términos y privacidad la confirma el admin
+   * en el formulario.
    */
   async crear(datos: NuevoClienteDatos): Promise<ClienteOpcion> {
-    const res = await AuthApi.register({
-      role: "CLIENT",
+    const c = await ClientsApi.create({
       name: datos.nombre.trim(),
       email: datos.email.trim().toLowerCase(),
       phone: datos.telefono.trim(),
@@ -148,20 +146,14 @@ export const ClientesController = {
       idioma: datos.idioma,
       countryId: datos.paisId,
       birthdate: datos.fechaNacimiento || undefined,
-      acceptTerms: true,
-      acceptPolitics: true,
-      clientType: "people",
-      state: "enabled",
+      empresaId: datos.empresaId,
     });
-    /* Según versión el backend responde { user } o el usuario a secas */
-    const id = res.user?.id ?? res.id;
-    if (id == null) throw new Error("El backend no devolvió el id del cliente");
     return {
-      id: String(id),
-      nombre: datos.nombre.trim(),
-      email: datos.email.trim().toLowerCase(),
-      telefono: datos.telefono.trim(),
-      foto: null,
+      id: String(c.id),
+      nombre: c.userData?.name || datos.nombre.trim(),
+      email: c.email,
+      telefono: c.userData?.phone || datos.telefono.trim(),
+      foto: c.fotoPerfil || null,
     };
   },
 

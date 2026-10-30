@@ -14,8 +14,8 @@
    pagina en el backend y llega hasta el primer acceso.
 
    Ubicación = la que geoip-lite deduce de la IP: aproximada (a
-   nivel de ciudad) y sin coordenadas, porque el backend no las
-   guarda.
+   nivel de ciudad). Las coordenadas solo existen en los accesos
+   posteriores a la migración que las añadió.
 ============================================================ */
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -34,6 +34,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import type { PaginationProps } from "@/components/ui/Pagination";
 import { bandera, dispositivo, fmtFechaHora, nombrePais } from "@/components/accesos/formato";
+import AccesosMapa from "@/components/accesos/AccesosMapa";
 import styles from "../accesos.module.css";
 
 const LIMIT_HISTORIAL = 20;
@@ -212,6 +213,11 @@ export default function SeguimientoUsuarioPage() {
         </Panel>
       ) : (
         <>
+          <Panel className={styles.seccionMapa}>
+            <PanelHead title={t("accesos.mapaTitle")} sub={t("accesos.mapaSub")} />
+            <AccesosMapa accesos={items} />
+          </Panel>
+
           <div className={styles.dosCol}>
             <Panel>
               <PanelHead title={t("accesos.ubicacionesTitle")} sub={t("accesos.ubicacionesSub")} />

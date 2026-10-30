@@ -71,6 +71,21 @@ export interface ApiAdminCreateResponse {
  * ⚠️ PUNTO DE AJUSTE: si el CreateUserDto del backend nombra los campos
  * de otra forma (p. ej. `nombre`/`telefono`), cámbialos aquí.
  */
+/** POST /clients — alta manual de un cliente desde el panel. */
+export interface CreateClientDto {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  gender?: string;
+  idioma: string;
+  countryId: number;
+  /** YYYY-MM-DD */
+  birthdate?: string;
+  /** Solo superadmin: negocio al que se vincula */
+  empresaId?: number;
+}
+
 export interface RegisterUserDto {
   email: string;
   password: string;
@@ -78,16 +93,6 @@ export interface RegisterUserDto {
   phone?: string;
   role?: ApiRole;
   idioma?: string;
-  /* Obligatorios en el RegisterDto del backend para dar de alta un
-     cliente (role CLIENT); sin ellos responde 400. */
-  gender?: string;
-  countryId?: number;
-  acceptTerms?: boolean;
-  acceptPolitics?: boolean;
-  clientType?: "people" | "business";
-  state?: ApiClientState;
-  /** YYYY-MM-DD */
-  birthdate?: string;
 }
 
 /**
@@ -540,6 +545,10 @@ export interface ApiAccesoUsuario {
   dispositivo: string | null;
   navegador: string | null;
   sistemaOperativo: string | null;
+  /** Aproximadas por geoip-lite (centro de la ciudad); null en accesos
+      anteriores a la migración o si la IP no se pudo ubicar. */
+  latitud?: number | null;
+  longitud?: number | null;
   createdAt: string;
   user: { id: number; email: string; role: ApiRole } | null;
 }

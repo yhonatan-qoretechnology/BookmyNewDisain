@@ -30,7 +30,10 @@ export default function NuevoClienteModal({
   onClose,
   onCreado,
   textoInicial = "",
+  empresaId,
 }: {
+  /** Solo superadmin: negocio al que se vincula el cliente */
+  empresaId?: string;
   /** Lo que ya se tecleó en un buscador: se usa como correo si lo
       parece y, si no, como nombre, para no escribirlo dos veces. */
   textoInicial?: string;
@@ -75,6 +78,7 @@ export default function NuevoClienteModal({
         nombre, email, telefono, password, genero, fechaNacimiento,
         idioma: locale,
         paisId: pais.id,
+        empresaId: empresaId ? Number(empresaId) : undefined,
       });
       toast(t("clientes.added"), "success");
       await onCreado(cliente);

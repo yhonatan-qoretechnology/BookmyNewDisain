@@ -349,6 +349,14 @@ const en: Dictionary = {
     ultimaVez: "Last seen: {fecha}",
     nFallidos: "{n} failed",
     historialTitle: "Sign-in history",
+    mapaTitle: "Sign-in map",
+    mapaSub: "One dot per location · bigger the more often they signed in",
+    mapaAria: "Map with {n} sign-in locations",
+    mapaLeyendaOk: "Successful sign-ins only",
+    mapaLeyendaFallo: "With failed attempts",
+    mapaAproximado: "Location approximated from IP (city centre)",
+    mapaSinCoordenadas: "These sign-ins have no coordinates: the backend started storing them later. New sign-ins will appear on the map.",
+    mapaError: "Google Maps could not be loaded.",
     delPeriodo: "last {dias} days",
     searchPlaceholder: "Search by email…",
     filterPais: "Country",
@@ -881,7 +889,6 @@ const en: Dictionary = {
     consentRequired: "Confirm that the client accepts the terms and privacy policy.",
     emailInvalid: "Enter a valid email",
     phoneRequired: "Phone is required",
-    addedScopeHint: "They will appear in your client list once they have their first appointment at your business.",
   },
 
   facturacion: {

@@ -377,6 +377,14 @@ const es = {
     ultimaVez: "Última vez: {fecha}",
     nFallidos: "{n} fallidos",
     historialTitle: "Historial de accesos",
+    mapaTitle: "Mapa de accesos",
+    mapaSub: "Un punto por ubicación · más grande cuantas más veces entró",
+    mapaAria: "Mapa con {n} ubicaciones de acceso",
+    mapaLeyendaOk: "Solo accesos correctos",
+    mapaLeyendaFallo: "Con intentos fallidos",
+    mapaAproximado: "Ubicación aproximada por IP (centro de la ciudad)",
+    mapaSinCoordenadas: "Estos accesos no tienen coordenadas: el backend empezó a guardarlas después. Los próximos inicios de sesión ya aparecerán en el mapa.",
+    mapaError: "No se pudo cargar Google Maps.",
     delPeriodo: "últimos {dias} días",
     searchPlaceholder: "Buscar por email…",
     filterPais: "País",
@@ -925,7 +933,6 @@ const es = {
     consentRequired: "Confirma que el cliente acepta los términos y la política de privacidad.",
     emailInvalid: "Escribe un correo válido",
     phoneRequired: "El teléfono es obligatorio",
-    addedScopeHint: "Aparecerá en tu listado de clientes en cuanto tenga su primera cita en tu negocio.",
   },
 
   facturacion: {

@@ -19,7 +19,6 @@ import Icon from "@/components/ui/Icon";
 import { PersonRow } from "@/components/ui/People";
 import ClienteModal from "@/components/clientes/ClienteModal";
 import NuevoClienteModal from "@/components/clientes/NuevoClienteModal";
-import { useUi } from "@/context/UiContext";
 import styles from "./clientes.module.css";
 
 export default function ClientesPage() {
@@ -29,7 +28,6 @@ export default function ClientesPage() {
   /* Ficha abierta; null con el modal cerrado */
   const [editando, setEditando] = useState<number | null>(null);
   const [creando, setCreando] = useState(false);
-  const { toast } = useUi();
   const router = useRouter();
   /* La auditoría de login (/auth/accesos) es solo de superadmin */
   const veSeguimiento = session?.role === "superadmin";
@@ -114,12 +112,7 @@ export default function ClientesPage() {
       <NuevoClienteModal
         open={creando}
         onClose={() => setCreando(false)}
-        onCreado={async () => {
-          await reload();
-          /* GET /clients acota a los admins de empresa/sede a clientes
-             con citas en su negocio: el nuevo aún no tiene ninguna. */
-          if (session?.role !== "superadmin") toast(t("clientes.addedScopeHint"), "default");
-        }}
+        onCreado={reload}
       />
     </>
   );

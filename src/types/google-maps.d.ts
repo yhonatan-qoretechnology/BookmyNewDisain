@@ -53,6 +53,21 @@ declare global {
       map?: Map | null;
       title?: string;
       label?: MarkerLabel | string;
+      /** Símbolo vectorial (AccesosMapa pinta círculos de color). */
+      icon?: Symbol;
+    }
+
+    enum SymbolPath {
+      CIRCLE = 0,
+    }
+
+    interface Symbol {
+      path: SymbolPath;
+      scale?: number;
+      fillColor?: string;
+      fillOpacity?: number;
+      strokeColor?: string;
+      strokeWeight?: number;
     }
 
     class Marker {

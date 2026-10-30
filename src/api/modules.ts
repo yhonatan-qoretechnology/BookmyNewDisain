@@ -23,7 +23,7 @@ import type {
   ApiInsumo, ApiStockSede, ApiSolicitudInventario,
   CreateInsumoDto, UpdateInsumoDto, CreateSolicitudInventarioDto,
   UpdateServiceSedeProfesionalDto,
-  ClientListParams, ClientUpdatePayload, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
+  ClientListParams, ClientUpdatePayload, CreateClientDto, CreateAppointmentDto, CreateGastoDto, CreateServiceDto,
   CreateServiceSedeProfesionalDto, LoginResponse, Paginated,
   RegisterUserDto, RegistroNegocioDto, SendMessageDto, UpdateGastoDto, UpdateServiceDto,
 } from "./types";
@@ -178,6 +178,13 @@ export const ClientsApi = {
     http.get<ApiClientsPage>(EP.clients + qs({ ...params })),
 
   findOne: (id: number) => http.get<ApiClient>(EP.clientById(id)),
+
+  /**
+   * POST /clients — alta manual. El backend la vincula al negocio de
+   * quien la crea, así que aparece en su listado sin esperar a su
+   * primera cita.
+   */
+  create: (dto: CreateClientDto) => http.post<ApiClient>(EP.clients, dto),
 
   /** POST /clients/search { email } — coincidencia exacta; 404 si no existe. */
   search: (email: string) => http.post<ApiClient>(EP.clientsSearch, { email }),
