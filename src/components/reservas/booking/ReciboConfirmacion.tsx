@@ -18,6 +18,13 @@ import Icon from "@/components/ui/Icon";
 import { Field } from "@/components/ui/Modal";
 import styles from "./booking.module.css";
 
+/* Metodos de pago que se ofrecen al crear una reserva.
+   "transferencia" se manda al API como paymentMethod "WISE", y el backend
+   solo acepta ese valor desde la version del 28-10-2026: contra uno anterior
+   responde 400 y la reserva no se crea. Se vuelve a anadir a esta lista el
+   dia que el backend con Wise este desplegado. */
+const METODOS_DE_PAGO: MetodoPago[] = ["tarjeta", "efectivo"];
+
 export interface CardDraft { number: string; expiry: string; cvv: string }
 
 interface ReciboProps {
@@ -181,7 +188,7 @@ function ReciboConfirmacionBase({
         <section className={styles.reciboBlock}>
           <h4 className={styles.pagoTitulo}>{t("booking.paymentMethod")}</h4>
           <div className={styles.payRow}>
-            {(["tarjeta", "efectivo", "transferencia"] as MetodoPago[]).map((m) => (
+            {METODOS_DE_PAGO.map((m) => (
               <button
                 key={m}
                 type="button"
