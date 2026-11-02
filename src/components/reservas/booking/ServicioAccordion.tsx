@@ -5,8 +5,11 @@
    Primero se muestran las categorías; cada una es una sección
    desplegable (acordeón) con las tarjetas de sus servicios:
    nombre, descripción, duración, precio con moneda y botón
-   "Seleccionar". La primera categoría (y la del servicio ya
-   elegido) abren por defecto.
+   "Seleccionar".
+
+   Encima, un menú de categorías: «Todas» enseña todo; tocar una
+   deja solo esa (abierta). Así no hay que bajar por toda la lista
+   para llegar a la categoría que se busca.
 ============================================================ */
 import { memo, useCallback, useState } from "react";
 import type { CategoriaServicios, ServicioOpcion } from "@/models";
@@ -69,6 +72,17 @@ function ServicioAccordionBase({ categorias, selectedId, onSelect }: ServicioAcc
     () => new Set(categorias.map((c) => c.categoria))
   );
 
+  /* Categoría elegida en el menú; null = todas */
+  const [filtro, setFiltro] = useState<string | null>(null);
+  const visibles = filtro ? categorias.filter((c) => c.categoria === filtro) : categorias;
+  const total = categorias.reduce((n, c) => n + c.servicios.length, 0);
+
+  const elegir = useCallback((categoria: string | null) => {
+    setFiltro(categoria);
+    /* La elegida se abre siempre, aunque se hubiera plegado antes */
+    if (categoria) setAbiertas((prev) => new Set(prev).add(categoria));
+  }, []);
+
   const toggle = useCallback((categoria: string) => {
     setAbiertas((prev) => {
       const next = new Set(prev);
@@ -85,8 +99,36 @@ function ServicioAccordionBase({ categorias, selectedId, onSelect }: ServicioAcc
   };
 
   return (
+    <>
+    {categorias.length > 1 && (
+      <div className={styles.catMenu} role="tablist" aria-label={t("booking.categoriasMenu")}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={filtro === null}
+          className={`${styles.catMenuItem} ${filtro === null ? styles.catMenuActivo : ""}`}
+          onClick={() => elegir(null)}
+        >
+          {t("booking.todasCategorias")}
+          <span className={styles.catMenuCount}>{total}</span>
+        </button>
+        {categorias.map((cat) => (
+          <button
+            key={cat.categoria}
+            type="button"
+            role="tab"
+            aria-selected={filtro === cat.categoria}
+            className={`${styles.catMenuItem} ${filtro === cat.categoria ? styles.catMenuActivo : ""}`}
+            onClick={() => elegir(cat.categoria)}
+          >
+            {cat.categoria}
+            <span className={styles.catMenuCount}>{cat.servicios.length}</span>
+          </button>
+        ))}
+      </div>
+    )}
     <div className={styles.accordion}>
-      {categorias.map((cat) => {
+      {visibles.map((cat) => {
         const open = abiertas.has(cat.categoria);
         const panelId = `cat-${cat.categoria.replace(/\s+/g, "-").toLowerCase()}`;
         return (
@@ -129,6 +171,7 @@ function ServicioAccordionBase({ categorias, selectedId, onSelect }: ServicioAcc
         );
       })}
     </div>
+    </>
   );
 }
 

@@ -438,6 +438,31 @@
 /* ══════════════════════════════════════════════════════
    Servicios — acordeón por categoría
 ══════════════════════════════════════════════════════ */
+/* Menú de categorías del paso Servicio */
+.catMenu {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.catMenuItem {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--border); background: var(--surface);
+  font-family: inherit; font-size: 13px; font-weight: 700; color: var(--navy-900);
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.catMenuItem:hover { border-color: var(--teal-500); }
+.catMenuCount {
+  min-width: 22px; padding: 1px 7px; border-radius: 999px; text-align: center;
+  font-size: 11.5px; font-weight: 800; background: var(--hover-surface); color: var(--slate-500);
+}
+.catMenuActivo { background: var(--grad-teal); border-color: transparent; color: #fff; }
+.catMenuActivo .catMenuCount { background: rgba(255,255,255,.22); color: #fff; }
+@media (max-width: 600px) {
+  /* En móvil, una fila que se desliza en vez de muchas líneas de chips */
+  .catMenu { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .catMenu::-webkit-scrollbar { display: none; }
+  .catMenuItem { flex: none; }
+}
+
 .accordion { display: flex; flex-direction: column; gap: 12px; }
 .catItem {
   border: 1.5px solid var(--border); border-radius: var(--r-lg);

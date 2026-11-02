@@ -740,6 +740,8 @@ const es = {
     subtotal: "Subtotal",
     total: "Total",
     servicesCount: "{n} servicio(s)",
+    categoriasMenu: "Categorías",
+    todasCategorias: "Todas",
     receiptTitle: "Comprobante de reserva",
     receiptSub: "Revisa los datos antes de confirmar",
     branchInfo: "Información de la sede",
