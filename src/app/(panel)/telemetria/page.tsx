@@ -84,6 +84,44 @@ function porPlataforma(filas: ApiDistribucionPlataforma[]): ResumenPlataforma[] 
     .sort((a, b) => b.sesiones - a.sesiones);
 }
 
+/* ── Mini gráficas de las tarjetas por página ──────────────
+   Cada tarjeta pinta su dato con un tipo distinto (se rotan por
+   puesto) para que la cuadrícula no sea una pared de barras iguales.
+   Todas dicen lo mismo: qué parte representa esa página. */
+type TipoMini = "barra" | "anillo" | "medidor" | "puntos";
+const TIPOS_MINI: TipoMini[] = ["barra", "anillo", "medidor", "puntos"];
+const COLOR_MINI = ["var(--teal-500)", "var(--blue)", "#7c4dff", "var(--amber)"];
+
+/** Medio círculo que se llena según la fracción (como un velocímetro). */
+function Medidor({ fraccion, color }: { fraccion: number; color: string }) {
+  const f = Math.max(0, Math.min(1, fraccion));
+  const R = 40;
+  const largo = Math.PI * R;
+  return (
+    <svg viewBox="0 0 100 56" className={propios.medidor} aria-hidden>
+      <path d="M10 50 A40 40 0 0 1 90 50" className={propios.medidorBase} />
+      <path
+        d="M10 50 A40 40 0 0 1 90 50"
+        className={propios.medidorValor}
+        stroke={color}
+        strokeDasharray={`${f * largo} ${largo}`}
+      />
+    </svg>
+  );
+}
+
+/** Cuadrícula de 20 puntos: cada punto, un 5 %. */
+function Puntos({ fraccion, color }: { fraccion: number; color: string }) {
+  const llenos = Math.round(Math.max(0, Math.min(1, fraccion)) * 20);
+  return (
+    <div className={propios.puntos} aria-hidden>
+      {Array.from({ length: 20 }, (_, i) => (
+        <span key={i} style={i < llenos ? { background: color } : undefined} />
+      ))}
+    </div>
+  );
+}
+
 /** Anillo de cuota: qué parte del total representa la tarjeta. */
 function Anillo({ fraccion, color }: { fraccion: number; color: string }) {
   const R = 22;
@@ -294,24 +332,51 @@ export default function TelemetriaPage() {
         <PanelHead title={t("telemetria.paginasMasVistas")} sub={t("telemetria.paginasSub", { dias })} />
         {paginas.length === 0 ? sinDatos : (
           <div className={propios.grid}>
-            {paginas.map((p, i) => (
-              <article key={p.ruta} className={propios.card} style={{ "--i": i } as React.CSSProperties}>
-                <div className={propios.cardTop}>
-                  <span className={propios.puesto}>#{i + 1}</span>
-                  <span className={propios.pct}>{cuota(p.visitas, resumen.pageviews)}</span>
-                </div>
-                <span className={propios.ruta} title={p.ruta}>
-                  {p.ruta === "/" ? t("telemetria.rutaInicio") : p.ruta}
-                </span>
-                <span className={propios.valor}>
-                  {num(p.visitas)} <small>{t("telemetria.colVisitas").toLowerCase()}</small>
-                </span>
-                {/* Relativa a la más visitada: la #1 llena la barra */}
-                <div className={propios.barra} role="presentation">
-                  <span style={{ width: `${(p.visitas / maxVisitas) * 100}%` }} />
-                </div>
-              </article>
-            ))}
+            {paginas.map((p, i) => {
+              const tipo = TIPOS_MINI[i % TIPOS_MINI.length];
+              const color = COLOR_MINI[i % COLOR_MINI.length];
+              /* La barra se compara con la más visitada (la #1 la llena);
+                 el resto enseña la cuota sobre todas las visitas. */
+              const relativa = p.visitas / maxVisitas;
+              const parte = resumen.pageviews > 0 ? p.visitas / resumen.pageviews : 0;
+              const lateral = tipo === "anillo" || tipo === "medidor";
+              return (
+                <article key={p.ruta} className={propios.card} style={{ "--i": i } as React.CSSProperties}>
+                  <div className={propios.cardTop}>
+                    <span className={propios.puesto}>#{i + 1}</span>
+                    <span className={propios.pct}>{cuota(p.visitas, resumen.pageviews)}</span>
+                  </div>
+                  <div className={lateral ? propios.cuerpoLateral : undefined}>
+                    <div className={propios.cuerpoTexto}>
+                      <span className={propios.ruta} title={p.ruta}>
+                        {p.ruta === "/" ? t("telemetria.rutaInicio") : p.ruta}
+                      </span>
+                      <span className={propios.valor}>
+                        {num(p.visitas)} <small>{t("telemetria.colVisitas").toLowerCase()}</small>
+                      </span>
+                    </div>
+                    {tipo === "anillo" && (
+                      <div className={propios.anilloWrap}>
+                        <Anillo fraccion={parte} color={color} />
+                        <span className={propios.anilloPct}>{Math.round(parte * 100)}%</span>
+                      </div>
+                    )}
+                    {tipo === "medidor" && (
+                      <div className={propios.medidorWrap}>
+                        <Medidor fraccion={parte} color={color} />
+                        <span className={propios.medidorPct}>{Math.round(parte * 100)}%</span>
+                      </div>
+                    )}
+                  </div>
+                  {tipo === "barra" && (
+                    <div className={propios.barra} role="presentation">
+                      <span style={{ width: `${relativa * 100}%` }} />
+                    </div>
+                  )}
+                  {tipo === "puntos" && <Puntos fraccion={parte} color={color} />}
+                </article>
+              );
+            })}
           </div>
         )}
       </Panel>

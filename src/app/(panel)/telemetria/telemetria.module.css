@@ -70,6 +70,29 @@
 .barra > span { background: var(--grad-teal); }
 @keyframes crecer { from { transform: scaleX(0); } }
 
+/* Mini gráficas variadas de las tarjetas por página */
+.cuerpoLateral { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cuerpoTexto { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.medidorWrap { position: relative; width: 92px; flex: none; }
+.medidor { width: 100%; display: block; }
+.medidorBase { fill: none; stroke: var(--hover-surface); stroke-width: 9; stroke-linecap: round; }
+.medidorValor {
+  fill: none; stroke-width: 9; stroke-linecap: round;
+  transition: stroke-dasharray var(--t-slow) var(--ease);
+}
+.medidorPct {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  text-align: center; font-size: 13px; font-weight: 800; color: var(--navy-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.puntos { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-top: 4px; }
+.puntos span {
+  aspect-ratio: 1; border-radius: 4px; background: var(--hover-surface);
+  animation: entrar .3s var(--ease) both;
+}
+
 /* Plataformas */
 
 .plataformaTop { display: flex; align-items: center; gap: 14px; }
@@ -101,7 +124,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .barra > span, .barraFina > span { animation: none; }
+  .card, .barra > span, .barraFina > span, .puntos span { animation: none; }
   .card:hover { transform: none; }
-  .anilloValor { transition: none; }
+  .anilloValor, .medidorValor { transition: none; }
 }
