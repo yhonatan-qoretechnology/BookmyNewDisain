@@ -250,6 +250,10 @@ export const EmpresasApi = {
   create: (data: { nombre: string; descripcion?: string; telefono?: string; email?: string }) =>
     http.post<ApiEmpresa>(EP.empresas, data),
   update: (id: number, data: Partial<ApiEmpresa>) => http.patch<ApiEmpresa>(EP.empresaById(id), data),
+  /** POST /empresas en multipart: todos los datos más el logo (campo "logo"). */
+  crearForm: (form: FormData) => http.postForm<ApiEmpresa>(EP.empresas, form),
+  /** PATCH /empresas/:id en multipart; solo cambia los campos enviados. */
+  actualizarForm: (id: number, form: FormData) => http.patchForm<ApiEmpresa>(EP.empresaById(id), form),
   /** PATCH /empresas/:id/bloquear — corta el acceso de sus admins y las reservas. */
   bloquear: (id: number, motivo?: string) =>
     http.patch<ApiEmpresa>(EP.empresaBloquear(id), motivo?.trim() ? { motivo: motivo.trim() } : {}),

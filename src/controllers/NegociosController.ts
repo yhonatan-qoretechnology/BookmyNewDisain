@@ -60,18 +60,6 @@ export const NegociosController = {
   },
 
   /**
-   * Registra una empresa — POST /empresas (CreateEmpresaDto).
-   * @param input nombre y descripción (rubro).
-   */
-  async add(input: { nombre: string; rubro: string }): Promise<Negocio> {
-    const created = await EmpresasApi.create({
-      nombre: input.nombre,
-      descripcion: input.rubro,
-    });
-    return mapEmpresa(created);
-  },
-
-  /**
    * Corta el acceso de una empresa — PATCH /empresas/:id/bloquear.
    * Sus admins y profesionales no podrán entrar al panel (el login
    * devuelve EMPRESA_BLOQUEADA) y sus sedes dejan de admitir reservas.

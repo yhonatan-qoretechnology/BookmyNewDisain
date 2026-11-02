@@ -128,6 +128,9 @@ export interface ApiEmpresa {
   descripcion?: string | null;
   descripcionLarga?: string | null;
   webUrl?: string | null;
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
   /** Plan contratado (FREE/PRO) y prueba de 30 días. */
   plan?: "FREE" | "PRO";
   trialEndsAt?: string | null;

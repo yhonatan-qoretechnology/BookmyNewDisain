@@ -25,6 +25,7 @@ import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
 import ImageUpload from "@/components/ui/ImageUpload";
 import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
+import EmpresaFormModal from "@/components/empresas/EmpresaFormModal";
 import KycPendientes from "@/components/kyc/KycPendientes";
 import KycEmpresaModal from "@/components/kyc/KycEmpresaModal";
 import { BADGE_KYC } from "@/components/kyc/estados";
@@ -54,9 +55,9 @@ export default function EmpresasPage() {
   const [verificaciones, setVerificaciones] = useState(false);
   /** Empresa cuya verificación se está mirando (desde su propia tarjeta) */
   const [kycDe, setKycDe] = useState<Negocio | null>(null);
+  /* Formulario de empresa: abierto en alta (id null) o en edición (id) */
   const [modalOpen, setModalOpen] = useState(false);
-  const [nombre, setNombre] = useState("");
-  const [rubro, setRubro] = useState("");
+  const [editandoId, setEditandoId] = useState<number | null>(null);
 
   /* GUARD DE ROL: esta vista solo existe para superadmin */
   useEffect(() => {
@@ -190,17 +191,6 @@ export default function EmpresasPage() {
     return actualizada?.logo ?? null;
   };
 
-  const agregar = async () => {
-    if (!nombre.trim()) { toast(t("common.requiredName"), "error"); return; }
-    try {
-      await NegociosController.add({ nombre: nombre.trim(), rubro: rubro.trim() || "—" });
-      setModalOpen(false); setNombre(""); setRubro("");
-      await reload();
-      toast(t("empresas.created"), "success");
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Error", "error");
-    }
-  };
 
   return (
     <>
@@ -232,7 +222,7 @@ export default function EmpresasPage() {
                 <Button variant="ghost" onClick={() => setVerificaciones(true)}>
                   {t("kyc.verificaciones")}
                 </Button>
-                <Button onClick={() => setModalOpen(true)}>{t("empresas.new")}</Button>
+                <Button onClick={() => { setEditandoId(null); setModalOpen(true); }}>{t("empresas.new")}</Button>
               </ToolbarActions>
             </Toolbar>
 
@@ -295,6 +285,9 @@ export default function EmpresasPage() {
                           )}
                           <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
                             {t("empresas.viewSedes")}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setEditandoId(Number(n.id)); setModalOpen(true); }}>
+                            {t("empresas.edit")}
                           </Button>
                           {/* Abre la verificación de ESA empresa, esté en la
                               cola o no: ver documentos, aprobar o rechazar */}
@@ -387,19 +380,12 @@ export default function EmpresasPage() {
         </ModalActions>
       </Modal>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-        <ModalTitle>{t("empresas.modalTitle")}</ModalTitle>
-        <Field label={t("common.name")} htmlFor="ne-nombre">
-          <input id="ne-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("empresas.namePlaceholder")} />
-        </Field>
-        <Field label={t("empresas.rubro")} htmlFor="ne-rubro">
-          <input id="ne-rubro" value={rubro} onChange={(e) => setRubro(e.target.value)} placeholder={t("empresas.rubroPlaceholder")} />
-        </Field>
-        <ModalActions>
-          <Button variant="ghost" onClick={() => setModalOpen(false)}>{t("common.cancel")}</Button>
-          <Button onClick={agregar}>{t("common.save")}</Button>
-        </ModalActions>
-      </Modal>
+      <EmpresaFormModal
+        open={modalOpen}
+        empresaId={editandoId}
+        onClose={() => setModalOpen(false)}
+        onGuardada={() => reload()}
+      />
     </>
   );
 }

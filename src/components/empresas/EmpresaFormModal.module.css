@@ -1,0 +1,7 @@
+.fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+
+.error { display: block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--red); }
+
+@media (max-width: 600px) {
+  .fila { grid-template-columns: minmax(0, 1fr); }
+}
