@@ -18,7 +18,6 @@ import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
-import Badge from "@/components/ui/Badge";
 import { bandera } from "@/components/accesos/formato";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
@@ -31,7 +30,6 @@ import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
 import EmpresaFormModal from "@/components/empresas/EmpresaFormModal";
 import KycPendientes from "@/components/kyc/KycPendientes";
 import KycEmpresaModal from "@/components/kyc/KycEmpresaModal";
-import { BADGE_KYC } from "@/components/kyc/estados";
 import styles from "./empresas.module.css";
 
 export default function EmpresasPage() {
@@ -235,17 +233,50 @@ export default function EmpresasPage() {
               <CardGrid>
                 {lista.map((n) => {
                   const activa = n.id === session.negocioId;
-                  const esPro = n.plan === "PRO" || n.enPrueba;
                   const kyc = n.kycEstado ?? "PENDIENTE";
+                  /* El tono de la portada dice el plan de un vistazo */
+                  const tono = n.plan === "PRO" ? styles.tonoPro : n.enPrueba ? styles.tonoPrueba : styles.tonoFree;
+                  const planTxt = n.plan === "PRO" ? t("plan.pro") : n.enPrueba ? t("empresas.enPrueba") : t("plan.free");
                   return (
                     <SimpleCard
                       key={n.id}
-                      className={`${styles.tarjeta} ${activa ? styles.current : ""} ${n.bloqueada ? styles.apagada : ""}`}
+                      className={`${styles.tarjeta} ${tono} ${activa ? styles.current : ""} ${n.bloqueada ? styles.apagada : ""}`}
                     >
-                      {/* Cabecera: logo, nombre, rubro en una línea y país.
-                          Lo secundario (editar, verificación, plan, desactivar)
-                          va al menú ⋯ para que la tarjeta se lea de un vistazo. */}
-                      <div className={styles.cabeza}>
+                      {/* Portada: plan a la izquierda y el menú ⋯ con lo
+                          secundario (editar, verificación, plan, desactivar) */}
+                      <div className={styles.portada}>
+                        <span className={styles.chipPlan}>
+                          <Icon name="star" width={13} height={13} />
+                          {planTxt}
+                        </span>
+                        {activa && (
+                          <span className={styles.chipActual}>
+                            <Icon name="check" width={13} height={13} strokeWidth={2.6} />
+                            {t("empresas.current")}
+                          </span>
+                        )}
+                        <div className={styles.menuPortada}>
+                          <MenuAcciones
+                            etiqueta={t("empresas.masAcciones", { empresa: n.nombre })}
+                            acciones={[
+                              { etiqueta: t("empresas.edit"), icono: "edit", onClick: () => { setEditandoId(Number(n.id)); setModalOpen(true); } },
+                              { etiqueta: t("kyc.verEmpresa"), icono: "shield", onClick: () => setKycDe(n) },
+                              {
+                                etiqueta: t("plan.changeTo", { plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro") }),
+                                icono: "star",
+                                deshabilitada: cambiandoPlan === n.id,
+                                onClick: () => void cambiarPlan(n),
+                              },
+                              n.bloqueada
+                                ? { etiqueta: t("empresas.desbloquear"), icono: "play", deshabilitada: bloqueando === n.id, onClick: () => void desbloquear(n) }
+                                : { etiqueta: t("empresas.bloquear"), icono: "power", peligro: true, onClick: () => setBloqueandoA(n) },
+                            ]}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Logo grande montado sobre la portada */}
+                      <div className={styles.logo}>
                         <ImageUpload
                           value={n.logo}
                           nombre={n.nombre}
@@ -253,61 +284,48 @@ export default function EmpresasPage() {
                           disabled={!activa && session.role !== "superadmin"}
                           onUpload={(file) => subirLogo(n, file)}
                         />
-                        <div className={styles.cabezaTexto}>
-                          <h3 className={styles.nombre} title={n.nombre}>{n.nombre}</h3>
-                          <p className={styles.rubro} title={n.rubro}>{n.rubro}</p>
-                          {n.paisNombre && (
-                            <span className={styles.pais}>
-                              {bandera(n.paisIso ?? null)} {n.paisNombre}
-                            </span>
-                          )}
-                        </div>
-                        <MenuAcciones
-                          etiqueta={t("empresas.masAcciones", { empresa: n.nombre })}
-                          acciones={[
-                            { etiqueta: t("empresas.edit"), icono: "edit", onClick: () => { setEditandoId(Number(n.id)); setModalOpen(true); } },
-                            { etiqueta: t("kyc.verEmpresa"), icono: "shield", onClick: () => setKycDe(n) },
-                            {
-                              etiqueta: t("plan.changeTo", { plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro") }),
-                              icono: "star",
-                              deshabilitada: cambiandoPlan === n.id,
-                              onClick: () => void cambiarPlan(n),
-                            },
-                            n.bloqueada
-                              ? { etiqueta: t("empresas.desbloquear"), icono: "play", deshabilitada: bloqueando === n.id, onClick: () => void desbloquear(n) }
-                              : { etiqueta: t("empresas.bloquear"), icono: "power", peligro: true, onClick: () => setBloqueandoA(n) },
-                          ]}
-                        />
                       </div>
 
-                      {/* Estado en una fila: plan, sedes y verificación */}
-                      <div className={styles.datos}>
-                        <span className={`${styles.dato} ${esPro ? styles.datoPro : ""}`}>
-                          <Icon name="star" width={14} height={14} />
-                          {n.plan === "PRO" ? t("plan.pro") : n.enPrueba ? t("empresas.enPrueba") : t("plan.free")}
-                        </span>
-                        <span className={styles.dato}>
-                          <Icon name="mapPin" width={14} height={14} />
-                          {t("empresas.sedesCount", { n: sedeCounts[n.id] ?? 0 })}
-                        </span>
-                        <Badge kind={BADGE_KYC[kyc]}>{t(`kyc.estados.${kyc}`)}</Badge>
+                      <div className={styles.identidad}>
+                        <h3 className={styles.nombre} title={n.nombre}>{n.nombre}</h3>
+                        {n.paisNombre && (
+                          <span className={styles.pais}>{bandera(n.paisIso ?? null)} {n.paisNombre}</span>
+                        )}
+                        <p className={styles.rubro} title={n.rubro}>{n.rubro}</p>
                       </div>
-                      {n.enPrueba && n.trialEndsAt && (
-                        <p className={styles.nota}>{t("plan.trialUntil", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale) })}</p>
-                      )}
+
+                      {/* Tres casillas iguales: sedes, plan y verificación */}
+                      <div className={styles.casillas}>
+                        <div className={styles.casilla}>
+                          <b>{sedeCounts[n.id] ?? 0}</b>
+                          <span>{t("empresas.casillaSedes")}</span>
+                        </div>
+                        <div className={styles.casilla}>
+                          <b className={styles.casillaPlan}>{n.plan === "PRO" || n.enPrueba ? "Pro" : "Free"}</b>
+                          <span>{n.enPrueba && n.trialEndsAt
+                            ? t("empresas.hasta", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) })
+                            : t("empresas.casillaPlan")}</span>
+                        </div>
+                        <div className={`${styles.casilla} ${styles[`kyc${kyc}`] ?? ""}`}>
+                          <b><span className={styles.punto} aria-hidden />{t(`empresas.kycCorto.${kyc}`)}</b>
+                          <span>{t("empresas.casillaKyc")}</span>
+                        </div>
+                      </div>
+
                       {n.bloqueada && (
-                        <p className={`${styles.nota} ${styles.notaBloqueo}`}>
+                        <p className={styles.notaBloqueo}>
+                          <Icon name="power" width={14} height={14} />
                           {n.bloqueadaMotivo ? t("empresas.bloqueadaPor", { motivo: n.bloqueadaMotivo }) : t("empresas.bloqueada")}
                         </p>
                       )}
 
-                      {/* Dos acciones a la vista: entrar a operar y ver sedes */}
+                      {/* Acción principal a lo ancho y Sedes al lado */}
                       <div className={styles.acciones}>
                         {activa ? (
-                          <span className={styles.actual}>
-                            <Icon name="check" width={15} height={15} strokeWidth={2.4} />
-                            {t("empresas.current")}
-                          </span>
+                          <Button size="sm" variant="ghost" onClick={() => router.push(ROUTES.dashboard)}>
+                            {t("empresas.irPanel")}
+                            <Icon name="arrow-right" width={15} height={15} />
+                          </Button>
                         ) : (
                           <Button size="sm" onClick={() => seleccionar(n.id, n.nombre)} title={t("empresas.selectHint")}>
                             {t("empresas.entrar")}
@@ -315,6 +333,7 @@ export default function EmpresasPage() {
                           </Button>
                         )}
                         <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
+                          <Icon name="mapPin" width={15} height={15} />
                           {t("empresas.viewSedes")}
                         </Button>
                       </div>

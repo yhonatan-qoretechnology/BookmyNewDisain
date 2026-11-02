@@ -6,56 +6,117 @@
 }
 :global([data-theme="dark"]) .planTag { background: rgba(139,92,246,.18); color: #b79cff; }
 /* ── Tarjeta de empresa ─────────────────────────────────
-   Se lee de arriba abajo: quién es → cómo está → qué hago.
-   Lo secundario vive en el menú ⋯ de la cabecera. */
-.tarjeta { gap: 14px; position: relative; }
+   Portada con el tono del plan, logo grande montado encima,
+   identidad, tres casillas de estado y las dos acciones abajo.
+   Lo secundario vive en el menú ⋯ de la portada. */
+.tarjeta {
+  position: relative; gap: 0; padding: 0 !important; overflow: visible;
+  --tono: var(--grad-navy);
+  --tono-solido: var(--slate-500);
+  transition: box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease), border-color var(--t-med) var(--ease);
+}
+.tonoPro    { --tono: var(--grad-teal);  --tono-solido: var(--teal-500); }
+.tonoPrueba { --tono: var(--grad-amber); --tono-solido: var(--amber); }
+.tonoFree   { --tono: var(--grad-navy);  --tono-solido: var(--slate-500); }
+.tarjeta:hover { border-color: color-mix(in srgb, var(--tono-solido) 55%, var(--border)); }
 /* Con el menú abierto, la tarjeta pasa por encima de la de abajo */
 .tarjeta:has([aria-expanded="true"]) { z-index: 5; }
 .current {
-  border-color: var(--teal-500);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal-500) 18%, transparent), var(--shadow-md);
+  border-color: var(--teal-500) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal-500) 22%, transparent), var(--shadow-md);
 }
-/* Desactivada: atenuada, pero el menú sigue a mano para reactivarla */
-.apagada .cabeza > :not(:last-child), .apagada .datos { opacity: .55; }
+.apagada .logo, .apagada .identidad, .apagada .casillas { opacity: .5; filter: grayscale(.6); }
+.apagada .portada { filter: grayscale(1); }
 
-.cabeza { display: flex; align-items: flex-start; gap: 14px; }
-.cabezaTexto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-top: 2px; }
-.nombre {
-  margin: 0 !important; font-size: 16px !important; line-height: 1.25;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+.portada {
+  position: relative; height: 84px;
+  display: flex; align-items: flex-start; gap: 6px; padding: 12px 10px 0 14px;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(255,255,255,.22), transparent 55%),
+    var(--tono);
 }
-.rubro {
-  margin: 0; font-size: 13px; color: var(--slate-500);
+/* Trama sutil para que la portada no sea un bloque plano */
+.portada::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,.18) 1px, transparent 1px);
+  background-size: 14px 14px;
+  mask-image: linear-gradient(90deg, transparent, #000 70%);
+}
+.chipPlan, .chipActual {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .02em; color: #fff;
+  background: rgba(0,0,0,.22); backdrop-filter: blur(6px);
+}
+.chipActual { background: rgba(255,255,255,.9); color: var(--teal-700); }
+.menuPortada { position: relative; z-index: 2; margin-left: auto; }
+.menuPortada button[aria-haspopup] { color: #fff; background: rgba(0,0,0,.18); }
+.menuPortada button[aria-haspopup]:hover,
+.menuPortada button[aria-expanded="true"] { background: rgba(0,0,0,.32); color: #fff; }
+
+.logo {
+  position: relative; z-index: 1;
+  margin: -46px 0 0 18px; width: 88px; height: 88px; border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--surface), 0 8px 22px rgba(0,0,0,.18);
+  transition: transform var(--t-med) var(--ease);
+}
+.tarjeta:hover .logo { transform: scale(1.04); }
+
+.identidad { padding: 12px 18px 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nombre {
+  margin: 0 !important; font-size: 17px !important; line-height: 1.25; letter-spacing: -.2px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.pais { font-size: 12px; font-weight: 600; color: var(--slate-500); }
-
-.datos { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.dato {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 999px;
-  background: var(--hover-surface); color: var(--navy-900);
-  font-size: 12px; font-weight: 700;
+.pais { font-size: 12px; font-weight: 700; color: var(--slate-500); }
+.rubro {
+  margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--slate-500);
+  /* Dos líneas siempre: así todas las tarjetas alinean sus casillas */
+  min-height: calc(13px * 1.5 * 2);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
-.dato svg { color: var(--slate-500); }
-.datoPro { background: color-mix(in srgb, var(--teal-500) 14%, transparent); color: var(--teal-700); }
-.datoPro svg { color: var(--teal-600); }
-:global([data-theme="dark"]) .datoPro { color: var(--teal-500); }
-:global([data-theme="dark"]) .datoPro svg { color: var(--teal-500); }
 
-.nota { margin: -6px 0 0; font-size: 12px; color: var(--slate-500); }
-.notaBloqueo { color: var(--red); font-weight: 600; }
+.casillas {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+  margin: 16px 18px 0;
+}
+.casilla {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 6px; border-radius: var(--r-md);
+  background: var(--hover-surface); text-align: center; min-width: 0;
+}
+.casilla b {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  font-size: 15px; font-weight: 800; color: var(--navy-900);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.casilla span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--slate-500); }
+.casillaPlan { color: var(--tono-solido) !important; }
+.casilla:last-child b { font-size: 12.5px; }
+.punto { width: 7px; height: 7px; border-radius: 50%; background: var(--slate-300); flex: none; text-transform: none !important; }
+.kycAPROBADA .punto { background: var(--green); }
+.kycEN_REVISION .punto { background: var(--amber); }
+.kycRECHAZADA .punto { background: var(--red); }
+.kycRECHAZADA b { color: var(--red); }
+
+.notaBloqueo {
+  display: flex; align-items: center; gap: 6px;
+  margin: 12px 18px 0; padding: 8px 10px; border-radius: var(--r-sm);
+  font-size: 12px; font-weight: 700; color: var(--red);
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+}
 
 .acciones {
-  display: flex; align-items: center; gap: 8px;
-  padding-top: 14px; border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px;
+  margin-top: auto; padding: 16px 18px 18px;
 }
-.acciones > * { flex: 1; justify-content: center; }
-.actual {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 13px; font-weight: 700; color: var(--teal-700);
+.acciones > * { width: 100%; justify-content: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta:hover .logo { transform: none; }
 }
-:global([data-theme="dark"]) .actual { color: var(--teal-500); }
 
 /* Filtro de país, solo visible para el superadmin y solo cuando hay
    negocios de más de un mercado. Imita el alto y el borde del buscador
