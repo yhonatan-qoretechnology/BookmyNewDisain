@@ -5,21 +5,57 @@
   background: rgba(139,92,246,.12); color: #7c3aed;
 }
 :global([data-theme="dark"]) .planTag { background: rgba(139,92,246,.18); color: #b79cff; }
+/* ── Tarjeta de empresa ─────────────────────────────────
+   Se lee de arriba abajo: quién es → cómo está → qué hago.
+   Lo secundario vive en el menú ⋯ de la cabecera. */
+.tarjeta { gap: 14px; position: relative; }
+/* Con el menú abierto, la tarjeta pasa por encima de la de abajo */
+.tarjeta:has([aria-expanded="true"]) { z-index: 5; }
 .current {
-  border: 1.5px solid var(--teal-500);
-  box-shadow: 0 0 0 3px var(--teal-50);
-  border-radius: var(--r-xl);
+  border-color: var(--teal-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal-500) 18%, transparent), var(--shadow-md);
 }
+/* Desactivada: atenuada, pero el menú sigue a mano para reactivarla */
+.apagada .cabeza > :not(:last-child), .apagada .datos { opacity: .55; }
 
-/* Cabecera de la tarjeta de empresa: logo + nombre */
-.cardHead {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
+.cabeza { display: flex; align-items: flex-start; gap: 14px; }
+.cabezaTexto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-top: 2px; }
+.nombre {
+  margin: 0 !important; font-size: 16px !important; line-height: 1.25;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
-.cardHeadText { min-width: 0; }
-.cardHeadText h3 { margin-bottom: 2px; }
+.rubro {
+  margin: 0; font-size: 13px; color: var(--slate-500);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pais { font-size: 12px; font-weight: 600; color: var(--slate-500); }
+
+.datos { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dato {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--hover-surface); color: var(--navy-900);
+  font-size: 12px; font-weight: 700;
+}
+.dato svg { color: var(--slate-500); }
+.datoPro { background: color-mix(in srgb, var(--teal-500) 14%, transparent); color: var(--teal-700); }
+.datoPro svg { color: var(--teal-600); }
+:global([data-theme="dark"]) .datoPro { color: var(--teal-500); }
+:global([data-theme="dark"]) .datoPro svg { color: var(--teal-500); }
+
+.nota { margin: -6px 0 0; font-size: 12px; color: var(--slate-500); }
+.notaBloqueo { color: var(--red); font-weight: 600; }
+
+.acciones {
+  display: flex; align-items: center; gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+.acciones > * { flex: 1; justify-content: center; }
+.actual {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 700; color: var(--teal-700);
+}
+:global([data-theme="dark"]) .actual { color: var(--teal-500); }
 
 /* Filtro de país, solo visible para el superadmin y solo cuando hay
    negocios de más de un mercado. Imita el alto y el borde del buscador

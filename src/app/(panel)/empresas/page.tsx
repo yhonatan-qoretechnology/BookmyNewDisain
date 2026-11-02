@@ -18,11 +18,14 @@ import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
-import Badge, { Tag } from "@/components/ui/Badge";
+import Badge from "@/components/ui/Badge";
+import { bandera } from "@/components/accesos/formato";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
-import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
+import { CardGrid, SimpleCard } from "@/components/ui/Cards";
+import MenuAcciones from "@/components/ui/MenuAcciones";
+import Icon from "@/components/ui/Icon";
 import ImageUpload from "@/components/ui/ImageUpload";
 import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
 import EmpresaFormModal from "@/components/empresas/EmpresaFormModal";
@@ -232,91 +235,90 @@ export default function EmpresasPage() {
               <CardGrid>
                 {lista.map((n) => {
                   const activa = n.id === session.negocioId;
+                  const esPro = n.plan === "PRO" || n.enPrueba;
+                  const kyc = n.kycEstado ?? "PENDIENTE";
                   return (
-                    <div key={n.id} className={activa ? styles.current : undefined}>
-                      <SimpleCard>
-                        {/* Cabecera: el logo como avatar cuadrado junto al
-                            nombre. Antes ocupaba un banner entero y, sin logo
-                            subido, la tarjeta era casi todo hueco gris.
-                            Cambiarlo solo se puede en la empresa que se
-                            administra; el superadmin, en cualquiera. */}
-                        <div className={styles.cardHead}>
-                          <ImageUpload
-                            value={n.logo}
-                            nombre={n.nombre}
-                            variant="avatar"
-                            disabled={!activa && session.role !== "superadmin"}
-                            onUpload={(file) => subirLogo(n, file)}
-                          />
-                          <div className={styles.cardHeadText}>
-                            <h3>{n.nombre}</h3>
-                            <Muted>{n.rubro}</Muted>
-                          </div>
+                    <SimpleCard
+                      key={n.id}
+                      className={`${styles.tarjeta} ${activa ? styles.current : ""} ${n.bloqueada ? styles.apagada : ""}`}
+                    >
+                      {/* Cabecera: logo, nombre, rubro en una línea y país.
+                          Lo secundario (editar, verificación, plan, desactivar)
+                          va al menú ⋯ para que la tarjeta se lea de un vistazo. */}
+                      <div className={styles.cabeza}>
+                        <ImageUpload
+                          value={n.logo}
+                          nombre={n.nombre}
+                          variant="avatar"
+                          disabled={!activa && session.role !== "superadmin"}
+                          onUpload={(file) => subirLogo(n, file)}
+                        />
+                        <div className={styles.cabezaTexto}>
+                          <h3 className={styles.nombre} title={n.nombre}>{n.nombre}</h3>
+                          <p className={styles.rubro} title={n.rubro}>{n.rubro}</p>
+                          {n.paisNombre && (
+                            <span className={styles.pais}>
+                              {bandera(n.paisIso ?? null)} {n.paisNombre}
+                            </span>
+                          )}
                         </div>
-                        <TagRow>
-                          <Tag>{t("empresas.sedesCount", { n: sedeCounts[n.id] ?? 0 })}</Tag>
-                          {/* Plan del negocio: lo que decide qué módulos ve */}
-                          <Badge kind={n.plan === "PRO" || n.enPrueba ? "activo" : "inactivo"}>
-                            {n.plan === "PRO" ? t("plan.pro") : n.enPrueba ? t("plan.pro") : t("plan.free")}
-                          </Badge>
-                          {n.enPrueba && n.trialEndsAt && (
-                            <Tag>{t("plan.trialUntil", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale) })}</Tag>
-                          )}
-                          {/* Verificación de identidad: se ve en TODAS, también
-                              en las que aún no han subido nada */}
-                          <Badge kind={BADGE_KYC[n.kycEstado ?? "PENDIENTE"]}>
-                            {t(`kyc.estados.${n.kycEstado ?? "PENDIENTE"}`)}
-                          </Badge>
-                          {n.bloqueada && (
-                            <Badge kind="cancelado">
-                              {n.bloqueadaMotivo
-                                ? t("empresas.bloqueadaPor", { motivo: n.bloqueadaMotivo })
-                                : t("empresas.bloqueada")}
-                            </Badge>
-                          )}
-                        </TagRow>
-                        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                          {activa ? (
-                            <Tag>{t("empresas.current")}</Tag>
-                          ) : (
-                            <Button variant="ghost" size="sm" onClick={() => seleccionar(n.id, n.nombre)}>
-                              {t("empresas.select")}
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
-                            {t("empresas.viewSedes")}
+                        <MenuAcciones
+                          etiqueta={t("empresas.masAcciones", { empresa: n.nombre })}
+                          acciones={[
+                            { etiqueta: t("empresas.edit"), icono: "edit", onClick: () => { setEditandoId(Number(n.id)); setModalOpen(true); } },
+                            { etiqueta: t("kyc.verEmpresa"), icono: "shield", onClick: () => setKycDe(n) },
+                            {
+                              etiqueta: t("plan.changeTo", { plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro") }),
+                              icono: "star",
+                              deshabilitada: cambiandoPlan === n.id,
+                              onClick: () => void cambiarPlan(n),
+                            },
+                            n.bloqueada
+                              ? { etiqueta: t("empresas.desbloquear"), icono: "play", deshabilitada: bloqueando === n.id, onClick: () => void desbloquear(n) }
+                              : { etiqueta: t("empresas.bloquear"), icono: "power", peligro: true, onClick: () => setBloqueandoA(n) },
+                          ]}
+                        />
+                      </div>
+
+                      {/* Estado en una fila: plan, sedes y verificación */}
+                      <div className={styles.datos}>
+                        <span className={`${styles.dato} ${esPro ? styles.datoPro : ""}`}>
+                          <Icon name="star" width={14} height={14} />
+                          {n.plan === "PRO" ? t("plan.pro") : n.enPrueba ? t("empresas.enPrueba") : t("plan.free")}
+                        </span>
+                        <span className={styles.dato}>
+                          <Icon name="mapPin" width={14} height={14} />
+                          {t("empresas.sedesCount", { n: sedeCounts[n.id] ?? 0 })}
+                        </span>
+                        <Badge kind={BADGE_KYC[kyc]}>{t(`kyc.estados.${kyc}`)}</Badge>
+                      </div>
+                      {n.enPrueba && n.trialEndsAt && (
+                        <p className={styles.nota}>{t("plan.trialUntil", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale) })}</p>
+                      )}
+                      {n.bloqueada && (
+                        <p className={`${styles.nota} ${styles.notaBloqueo}`}>
+                          {n.bloqueadaMotivo ? t("empresas.bloqueadaPor", { motivo: n.bloqueadaMotivo }) : t("empresas.bloqueada")}
+                        </p>
+                      )}
+
+                      {/* Dos acciones a la vista: entrar a operar y ver sedes */}
+                      <div className={styles.acciones}>
+                        {activa ? (
+                          <span className={styles.actual}>
+                            <Icon name="check" width={15} height={15} strokeWidth={2.4} />
+                            {t("empresas.current")}
+                          </span>
+                        ) : (
+                          <Button size="sm" onClick={() => seleccionar(n.id, n.nombre)} title={t("empresas.selectHint")}>
+                            {t("empresas.entrar")}
+                            <Icon name="arrow-right" width={15} height={15} />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setEditandoId(Number(n.id)); setModalOpen(true); }}>
-                            {t("empresas.edit")}
-                          </Button>
-                          {/* Abre la verificación de ESA empresa, esté en la
-                              cola o no: ver documentos, aprobar o rechazar */}
-                          <Button variant="ghost" size="sm" onClick={() => setKycDe(n)}>
-                            {t("kyc.verEmpresa")}
-                          </Button>
-                          {/* El superadmin marca aquí quién ha pagado Pro */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={cambiandoPlan === n.id}
-                            onClick={() => cambiarPlan(n)}
-                          >
-                            {t("plan.changeTo", {
-                              plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro"),
-                            })}
-                          </Button>
-                          {/* Bloqueo: sus admins no entran y sus sedes no admiten reservas */}
-                          <Button
-                            variant={n.bloqueada ? "ghost" : "danger"}
-                            size="sm"
-                            disabled={bloqueando === n.id}
-                            onClick={() => (n.bloqueada ? void desbloquear(n) : setBloqueandoA(n))}
-                          >
-                            {n.bloqueada ? t("empresas.desbloquear") : t("empresas.bloquear")}
-                          </Button>
-                        </div>
-                      </SimpleCard>
-                    </div>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
+                          {t("empresas.viewSedes")}
+                        </Button>
+                      </div>
+                    </SimpleCard>
                   );
                 })}
               </CardGrid>

@@ -1,0 +1,37 @@
+.caja { position: relative; flex: none; }
+
+.disparador {
+  width: 34px; height: 34px; border-radius: var(--r-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; background: transparent; color: var(--slate-500);
+  cursor: pointer; transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.disparador:hover, .activo { background: var(--hover-surface); color: var(--navy-900); }
+.disparador:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
+  min-width: 210px; padding: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  transform-origin: top right;
+  animation: abrir .14s var(--ease) both;
+}
+@keyframes abrir { from { opacity: 0; transform: scale(.96) translateY(-4px); } }
+
+.item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 10px; border: none; border-radius: var(--r-sm);
+  background: transparent; color: var(--navy-900);
+  font-family: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.item svg { color: var(--slate-500); flex: none; }
+.item:hover:not(:disabled) { background: var(--hover-surface); }
+.item:disabled { opacity: .5; cursor: not-allowed; }
+.peligro, .peligro svg { color: var(--red); }
+.peligro:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 10%, transparent); }
+
+.sep { border: none; border-top: 1px solid var(--border); margin: 4px 2px; }
+
+@media (prefers-reduced-motion: reduce) { .menu { animation: none; } }
