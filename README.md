@@ -81,3 +81,14 @@ src/
 
 gh auth login
 gh auth switch
+
+------url catcha---------
+
+https://www.google.com/recaptcha/admin/site/772612770/setup (correo de boomy)
+
+----aannlitics -------
+
+https://www.google.com/recaptcha/admin/site/772612770
+
+----consola-----
+https://console.cloud.google.com/security/recaptcha/6LeiIg0uAAAAAOY8mFoB5m0dDw0U9JRkTZTugwfI/overview?project=bookmy-476817&authuser=0
