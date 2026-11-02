@@ -365,3 +365,29 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
 .clienteNuevo:hover:not(:disabled) { text-decoration: underline; }
 .clienteNuevo:disabled { color: var(--slate-300); cursor: not-allowed; }
 :global([data-theme="dark"]) .clienteNuevo:not(:disabled) { color: var(--teal-500); }
+
+/* Líneas libres de «Nueva factura»: detalle + precio */
+.conceptos { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.conceptosTitulo { font-size: 13px; font-weight: 700; color: var(--navy-900); }
+.conceptoFila { display: grid; grid-template-columns: minmax(0, 1fr) 110px 32px; gap: 8px; align-items: center; }
+.conceptoQuitar {
+  width: 32px; height: 32px; border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--slate-500); font-size: 18px; line-height: 1; cursor: pointer;
+}
+.conceptoQuitar:hover { color: var(--red); border-color: var(--red); }
+.conceptos .clienteNuevo { align-self: flex-start; margin-top: 0; }
+
+.totalNueva {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 12px 0; margin-bottom: 6px; border-top: 1px solid var(--border);
+  font-size: 13px; font-weight: 700; color: var(--slate-500);
+}
+.totalNueva b { font-size: 20px; color: var(--navy-900); font-variant-numeric: tabular-nums; }
+.conceptoFila input {
+  width: 100%; min-height: 40px; padding: 9px 12px; border-radius: var(--r-sm);
+  border: 1.5px solid var(--border); font-size: 13.5px;
+  background: var(--input-bg); color: var(--navy-900);
+}
+.conceptoFila input::placeholder { color: var(--slate-300); }
+.conceptoFila input:focus { border-color: var(--teal-500); box-shadow: var(--ring); outline: none; }
+@media (max-width: 480px) { .conceptoFila { grid-template-columns: minmax(0, 1fr) 90px 32px; } }

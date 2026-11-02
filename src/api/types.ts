@@ -636,6 +636,14 @@ export interface ApiTelemetriaResumen {
   paisesDistintos: number;
 }
 
+/** GET /telemetria/serie — un valor por día (UTC), actual y periodo anterior. */
+export interface ApiTelemetriaSerie {
+  dias: string[];
+  actual: { pageviews: number[]; visitantes: number[]; appSessions: number[] };
+  previo: { pageviews: number[]; visitantes: number[]; appSessions: number[] };
+  paises: { pais: string; eventos: number }[];
+}
+
 export interface ApiRankingPagina {
   ruta: string;
   visitas: number;
@@ -1262,6 +1270,8 @@ export interface ApiUsoEmpresaPro {
   empresaId: number;
   empresa: string;
   email: string | null;
+  /** Salen todas las empresas: Free también (opcional por backends viejos). */
+  plan?: "PRO" | "FREE";
   enPrueba: boolean;
   citas30: number;
   canceladas30: number;

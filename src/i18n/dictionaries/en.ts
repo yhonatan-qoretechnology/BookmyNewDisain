@@ -431,7 +431,10 @@ const en: Dictionary = {
   /* Pro usage monitoring */
   usoPro: {
     title: "Panel usage",
-    sub: "Businesses on Pro or on trial · last 30 days",
+    sub: "Every company, Free and Pro · last 30 days",
+    colPlan: "Plan",
+    filtroPlan: "Filter by plan",
+    planes: { TODOS: "All plans", PRO: "Bookmy CRM Pro", PRUEBA: "Pro on trial", FREE: "Bookmy Free" },
     revisar: "Review and notify now",
     revisado: "Review done: {enviados} notices sent across {revisadas} businesses.",
     colEmpresa: "Business",
@@ -454,7 +457,7 @@ const en: Dictionary = {
     estados: { ACTIVO: "Active", BAJO_USO: "Low usage", INACTIVO: "Inactive", USO_INUSUAL: "Unusual usage" },
     tiposAviso: { BAJO_USO: "Usage tips", USO_INUSUAL: "Unusual usage", MANUAL: "Manual" },
     vacio: "No businesses on Pro or on trial.",
-    nota: "Every Monday at 9:00 it reviews automatically and emails those who need it (the same notice is not repeated within 14 days).",
+    nota: "Every Monday at 9:00 it reviews automatically and emails the Pro or trial businesses that need it (the same notice is not repeated within 14 days). Free businesses can be notified by hand.",
   },
 
   /* Referrals */
@@ -604,6 +607,16 @@ const en: Dictionary = {
     rutaInicio: "/ (website home)",
     otraPlataforma: "Other",
     masPaises: "+{n} more countries",
+    rango: "Period",
+    rangoDias: "{dias} days",
+    vsAnterior: "Compared with the previous period",
+    evolucion: "Daily trend",
+    evolucionSub: "Last {dias} days vs the previous {dias}",
+    metricas: { pageviews: "Visits", visitantes: "Visitors", appSessions: "App" },
+    plataformas: "Sessions by platform",
+    totalSesiones: "Sessions",
+    porPais: "Visits by country",
+    porPaisSub: "Panel, web and app · last {dias} days",
   },
 
   /* Wise payouts to businesses (scaffold, no credentials yet) */
@@ -1134,6 +1147,13 @@ const en: Dictionary = {
     nuevaCreando: "Creating…",
     nuevaCreada: "Invoice created",
     nuevaError: "The invoice could not be created",
+    precioServicio: "Service price",
+    precioServicioHint: "The rate is suggested, but you can enter what you actually charged.",
+    conceptosLibres: "Other items",
+    conceptoDetalle: "Detail",
+    conceptoPrecio: "Price",
+    conceptoAnadir: "+ Add item",
+    conceptosFallidos: "The invoice was created, but {n} item(s) couldn't be added (extra items are part of Bookmy CRM Pro).",
   },
 
   /* Services each professional offers at a branch */

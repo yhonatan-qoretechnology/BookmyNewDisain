@@ -5,7 +5,11 @@
    No existe un "crear factura suelta": toda factura es un Payment
    que nace de un Appointment (ver FacturasController.crear). Este
    formulario arma esa cita — ya COMPLETED, porque lo que se está
-   registrando ya ocurrió — y el backend genera el pago solo.
+   registrando ya ocurrió — y el backend genera el pago solo. El pago
+   se marca como pagado al momento (ver FacturasController.crear).
+
+   Además del servicio admite líneas libres (detalle + precio), que se
+   guardan como adicionales de la factura.
 
    Sede → cliente → servicio → profesional → fecha/hora → precio →
    método de pago, en un único formulario (no un asistente de varios
@@ -76,6 +80,8 @@ export default function NuevaFacturaModal({
   const [hora, setHora] = useState(ahoraHm());
   const [metodoPago, setMetodoPago] = useState<"efectivo" | "tarjeta">("efectivo");
   const [tarjeta, setTarjeta] = useState({ numero: "", vencimiento: "", cvv: "" });
+  /* Líneas libres: lo que no es un servicio del catálogo */
+  const [conceptos, setConceptos] = useState<{ detalle: string; precio: string }[]>([]);
 
   const [creando, setCreando] = useState(false);
 
@@ -87,6 +93,7 @@ export default function NuevaFacturaModal({
     setProfesionales([]); setProfesionalId("");
     setFecha(hoyYmd()); setHora(ahoraHm());
     setMetodoPago("efectivo"); setTarjeta({ numero: "", vencimiento: "", cvv: "" });
+    setConceptos([]);
   }, [open]);
 
   useEffect(() => {
@@ -135,18 +142,28 @@ export default function NuevaFacturaModal({
 
   const duracion = precios[precioIdx]?.duration ?? 30;
 
+  /* Solo cuentan las líneas con detalle y precio válidos */
+  const conceptosValidos = conceptos
+    .map((c) => ({ detalle: c.detalle.trim(), precio: Number(c.precio) }))
+    .filter((c) => c.detalle && c.precio > 0);
+  const total = (Number(precio) || 0) + conceptosValidos.reduce((s, c) => s + c.precio, 0);
+  const conceptoIncompleto = conceptos.some(
+    (c) => (c.detalle.trim() || c.precio) && !(c.detalle.trim() && Number(c.precio) > 0)
+  );
+
   const faltaAlgo = useMemo(() => {
     if (!sedeEfectiva || !cliente || !servicioId || !profesionalId || !fecha || !hora) return true;
     if (!precio || Number(precio) <= 0) return true;
+    if (conceptoIncompleto) return true;
     if (metodoPago === "tarjeta" && (!tarjeta.numero || !tarjeta.vencimiento || !tarjeta.cvv)) return true;
     return false;
-  }, [sedeEfectiva, cliente, servicioId, profesionalId, fecha, hora, precio, metodoPago, tarjeta]);
+  }, [sedeEfectiva, cliente, servicioId, profesionalId, fecha, hora, precio, metodoPago, tarjeta, conceptoIncompleto]);
 
   const crear = async () => {
     if (faltaAlgo || !cliente) return;
     setCreando(true);
     try {
-      await FacturasController.crear({
+      const { conceptosFallidos } = await FacturasController.crear({
         sedeId: sedeEfectiva,
         clienteId: cliente.id,
         servicioId,
@@ -157,8 +174,10 @@ export default function NuevaFacturaModal({
         precio: Number(precio),
         metodoPago,
         tarjeta: metodoPago === "tarjeta" ? tarjeta : undefined,
+        conceptos: conceptosValidos,
       });
       toast(t("facturacion.nuevaCreada"), "success");
+      if (conceptosFallidos > 0) toast(t("facturacion.conceptosFallidos", { n: String(conceptosFallidos) }), "error");
       onCreated();
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : t("facturacion.nuevaError");
@@ -265,9 +284,54 @@ export default function NuevaFacturaModal({
         </Field>
       </div>
 
-      <Field label={t("gastos.total")} htmlFor="nf-precio">
+      <Field label={t("facturacion.precioServicio")} htmlFor="nf-precio" hint={t("facturacion.precioServicioHint")}>
         <input id="nf-precio" type="number" min="0" step="0.01" value={precio} onChange={(e) => setPrecio(e.target.value)} />
       </Field>
+
+      {/* Detalle y precio libres, uno por línea */}
+      <div className={styles.conceptos}>
+        <span className={styles.conceptosTitulo}>{t("facturacion.conceptosLibres")}</span>
+        {conceptos.map((c, i) => (
+          <div key={i} className={styles.conceptoFila}>
+            <input
+              aria-label={t("facturacion.conceptoDetalle")}
+              placeholder={t("facturacion.conceptoDetalle")}
+              value={c.detalle}
+              maxLength={160}
+              onChange={(e) => setConceptos(conceptos.map((x, j) => (j === i ? { ...x, detalle: e.target.value } : x)))}
+            />
+            <input
+              aria-label={t("facturacion.conceptoPrecio")}
+              placeholder={t("facturacion.conceptoPrecio")}
+              type="number"
+              min="0"
+              step="0.01"
+              value={c.precio}
+              onChange={(e) => setConceptos(conceptos.map((x, j) => (j === i ? { ...x, precio: e.target.value } : x)))}
+            />
+            <button
+              type="button"
+              className={styles.conceptoQuitar}
+              aria-label={t("common.delete")}
+              onClick={() => setConceptos(conceptos.filter((_, j) => j !== i))}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className={styles.clienteNuevo}
+          onClick={() => setConceptos([...conceptos, { detalle: "", precio: "" }])}
+        >
+          {t("facturacion.conceptoAnadir")}
+        </button>
+      </div>
+
+      <div className={styles.totalNueva}>
+        <span>{t("gastos.total")}</span>
+        <b>{total.toFixed(2)}</b>
+      </div>
 
       <Field label={t("facturacion.metodoPago")} htmlFor="nf-metodo">
         <select id="nf-metodo" value={metodoPago} onChange={(e) => setMetodoPago(e.target.value as "efectivo" | "tarjeta")}>

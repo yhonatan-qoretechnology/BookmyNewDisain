@@ -229,6 +229,7 @@ export const EP = {
   telemetriaResumen: "/telemetria/resumen",
   telemetriaPaginasMasVistas: "/telemetria/paginas-mas-vistas",
   telemetriaDistribucionPlataformas: "/telemetria/distribucion-plataformas",
+  telemetriaSerie: "/telemetria/serie",
 
   festivos: "/festivos",
   /* Qué país/región/municipio se le está aplicando a una sede */

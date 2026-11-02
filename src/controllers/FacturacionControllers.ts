@@ -380,7 +380,9 @@ export const FacturasController = {
     precio: number;
     metodoPago: "efectivo" | "tarjeta";
     tarjeta?: { numero: string; vencimiento: string; cvv: string };
-  }): Promise<{ id: number }> {
+    /** Líneas libres (detalle + precio) que se suman al servicio. */
+    conceptos?: { detalle: string; precio: number }[];
+  }): Promise<{ id: number; conceptosFallidos: number }> {
     const [hh, mm] = input.hora.split(":").map(Number);
     const finMin = hh * 60 + mm + input.duracion;
     const horaFin = `${String(Math.floor(finMin / 60)).padStart(2, "0")}:${String(finMin % 60).padStart(2, "0")}`;
@@ -408,7 +410,27 @@ export const FacturasController = {
           }
         : {}),
     });
-    return { id: creada.id };
+
+    const pago = creada.Payment;
+    let conceptosFallidos = 0;
+    if (pago) {
+      /* Los conceptos libres van como adicionales de la factura; el
+         backend los suma al precio que se puso a mano. */
+      for (const c of input.conceptos ?? []) {
+        try {
+          await PaymentsApi.addItem(pago.id, { concepto: c.detalle, cantidad: 1, precioUnitario: c.precio });
+        } catch {
+          conceptosFallidos++;
+        }
+      }
+      /* Lo que se factura a mano ya se cobró: en efectivo el pago nace
+         reservado (señal del 20 %) y aquí se completa, para que la
+         factura salga pagada y no pendiente. */
+      if (pago.status === "RESERVED") {
+        await PaymentsApi.confirm(pago.id).catch(() => undefined);
+      }
+    }
+    return { id: creada.id, conceptosFallidos };
   },
 };
 

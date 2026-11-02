@@ -12,7 +12,7 @@ import type {
   ApiAutomatizacion, ApiCampanaEmail, ApiEjecucionAutomatizacion, ApiEventoAutomatizable,
   ApiReferidosAdmin, ApiReferidosMio, ApiSegmentoCampana, ApiUsoEmpresaPro, AutomatizacionDto, CampanaDto,
   ApiBancoWise, ApiDistribucionPlataforma, ApiEmpresaCuentaPago, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
-  ApiEstadoPagoPlan, ApiLiquidacionWise, ApiMetodoCobroOnline, ApiRankingPagina, ApiTelemetriaResumen,
+  ApiEstadoPagoPlan, ApiLiquidacionWise, ApiMetodoCobroOnline, ApiRankingPagina, ApiTelemetriaResumen, ApiTelemetriaSerie,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
@@ -977,6 +977,8 @@ export const TelemetriaApi = {
     http.get<ApiRankingPagina[]>(EP.telemetriaPaginasMasVistas + qs({ dias, limit })),
   distribucionPlataformas: (dias?: number) =>
     http.get<ApiDistribucionPlataforma[]>(EP.telemetriaDistribucionPlataformas + qs({ dias })),
+  /** GET /telemetria/serie — evolución diaria contra el periodo anterior. */
+  serie: (dias?: number) => http.get<ApiTelemetriaSerie>(EP.telemetriaSerie + qs({ dias })),
 };
 
 /* ── Monitoreo de uso de Bookmy CRM Pro (SUPER_ADMIN) ─────── */

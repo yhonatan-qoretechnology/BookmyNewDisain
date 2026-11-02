@@ -459,7 +459,10 @@ const es = {
   /* Monitoreo de uso de Pro */
   usoPro: {
     title: "Uso del panel",
-    sub: "Negocios con Pro o en prueba · últimos 30 días",
+    sub: "Todas las empresas, Free y Pro · últimos 30 días",
+    colPlan: "Plan",
+    filtroPlan: "Filtrar por plan",
+    planes: { TODOS: "Todos los planes", PRO: "Bookmy CRM Pro", PRUEBA: "Pro en prueba", FREE: "Bookmy Free" },
     revisar: "Revisar y avisar ahora",
     revisado: "Revisión hecha: {enviados} avisos enviados de {revisadas} negocios.",
     colEmpresa: "Negocio",
@@ -482,7 +485,7 @@ const es = {
     estados: { ACTIVO: "Activo", BAJO_USO: "Poco uso", INACTIVO: "Inactivo", USO_INUSUAL: "Uso inusual" },
     tiposAviso: { BAJO_USO: "Consejos de uso", USO_INUSUAL: "Uso inusual", MANUAL: "Manual" },
     vacio: "No hay negocios con Pro o en prueba.",
-    nota: "Cada lunes a las 9:00 se revisa solo y se avisa por correo a los que lo necesitan (no se repite el mismo aviso en 14 días).",
+    nota: "Cada lunes a las 9:00 se revisa solo y se avisa por correo a los negocios Pro o en prueba que lo necesitan (no se repite el mismo aviso en 14 días). A los Free se les puede avisar a mano.",
   },
 
   /* Referidos */
@@ -632,6 +635,16 @@ const es = {
     rutaInicio: "/ (inicio de la web)",
     otraPlataforma: "Otra",
     masPaises: "+{n} países más",
+    rango: "Periodo",
+    rangoDias: "{dias} días",
+    vsAnterior: "Frente al periodo anterior",
+    evolucion: "Evolución diaria",
+    evolucionSub: "Últimos {dias} días frente a los {dias} anteriores",
+    metricas: { pageviews: "Visitas", visitantes: "Visitantes", appSessions: "App" },
+    plataformas: "Sesiones por plataforma",
+    totalSesiones: "Sesiones",
+    porPais: "Visitas por país",
+    porPaisSub: "Panel, web y app · últimos {dias} días",
   },
 
   /* Liquidaciones a negocios vía Wise (scaffold, sin credenciales todavía) */
@@ -1184,6 +1197,13 @@ const es = {
     nuevaCreando: "Creando…",
     nuevaCreada: "Factura creada",
     nuevaError: "No se pudo crear la factura",
+    precioServicio: "Precio del servicio",
+    precioServicioHint: "Se sugiere la tarifa, pero puedes poner el precio que cobraste.",
+    conceptosLibres: "Otros conceptos",
+    conceptoDetalle: "Detalle",
+    conceptoPrecio: "Precio",
+    conceptoAnadir: "+ Añadir concepto",
+    conceptosFallidos: "La factura se creó, pero {n} concepto(s) no se pudieron añadir (los conceptos extra son de Bookmy CRM Pro).",
   },
 
   /* Servicios que presta cada profesional en una sede */

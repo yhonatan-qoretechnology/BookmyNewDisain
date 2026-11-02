@@ -3,7 +3,7 @@
    UsoProPanel — seguimiento del uso de Bookmy CRM Pro
    ------------------------------------------------------------
    EXCLUSIVO DE SUPERADMIN (dentro de Monitoreo Pro). Por cada
-   negocio con Pro o en prueba: citas, acciones en el panel,
+   negocio (Free, prueba o Pro, con filtro por plan): citas, acciones en el panel,
    último acceso y un estado (Activo / Poco uso / Inactivo / Uso
    inusual) con su motivo, calculado por el backend.
 
@@ -33,6 +33,16 @@ const KIND: Record<ApiEstadoUsoPro, "activo" | "pendiente" | "inactivo" | "cance
   USO_INUSUAL: "cancelado",
 };
 
+type FiltroPlan = "" | "PRO" | "PRUEBA" | "FREE";
+
+/** Plan con el que se muestra la fila: la prueba cuenta aparte. */
+function planDe(u: ApiUsoEmpresaPro): Exclude<FiltroPlan, ""> {
+  if (u.plan === "PRO") return "PRO";
+  if (u.enPrueba) return "PRUEBA";
+  /* Backend sin `plan`: solo devolvía Pro y prueba */
+  return u.plan === "FREE" ? "FREE" : "PRO";
+}
+
 /* Lo que más necesita atención, primero. */
 const ORDEN: Record<ApiEstadoUsoPro, number> = { USO_INUSUAL: 0, INACTIVO: 1, BAJO_USO: 2, ACTIVO: 3 };
 
@@ -53,8 +63,9 @@ export default function UsoProPanel() {
   const [avisoDe, setAvisoDe] = useState<ApiUsoEmpresaPro | null>(null);
   const [mensaje, setMensaje] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [filtroPlan, setFiltroPlan] = useState<FiltroPlan>("");
 
-  const ordenadas = [...filas].sort((a, b) => ORDEN[a.estado] - ORDEN[b.estado] || a.empresa.localeCompare(b.empresa));
+  const ordenadas = filas.filter((u) => !filtroPlan || planDe(u) === filtroPlan).sort((a, b) => ORDEN[a.estado] - ORDEN[b.estado] || a.empresa.localeCompare(b.empresa));
 
   const revisar = async () => {
     setRevisando(true);
@@ -98,6 +109,17 @@ export default function UsoProPanel() {
         }
       />
       <p className={styles.nota}>{t("usoPro.nota")}</p>
+      <select
+        className={styles.filtro}
+        value={filtroPlan}
+        onChange={(e) => setFiltroPlan(e.target.value as FiltroPlan)}
+        aria-label={t("usoPro.filtroPlan")}
+      >
+        <option value="">{t("usoPro.planes.TODOS")}</option>
+        <option value="PRO">{t("usoPro.planes.PRO")}</option>
+        <option value="PRUEBA">{t("usoPro.planes.PRUEBA")}</option>
+        <option value="FREE">{t("usoPro.planes.FREE")}</option>
+      </select>
 
       {!loading && ordenadas.length === 0 ? (
         <EmptyState icon="chart" title={t("usoPro.vacio")} />
@@ -105,6 +127,7 @@ export default function UsoProPanel() {
         <DataTable
           headers={[
             t("usoPro.colEmpresa"),
+            t("usoPro.colPlan"),
             t("usoPro.colEstado"),
             t("usoPro.colCitas"),
             t("usoPro.colAcciones"),
@@ -117,8 +140,12 @@ export default function UsoProPanel() {
             <tr key={u.empresaId}>
               <td>
                 <b>{u.empresa}</b>
-                {u.enPrueba && <span className={styles.prueba}> · {t("usoPro.enPrueba")}</span>}
                 <span className={styles.sub}>{u.email || t("usoPro.sinEmail")}</span>
+              </td>
+              <td>
+                <Badge kind={planDe(u) === "FREE" ? "inactivo" : planDe(u) === "PRUEBA" ? "pendiente" : "activo"}>
+                  {t(`usoPro.planes.${planDe(u)}`)}
+                </Badge>
               </td>
               <td>
                 <Badge kind={KIND[u.estado]}>{t(`usoPro.estados.${u.estado}`)}</Badge>
