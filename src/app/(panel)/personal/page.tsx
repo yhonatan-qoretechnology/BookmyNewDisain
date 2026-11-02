@@ -241,15 +241,19 @@ export default function PersonalPage() {
     }
   };
 
-  /* Eliminar es exclusivo del superadmin; el resto de administradores
-     inhabilita (el backend también lo exige en DELETE). */
-  const puedeEliminar = session?.role === "superadmin";
+  /* Nada se borra: cualquier admin puede desactivar, pero volver a
+     activar a alguien desactivado es solo del superadmin (el backend
+     también lo exige en PATCH /profesionales/:id). */
+  const puedeActivar = session?.role === "superadmin";
 
-  const cambiarEstado = (p: Empleado) => {
+  /** `alTerminar` cierra el modal de edición cuando se desactiva desde ahí. */
+  const cambiarEstado = (p: Empleado, alTerminar?: () => void) => {
     const inhabilitar = p.activo;
+    if (!inhabilitar && !puedeActivar) { toast(t("personal.soloSuperActiva"), "error"); return; }
     const aplicar = async () => {
       try {
         await PersonalController.cambiarEstado(p.id, !inhabilitar);
+        alTerminar?.();
         await reload();
         toast(inhabilitar ? t("personal.disabled") : t("personal.enabled"), "success");
       } catch (e) {
@@ -262,27 +266,6 @@ export default function PersonalPage() {
       message: t("personal.disableMsg", { nombre: p.nombre }),
       confirmLabel: t("personal.disable"),
       onConfirm: aplicar,
-    });
-  };
-
-  /** `alTerminar` cierra el modal de edición cuando se borra desde ahí. */
-  const eliminar = (id: number, nombreEmp: string, alTerminar?: () => void) => {
-    confirm({
-      title: t("personal.deleteTitle"),
-      message: t("personal.deleteMsg", { nombre: nombreEmp }),
-      confirmLabel: t("common.delete"),
-      /* El aviso de éxito espera a la respuesta: antes salía aunque el
-         backend rechazara el borrado. */
-      onConfirm: async () => {
-        try {
-          await PersonalController.remove(id);
-          toast(t("personal.deleted"), "success");
-          alTerminar?.();
-          await reload();
-        } catch (e) {
-          toast(e instanceof Error ? e.message : t("common.error"), "error");
-        }
-      },
     });
   };
 
@@ -333,16 +316,13 @@ export default function PersonalPage() {
                     >
                       <Icon name="key" />
                     </IconButton>
-                    <IconButton
-                      title={p.activo ? t("personal.disable") : t("personal.enable")}
-                      aria-label={`${p.activo ? t("personal.disable") : t("personal.enable")} · ${p.nombre}`}
-                      onClick={() => cambiarEstado(p)}
-                    >
-                      <Icon name={p.activo ? "pause" : "play"} />
-                    </IconButton>
-                    {puedeEliminar && (
-                      <IconButton danger title={t("common.delete")} aria-label={t("personal.deleteAria", { nombre: p.nombre })} onClick={() => eliminar(p.id, p.nombre)}>
-                        <Icon name="trash" />
+                    {(p.activo || puedeActivar) && (
+                      <IconButton
+                        title={p.activo ? t("personal.disable") : t("personal.enable")}
+                        aria-label={`${p.activo ? t("personal.disable") : t("personal.enable")} · ${p.nombre}`}
+                        onClick={() => cambiarEstado(p)}
+                      >
+                        <Icon name={p.activo ? "pause" : "play"} />
                       </IconButton>
                     )}
                   </div>
@@ -452,15 +432,15 @@ export default function PersonalPage() {
           </select>
         </Field>
         <ModalActions>
-          {puedeEliminar && editando && (
+          {editando?.activo && (
             <Button
               variant="dangerGhost"
               className={styles.eliminarEnModal}
-              onClick={() => eliminar(editando.id, editando.nombre, () => setEditando(null))}
+              onClick={() => cambiarEstado(editando, () => setEditando(null))}
               disabled={guardando}
             >
-              <Icon name="trash" width={15} height={15} />
-              {t("common.delete")}
+              <Icon name="pause" width={15} height={15} />
+              {t("personal.disable")}
             </Button>
           )}
           <Button variant="ghost" onClick={() => setEditando(null)} disabled={guardando}>{t("common.cancel")}</Button>
