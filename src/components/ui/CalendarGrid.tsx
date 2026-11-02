@@ -102,7 +102,8 @@ export default function CalendarGrid({
     const hidden = evts.length - visible.length;
     const disabled = selectable ? (isDateDisabled?.(key) ?? false) : false;
     const clickable = selectable && !disabled;
-    /* El festivo NO entra en `disabled`: es un aviso visual, no un bloqueo. */
+    /* El festivo se pinta siempre; si además no se puede elegir lo
+       decide quien usa el calendario con `isDateDisabled`. */
     const festivo = festivos?.[key];
     const cellCls = [
       styles.calCell,

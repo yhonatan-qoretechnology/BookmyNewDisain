@@ -206,13 +206,43 @@ export default function NuevaReservaPage() {
     new Set<string>()
   );
 
-  /** Bloquea días pasados, fuera de la ventana o sin franjas libres */
+  /* Festivos de la sede elegida (nacionales, de su comunidad o
+     departamento y de su municipio). Se piden dos años porque se agenda
+     hasta DIAS_AGENDABLES vista y se puede cruzar el cambio de año. Un
+     festivo no se puede reservar: sale marcado en rojo y bloqueado. */
+  const { data: diasFestivos } = useData(
+    async () => {
+      if (!draft.sedeId) return [];
+      const anio = new Date().getFullYear();
+      const sedeId = Number(draft.sedeId);
+      const [esteAnio, siguiente] = await Promise.all([
+        FestivosApi.findAll({ anio, sedeId }).catch(() => []),
+        FestivosApi.findAll({ anio: anio + 1, sedeId }).catch(() => []),
+      ]);
+      return [...esteAnio, ...siguiente];
+    },
+    [draft.sedeId],
+    [],
+  );
+
+  const festivos = useMemo(
+    () => Object.fromEntries((diasFestivos || []).map((f) => [f.fecha.slice(0, 10), f.nombre])),
+    [diasFestivos],
+  ) as Record<string, string>;
+
+  /** Bloquea días pasados, festivos, fuera de la ventana o sin franjas libres */
   const esFechaBloqueada = useCallback((fecha: string) => {
     const [y, m, d] = fecha.split("-").map(Number);
     const dia = new Date(y, m - 1, d);
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-    return dia < hoy || dia > maxDate || blockedDays.has(fecha);
-  }, [blockedDays, maxDate]);
+    return dia < hoy || dia > maxDate || blockedDays.has(fecha) || fecha in festivos;
+  }, [blockedDays, maxDate, festivos]);
+
+  /* Si la fecha ya elegida resulta ser festivo (los festivos llegan
+     después, o venía de antes), se quita para no poder seguir con ella. */
+  useEffect(() => {
+    if (draft.fecha && draft.fecha in festivos) booking.setFecha(null);
+  }, [draft.fecha, festivos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: slots, loading: lH, error: eH } = useData(
     () => (draft.sedeId && draft.profesional && draft.servicio && draft.fecha && step === "hora"
@@ -233,30 +263,6 @@ export default function NuevaReservaPage() {
     [booking]
   );
   const [saving, setSaving] = useState(false);
-  /* Festivos de la sede elegida, para avisar en el paso de fecha. Se piden
-     dos años porque se agenda hasta DIAS_AGENDABLES vista y se puede cruzar
-     el cambio de año. Son informativos: el día sigue siendo reservable (lo
-     que de verdad cierra una sede son sus días cerrados). */
-  const { data: diasFestivos } = useData(
-    async () => {
-      if (!draft.sedeId) return [];
-      const anio = new Date().getFullYear();
-      const sedeId = Number(draft.sedeId);
-      const [esteAnio, siguiente] = await Promise.all([
-        FestivosApi.findAll({ anio, sedeId }).catch(() => []),
-        FestivosApi.findAll({ anio: anio + 1, sedeId }).catch(() => []),
-      ]);
-      return [...esteAnio, ...siguiente];
-    },
-    [draft.sedeId],
-    [],
-  );
-
-  const festivos = useMemo(
-    () => Object.fromEntries((diasFestivos || []).map((f) => [f.fecha.slice(0, 10), f.nombre])),
-    [diasFestivos],
-  );
-
   const needsCard = draft.metodoPago === "tarjeta";
 
   /**

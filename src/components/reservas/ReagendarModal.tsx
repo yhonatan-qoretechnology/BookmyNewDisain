@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Reserva, SlotHora } from "@/models";
 import { DIAS_AGENDABLES } from "@/constants";
 import { ReservasController } from "@/controllers/ReservasController";
+import { FestivosApi } from "@/api/modules";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
 import Modal, { ModalActions, ModalText, ModalTitle } from "@/components/ui/Modal";
@@ -36,6 +37,8 @@ export default function ReagendarModal({ reserva, onClose, onReagendada }: Reage
   const [fecha, setFecha] = useState<string | null>(null);
   const [slot, setSlot] = useState<SlotHora | null>(null);
   const [bloqueados, setBloqueados] = useState<Set<string>>(new Set());
+  /* Festivos de la sede: se ven en rojo y no se pueden elegir */
+  const [festivos, setFestivos] = useState<Record<string, string>>({});
   const [slots, setSlots] = useState<SlotHora[]>([]);
   const [loadingDias, setLoadingDias] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -63,6 +66,20 @@ export default function ReagendarModal({ reserva, onClose, onReagendada }: Reage
     return () => { alive = false; };
   }, [reserva, t]);
 
+  useEffect(() => {
+    if (!reserva?.sedeId) { setFestivos({}); return; }
+    let alive = true;
+    const anio = new Date().getFullYear();
+    const sedeId = Number(reserva.sedeId);
+    Promise.all([
+      FestivosApi.findAll({ anio, sedeId }).catch(() => []),
+      FestivosApi.findAll({ anio: anio + 1, sedeId }).catch(() => []),
+    ]).then(([a, b]) => {
+      if (alive) setFestivos(Object.fromEntries([...a, ...b].map((f) => [f.fecha.slice(0, 10), f.nombre])));
+    });
+    return () => { alive = false; };
+  }, [reserva?.sedeId]);
+
   /* Franjas libres del día elegido */
   useEffect(() => {
     if (!reserva || !fecha) { setSlots([]); return; }
@@ -82,7 +99,7 @@ export default function ReagendarModal({ reserva, onClose, onReagendada }: Reage
     d.setDate(d.getDate() + DIAS_AGENDABLES);
     return ymd(d);
   }, []);
-  const isDateDisabled = (f: string) => f < hoy || f > limite || bloqueados.has(f);
+  const isDateDisabled = (f: string) => f < hoy || f > limite || bloqueados.has(f) || f in festivos;
 
   const confirmar = async () => {
     if (!reserva || !slot) return;
@@ -116,6 +133,7 @@ export default function ReagendarModal({ reserva, onClose, onReagendada }: Reage
               <div className={bookingStyles.calendarioFull}>
                 <CalendarGrid
                   events={{}}
+                  festivos={festivos}
                   selectable
                   selectedDate={fecha}
                   onSelectDate={setFecha}
