@@ -10,7 +10,8 @@
    Mismo lenguaje visual que Estadísticas (y los mismos gráficos):
    KPIs con variación y sparkline, la evolución diaria contra el
    periodo anterior (GET /telemetria/serie), el reparto por
-   plataforma en donut y los rankings de páginas y países.
+   plataforma en donut y por país en barras. Debajo, las tarjetas
+   por métrica: una por página y una por plataforma.
 ============================================================ */
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,7 +28,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import {
-  BarrasHorizontales, Donut, LineasComparadas, RankingLista, Sparkline, type Segmento,
+  BarrasHorizontales, Donut, LineasComparadas, Sparkline, type Segmento,
 } from "../estadisticas/Graficos";
 import styles from "../estadisticas/estadisticas.module.css";
 import propios from "./telemetria.module.css";
@@ -55,6 +56,53 @@ function bandera(codigo: string): string {
 }
 
 const suma = (ns: number[]) => ns.reduce((a, n) => a + n, 0);
+
+interface ResumenPlataforma {
+  clave: string;
+  sesiones: number;
+  paises: { pais: string; sesiones: number }[];
+}
+
+/** Agrupa las filas plataforma × país en una tarjeta por plataforma. */
+function porPlataforma(filas: ApiDistribucionPlataforma[]): ResumenPlataforma[] {
+  const mapa = new Map<string, Map<string, number>>();
+  for (const f of filas) {
+    const clave = (f.plataforma || "").trim().toLowerCase() || "otra";
+    const pais = (f.pais || "").trim() || "—";
+    const paises = mapa.get(clave) ?? new Map<string, number>();
+    paises.set(pais, (paises.get(pais) ?? 0) + f.sesiones);
+    mapa.set(clave, paises);
+  }
+  return [...mapa.entries()]
+    .map(([clave, paises]) => ({
+      clave,
+      sesiones: suma([...paises.values()]),
+      paises: [...paises.entries()]
+        .map(([pais, sesiones]) => ({ pais, sesiones }))
+        .sort((a, b) => b.sesiones - a.sesiones),
+    }))
+    .sort((a, b) => b.sesiones - a.sesiones);
+}
+
+/** Anillo de cuota: qué parte del total representa la tarjeta. */
+function Anillo({ fraccion, color }: { fraccion: number; color: string }) {
+  const R = 22;
+  const C = 2 * Math.PI * R;
+  const largo = Math.max(0, Math.min(1, fraccion)) * C;
+  return (
+    <svg viewBox="0 0 56 56" className={propios.anillo} aria-hidden>
+      <circle cx="28" cy="28" r={R} className={propios.anilloBase} />
+      <circle
+        cx="28" cy="28" r={R}
+        className={propios.anilloValor}
+        stroke={color}
+        strokeDasharray={`${largo} ${C - largo}`}
+        /* Empieza arriba (las 12) en vez de a las 3 */
+        strokeDashoffset={C * 0.25}
+      />
+    </svg>
+  );
+}
 
 /** Variación en % contra el periodo anterior; null si no hay base. */
 function variacion(actual: number[], previo: number[]): number | null {
@@ -123,6 +171,21 @@ export default function TelemetriaPage() {
       }));
   }, [plataformas, resumen.pageviews, t]);
   const totalPlataformas = suma(segmentos.map((s) => s.valor));
+
+  const grupos = useMemo(() => porPlataforma(plataformas), [plataformas]);
+  const totalApp = suma(grupos.map((g) => g.sesiones));
+  const maxVisitas = Math.max(1, ...paginas.map((p) => p.visitas));
+  const cuota = (parte: number, total: number) =>
+    total > 0 ? `${((parte / total) * 100).toFixed(1).replace(".", ",")}%` : "0%";
+
+  /* Países: de la serie (panel, web y app). Si el backend aún no la
+     da, al menos los de la app, que salen de la distribución. */
+  const filasPais = useMemo(() => {
+    if (serie.paises.length) return serie.paises.map((p) => ({ pais: p.pais, valor: p.eventos }));
+    const m = new Map<string, number>();
+    for (const g of grupos) for (const p of g.paises) m.set(p.pais, (m.get(p.pais) ?? 0) + p.sesiones);
+    return [...m.entries()].map(([pais, valor]) => ({ pais, valor })).sort((a, b) => b.valor - a.valor).slice(0, 10);
+  }, [serie.paises, grupos]);
 
   if (session && session.role !== "superadmin") return null;
 
@@ -226,24 +289,87 @@ export default function TelemetriaPage() {
         </Panel>
       </div>
 
-      {/* ── Rankings ── */}
+      {/* ── Tarjetas por métrica: una por página ── */}
+      <Panel className={`${styles.panel} ${propios.bloque}`}>
+        <PanelHead title={t("telemetria.paginasMasVistas")} sub={t("telemetria.paginasSub", { dias })} />
+        {paginas.length === 0 ? sinDatos : (
+          <div className={propios.grid}>
+            {paginas.map((p, i) => (
+              <article key={p.ruta} className={propios.card} style={{ "--i": i } as React.CSSProperties}>
+                <div className={propios.cardTop}>
+                  <span className={propios.puesto}>#{i + 1}</span>
+                  <span className={propios.pct}>{cuota(p.visitas, resumen.pageviews)}</span>
+                </div>
+                <span className={propios.ruta} title={p.ruta}>
+                  {p.ruta === "/" ? t("telemetria.rutaInicio") : p.ruta}
+                </span>
+                <span className={propios.valor}>
+                  {num(p.visitas)} <small>{t("telemetria.colVisitas").toLowerCase()}</small>
+                </span>
+                {/* Relativa a la más visitada: la #1 llena la barra */}
+                <div className={propios.barra} role="presentation">
+                  <span style={{ width: `${(p.visitas / maxVisitas) * 100}%` }} />
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </Panel>
+
+      {/* ── Tarjetas por plataforma y barras por país ── */}
       <div className={`${styles.fila} ${styles.fila2}`}>
         <Panel className={styles.panel}>
-          <PanelHead title={t("telemetria.paginasMasVistas")} sub={t("telemetria.paginasSub", { dias })} />
-          {paginas.length === 0 ? sinDatos : (
-            <RankingLista
-              filas={paginas.map((p) => ({ nombre: p.ruta === "/" ? t("telemetria.rutaInicio") : p.ruta, valor: p.visitas }))}
-              colores={COLORES_RANK}
-              formatoValor={num}
-            />
+          <PanelHead title={t("telemetria.distribucionPlataformas")} sub={t("telemetria.plataformasSub", { dias })} />
+          {grupos.length === 0 ? sinDatos : (
+            <div className={propios.grid}>
+              {grupos.map((g, i) => {
+                const color = COLOR_PLATAFORMA[g.clave] ?? "var(--amber)";
+                const parte = totalApp > 0 ? g.sesiones / totalApp : 0;
+                return (
+                  <article key={g.clave} className={propios.card} style={{ "--i": i } as React.CSSProperties}>
+                    <div className={propios.plataformaTop}>
+                      <div className={propios.anilloWrap}>
+                        <Anillo fraccion={parte} color={color} />
+                        <span className={propios.anilloPct}>{Math.round(parte * 100)}%</span>
+                      </div>
+                      <div className={propios.plataformaTexto}>
+                        <span className={propios.plataformaNombre}>
+                          {NOMBRE_PLATAFORMA[g.clave] ?? t("telemetria.otraPlataforma")}
+                        </span>
+                        <span className={propios.valor}>
+                          {num(g.sesiones)} <small>{t("telemetria.colSesiones").toLowerCase()}</small>
+                        </span>
+                      </div>
+                    </div>
+                    <ul className={propios.paises} aria-label={t("telemetria.colPais")}>
+                      {g.paises.slice(0, 4).map((p) => (
+                        <li key={p.pais}>
+                          <span className={propios.paisNombre}>
+                            {bandera(p.pais) && <span aria-hidden>{bandera(p.pais)}</span>}
+                            {p.pais}
+                          </span>
+                          <span className={propios.paisValor}>{num(p.sesiones)}</span>
+                          <div className={propios.barraFina} role="presentation">
+                            <span style={{ width: `${(p.sesiones / g.sesiones) * 100}%`, background: color }} />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {g.paises.length > 4 && (
+                      <span className={propios.mas}>{t("telemetria.masPaises", { n: g.paises.length - 4 })}</span>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
           )}
         </Panel>
 
         <Panel className={styles.panel}>
           <PanelHead title={t("telemetria.porPais")} sub={t("telemetria.porPaisSub", { dias })} />
-          {serie.paises.length === 0 ? sinDatos : (
+          {filasPais.length === 0 ? sinDatos : (
             <BarrasHorizontales
-              filas={serie.paises.map((p) => ({ nombre: `${bandera(p.pais)} ${p.pais}`.trim(), valor: p.eventos }))}
+              filas={filasPais.map((p) => ({ nombre: `${bandera(p.pais)} ${p.pais}`.trim(), valor: p.valor }))}
               colores={COLORES_RANK}
             />
           )}
