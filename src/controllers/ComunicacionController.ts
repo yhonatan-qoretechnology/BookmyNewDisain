@@ -17,6 +17,34 @@ import { http, qs } from "@/api/http";
 import { EP } from "@/api/endpoints";
 import { initials } from "@/constants";
 
+/** Respuesta de GET /ChatMessage/users?email= */
+interface UsuarioChat {
+  id: number;
+  email: string;
+  role?: string;
+  fotoPerfil?: string | null;
+  UserData?: { name?: string | null } | null;
+  AdminProfile?: { empresa?: { nombre: string } | null; sede?: { nombre: string } | null } | null;
+  /** Si se buscó el correo de una empresa: la empresa, y esto es su admin */
+  empresaBuscada?: string;
+}
+
+const ROL_CHAT: Record<string, string> = {
+  SUPER_ADMIN: "Bookmy",
+  COMPANY_ADMIN: "Administrador",
+  BRANCH_ADMIN: "Administrador de sede",
+  EMPLOYEE: "Especialista",
+  CLIENT: "Cliente",
+};
+
+/** «Cliente · maria@x.com», «Administrador de sede · Glow Marbella»… */
+function subtituloChat(u: UsuarioChat): string {
+  if (u.empresaBuscada) return `${u.empresaBuscada} · ${ROL_CHAT.COMPANY_ADMIN}`;
+  const rol = ROL_CHAT[u.role ?? ""] ?? "";
+  const lugar = u.AdminProfile?.sede?.nombre || u.AdminProfile?.empresa?.nombre || "";
+  return [rol, lugar || u.email].filter(Boolean).join(" · ");
+}
+
 export const ComunicacionController = {
   /**
    * Contactos del usuario como canales de conversación.
@@ -71,15 +99,13 @@ export const ComunicacionController = {
     const correo = query.trim().toLowerCase();
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && !canales.some((c) => c.email?.toLowerCase() === correo)) {
       const u = await http
-        .get<{ id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string | null } | null } | null>(
-          EP.chatUsers + qs({ email: correo }),
-        )
+        .get<UsuarioChat | null>(EP.chatUsers + qs({ email: correo }))
         .catch(() => null);
       if (u?.id && String(u.id) !== String(session.id)) {
         canales.unshift({
           id: String(u.id),
           nombre: u.UserData?.name || u.email.split("@")[0],
-          sub: u.email,
+          sub: subtituloChat(u),
           online: false,
           unread: 0,
           email: u.email,
