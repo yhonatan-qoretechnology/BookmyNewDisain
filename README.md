@@ -92,3 +92,8 @@ https://www.google.com/recaptcha/admin/site/772612770
 
 ----consola-----
 https://console.cloud.google.com/security/recaptcha/6LeiIg0uAAAAAOY8mFoB5m0dDw0U9JRkTZTugwfI/overview?project=bookmy-476817&authuser=0
+
+--url imagen----
+C:\Users\yhona\Downloads\bookmy-next-wizard\bookmy-next\public\web\img
+
+---
