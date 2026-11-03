@@ -13,7 +13,7 @@
 ============================================================ */
 import type { Canal, Mensaje, Session } from "@/models";
 import { ChatApi, AuthApi } from "@/api/modules";
-import { http } from "@/api/http";
+import { http, qs } from "@/api/http";
 import { EP } from "@/api/endpoints";
 import { initials } from "@/constants";
 
@@ -48,13 +48,13 @@ export const ComunicacionController = {
     const users = await AuthApi.findAllUsers().catch(() => []);
     const filtered = (users || [])
       .filter(u => u.role !== "CLIENT")
-      .filter(u => 
+      .filter(u =>
         !query ||
         u.UserData?.name?.toLowerCase().includes(query.toLowerCase()) ||
         u.email?.toLowerCase().includes(query.toLowerCase())
       );
-    
-    return filtered.map((u) => ({
+
+    const canales: Canal[] = filtered.map((u) => ({
       id: String(u.id),
       nombre: u.UserData?.name || u.email.split("@")[0],
       sub: u.email,
@@ -63,6 +63,31 @@ export const ComunicacionController = {
       email: u.email,
       fotoPerfil: u.fotoPerfil || null,
     }));
+
+    /* GET /users solo devuelve la gente del propio negocio (y al superadmin,
+       todos): con el correo COMPLETO de alguien se le busca en toda la
+       plataforma (GET /ChatMessage/users?email=, búsqueda exacta), sea
+       cliente, administrador o especialista. */
+    const correo = query.trim().toLowerCase();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) && !canales.some((c) => c.email?.toLowerCase() === correo)) {
+      const u = await http
+        .get<{ id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string | null } | null } | null>(
+          EP.chatUsers + qs({ email: correo }),
+        )
+        .catch(() => null);
+      if (u?.id && String(u.id) !== String(session.id)) {
+        canales.unshift({
+          id: String(u.id),
+          nombre: u.UserData?.name || u.email.split("@")[0],
+          sub: u.email,
+          online: false,
+          unread: 0,
+          email: u.email,
+          fotoPerfil: u.fotoPerfil || null,
+        });
+      }
+    }
+    return canales;
   },
 
   /**

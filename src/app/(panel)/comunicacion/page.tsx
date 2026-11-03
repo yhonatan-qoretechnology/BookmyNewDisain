@@ -13,7 +13,7 @@ import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { fotoUrl, initials } from "@/constants";
-import type { Mensaje } from "@/models";
+import type { Canal, Mensaje } from "@/models";
 import EmojiPicker from "emoji-picker-react";
 import styles from "./comunicacion.module.css";
 
@@ -167,7 +167,7 @@ export default function ComunicacionPage() {
   const grabacionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* Contactos — GET /ChatMessage/contacts/:userId */
-  const { data: canales } = useData(
+  const { data: canales, reload: reloadCanales } = useData(
     () => ComunicacionController.getCanales(session),
     [session?.id], []
   );
@@ -188,7 +188,11 @@ export default function ComunicacionPage() {
     if (!canalId && canales.length > 0) setCanalId(canales[0].id);
   }, [canales, canalId]);
 
-  const canal = canales.find((c) => c.id === canalId) || null;
+  /* Persona encontrada en el buscador que aún no es contacto: se abre su
+     chat igual (la cabecera sale de aquí hasta que llegue la lista nueva) */
+  const [canalBuscado, setCanalBuscado] = useState<Canal | null>(null);
+  const canal = canales.find((c) => c.id === canalId)
+    || (canalBuscado?.id === canalId ? canalBuscado : null);
 
   /* Conversación — GET /ChatMessage/messages/:a/:b (con sondeo) */
   const { data: mensajes, reload } = useData(
@@ -208,6 +212,13 @@ export default function ComunicacionPage() {
   const abrirCanal = (id: string) => {
     void ComunicacionController.marcarLeido(session, id);
     setCanalId(id);
+    /* Si viene del buscador y no es contacto todavía, se guarda como tal
+       para que la conversación quede en la lista */
+    const nuevo = !canales.some((c) => c.id === id) && (searchResults || []).find((c) => c.id === id);
+    if (nuevo) {
+      setCanalBuscado(nuevo);
+      void ComunicacionController.agregarContacto(session, Number(id)).then(() => reloadCanales());
+    }
   };
 
   const handleEmojiClick = () => {

@@ -2030,7 +2030,7 @@ const es = {
   },
 
   comunicacion: {
-    searchUsers: "Buscar usuarios…",
+    searchUsers: "Busca por nombre o correo…",
     addContact: "Agregar contacto",
     emptyTitle: "Todavía no hay conversaciones",
     emptyMsg: "Busca a alguien de tu equipo o añade un contacto para empezar a hablar.",
