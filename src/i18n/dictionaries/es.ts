@@ -2032,6 +2032,7 @@ const es = {
   comunicacion: {
     searchUsers: "Busca por nombre o correo…",
     buscarContacto: "Nombre o correo completo…",
+    contactoError: "No se pudo guardar el contacto. Puedes escribirle igual, pero no quedará en tu lista.",
     buscarContactoAyuda: "Con el correo completo encuentras a cualquiera en Bookmy: clientes, especialistas, administradores de sede y empresas.",
     correoNoExiste: "No hay nadie en Bookmy con el correo «{correo}».",
     addContact: "Agregar contacto",

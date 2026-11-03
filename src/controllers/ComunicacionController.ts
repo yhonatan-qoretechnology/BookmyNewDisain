@@ -121,12 +121,19 @@ export const ComunicacionController = {
    * @param session Sesión activa (owner).
    * @param contactUserId ID del usuario a agregar como contacto.
    */
-  async agregarContacto(session: Session | null, contactUserId: number): Promise<void> {
-    if (!session) return;
-    await http.post(EP.chatCreateContact, {
-      ownerUserId: Number(session.id),
-      contactUserId,
-    }).catch(() => undefined);
+  async agregarContacto(session: Session | null, contactUserId: number): Promise<boolean> {
+    if (!session) return false;
+    /* Devuelve si se guardó: antes el error se tragaba y la persona
+       parecía añadida pero no aparecía en la lista. */
+    try {
+      await http.post(EP.chatCreateContact, {
+        ownerUserId: Number(session.id),
+        contactUserId,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   /**

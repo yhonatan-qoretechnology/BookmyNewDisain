@@ -227,16 +227,27 @@ export default function ComunicacionPage() {
     msgsRef.current?.scrollTo({ top: msgsRef.current.scrollHeight, behavior: "smooth" });
   }, [canalId, mensajes.length, subiendo]);
 
-  const abrirCanal = (id: string) => {
+  /**
+   * Abre una conversación. Si la persona viene de una búsqueda (buscador
+   * lateral o «Agregar nuevo contacto») y aún no es contacto, se guarda como
+   * tal y se recarga la lista de la izquierda; mientras tanto el chat usa sus
+   * datos para poder escribirle ya (sin ellos el envío no sabía a quién).
+   */
+  const abrirCanal = (id: string, encontrado?: Canal) => {
     void ComunicacionController.marcarLeido(session, id);
     setCanalId(id);
-    /* Si viene del buscador y no es contacto todavía, se guarda como tal
-       para que la conversación quede en la lista */
-    const nuevo = !canales.some((c) => c.id === id) && (searchResults || []).find((c) => c.id === id);
-    if (nuevo) {
-      setCanalBuscado(nuevo);
-      void ComunicacionController.agregarContacto(session, Number(id)).then(() => reloadCanales());
-    }
+    if (canales.some((c) => c.id === id)) return;
+    const nuevo = encontrado ?? (searchResults || []).find((c) => c.id === id);
+    if (!nuevo) return;
+    setCanalBuscado(nuevo);
+    void ComunicacionController.agregarContacto(session, Number(id)).then((ok) => {
+      if (ok) {
+        void reloadCanales();
+        setSearchTerm("");
+      } else {
+        toast(t("comunicacion.contactoError"), "error");
+      }
+    });
   };
 
   const handleEmojiClick = () => {
@@ -641,10 +652,8 @@ export default function ComunicacionPage() {
                     <button
                       key={u.id}
                       className={styles.userItem}
-                      onClick={async () => {
-                        await ComunicacionController.agregarContacto(session, Number(u.id));
-                        await reload();
-                        abrirCanal(u.id);
+                      onClick={() => {
+                        abrirCanal(u.id, u);
                         setShowAddContact(false);
                         setModalSearchTerm("");
                       }}
