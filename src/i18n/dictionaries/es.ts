@@ -2031,6 +2031,9 @@ const es = {
 
   comunicacion: {
     searchUsers: "Busca por nombre o correo…",
+    buscarContacto: "Nombre o correo completo…",
+    buscarContactoAyuda: "Con el correo completo encuentras a cualquiera en Bookmy: clientes, especialistas, administradores de sede y empresas.",
+    correoNoExiste: "No hay nadie en Bookmy con el correo «{correo}».",
     addContact: "Agregar contacto",
     emptyTitle: "Todavía no hay conversaciones",
     emptyMsg: "Busca a alguien de tu equipo o añade un contacto para empezar a hablar.",

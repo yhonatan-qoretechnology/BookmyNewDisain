@@ -181,6 +181,24 @@ export default function ComunicacionPage() {
     () => showAddContact ? ComunicacionController.buscarUsuarios(session, "") : Promise.resolve([]),
     [session?.id, showAddContact], []
   );
+
+  /* En el modal, un correo completo se busca en toda la plataforma (como
+     en el buscador lateral): así se encuentra a clientes, sedes y empresas
+     de cualquier negocio, no solo a la gente del propio. */
+  const correoModal = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(modalSearchTerm.trim());
+  const { data: porCorreo, loading: buscandoCorreo } = useData(
+    () => (showAddContact && correoModal
+      ? ComunicacionController.buscarUsuarios(session, modalSearchTerm.trim())
+      : Promise.resolve([])),
+    [session?.id, showAddContact, correoModal ? modalSearchTerm.trim().toLowerCase() : ""], []
+  );
+  const usuariosModal = correoModal
+    ? (porCorreo || [])
+    : (allUsers || []).filter((u) =>
+        !modalSearchTerm ||
+        u.nombre.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+        u.sub.toLowerCase().includes(modalSearchTerm.toLowerCase())
+      );
   
   const displayCanales = searchTerm ? (searchResults || []) : canales;
   
@@ -607,16 +625,18 @@ export default function ComunicacionPage() {
                   type="text"
                   value={modalSearchTerm}
                   onChange={(e) => setModalSearchTerm(e.target.value)}
-                  placeholder="Buscar usuario..."
+                  placeholder={t("comunicacion.buscarContacto")}
                   className={styles.modalSearchInput}
+                  autoFocus
                 />
+                <p className={styles.modalAyuda}>{t("comunicacion.buscarContactoAyuda")}</p>
                 <div className={styles.usersList}>
-                  {(allUsers || [])
-                    .filter(u =>
-                      !modalSearchTerm ||
-                      u.nombre.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-                      u.sub.toLowerCase().includes(modalSearchTerm.toLowerCase())
-                    )
+                  {correoModal && !buscandoCorreo && usuariosModal.length === 0 && (
+                    <p className={styles.modalSinResultado} role="alert">
+                      {t("comunicacion.correoNoExiste", { correo: modalSearchTerm.trim() })}
+                    </p>
+                  )}
+                  {usuariosModal
                     .map((u) => (
                     <button
                       key={u.id}

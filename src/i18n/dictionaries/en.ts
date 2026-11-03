@@ -1960,7 +1960,10 @@ const en: Dictionary = {
   },
 
   comunicacion: {
-    searchUsers: "Search people…",
+    searchUsers: "Search by name or email…",
+    buscarContacto: "Name or full email…",
+    buscarContactoAyuda: "With the full email you can find anyone on Bookmy: clients, specialists, branch admins and companies.",
+    correoNoExiste: "There's nobody on Bookmy with the email «{correo}».",
     addContact: "Add contact",
     emptyTitle: "No conversations yet",
     emptyMsg: "Search for someone on your team or add a contact to start talking.",
