@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useData } from "@/hooks/useData";
 import { useRouter } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { ROUTES, fotoUrl } from "@/constants";
 import { NegociosController } from "@/controllers/NegociosController";
 import { EmpresasApi } from "@/api/modules";
 import type { Negocio, Sede } from "@/models";
@@ -23,7 +23,7 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard } from "@/components/ui/Cards";
-import MenuAcciones from "@/components/ui/MenuAcciones";
+import MenuAcciones, { type AccionMenu } from "@/components/ui/MenuAcciones";
 import Icon from "@/components/ui/Icon";
 import ImageUpload from "@/components/ui/ImageUpload";
 import EmpresaSedesPanel from "@/components/empresas/EmpresaSedesPanel";
@@ -56,6 +56,19 @@ export default function EmpresasPage() {
   const [verificaciones, setVerificaciones] = useState(false);
   /** Empresa cuya verificación se está mirando (desde su propia tarjeta) */
   const [kycDe, setKycDe] = useState<Negocio | null>(null);
+  /* Cuadrícula o lista; se recuerda en este navegador */
+  const [vista, setVista] = useState<"grid" | "lista">("grid");
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("empresas.vista");
+      if (v === "grid" || v === "lista") setVista(v);
+    } catch { /* sin almacenamiento: se queda en cuadrícula */ }
+  }, []);
+  const cambiarVista = (v: "grid" | "lista") => {
+    setVista(v);
+    try { localStorage.setItem("empresas.vista", v); } catch { /* no pasa nada */ }
+  };
+
   /* Formulario de empresa: abierto en alta (id null) o en edición (id) */
   const [modalOpen, setModalOpen] = useState(false);
   const [editandoId, setEditandoId] = useState<number | null>(null);
@@ -193,6 +206,22 @@ export default function EmpresasPage() {
   };
 
 
+  /** Menú ⋯ de una empresa, el mismo en cuadrícula y en lista */
+  const accionesDe = (n: Negocio): AccionMenu[] => [
+    { etiqueta: t("empresas.viewSedes"), icono: "mapPin", onClick: () => setViendoSedesDe(n) },
+    { etiqueta: t("empresas.edit"), icono: "edit", onClick: () => { setEditandoId(Number(n.id)); setModalOpen(true); } },
+    { etiqueta: t("kyc.verEmpresa"), icono: "shield", onClick: () => setKycDe(n) },
+    {
+      etiqueta: t("plan.changeTo", { plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro") }),
+      icono: "crown",
+      deshabilitada: cambiandoPlan === n.id,
+      onClick: () => void cambiarPlan(n),
+    },
+    n.bloqueada
+      ? { etiqueta: t("empresas.desbloquear"), icono: "play", deshabilitada: bloqueando === n.id, onClick: () => void desbloquear(n) }
+      : { etiqueta: t("empresas.bloquear"), icono: "power", peligro: true, onClick: () => setBloqueandoA(n) },
+  ];
+
   return (
     <>
       <Panel>
@@ -220,6 +249,28 @@ export default function EmpresasPage() {
                 </select>
               )}
               <ToolbarActions>
+                <div className={styles.selectorVista} role="group" aria-label={t("empresas.vista")}>
+                  <button
+                    type="button"
+                    className={vista === "grid" ? styles.vistaActiva : undefined}
+                    aria-pressed={vista === "grid"}
+                    title={t("empresas.vistaGrid")}
+                    onClick={() => cambiarVista("grid")}
+                  >
+                    <Icon name="grid" width={17} height={17} />
+                    <span>{t("empresas.vistaGrid")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={vista === "lista" ? styles.vistaActiva : undefined}
+                    aria-pressed={vista === "lista"}
+                    title={t("empresas.vistaLista")}
+                    onClick={() => cambiarVista("lista")}
+                  >
+                    <Icon name="menu" width={17} height={17} />
+                    <span>{t("empresas.vistaLista")}</span>
+                  </button>
+                </div>
                 <Button variant="ghost" onClick={() => setVerificaciones(true)}>
                   {t("kyc.verificaciones")}
                 </Button>
@@ -229,12 +280,85 @@ export default function EmpresasPage() {
 
             {lista.length === 0 ? (
               <EmptyState icon="shield" title={t("empresas.emptyTitle")} message={t("empresas.emptyMsg")} />
+            ) : vista === "lista" ? (
+              /* ── Vista de lista: una fila por empresa ── */
+              <div className={styles.lista} role="table" aria-label={t("empresas.panelTitle")}>
+                <div className={`${styles.fila} ${styles.filaCabecera}`} role="row">
+                  <span role="columnheader">{t("empresas.colEmpresa")}</span>
+                  <span role="columnheader">{t("empresas.colPais")}</span>
+                  <span role="columnheader">{t("empresas.casillaPlan")}</span>
+                  <span role="columnheader">{t("empresas.casillaSedes")}</span>
+                  <span role="columnheader">{t("empresas.casillaKyc")}</span>
+                  <span role="columnheader">{t("empresas.estado")}</span>
+                  <span role="columnheader" aria-label={t("empresas.colAcciones")} />
+                </div>
+                {lista.map((n) => {
+                  const activa = n.id === session.negocioId;
+                  const kyc = n.kycEstado ?? "PENDIENTE";
+                  return (
+                    <div
+                      key={n.id}
+                      role="row"
+                      className={`${styles.fila} ${activa ? styles.filaActual : ""} ${n.bloqueada ? styles.apagada : ""}`}
+                    >
+                      <span role="cell" className={styles.celdaEmpresa}>
+                        <span className={`${styles.logoMini} ${styles[`aro${kyc}`] ?? ""}`}>
+                          {n.logo
+                            // eslint-disable-next-line @next/next/no-img-element
+                            ? <img src={fotoUrl(n.logo) ?? n.logo} alt="" />
+                            : <b>{n.nombre.slice(0, 2).toUpperCase()}</b>}
+                        </span>
+                        <span className={styles.celdaTexto}>
+                          <b title={n.nombre}>{n.nombre}{activa && <em className={styles.chipActualMini}>{t("empresas.current")}</em>}</b>
+                          <small title={n.rubro}>{n.rubro}</small>
+                        </span>
+                      </span>
+                      <span role="cell" className={styles.celdaSuave}>
+                        {n.paisNombre ? `${bandera(n.paisIso ?? null)} ${n.paisNombre}` : "—"}
+                      </span>
+                      <span role="cell">
+                        <span className={`${styles.pastilla} ${n.plan === "PRO" ? styles.pastillaPro : n.enPrueba ? styles.pastillaPrueba : ""}`}>
+                          <Icon name="crown" width={13} height={13} />
+                          {n.plan === "PRO" ? "Pro" : n.enPrueba ? t("empresas.prueba") : "Free"}
+                        </span>
+                      </span>
+                      <span role="cell">
+                        <button type="button" className={styles.sedesLink} onClick={() => setViendoSedesDe(n)}>
+                          <Icon name="building" width={15} height={15} /> {sedeCounts[n.id] ?? 0}
+                        </button>
+                      </span>
+                      <span role="cell">
+                        <span className={`${styles.pastilla} ${styles[`kyc${kyc}`] ?? ""}`}>
+                          <span className={styles.punto} aria-hidden />{t(`empresas.kycCorto.${kyc}`)}
+                        </span>
+                      </span>
+                      <span role="cell">
+                        <span className={`${styles.pastilla} ${n.bloqueada ? styles.pastillaOff : styles.pastillaOn}`} title={n.bloqueadaMotivo || undefined}>
+                          {n.bloqueada ? t("empresas.bloqueada") : t("empresas.activa")}
+                        </span>
+                      </span>
+                      <span role="cell" className={styles.celdaAcciones}>
+                        <button
+                          type="button"
+                          className={styles.gestionarMini}
+                          onClick={() => (activa ? router.push(ROUTES.dashboard) : void seleccionar(n.id, n.nombre))}
+                          title={activa ? undefined : t("empresas.selectHint")}
+                        >
+                          {activa ? t("empresas.irPanel") : t("empresas.gestionarCorto")}
+                          <Icon name="chevron-right" width={15} height={15} />
+                        </button>
+                        <MenuAcciones etiqueta={t("empresas.masAcciones", { empresa: n.nombre })} acciones={accionesDe(n)} />
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <CardGrid className={styles.rejilla}>
                 {lista.map((n) => {
                   const activa = n.id === session.negocioId;
                   const kyc = n.kycEstado ?? "PENDIENTE";
-                  const planTxt = n.plan === "PRO" ? t("plan.pro") : n.enPrueba ? t("empresas.enPrueba") : t("plan.free");
+                  const planTxt = n.plan === "PRO" ? "Pro" : n.enPrueba ? t("empresas.prueba") : "Free";
                   return (
                     <SimpleCard
                       key={n.id}
@@ -276,20 +400,7 @@ export default function EmpresasPage() {
                         <div className={styles.menu}>
                           <MenuAcciones
                             etiqueta={t("empresas.masAcciones", { empresa: n.nombre })}
-                            acciones={[
-                              { etiqueta: t("empresas.viewSedes"), icono: "mapPin", onClick: () => setViendoSedesDe(n) },
-                              { etiqueta: t("empresas.edit"), icono: "edit", onClick: () => { setEditandoId(Number(n.id)); setModalOpen(true); } },
-                              { etiqueta: t("kyc.verEmpresa"), icono: "shield", onClick: () => setKycDe(n) },
-                              {
-                                etiqueta: t("plan.changeTo", { plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro") }),
-                                icono: "crown",
-                                deshabilitada: cambiandoPlan === n.id,
-                                onClick: () => void cambiarPlan(n),
-                              },
-                              n.bloqueada
-                                ? { etiqueta: t("empresas.desbloquear"), icono: "play", deshabilitada: bloqueando === n.id, onClick: () => void desbloquear(n) }
-                                : { etiqueta: t("empresas.bloquear"), icono: "power", peligro: true, onClick: () => setBloqueandoA(n) },
-                            ]}
+                            acciones={accionesDe(n)}
                           />
                         </div>
                       </div>
