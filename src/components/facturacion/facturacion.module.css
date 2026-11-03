@@ -391,3 +391,14 @@ select.input { appearance: none; cursor: pointer; padding-right: 34px; }
 .conceptoFila input::placeholder { color: var(--slate-300); }
 .conceptoFila input:focus { border-color: var(--teal-500); box-shadow: var(--ring); outline: none; }
 @media (max-width: 480px) { .conceptoFila { grid-template-columns: minmax(0, 1fr) 90px 32px; } }
+
+/* Cliente buscado que no existe: aviso y enlace de alta en rojo */
+.clienteNoExiste {
+  display: flex; align-items: flex-start; gap: 6px;
+  margin: 8px 0 0; padding: 9px 12px; border-radius: var(--r-sm);
+  font-size: 12.5px; font-weight: 700; line-height: 1.45;
+  color: var(--red); background: color-mix(in srgb, var(--red) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--red) 35%, transparent);
+}
+.clienteNuevoAviso:not(:disabled),
+:global([data-theme="dark"]) .clienteNuevoAviso:not(:disabled) { color: var(--red); }

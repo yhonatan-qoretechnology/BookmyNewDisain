@@ -1170,6 +1170,7 @@ const en: Dictionary = {
     nuevaSedePlaceholder: "Choose the branch",
     nuevaClienteHint: "Type at least 2 letters to search",
     nuevaClienteNuevo: "+ Create new client",
+    clienteNoExiste: "«{termino}» isn't in our database. Create it to invoice them.",
     nuevaClientePlaceholder: "Name, email or phone…",
     nuevaServicioPlaceholder: "Choose the service",
     nuevaTarifa: "Rate",

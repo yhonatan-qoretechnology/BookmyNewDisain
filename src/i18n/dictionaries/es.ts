@@ -1220,6 +1220,7 @@ const es = {
     nuevaSedePlaceholder: "Elige la sede",
     nuevaClienteHint: "Escribe al menos 2 letras para buscar",
     nuevaClienteNuevo: "+ Crear cliente nuevo",
+    clienteNoExiste: "«{termino}» no existe en nuestra base de datos. Créalo para poder facturarle.",
     nuevaClientePlaceholder: "Nombre, correo o teléfono…",
     nuevaServicioPlaceholder: "Elige el servicio",
     nuevaTarifa: "Tarifa",

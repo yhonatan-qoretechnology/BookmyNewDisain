@@ -64,6 +64,9 @@ export default function NuevaFacturaModal({
 
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [clientesOpt, setClientesOpt] = useState<ClienteOpcion[]>([]);
+  /* Término cuya búsqueda ya terminó: con él vacío de resultados se avisa
+     en rojo de que el cliente no existe (y no mientras se sigue buscando) */
+  const [buscado, setBuscado] = useState("");
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
   /* Alta de un cliente que todavía no tiene cuenta */
   const [creandoCliente, setCreandoCliente] = useState(false);
@@ -115,10 +118,13 @@ export default function NuevaFacturaModal({
   useEffect(() => {
     if (!open) return;
     const q = busquedaCliente.trim();
-    if (q.length < 2) { setClientesOpt([]); return; }
+    if (q.length < 2) { setClientesOpt([]); setBuscado(""); return; }
     const empresaParaBuscar = esSuperadmin ? empresaId : session?.negocioId;
     const idTimeout = setTimeout(() => {
-      void NuevaFacturaController.buscarClientes(q, empresaParaBuscar).then(setClientesOpt);
+      void NuevaFacturaController.buscarClientes(q, empresaParaBuscar).then((lista) => {
+        setClientesOpt(lista);
+        setBuscado(q);
+      });
     }, 250);
     return () => clearTimeout(idTimeout);
   }, [open, busquedaCliente, esSuperadmin, empresaId, session?.negocioId]);
@@ -239,14 +245,27 @@ export default function NuevaFacturaModal({
                 ))}
               </ul>
             )}
-            <button
-              type="button"
-              className={styles.clienteNuevo}
-              onClick={() => setCreandoCliente(true)}
-              disabled={!sedeEfectiva}
-            >
-              {t("facturacion.nuevaClienteNuevo")}
-            </button>
+            {(() => {
+              /* Búsqueda terminada y sin resultados: el aviso y el enlace en rojo */
+              const noExiste = clientesOpt.length === 0 && buscado !== "" && buscado === busquedaCliente.trim();
+              return (
+                <>
+                  {noExiste && (
+                    <p className={styles.clienteNoExiste} role="alert">
+                      {t("facturacion.clienteNoExiste", { termino: buscado })}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className={`${styles.clienteNuevo} ${noExiste ? styles.clienteNuevoAviso : ""}`}
+                    onClick={() => setCreandoCliente(true)}
+                    disabled={!sedeEfectiva}
+                  >
+                    {t("facturacion.nuevaClienteNuevo")}
+                  </button>
+                </>
+              );
+            })()}
           </>
         )}
       </Field>
