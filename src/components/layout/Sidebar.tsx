@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { navParaSesion, initials } from "@/constants";
+import { ROUTES, navParaSesion, initials } from "@/constants";
 import type { NavItem, Rol } from "@/models";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
@@ -165,9 +165,9 @@ export default function Sidebar({
           <div className={styles.helpIcon}><Icon name="help" /></div>
           <h4>{t("sidebar.helpTitle")}</h4>
           <p>{role === "employee" ? t("sidebar.helpBodyEmployee") : t("sidebar.helpBody")}</p>
-          <button className={styles.helpBtn} type="button">
+          <Link className={styles.helpBtn} href={ROUTES.ayuda} onClick={onClose}>
             {role === "employee" ? t("sidebar.helpCtaEmployee") : t("sidebar.helpCta")}
-          </button>
+          </Link>
         </div>
       </aside>
 

@@ -306,6 +306,19 @@ const en: Dictionary = {
     liquidaciones: { title: "Wise", accent: "Payouts" },
     referidos: { title: "Referral", accent: "Programme" },
     automatizaciones: { title: "Automations and", accent: "Campaigns" },
+    ayuda: { title: "Help and", accent: "Documentation" },
+  },
+
+  ayuda: {
+    titulo: "How can we help?",
+    sub: "Step-by-step guides for each module and answers to common questions.",
+    buscar: "Search help…",
+    irPantalla: "Go to screen",
+    preguntas: "Frequently asked questions",
+    sinResultados: "Nothing found",
+    sinResultadosMsg: "Try another word or write to us.",
+    soporteTitulo: "Can't find what you need?",
+    soporteTexto: "Write to us and we'll get back to you as soon as possible.",
   },
 
   /* Database backup — superadmin only */

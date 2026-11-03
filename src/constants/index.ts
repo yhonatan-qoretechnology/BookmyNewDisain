@@ -41,6 +41,8 @@ export const ROUTES = {
   referidos: "/referidos",
   /** Automatizaciones y campañas de correo — solo SUPER_ADMIN */
   automatizaciones: "/automatizaciones",
+  /** Ayuda / Documentación — el botón del menú lateral, para todos los roles */
+  ayuda: "/ayuda",
 } as const;
 
 /** Vista de edición de una sede (Datos + Imágenes) — reemplaza el

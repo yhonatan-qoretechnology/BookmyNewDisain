@@ -42,6 +42,7 @@ const PAGE_KEY: Record<string, string> = {
   [ROUTES.liquidaciones]: "liquidaciones",
   [ROUTES.referidos]: "referidos",
   [ROUTES.automatizaciones]: "automatizaciones",
+  [ROUTES.ayuda]: "ayuda",
 };
 
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
@@ -56,8 +57,8 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
       router.replace(rutaDeLogin());
       return;
     }
-    // Las especialistas usan su propio panel (excepto configuración)
-    if (session.role === "employee" && pathname !== ROUTES.configuracion) {
+    // Las especialistas usan su propio panel (excepto configuración y ayuda)
+    if (session.role === "employee" && pathname !== ROUTES.configuracion && pathname !== ROUTES.ayuda) {
       router.replace(ROUTES.employeeDashboard);
       return;
     }

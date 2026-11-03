@@ -1,0 +1,90 @@
+/* Ayuda / Documentación */
+.cabecera {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  padding: 24px 26px; margin-bottom: 20px; border-radius: var(--r-xl);
+  background: var(--grad-teal); color: #fff; box-shadow: var(--shadow-md);
+}
+.cabeceraTexto h2 { margin: 0 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
+.cabeceraTexto p { margin: 0; font-size: 14px; opacity: .92; }
+.buscador { flex: 0 1 380px; min-width: 240px; }
+
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 18px; margin-bottom: 20px;
+}
+.guia {
+  display: flex; flex-direction: column; gap: 14px; padding: 20px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease), border-color var(--t-med) var(--ease);
+  animation: entrar .35s var(--ease) both;
+  animation-delay: calc(min(var(--i, 0), 10) * 30ms);
+}
+.guia:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--teal-500); }
+@keyframes entrar { from { opacity: 0; transform: translateY(6px); } }
+
+.guiaTop { display: flex; gap: 12px; align-items: flex-start; }
+.guiaIcono {
+  width: 42px; height: 42px; border-radius: 13px; flex: none;
+  display: grid; place-items: center; background: var(--grad-teal); color: #fff;
+  box-shadow: var(--shadow-icon);
+}
+.guiaIcono svg { width: 20px; height: 20px; }
+.guiaTitulos { min-width: 0; }
+.guiaTitulos h3 { margin: 0 0 3px; font-size: 15.5px; font-weight: 800; color: var(--navy-900); }
+.guiaTitulos p { margin: 0; font-size: 12.5px; color: var(--slate-500); line-height: 1.45; }
+
+.pasos { margin: 0; padding: 0; list-style: none; counter-reset: paso; display: flex; flex-direction: column; gap: 9px; }
+.pasos li {
+  counter-increment: paso; position: relative; padding-left: 30px;
+  font-size: 13px; line-height: 1.5; color: var(--navy-900);
+}
+.pasos li::before {
+  content: counter(paso); position: absolute; left: 0; top: 0;
+  width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 11px; font-weight: 800; color: var(--teal-700); background: var(--teal-50);
+}
+:global([data-theme="dark"]) .pasos li::before { color: var(--teal-500); background: rgba(18,185,129,.14); }
+
+.ir {
+  margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 800; color: var(--teal-700); text-decoration: none;
+}
+.ir:hover { text-decoration: underline; }
+:global([data-theme="dark"]) .ir { color: var(--teal-500); }
+
+.faq { margin-bottom: 20px; }
+.faqLista { display: flex; flex-direction: column; gap: 8px; }
+.faqItem { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.faqOpen { border-color: var(--teal-500); }
+.faqPregunta {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 16px; border: none; background: var(--surface); cursor: pointer; text-align: left;
+  font-family: inherit; font-size: 14px; font-weight: 700; color: var(--navy-900);
+}
+.faqPregunta:hover { background: var(--hover-surface); }
+.faqPregunta svg { flex: none; color: var(--slate-500); transition: transform .2s ease; }
+.faqOpen .faqPregunta svg { transform: rotate(180deg); }
+.faqRespuesta { margin: 0; padding: 0 16px 14px; font-size: 13.5px; line-height: 1.55; color: var(--slate-500); background: var(--surface); }
+
+.soporte {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 20px 22px; border-radius: var(--r-xl);
+  background: var(--surface); border: 1px dashed var(--border);
+}
+.soporteIcono {
+  width: 46px; height: 46px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: var(--hover-surface); color: var(--teal-600);
+}
+.soporte > div { flex: 1; min-width: 200px; }
+.soporte h3 { margin: 0 0 3px; font-size: 15px; font-weight: 800; color: var(--navy-900); }
+.soporte p { margin: 0; font-size: 13px; color: var(--slate-500); }
+.soporteBtn {
+  padding: 10px 16px; border-radius: var(--r-md); background: var(--grad-teal); color: #fff;
+  font-size: 13.5px; font-weight: 800; text-decoration: none; white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guia { animation: none; }
+  .guia:hover { transform: none; }
+}

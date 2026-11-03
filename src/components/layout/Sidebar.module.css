@@ -225,7 +225,7 @@
 .help h4 { font-size: 13px; margin-bottom: 4px; font-weight: 700; }
 .help p { font-size: 11.5px; opacity: .8; margin-bottom: 12px; line-height: 1.5; }
 .helpBtn {
-  display: block; width: 100%; padding: 9px;
+  display: block; width: 100%; padding: 9px; text-align: center; text-decoration: none;
   background: #fff; color: #06251c;
   border-radius: 8px; font-size: 11.5px; font-weight: 800;
   letter-spacing: .06em; text-transform: uppercase; cursor: pointer;

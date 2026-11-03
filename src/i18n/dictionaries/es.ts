@@ -334,6 +334,19 @@ const es = {
     liquidaciones: { title: "Liquidaciones", accent: "Wise" },
     referidos: { title: "Programa de", accent: "Referidos" },
     automatizaciones: { title: "Automatizaciones y", accent: "Campañas" },
+    ayuda: { title: "Ayuda y", accent: "Documentación" },
+  },
+
+  ayuda: {
+    titulo: "¿En qué te ayudamos?",
+    sub: "Guías paso a paso de cada módulo y respuestas a las dudas más comunes.",
+    buscar: "Buscar en la ayuda…",
+    irPantalla: "Ir a la pantalla",
+    preguntas: "Preguntas frecuentes",
+    sinResultados: "No encontramos nada",
+    sinResultadosMsg: "Prueba con otra palabra o escríbenos.",
+    soporteTitulo: "¿No encuentras lo que buscas?",
+    soporteTexto: "Escríbenos y te respondemos lo antes posible.",
   },
 
   /* Copia de seguridad de la base — solo superadmin */
