@@ -18,6 +18,7 @@ import { recordarOrigenLogin } from "@/lib/loginOrigen";
 import { LanguageToggle } from "@/components/layout/Topbar";
 import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
 import styles from "./login.module.css";
+import { usePrecargaRecaptcha } from "@/lib/recaptcha";
 
 export default function LoginPage() {
   /* useSearchParams obliga a un límite de Suspense en el build estático */
@@ -29,6 +30,7 @@ export default function LoginPage() {
 }
 
 function Login() {
+  usePrecargaRecaptcha();
   const router = useRouter();
   const params = useSearchParams();
   const { session, login } = useSession();

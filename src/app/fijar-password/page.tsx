@@ -18,8 +18,10 @@ import { ROUTES } from "@/constants";
 import { useI18n } from "@/i18n";
 import Button from "@/components/ui/Button";
 import styles from "./fijar.module.css";
+import { usePrecargaRecaptcha } from "@/lib/recaptcha";
 
 function FijarPasswordContent() {
+  usePrecargaRecaptcha();
   const { t } = useI18n();
   const router = useRouter();
   const token = useSearchParams().get("token") ?? "";

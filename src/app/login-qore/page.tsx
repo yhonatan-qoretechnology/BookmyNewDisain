@@ -20,6 +20,7 @@ import { recordarOrigenLogin } from "@/lib/loginOrigen";
 import { LanguageToggle } from "@/components/layout/Topbar";
 import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
 import styles from "./login-qore.module.css";
+import { usePrecargaRecaptcha } from "@/lib/recaptcha";
 
 export default function LoginQorePage() {
   /* useSearchParams obliga a un límite de Suspense en el build estático */
@@ -31,6 +32,7 @@ export default function LoginQorePage() {
 }
 
 function LoginQore() {
+  usePrecargaRecaptcha();
   const router = useRouter();
   const params = useSearchParams();
   const { session, login } = useSession();

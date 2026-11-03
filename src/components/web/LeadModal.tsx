@@ -8,6 +8,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useWebT } from "./useWebT";
 import { ContactoApi } from "@/api/modules";
+import { usePrecargaRecaptcha } from "@/lib/recaptcha";
 
 const texto = (d: FormData, k: string) => String(d.get(k) ?? "").trim() || undefined;
 const CORREO = "contacto@bookmy.es";
@@ -19,6 +20,8 @@ export const useLeadModal = () => useContext(Ctx);
 export function LeadModalProvider({ children }: { children: React.ReactNode }) {
   const { w, locale } = useWebT();
   const [abierto, setAbierto] = useState(false);
+  /* El sello de reCAPTCHA aparece al abrir el formulario, no en toda la web */
+  usePrecargaRecaptcha(abierto);
   const [plan, setPlan] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(false);

@@ -3,8 +3,10 @@
    ------------------------------------------------------------
    v3 no muestra casillas: Google puntúa la visita en segundo
    plano y el backend decide con esa puntuación (RecaptchaGuard).
-   El script solo se carga la primera vez que un formulario pide
-   un token, no en todas las páginas.
+   Cada formulario público llama a usePrecargaRecaptcha() al
+   montarse: así el sello de Google se ve desde que se abre y
+   Google observa la visita entera, no solo el clic de enviar.
+   El resto de páginas no lo cargan.
 
    Sin NEXT_PUBLIC_RECAPTCHA_SITE_KEY no se carga nada y se
    devuelve null: el backend sin RECAPTCHA_SECRET_KEY tampoco
@@ -13,6 +15,8 @@
    La `accion` debe ser la misma que espera el endpoint
    (@Recaptcha({ accion }) en el backend).
 ============================================================ */
+
+import { useEffect } from "react";
 
 export type AccionRecaptcha =
   | "contacto"
@@ -74,6 +78,19 @@ export async function tokenRecaptcha(accion: AccionRecaptcha): Promise<string | 
   } catch {
     return null;
   }
+}
+
+/** Carga el script (y su sello) sin pedir token. */
+export function precargarRecaptcha(): void {
+  if (!SITE_KEY || typeof window === "undefined") return;
+  cargarScript().catch(() => undefined);
+}
+
+/** Para los formularios públicos: precarga al montar (o al activarse). */
+export function usePrecargaRecaptcha(activo = true): void {
+  useEffect(() => {
+    if (activo) precargarRecaptcha();
+  }, [activo]);
 }
 
 /** Cabeceras para `http.*` con el token, si lo hay. */

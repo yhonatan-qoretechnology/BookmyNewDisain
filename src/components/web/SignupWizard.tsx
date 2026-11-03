@@ -24,6 +24,7 @@ import { setPaisActivo, useI18n } from "@/i18n";
 import { ROUTES } from "@/constants";
 import { useWebT } from "./useWebT";
 import styles from "./SignupWizard.module.css";
+import { usePrecargaRecaptcha } from "@/lib/recaptcha";
 
 type Plan = "free" | "pro";
 
@@ -87,6 +88,7 @@ const PASSWORD_OK = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{7,}$/;
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export default function SignupWizard() {
+  usePrecargaRecaptcha();
   const { w, locale } = useWebT();
   /* "País" ya existe en el diccionario del panel; la web no repite la cadena. */
   const { t } = useI18n();

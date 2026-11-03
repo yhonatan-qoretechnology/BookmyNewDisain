@@ -11,11 +11,13 @@ import Link from "next/link";
 import Reveal from "@/components/web/Reveal";
 import { useWebT } from "@/components/web/useWebT";
 import { ContactoApi } from "@/api/modules";
+import { usePrecargaRecaptcha } from "@/lib/recaptcha";
 
 const texto = (d: FormData, k: string) => String(d.get(k) ?? "").trim() || undefined;
 const CORREO = "contacto@bookmy.es";
 
 export default function ContactoPage() {
+  usePrecargaRecaptcha();
   const { w, locale } = useWebT();
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(false);
