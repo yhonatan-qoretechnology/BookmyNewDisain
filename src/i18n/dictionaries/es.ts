@@ -1573,6 +1573,7 @@ const es = {
     disabled: "Integrante desactivada",
     enabled: "Integrante activada",
     soloSuperActiva: "Solo el superadmin puede volver a activar a un integrante.",
+    masAcciones: "Más acciones de {nombre}",
     fillApi: "El backend exige teléfono único y sede para crear un profesional.",
     passwordRequired: "La contraseña es obligatoria para dar de alta al profesional.",
     createHint: "El correo de acceso lo genera el backend a partir del nombre; la contraseña la defines aquí.",
@@ -1691,6 +1692,7 @@ const es = {
   },
 
   sedes: {
+    masAcciones: "Más acciones de {nombre}",
     pais: "País",
     /* «Provincia» y «Municipio» son los nombres españoles. Cómo se
        llaman en cada país lo manda GET /paises (etiquetaRegion,

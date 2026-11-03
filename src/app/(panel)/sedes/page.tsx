@@ -21,6 +21,7 @@ import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
 import ImageGallery from "@/components/ui/ImageGallery";
 import Icon from "@/components/ui/Icon";
 import ServiciosSedeModal from "@/components/sedes/ServiciosSedeModal";
+import MenuAcciones from "@/components/ui/MenuAcciones";
 
 export default function SedesPage() {
   const router = useRouter();
@@ -115,7 +116,8 @@ export default function SedesPage() {
                   onAdd={(file) => SedesController.subirImagen(s.id, file)}
                   onRemove={(ruta) => SedesController.borrarImagen(s.id, ruta)}
                 />
-                <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {/* Editar y Servicios a la vista; eliminar en el menú ⋯ */}
+                <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -130,13 +132,14 @@ export default function SedesPage() {
                   >
                     <Icon name="tag" /> {t("serviciosSede.abrir")}
                   </Button>
-                  <Button
-                    variant="dangerGhost"
-                    size="sm"
-                    onClick={() => eliminar(s.id, s.nombre)}
-                  >
-                    <Icon name="trash" /> {t("common.delete")}
-                  </Button>
+                  <span style={{ marginLeft: "auto" }}>
+                    <MenuAcciones
+                      etiqueta={t("sedes.masAcciones", { nombre: s.nombre })}
+                      acciones={[
+                        { etiqueta: t("common.delete"), icono: "trash", peligro: true, onClick: () => eliminar(s.id, s.nombre) },
+                      ]}
+                    />
+                  </span>
                 </div>
               </SimpleCard>
             ))}

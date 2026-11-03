@@ -9,8 +9,9 @@
 .disparador:hover, .activo { background: var(--hover-surface); color: var(--navy-900); }
 .disparador:focus-visible { outline: none; box-shadow: var(--ring); }
 
+/* Va en un portal; la posición (fixed) la calcula el componente */
 .menu {
-  position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
+  z-index: 1000;
   min-width: 210px; padding: 6px;
   display: flex; flex-direction: column; gap: 2px;
   background: var(--surface); border: 1px solid var(--border);

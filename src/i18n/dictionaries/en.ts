@@ -1509,6 +1509,7 @@ const en: Dictionary = {
     disabled: "Team member deactivated",
     enabled: "Team member activated",
     soloSuperActiva: "Only the superadmin can activate a team member again.",
+    masAcciones: "More actions for {nombre}",
     fillApi: "The backend requires a unique phone and a branch to create a professional.",
     passwordRequired: "A password is required to create the professional.",
     createHint: "The backend generates the login email from the name; you set the password here.",
@@ -1628,6 +1629,7 @@ const en: Dictionary = {
   },
 
   sedes: {
+    masAcciones: "More actions for {nombre}",
     pais: "Country",
     provincia: "Province",
     municipio: "Municipality / City",

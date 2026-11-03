@@ -34,6 +34,7 @@ import { PersonRow } from "@/components/ui/People";
 import ImageUpload from "@/components/ui/ImageUpload";
 import DocumentUpload from "@/components/ui/DocumentUpload";
 import styles from "./personal.module.css";
+import MenuAcciones from "@/components/ui/MenuAcciones";
 
 /** Correo sugerido a partir del nombre: "Ana Ruiz" → "ana.ruiz" */
 const sugerirEmail = (nombre: string, dominio: string) =>
@@ -297,10 +298,9 @@ export default function PersonalPage() {
                 </td>
                 <td><Badge kind={p.activo ? "activo" : "inactivo"}>{p.activo ? t("personal.activeF") : t("personal.inactiveF")}</Badge></td>
                 <td>
-                  {/* Acciones en una sola linea de iconos: con los botones de
-                      texto, la columna se partia en dos filas y cada integrante
-                      ocupaba el doble de alto. El texto vive en el title y en
-                      el aria-label. */}
+                  {/* Editar a la vista; acceso y desactivar en el menú ⋯
+                      (desactivar en rojo y al final, para no pulsarlo sin
+                      querer). Una sola línea por integrante. */}
                   <div className={styles.rowActions}>
                     <IconButton
                       title={t("common.edit")}
@@ -309,22 +309,21 @@ export default function PersonalPage() {
                     >
                       <Icon name="edit" />
                     </IconButton>
-                    <IconButton
-                      title={p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess")}
-                      aria-label={`${p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess")} · ${p.nombre}`}
-                      onClick={() => abrirAcceso(p)}
-                    >
-                      <Icon name="key" />
-                    </IconButton>
-                    {(p.activo || puedeActivar) && (
-                      <IconButton
-                        title={p.activo ? t("personal.disable") : t("personal.enable")}
-                        aria-label={`${p.activo ? t("personal.disable") : t("personal.enable")} · ${p.nombre}`}
-                        onClick={() => cambiarEstado(p)}
-                      >
-                        <Icon name={p.activo ? "pause" : "play"} />
-                      </IconButton>
-                    )}
+                    <MenuAcciones
+                      etiqueta={t("personal.masAcciones", { nombre: p.nombre })}
+                      acciones={[
+                        {
+                          etiqueta: p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess"),
+                          icono: "key",
+                          onClick: () => abrirAcceso(p),
+                        },
+                        ...(p.activo
+                          ? [{ etiqueta: t("personal.disable"), icono: "pause", peligro: true, onClick: () => cambiarEstado(p) }]
+                          : puedeActivar
+                            ? [{ etiqueta: t("personal.enable"), icono: "play", onClick: () => cambiarEstado(p) }]
+                            : []),
+                      ]}
+                    />
                   </div>
                 </td>
               </tr>
