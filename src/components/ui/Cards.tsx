@@ -15,15 +15,17 @@ import styles from "./Cards.module.css";
 export function CardGrid({
   children,
   resetKey,
+  className = "",
 }: {
   children: React.ReactNode;
   /** Cambia para repetir la entrada al filtrar */
   resetKey?: string | number;
+  className?: string;
 }) {
   const reduce = useReducedMotion();
   return (
     <motion.div
-      className={styles.cardGrid}
+      className={`${styles.cardGrid} ${className}`}
       key={resetKey}
       initial="hidden"
       animate="visible"

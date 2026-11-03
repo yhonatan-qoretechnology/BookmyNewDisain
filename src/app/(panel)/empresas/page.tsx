@@ -230,40 +230,59 @@ export default function EmpresasPage() {
             {lista.length === 0 ? (
               <EmptyState icon="shield" title={t("empresas.emptyTitle")} message={t("empresas.emptyMsg")} />
             ) : (
-              <CardGrid>
+              <CardGrid className={styles.rejilla}>
                 {lista.map((n) => {
                   const activa = n.id === session.negocioId;
                   const kyc = n.kycEstado ?? "PENDIENTE";
-                  /* El tono de la portada dice el plan de un vistazo */
-                  const tono = n.plan === "PRO" ? styles.tonoPro : n.enPrueba ? styles.tonoPrueba : styles.tonoFree;
                   const planTxt = n.plan === "PRO" ? t("plan.pro") : n.enPrueba ? t("empresas.enPrueba") : t("plan.free");
                   return (
                     <SimpleCard
                       key={n.id}
-                      className={`${styles.tarjeta} ${tono} ${activa ? styles.current : ""} ${n.bloqueada ? styles.apagada : ""}`}
+                      className={`${styles.tarjeta} ${activa ? styles.current : ""} ${n.bloqueada ? styles.apagada : ""}`}
                     >
-                      {/* Portada: plan a la izquierda y el menú ⋯ con lo
-                          secundario (editar, verificación, plan, desactivar) */}
-                      <div className={styles.portada}>
-                        <span className={styles.chipPlan}>
-                          <Icon name="star" width={13} height={13} />
-                          {planTxt}
-                        </span>
-                        {activa && (
-                          <span className={styles.chipActual}>
-                            <Icon name="check" width={13} height={13} strokeWidth={2.6} />
-                            {t("empresas.current")}
+                      {/* ── Arriba: logo con su sello | nombre y descripción ── */}
+                      <div className={styles.arriba}>
+                        <div className={styles.colLogo}>
+                          <div className={`${styles.logo} ${styles[`aro${kyc}`] ?? ""}`}>
+                            <ImageUpload
+                              value={n.logo}
+                              nombre={n.nombre}
+                              variant="avatar"
+                              disabled={!activa && session.role !== "superadmin"}
+                              onUpload={(file) => subirLogo(n, file)}
+                            />
+                          </div>
+                          <span className={`${styles.sello} ${styles[`sello${kyc}`] ?? ""}`}>
+                            <Icon name={kyc === "APROBADA" ? "circle-check" : kyc === "RECHAZADA" ? "circle-x" : "clock"} width={15} height={15} />
+                            {t(`empresas.kycCorto.${kyc}`)}
                           </span>
-                        )}
-                        <div className={styles.menuPortada}>
+                        </div>
+
+                        <div className={styles.colTexto}>
+                          <h3 className={styles.nombre} title={n.nombre}>{n.nombre}</h3>
+                          {n.paisNombre && (
+                            <span className={styles.pais}>{bandera(n.paisIso ?? null)} {n.paisNombre}</span>
+                          )}
+                          <p className={styles.rubro} title={n.rubro}>{n.rubro}</p>
+                          {activa && (
+                            <span className={styles.chipActual}>
+                              <Icon name="check" width={13} height={13} strokeWidth={2.6} />
+                              {t("empresas.current")}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Lo secundario: sedes, editar, verificación, plan y desactivar */}
+                        <div className={styles.menu}>
                           <MenuAcciones
                             etiqueta={t("empresas.masAcciones", { empresa: n.nombre })}
                             acciones={[
+                              { etiqueta: t("empresas.viewSedes"), icono: "mapPin", onClick: () => setViendoSedesDe(n) },
                               { etiqueta: t("empresas.edit"), icono: "edit", onClick: () => { setEditandoId(Number(n.id)); setModalOpen(true); } },
                               { etiqueta: t("kyc.verEmpresa"), icono: "shield", onClick: () => setKycDe(n) },
                               {
                                 etiqueta: t("plan.changeTo", { plan: n.plan === "PRO" ? t("plan.free") : t("plan.pro") }),
-                                icono: "star",
+                                icono: "crown",
                                 deshabilitada: cambiandoPlan === n.id,
                                 onClick: () => void cambiarPlan(n),
                               },
@@ -275,68 +294,44 @@ export default function EmpresasPage() {
                         </div>
                       </div>
 
-                      {/* Logo grande montado sobre la portada */}
-                      <div className={styles.logo}>
-                        <ImageUpload
-                          value={n.logo}
-                          nombre={n.nombre}
-                          variant="avatar"
-                          disabled={!activa && session.role !== "superadmin"}
-                          onUpload={(file) => subirLogo(n, file)}
-                        />
-                      </div>
-
-                      <div className={styles.identidad}>
-                        <h3 className={styles.nombre} title={n.nombre}>{n.nombre}</h3>
-                        {n.paisNombre && (
-                          <span className={styles.pais}>{bandera(n.paisIso ?? null)} {n.paisNombre}</span>
-                        )}
-                        <p className={styles.rubro} title={n.rubro}>{n.rubro}</p>
-                      </div>
-
-                      {/* Tres casillas iguales: sedes, plan y verificación */}
+                      {/* ── Tres casillas: sedes, plan y estado ── */}
                       <div className={styles.casillas}>
+                        <button type="button" className={styles.casilla} onClick={() => setViendoSedesDe(n)} title={t("empresas.viewSedes")}>
+                          <Icon name="building" className={styles.icoSedes} />
+                          <span className={styles.casillaTexto}>
+                            <b>{sedeCounts[n.id] ?? 0}</b>
+                            <span>{t("empresas.casillaSedes")}</span>
+                          </span>
+                        </button>
                         <div className={styles.casilla}>
-                          <b>{sedeCounts[n.id] ?? 0}</b>
-                          <span>{t("empresas.casillaSedes")}</span>
+                          <Icon name="crown" className={n.plan === "PRO" || n.enPrueba ? styles.icoPro : styles.icoFree} />
+                          <span className={styles.casillaTexto}>
+                            <b>{planTxt}</b>
+                            <span>{n.enPrueba && n.trialEndsAt
+                              ? t("empresas.hasta", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) })
+                              : t("empresas.planActual")}</span>
+                          </span>
                         </div>
                         <div className={styles.casilla}>
-                          <b className={styles.casillaPlan}>{n.plan === "PRO" || n.enPrueba ? "Pro" : "Free"}</b>
-                          <span>{n.enPrueba && n.trialEndsAt
-                            ? t("empresas.hasta", { fecha: new Date(n.trialEndsAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) })
-                            : t("empresas.casillaPlan")}</span>
-                        </div>
-                        <div className={`${styles.casilla} ${styles[`kyc${kyc}`] ?? ""}`}>
-                          <b><span className={styles.punto} aria-hidden />{t(`empresas.kycCorto.${kyc}`)}</b>
-                          <span>{t("empresas.casillaKyc")}</span>
+                          <Icon name={n.bloqueada ? "power" : "shield-check"} className={n.bloqueada ? styles.icoOff : styles.icoOn} />
+                          <span className={styles.casillaTexto}>
+                            <b>{n.bloqueada ? t("empresas.bloqueada") : t("empresas.activa")}</b>
+                            <span title={n.bloqueadaMotivo || undefined}>{n.bloqueada && n.bloqueadaMotivo ? n.bloqueadaMotivo : t("empresas.estado")}</span>
+                          </span>
                         </div>
                       </div>
 
-                      {n.bloqueada && (
-                        <p className={styles.notaBloqueo}>
-                          <Icon name="power" width={14} height={14} />
-                          {n.bloqueadaMotivo ? t("empresas.bloqueadaPor", { motivo: n.bloqueadaMotivo }) : t("empresas.bloqueada")}
-                        </p>
-                      )}
-
-                      {/* Acción principal a lo ancho y Sedes al lado */}
-                      <div className={styles.acciones}>
-                        {activa ? (
-                          <Button size="sm" variant="ghost" onClick={() => router.push(ROUTES.dashboard)}>
-                            {t("empresas.irPanel")}
-                            <Icon name="arrow-right" width={15} height={15} />
-                          </Button>
-                        ) : (
-                          <Button size="sm" onClick={() => seleccionar(n.id, n.nombre)} title={t("empresas.selectHint")}>
-                            {t("empresas.entrar")}
-                            <Icon name="arrow-right" width={15} height={15} />
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" onClick={() => setViendoSedesDe(n)}>
-                          <Icon name="mapPin" width={15} height={15} />
-                          {t("empresas.viewSedes")}
-                        </Button>
-                      </div>
+                      {/* ── Acción principal a lo ancho ── */}
+                      <button
+                        type="button"
+                        className={styles.gestionar}
+                        onClick={() => (activa ? router.push(ROUTES.dashboard) : void seleccionar(n.id, n.nombre))}
+                        title={activa ? undefined : t("empresas.selectHint")}
+                      >
+                        <Icon name="gear" width={19} height={19} />
+                        <span>{activa ? t("empresas.irPanel") : t("empresas.gestionar")}</span>
+                        <Icon name="chevron-right" width={19} height={19} className={styles.flecha} />
+                      </button>
                     </SimpleCard>
                   );
                 })}
