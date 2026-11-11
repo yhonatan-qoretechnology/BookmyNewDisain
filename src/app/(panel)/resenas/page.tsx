@@ -3,12 +3,15 @@
    Reseñas — moderación de valoraciones (View)
    ------------------------------------------------------------
    · Aprobar  → PATCH /resenas/:id/aprobar (publica la reseña)
+   · Rechazar → el mismo PATCH con { aprobado: false } (la retira)
+   · Filtros por sede y estado; el buscador mira cliente, correo,
+     texto y sede.
    · Responder→ redacta la respuesta y la envía por correo al
      autor. El ResenaModule no expone endpoint para almacenar
      respuestas, así que se usa el mismo mecanismo de correo que
      el popup de reservas (mailto:).
 ============================================================ */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Resena } from "@/models";
 import { ResenasController } from "@/controllers/CrudControllers";
 import { useData } from "@/hooks/useData";
@@ -37,7 +40,20 @@ export default function ResenasPage() {
   const { t } = useI18n();
   const { session } = useSession();
   const [search, setSearch] = useState("");
-  const { data: lista, reload } = useData(() => ResenasController.search(search), [search], []);
+  const { data: todas, reload } = useData(() => ResenasController.search(search), [search], []);
+
+  /* Filtros por sede y estado */
+  const [fSede, setFSede] = useState("");
+  const [fEstado, setFEstado] = useState<"" | Resena["estado"]>("");
+  const sedes = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of todas) if (r.sedeId) m.set(r.sedeId, r.sedeNombre || `#${r.sedeId}`);
+    return Array.from(m, ([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [todas]);
+  const lista = useMemo(
+    () => todas.filter((r) => (!fSede || r.sedeId === fSede) && (!fEstado || r.estado === fEstado)),
+    [todas, fSede, fEstado]
+  );
 
   /* ── Aprobar — PATCH /resenas/:id/aprobar ────────────────── */
   const [aprobandoId, setAprobandoId] = useState<number | null>(null);
@@ -47,6 +63,20 @@ export default function ResenasPage() {
       await ResenasController.aprobar(id);
       await reload();
       toast(t("resenas.approved"), "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setAprobandoId(null);
+    }
+  };
+
+  /* ── Rechazar — retira la reseña de la web sin borrarla ──── */
+  const rechazar = async (id: number) => {
+    setAprobandoId(id);
+    try {
+      await ResenasController.aprobar(id, false);
+      await reload();
+      toast(t("resenas.rejected"), "success");
     } catch (e) {
       toast(e instanceof Error ? e.message : "Error", "error");
     } finally {
@@ -112,6 +142,18 @@ export default function ResenasPage() {
         <PanelHead title={t("resenas.panelTitle")} sub={t("resenas.panelSub")} />
         <Toolbar>
           <SearchBox value={search} onChange={setSearch} placeholder={t("resenas.searchPlaceholder")} />
+          {sedes.length > 1 && (
+            <select className={styles.filtro} value={fSede} onChange={(e) => setFSede(e.target.value)} aria-label={t("common.branch")}>
+              <option value="">{t("resenas.todasSedes")}</option>
+              {sedes.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+            </select>
+          )}
+          <select className={styles.filtro} value={fEstado} onChange={(e) => setFEstado(e.target.value as "" | Resena["estado"])} aria-label={t("common.state")}>
+            <option value="">{t("resenas.todosEstados")}</option>
+            <option value="pendiente">{t("resenas.estado.pendiente")}</option>
+            <option value="aprobada">{t("resenas.estado.aprobada")}</option>
+            <option value="rechazada">{t("resenas.estado.rechazada")}</option>
+          </select>
         </Toolbar>
 
         {lista.length === 0 ? (
@@ -126,7 +168,7 @@ export default function ResenasPage() {
                   <Badge kind={BADGE[r.estado]}>{t(`resenas.estado.${r.estado}`)}</Badge>
                 </TagRow>
                 <Muted>“{r.texto}”</Muted>
-                <Muted>{r.fecha}</Muted>
+                <Muted>{[r.sedeNombre, r.fecha].filter(Boolean).join(" · ")}</Muted>
                 <div className={styles.cardActions}>
                   {!r.aprobada && (
                     <Button
@@ -135,6 +177,16 @@ export default function ResenasPage() {
                       disabled={aprobandoId === r.id}
                     >
                       {aprobandoId === r.id ? t("booking.loading") : t("resenas.approve")}
+                    </Button>
+                  )}
+                  {r.estado !== "rechazada" && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => void rechazar(r.id)}
+                      disabled={aprobandoId === r.id}
+                    >
+                      {t("resenas.reject")}
                     </Button>
                   )}
                   <Button

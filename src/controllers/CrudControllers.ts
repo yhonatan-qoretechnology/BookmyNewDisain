@@ -487,6 +487,8 @@ const mapResena = (r: ApiResena): Resena => {
     texto: r.comentario || "",
     fecha: (r.createdAt || "").slice(0, 10),
     estado,
+    sedeId: r.sedeId != null ? String(r.sedeId) : "",
+    sedeNombre: r.sede?.nombre || "",
     aprobada: estado === "aprobada",
   };
 };
@@ -496,7 +498,8 @@ export const ResenasController = {
   async search(term: string): Promise<Resena[]> {
     const q = term.toLowerCase();
     const list = await ResenasApi.findAll().catch(() => []);
-    return (list || []).map(mapResena).filter((r) => (r.cliente + r.texto).toLowerCase().includes(q));
+    return (list || []).map(mapResena)
+      .filter((r) => [r.cliente, r.texto, r.email, r.sedeNombre].join(" ").toLowerCase().includes(q));
   },
 
   /**

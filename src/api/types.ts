@@ -493,6 +493,7 @@ export interface ApiResena {
   usuarioId: number;
   createdAt: string;
   usuario?: { id: number; email: string; fotoPerfil?: string | null; UserData?: { name?: string } | null };
+  sede?: { id: number; nombre: string } | null;
 }
 
 /** GET /notifications, PATCH /notifications/:id/read (notification.service.ts) */

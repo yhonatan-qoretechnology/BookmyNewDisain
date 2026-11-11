@@ -19,3 +19,13 @@
 :global([data-theme="dark"]) .quote b { color: var(--navy-900); }
 
 .replyArea { min-height: 120px; resize: vertical; font-family: inherit; }
+
+/* Filtros por sede y estado */
+.filtro {
+  padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--navy-900);
+  font: inherit; font-size: 13px;
+}
+:global([data-theme="dark"]) .filtro { background: rgba(255,255,255,.04); }
+:global([data-theme="dark"]) .filtro option { background: var(--surface-2); color: var(--navy-900); }

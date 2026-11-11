@@ -227,6 +227,9 @@ export interface Resena {
   texto: string;
   fecha: string;
   estado: EstadoResena;
+  /** Sede reseñada (para filtrar por sede) */
+  sedeId: string;
+  sedeNombre: string;
   /** Atajo de `estado === "aprobada"` para los badges */
   aprobada: boolean;
 }
