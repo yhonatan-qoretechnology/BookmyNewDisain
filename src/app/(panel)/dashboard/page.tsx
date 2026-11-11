@@ -148,12 +148,13 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(hoyISO);
   const fechaReservas = selectedDate ? todas.filter((r) => r.fecha === selectedDate) : [];
 
-  /* Buscador en tiempo real de "Últimas reservas" (servicio o cliente) */
+  /* Buscador en tiempo real de "Últimas reservas" (servicio, cliente,
+     especialista o ID) */
   const [buscarUltimas, setBuscarUltimas] = useState("");
   const ultimasFiltradas = useMemo(() => {
     const q = buscarUltimas.trim().toLowerCase();
     if (!q) return ultimas;
-    return ultimas.filter((r) => `${r.servicio} ${r.cliente}`.toLowerCase().includes(q));
+    return ultimas.filter((r) => `${r.servicio} ${r.cliente} ${r.empleadoName || ""} ${r.id}`.toLowerCase().includes(q));
   }, [ultimas, buscarUltimas]);
 
   /* Reagendado: modal con calendario + horas disponibles */
@@ -195,22 +196,26 @@ export default function DashboardPage() {
             {t("dashboard.latestEmpty")}
           </p>
         ) : (
-          <DataTable headers={[t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state"), t("common.actions")]}>
+          <DataTable headers={[t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("dashboard.duracion"), t("common.price"), t("common.state"), t("common.actions")]}>
             {ultimasFiltradas.map((r) => (
               <tr key={r.id} onClick={() => popup.open(r, recargarCitas)} style={{ cursor: "pointer" }}>
                 <td><b>{r.servicio}</b></td>
                 <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
                 <td>{fmtFechaCorta(r.fecha)}</td>
                 <td>{r.hora}</td>
+                <td>{r.duracion ? `${r.duracion} min` : "—"}</td>
                 <PriceCell value={r.precio} />
                 <td><Badge kind={r.estado}>{t(`estados.${r.estado}`)}</Badge></td>
                 <td>
-                  <IconButton
-                    aria-label={t("reservas.reagendarAria", { servicio: r.servicio, cliente: r.cliente })}
-                    onClick={(e) => { e.stopPropagation(); setReagendando(r); }}
-                  >
-                    <Icon name="calendar-check" />
-                  </IconButton>
+                  {/* Solo se reagenda lo que aún no ha pasado ni se canceló */}
+                  {(r.estado === "pendiente" || r.estado === "confirmada") && (
+                    <IconButton
+                      aria-label={t("reservas.reagendarAria", { servicio: r.servicio, cliente: r.cliente })}
+                      onClick={(e) => { e.stopPropagation(); setReagendando(r); }}
+                    >
+                      <Icon name="calendar-check" />
+                    </IconButton>
+                  )}
                 </td>
               </tr>
             ))}

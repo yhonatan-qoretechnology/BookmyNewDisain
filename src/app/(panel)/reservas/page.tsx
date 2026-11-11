@@ -39,6 +39,11 @@ function ReservasContent() {
 
   const [search, setSearch] = useState("");
   const [estadoIdx, setEstadoIdx] = useState(0);
+  /* Filtros del listado: día, servicio, especialista y hora de inicio */
+  const [fFecha, setFFecha] = useState("");
+  const [fServicio, setFServicio] = useState("");
+  const [fEmpleado, setFEmpleado] = useState("");
+  const [fHora, setFHora] = useState("");
   /* id de la reserva cuyo estado se está guardando (bloquea su selector) */
   const [guardando, setGuardando] = useState<string | null>(null);
   /* Reserva abierta en el modal de edición (horario / detalles). */
@@ -64,20 +69,43 @@ function ReservasContent() {
     if (creada && base.some((r) => r.id === creada)) popup.open(creada, reload);
   }, [creada, base, popup, reload]);
 
+  /* Opciones de los filtros: salen de las propias reservas, así solo se
+     ofrece lo que de verdad hay en el listado. */
+  const opciones = useMemo(() => {
+    const ordenar = (xs: Iterable<string>) => Array.from(new Set(xs)).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    return {
+      servicios: ordenar(base.map((r) => r.servicio)),
+      empleados: ordenar(base.map((r) => r.empleadoName || "")),
+      horas: ordenar(base.map((r) => r.hora.slice(0, 2))),
+    };
+  }, [base]);
+
+  const hayFiltros = !!(search || estadoIdx || fFecha || fServicio || fEmpleado || fHora);
+  const limpiarFiltros = () => {
+    setSearch(""); setEstadoIdx(0);
+    setFFecha(""); setFServicio(""); setFEmpleado(""); setFHora("");
+  };
+
   const lista = useMemo(() => {
     const q = search.toLowerCase();
     return base.filter((r) => {
-      const matchQ = (r.servicio + r.cliente + r.id).toLowerCase().includes(q);
+      const matchQ = [r.servicio, r.cliente, r.id, r.email, r.empleadoName || ""].join(" ").toLowerCase().includes(q);
       const matchE = estado === "todos" || r.estado === estado;
-      return matchQ && matchE;
+      return matchQ && matchE
+        && (!fFecha || r.fecha === fFecha)
+        && (!fServicio || r.servicio === fServicio)
+        && (!fEmpleado || r.empleadoName === fEmpleado)
+        && (!fHora || r.hora.startsWith(fHora));
     });
-  }, [base, search, estado]);
+  }, [base, search, estado, fFecha, fServicio, fEmpleado, fHora]);
+
+  const claveFiltros = `${search}|${estado}|${fFecha}|${fServicio}|${fEmpleado}|${fHora}`;
 
   /* El listado ya no se corta en 50 por sede, así que una sede activa puede
      traer cientos de citas: se pagina igual que Facturación. */
   const pagina = usePaginacion(lista, {
     porPagina: 15,
-    resetKey: `${search}|${estado}`,
+    resetKey: claveFiltros,
   });
 
   const cambiarEstado = async (reserva: Reserva, nuevo: Reserva["estado"]) => {
@@ -115,19 +143,51 @@ function ReservasContent() {
         </ToolbarActions>
       </Toolbar>
 
+      <div className={styles.filtros} role="group" aria-label={t("reservas.filtros")}>
+        <label className={styles.filtro}>
+          <span>{t("common.date")}</span>
+          <input type="date" value={fFecha} onChange={(e) => setFFecha(e.target.value)} />
+        </label>
+        <label className={styles.filtro}>
+          <span>{t("common.service")}</span>
+          <select value={fServicio} onChange={(e) => setFServicio(e.target.value)}>
+            <option value="">{t("common.all")}</option>
+            {opciones.servicios.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+        <label className={styles.filtro}>
+          <span>{t("reservas.especialista")}</span>
+          <select value={fEmpleado} onChange={(e) => setFEmpleado(e.target.value)}>
+            <option value="">{t("common.all")}</option>
+            {opciones.empleados.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+        <label className={styles.filtro}>
+          <span>{t("common.time")}</span>
+          <select value={fHora} onChange={(e) => setFHora(e.target.value)}>
+            <option value="">{t("common.all")}</option>
+            {opciones.horas.map((h) => <option key={h} value={h}>{h}:00 – {h}:59</option>)}
+          </select>
+        </label>
+        <Button size="sm" variant="ghost" onClick={limpiarFiltros} disabled={!hayFiltros}>
+          {t("reservas.limpiarFiltros")}
+        </Button>
+      </div>
+
       {lista.length === 0 ? (
         <EmptyState icon="calendar" title={t("reservas.emptyTitle")} message={t("reservas.emptyMsg")} />
       ) : (
         <DataTable
           paginacion={pagina}
-          resetKey={`${search}|${estado}|${pagina.pagina}`}
-          headers={[t("common.id"), t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("common.price"), t("common.state"), t("common.actions")]}
+          resetKey={`${claveFiltros}|${pagina.pagina}`}
+          headers={[t("common.id"), t("common.service"), t("common.client"), t("reservas.especialista"), t("common.date"), t("common.time"), t("common.price"), t("common.state"), t("common.actions")]}
         >
           {pagina.visibles.map((r) => (
             <tr key={r.id} onClick={() => popup.open(r, reload)} style={{ cursor: "pointer" }}>
               <td><b>{r.id}</b></td>
               <td>{r.servicio}<ExtensionTag reserva={r} /></td>
               <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
+              <td>{r.empleadoName || "—"}</td>
               <td>{fmtFechaCorta(r.fecha)}</td>
               <td>{r.hora}</td>
               <PriceCell value={r.precio} />

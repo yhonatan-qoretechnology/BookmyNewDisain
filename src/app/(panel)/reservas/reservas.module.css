@@ -30,3 +30,28 @@
 
 /* La celda de acciones lleva el selector de estado y el botón Editar. */
 .accionesCell { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+
+/* Filtros del listado: día, servicio, especialista, hora y limpiar */
+.filtros {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px;
+  margin: 0 0 14px;
+}
+.filtro {
+  display: flex; flex-direction: column; gap: 4px;
+  min-width: 150px; flex: 1 1 150px; max-width: 220px;
+}
+.filtro span {
+  font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--slate-500);
+}
+.filtro input, .filtro select {
+  padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--navy-900);
+  font: inherit; font-size: 13px;
+}
+.filtro input:focus-visible, .filtro select:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 1px; }
+:global([data-theme="dark"]) .filtro input,
+:global([data-theme="dark"]) .filtro select { background: rgba(255,255,255,.04); }
+:global([data-theme="dark"]) .filtro option { background: var(--surface-2); color: var(--navy-900); }
+@media (max-width: 560px) { .filtro { max-width: none; } }
