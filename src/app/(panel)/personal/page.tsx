@@ -291,7 +291,7 @@ export default function PersonalPage() {
             {lista.map((p) => (
               <tr key={p.id}>
                 <td><PersonRow name={p.nombre} photo={p.foto} bold /></td>
-                <td>{p.rol}</td>
+                <td className={styles.bio} title={p.rol}>{p.rol}</td>
                 <td>{p.sede}</td>
                 <td><b>{p.reservas}</b></td>
                 <td>
@@ -356,8 +356,9 @@ export default function PersonalPage() {
         <Field label={t("common.fullName")} htmlFor="np-nombre">
           <input id="np-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t("clientes.namePlaceholder")} />
         </Field>
-        <Field label={t("personal.role")} htmlFor="np-rol">
-          <input id="np-rol" value={rol} onChange={(e) => setRol(e.target.value)} placeholder={t("personal.rolePlaceholder")} />
+        {/* Se guarda como su biografía: es lo que ve el cliente al reservar */}
+        <Field label={t("personal.bio")} htmlFor="np-rol">
+          <textarea id="np-rol" rows={3} maxLength={500} value={rol} onChange={(e) => setRol(e.target.value)} placeholder={t("personal.bioPlaceholder")} />
         </Field>
         <Field label={t("common.phone")} htmlFor="np-tel">
           <input id="np-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder={t("common.phonePh")} />
@@ -424,8 +425,8 @@ export default function PersonalPage() {
         <Field label={t("common.fullName")} htmlFor="ep-nombre">
           <input id="ep-nombre" value={eNombre} onChange={(e) => setENombre(e.target.value)} />
         </Field>
-        <Field label={t("personal.role")} htmlFor="ep-rol">
-          <input id="ep-rol" value={eRol} onChange={(e) => setERol(e.target.value)} placeholder={t("personal.rolePlaceholder")} />
+        <Field label={t("personal.bio")} htmlFor="ep-rol">
+          <textarea id="ep-rol" rows={3} maxLength={500} value={eRol} onChange={(e) => setERol(e.target.value)} placeholder={t("personal.bioPlaceholder")} />
         </Field>
         <Field label={t("common.phone")} htmlFor="ep-tel">
           <input id="ep-tel" value={eTelefono} onChange={(e) => setETelefono(e.target.value)} placeholder={t("common.phonePh")} />

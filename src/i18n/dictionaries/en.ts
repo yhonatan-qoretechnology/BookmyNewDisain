@@ -1583,6 +1583,8 @@ const en: Dictionary = {
     inactiveF: "Inactive",
     modalTitle: "New team member",
     rolePlaceholder: "Manicurist, Beautician…",
+    bio: "Specialty and bio",
+    bioPlaceholder: "E.g. Manicurist with 8 years of experience in sculpted nails and nail art.",
     added: "Member added",
     deleteTitle: "Remove from team",
     deleteMsg: "Are you sure you want to remove {nombre} from the team?",

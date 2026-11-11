@@ -124,8 +124,8 @@ export default function SedeProfesionalesModal({
         <Field label={t("common.fullName")} htmlFor="sp-nombre">
           <input id="sp-nombre" value={eNombre} onChange={(e) => setENombre(e.target.value)} />
         </Field>
-        <Field label={t("personal.role")} htmlFor="sp-rol">
-          <input id="sp-rol" value={eRol} onChange={(e) => setERol(e.target.value)} placeholder={t("personal.rolePlaceholder")} />
+        <Field label={t("personal.bio")} htmlFor="sp-rol">
+          <textarea id="sp-rol" rows={3} maxLength={500} value={eRol} onChange={(e) => setERol(e.target.value)} placeholder={t("personal.bioPlaceholder")} />
         </Field>
         <Field label={t("common.phone")} htmlFor="sp-tel">
           <input id="sp-tel" value={eTelefono} onChange={(e) => setETelefono(e.target.value)} placeholder={t("common.phonePh")} />

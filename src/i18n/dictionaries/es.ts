@@ -1647,6 +1647,8 @@ const es = {
     inactiveF: "Inactiva",
     modalTitle: "Nueva integrante",
     rolePlaceholder: "Manicurista, Esteticista…",
+    bio: "Especialidad y biografía",
+    bioPlaceholder: "Ej.: Manicurista con 8 años de experiencia en uñas esculpidas y nail art.",
     added: "Integrante agregada",
     deleteTitle: "Eliminar del equipo",
     deleteMsg: "¿Seguro que quieres eliminar a {nombre} del equipo?",

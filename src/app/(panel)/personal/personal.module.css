@@ -47,3 +47,6 @@
    Cancelar/Guardar para que no se pulse por inercia. */
 .eliminarEnModal { margin-right: auto; }
 @media (max-width: 600px) { .eliminarEnModal { margin-right: 0; order: 1; } }
+
+/* Especialidad / biografía: una línea en la tabla, completa al pasar el ratón */
+.bio { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
