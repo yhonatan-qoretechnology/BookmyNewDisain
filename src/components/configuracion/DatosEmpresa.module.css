@@ -1,0 +1,37 @@
+.ficha { display: flex; gap: 16px; align-items: flex-start; }
+@media (max-width: 520px) { .ficha { flex-direction: column; } }
+
+.logo, .logoVacio {
+  width: 72px; height: 72px; flex: 0 0 72px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+}
+.logo { object-fit: cover; }
+.logoVacio {
+  display: grid; place-items: center;
+  background: var(--surface-2, var(--surface)); color: var(--slate-500);
+}
+.logoVacio svg { width: 28px; height: 28px; }
+
+.datos { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.nombre { font-size: 16px; color: var(--navy-900); }
+.descripcion { font-size: 13.5px; line-height: 1.5; color: var(--slate-500); margin: 0; }
+
+.lista {
+  display: grid; grid-template-columns: auto 1fr; gap: 4px 14px;
+  margin: 0; font-size: 13px;
+}
+.lista dt { color: var(--slate-500); font-weight: 600; }
+.lista dd { margin: 0; color: var(--navy-900); overflow-wrap: anywhere; }
+
+.redes { display: flex; flex-wrap: wrap; gap: 8px; }
+.redes a {
+  padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12.5px; font-weight: 700; color: var(--teal-600);
+  text-decoration: none;
+}
+.redes a:hover { border-color: var(--teal-600); }
+.redes a:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 2px; }
+
+.aviso { font-size: 13px; color: var(--slate-500); margin: 0; }

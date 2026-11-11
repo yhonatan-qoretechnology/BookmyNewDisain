@@ -2093,6 +2093,12 @@ const en: Dictionary = {
   },
 
   configuracion: {
+    /* Company details (owner) */
+    empresaTitulo: "Company details",
+    empresaSub: "What your clients see in the app: name, contact, description, social links and logo.",
+    empresaEditar: "Edit details",
+    empresaNit: "Tax ID",
+    empresaSinRedes: "You haven't added your website or social links yet.",
     profileTitle: "Profile",
     profileSub: "Current session · {rol}",
     saveChanges: "Save changes",

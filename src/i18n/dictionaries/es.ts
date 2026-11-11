@@ -2163,6 +2163,12 @@ const es = {
   },
 
   configuracion: {
+    /* Datos de la empresa (dueño) */
+    empresaTitulo: "Datos de la empresa",
+    empresaSub: "Lo que ven tus clientes en la app: nombre, contacto, descripción, redes y logo.",
+    empresaEditar: "Editar datos",
+    empresaNit: "Identificador fiscal",
+    empresaSinRedes: "Aún no has añadido tu web ni tus redes sociales.",
     profileTitle: "Perfil",
     profileSub: "Sesión actual · {rol}",
     saveChanges: "Guardar cambios",

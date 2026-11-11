@@ -16,6 +16,7 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import Switch from "@/components/ui/Switch";
 import CopiaSeguridad from "@/components/configuracion/CopiaSeguridad";
 import CuentaPago from "@/components/configuracion/CuentaPago";
+import DatosEmpresa from "@/components/configuracion/DatosEmpresa";
 import styles from "./configuracion.module.css";
 
 export default function ConfiguracionPage() {
@@ -186,6 +187,10 @@ export default function ConfiguracionPage() {
             de una sede) y el superadmin eligiendo la empresa — mismo
             alcance que el backend. */}
         {(session?.role === "owner" || session?.role === "superadmin") && <CuentaPago />}
+
+        {/* Ficha pública del negocio: la edita su dueño (el superadmin lo
+            hace desde Empresas) */}
+        {session?.role === "owner" && <DatosEmpresa />}
 
         {/* La copia de seguridad lleva los datos de todas las empresas:
             solo el superadmin, igual que en el backend. */}
