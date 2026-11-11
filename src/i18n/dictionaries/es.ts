@@ -1659,6 +1659,33 @@ const es = {
     copyCred: "Copiar datos",
     copied: "Datos copiados al portapapeles",
     copyError: "No se pudieron copiar los datos",
+    /* Dueño de empresa: admins de sus sedes */
+    panelSubDueno: "{n} administrador(es) de tus sedes",
+    emptyMsgDueno: "Crea un administrador para que gestione una de tus sedes.",
+    modalHintDueno: "Elige la sede que va a gestionar. Entrará al panel con su correo y verá solo esa sede.",
+    branchObligatoria: "Sede",
+    branchElige: "Selecciona una sede",
+    fillRequiredSede: "Completa sede, nombre, apellido, teléfono y correo.",
+    /* Datos personales */
+    emailInvalido: "El correo no tiene un formato válido.",
+    genero: "Género",
+    generoNinguno: "Sin indicar",
+    generoM: "Masculino",
+    generoF: "Femenino",
+    generoO: "Otro",
+    nacimiento: "Fecha de nacimiento",
+    foto: "Foto de perfil (opcional)",
+    fotoTipo: "La foto tiene que ser una imagen JPG, PNG o WebP.",
+    fotoGrande: "La foto no puede pesar más de 5 MB.",
+    /* Edición */
+    editAria: "Editar a {nombre}",
+    editTitle: "Editar administrador",
+    activoLabel: "Activo (puede entrar al panel)",
+    fillRequiredEdit: "Completa nombre, apellido y teléfono.",
+    save: "Guardar cambios",
+    saving: "Guardando…",
+    updated: "Administrador actualizado",
+    deleteError: "No se pudo eliminar el administrador",
   },
 
   resenas: {

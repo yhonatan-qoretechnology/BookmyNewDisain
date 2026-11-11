@@ -189,8 +189,15 @@ export function navParaSesion(role: string, pro: boolean): NavItem[] {
   if (role === "superadmin" || role === "employee") return NAV_BY_ROLE[role] ?? [];
   const items = pro ? ADMIN_ITEMS_PRO : ADMIN_ITEMS_FREE;
   /* Los referidos son del negocio entero: solo los gestiona su dueño. */
-  return role === "owner" ? items : items.filter((i) => i.id !== "referidos");
+  if (role !== "owner") return items.filter((i) => i.id !== "referidos");
+  /* El dueño gestiona también a los administradores de sus sedes. */
+  const i = items.findIndex((it) => it.id === "personal");
+  return [...items.slice(0, i + 1), ADMINS_SEDES_ITEM, ...items.slice(i + 1)];
 }
+
+const ADMINS_SEDES_ITEM: NavItem = {
+  id: "administradores", label: "Administradores", href: ROUTES.administradores, icon: "shield",
+};
 
 /* ── Constantes de almacenamiento ─────────────────────────── */
 export const THEME_STORAGE_KEY = "bookmy-theme";

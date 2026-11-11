@@ -1595,6 +1595,33 @@ const en: Dictionary = {
     copyCred: "Copy details",
     copied: "Details copied to clipboard",
     copyError: "Couldn't copy the details",
+    /* Company owner: admins of their branches */
+    panelSubDueno: "{n} admin(s) of your branches",
+    emptyMsgDueno: "Create an admin to manage one of your branches.",
+    modalHintDueno: "Pick the branch they will manage. They'll sign in with their email and see only that branch.",
+    branchObligatoria: "Branch",
+    branchElige: "Select a branch",
+    fillRequiredSede: "Fill in branch, first name, last name, phone and email.",
+    /* Personal details */
+    emailInvalido: "The email doesn't look valid.",
+    genero: "Gender",
+    generoNinguno: "Not specified",
+    generoM: "Male",
+    generoF: "Female",
+    generoO: "Other",
+    nacimiento: "Date of birth",
+    foto: "Profile photo (optional)",
+    fotoTipo: "The photo must be a JPG, PNG or WebP image.",
+    fotoGrande: "The photo can't be larger than 5 MB.",
+    /* Edit */
+    editAria: "Edit {nombre}",
+    editTitle: "Edit admin",
+    activoLabel: "Active (can sign in to the panel)",
+    fillRequiredEdit: "Fill in first name, last name and phone.",
+    save: "Save changes",
+    saving: "Saving…",
+    updated: "Admin updated",
+    deleteError: "Couldn't remove the admin",
   },
 
 

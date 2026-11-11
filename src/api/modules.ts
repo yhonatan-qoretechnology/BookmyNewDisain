@@ -92,6 +92,8 @@ export const AdminApi = {
   /** POST /admin/branches/:sedeId/admins (multipart) — admin de sede. */
   createBranchAdmin: (sedeId: number, form: FormData) =>
     http.postForm<ApiAdminCreateResponse>(EP.createBranchAdmin(sedeId), form),
+  /** PATCH /admin/admins/:userId (multipart: datos + photoFile opcional) */
+  update: (userId: number, form: FormData) => http.patchForm<ApiUser>(EP.adminById(userId), form),
   /** DELETE /admin/admins/:userId */
   remove: (userId: number) => http.delete(EP.adminById(userId)),
 };

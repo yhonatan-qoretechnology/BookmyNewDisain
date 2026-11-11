@@ -265,6 +265,9 @@ export interface CredencialesEmpleado {
 export interface Administrador {
   id: number;
   nombre: string;
+  /** Por separado, para la edición (AdminProfile) */
+  firstName: string;
+  lastName: string;
   email: string;
   telefono: string;
   rol: "owner" | "admin";
