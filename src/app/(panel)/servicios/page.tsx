@@ -22,6 +22,9 @@ import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import ImageGallery from "@/components/ui/ImageGallery";
 import ImagenesNuevas from "@/components/ui/ImagenesNuevas";
+import Tabs from "@/components/ui/Tabs";
+import CategoriasPanel from "@/components/servicios/CategoriasPanel";
+import { CategoriasController } from "@/controllers/CategoriasController";
 import styles from "./servicios.module.css";
 
 export default function ServiciosPage() {
@@ -37,6 +40,8 @@ export default function ServiciosPage() {
   /* Eliminar es exclusivo del superadmin (el backend lo exige en DELETE). */
   const puedeEliminar = session?.role === "superadmin";
   const [search, setSearch] = useState("");
+  /* El superadmin gestiona además el catálogo global de categorías */
+  const [vista, setVista] = useState<"servicios" | "categorias">("servicios");
   const [modalOpen, setModalOpen] = useState(false);
   /** Servicio que se está editando; null = el modal está en modo alta. */
   const [editando, setEditando] = useState<Servicio | null>(null);
@@ -47,9 +52,17 @@ export default function ServiciosPage() {
   const [precio, setPrecio] = useState("");
   const [imagenesNuevas, setImagenesNuevas] = useState<File[]>([]);
   const [guardando, setGuardando] = useState(false);
+  /* Traducción al otro idioma (inglés si el panel está en español) */
+  const otroIdioma = locale === "es" ? "en" : "es";
+  const [nombreOtro, setNombreOtro] = useState("");
+  const [descripcionOtro, setDescripcionOtro] = useState("");
+  /* Al editar, la traducción se pide aparte: hasta que llega no se deja
+     guardar, porque mandar solo un idioma borraría el otro. */
+  const [cargandoOtro, setCargandoOtro] = useState(false);
+  const [traduciendo, setTraduciendo] = useState(false);
 
   /* Categorías reales — GET /categories?language= */
-  const { data: categorias } = useData(() => ServiciosController.getCategorias(locale), [locale], []);
+  const { data: categorias, reload: reloadCategorias } = useData(() => ServiciosController.getCategorias(locale), [locale], []);
 
   /* En modo API: GET /services?language=<locale> (traducciones) */
   const { data: lista, reload } = useData(() => ServiciosController.search(search, locale), [search, locale], []);
@@ -74,7 +87,24 @@ export default function ServiciosPage() {
     setModalOpen(false);
     setEditando(null);
     setNombre(""); setDescripcion(""); setCategoriaId(""); setDuracion(""); setPrecio("");
+    setNombreOtro(""); setDescripcionOtro(""); setCargandoOtro(false);
     setImagenesNuevas([]);
+  };
+
+  /** Rellena el otro idioma con una traducción automática (corregible). */
+  const traducirOtro = async () => {
+    if (!nombre.trim()) { toast(t("common.requiredName"), "error"); return; }
+    setTraduciendo(true);
+    const de = locale === "es" ? "es" : "en";
+    const a = otroIdioma === "es" ? "es" : "en";
+    const [n, d] = await Promise.all([
+      CategoriasController.traducir(nombre, de, a),
+      CategoriasController.traducir(descripcion, de, a),
+    ]);
+    setTraduciendo(false);
+    if (n == null) { toast(t("categorias.traducirError"), "error"); return; }
+    setNombreOtro(n);
+    if (d != null) setDescripcionOtro(d);
   };
 
   const abrirNuevo = () => { cerrarModal(); setModalOpen(true); };
@@ -88,6 +118,13 @@ export default function ServiciosPage() {
     setDuracion(String(s.duracion));
     setPrecio(String(s.precio));
     setImagenesNuevas([]);
+    setNombreOtro(""); setDescripcionOtro("");
+    setCargandoOtro(true);
+    void ServiciosController.traduccion(s.id, otroIdioma).then((tr) => {
+      setNombreOtro(tr.nombre);
+      setDescripcionOtro(tr.descripcion);
+      setCargandoOtro(false);
+    });
     setModalOpen(true);
   };
 
@@ -105,6 +142,7 @@ export default function ServiciosPage() {
           duracion: Number(duracion) || 30,
           precio: Number(precio) || 0,
           language: locale,
+          otra: { language: otroIdioma, nombre: nombreOtro, descripcion: descripcionOtro },
         });
         toast(t("servicios.updated"), "success");
       } else {
@@ -115,6 +153,7 @@ export default function ServiciosPage() {
           duracion: Number(duracion) || 30,
           precio: Number(precio) || 0,
           language: locale,
+          otra: { language: otroIdioma, nombre: nombreOtro, descripcion: descripcionOtro },
           imagenes: imagenesNuevas,
         });
         toast(t("servicios.created"), "success");
@@ -134,15 +173,37 @@ export default function ServiciosPage() {
       title: t("servicios.deleteTitle"),
       message: t("servicios.deleteMsg", { nombre: nombreSv }),
       confirmLabel: t("common.delete"),
-      onConfirm: () => {
-        void ServiciosController.remove(id).then(reload);
-        toast(t("servicios.deleted"), "success");
+      /* El aviso espera a la respuesta: antes decía «eliminado» aunque fallara */
+      onConfirm: async () => {
+        try {
+          await ServiciosController.remove(id);
+          await reload();
+          toast(t("servicios.deleted"), "success");
+        } catch (e) {
+          toast(e instanceof Error ? e.message : t("common.error"), "error");
+        }
       },
     });
   };
 
   return (
     <>
+      {puedeEliminar && (
+        <div className={styles.vistas}>
+          <Tabs
+            active={vista}
+            onChange={(id) => setVista(id as "servicios" | "categorias")}
+            tabs={[
+              { id: "servicios", label: t("servicios.tabServicios") },
+              { id: "categorias", label: t("servicios.tabCategorias") },
+            ]}
+          />
+        </div>
+      )}
+
+      {vista === "categorias" && puedeEliminar ? (
+        <CategoriasPanel onCambios={() => { void reloadCategorias(); void reload(); }} />
+      ) : (
       <Panel>
         <PanelHead title={t("servicios.panelTitle")} sub={t("servicios.countSub", { n: lista.length })} />
         <Toolbar>
@@ -234,6 +295,7 @@ export default function ServiciosPage() {
           </>
         )}
       </Panel>
+      )}
 
       <Modal open={modalOpen} onClose={cerrarModal}>
         <ModalTitle>{editando ? t("servicios.editModalTitle") : t("servicios.modalTitle")}</ModalTitle>
@@ -251,6 +313,26 @@ export default function ServiciosPage() {
         <Field label={t("servicios.description")} htmlFor="ns-desc">
           <input id="ns-desc" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder={t("servicios.descriptionPlaceholder")} />
         </Field>
+        <fieldset className={styles.otroIdioma}>
+          <legend>
+            {t(otroIdioma === "en" ? "servicios.enIngles" : "servicios.enEspanol")}
+            <button type="button" className={styles.traducir} onClick={() => void traducirOtro()} disabled={traduciendo || cargandoOtro}>
+              {traduciendo ? t("categorias.traduciendo") : t("servicios.traducir")}
+            </button>
+          </legend>
+          {cargandoOtro ? (
+            <p className={styles.otroNota}>{t("common.loading")}</p>
+          ) : (
+            <>
+              <Field label={t("common.name")} htmlFor="ns-nombre-otro">
+                <input id="ns-nombre-otro" value={nombreOtro} onChange={(e) => setNombreOtro(e.target.value)} />
+              </Field>
+              <Field label={t("servicios.description")} htmlFor="ns-desc-otro">
+                <input id="ns-desc-otro" value={descripcionOtro} onChange={(e) => setDescripcionOtro(e.target.value)} />
+              </Field>
+            </>
+          )}
+        </fieldset>
         <Field label={t("servicios.duration")} htmlFor="ns-dur">
           <input id="ns-dur" type="number" min="5" step="5" value={duracion} onChange={(e) => setDuracion(e.target.value)} placeholder="45" />
         </Field>
@@ -278,7 +360,7 @@ export default function ServiciosPage() {
 
         <ModalActions>
           <Button variant="ghost" onClick={cerrarModal}>{t("common.cancel")}</Button>
-          <Button onClick={() => void guardar()} disabled={guardando}>{t("common.save")}</Button>
+          <Button onClick={() => void guardar()} disabled={guardando || cargandoOtro}>{t("common.save")}</Button>
         </ModalActions>
       </Modal>
     </>

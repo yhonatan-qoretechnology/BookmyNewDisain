@@ -75,6 +75,26 @@ export const ClienteReservasController = {
   },
 };
 
+/* ── Traducciones de un servicio ──────────────────────────── */
+export interface TraduccionServicio {
+  language: string;
+  nombre: string;
+  descripcion?: string;
+}
+
+/** Idioma principal + el otro, si tiene nombre. */
+function traduccionesServicio(input: { language: string; nombre: string; descripcion?: string; otra?: TraduccionServicio }) {
+  const out = [{ language: input.language, name: input.nombre, description: input.descripcion }];
+  if (input.otra?.nombre.trim() && input.otra.language !== input.language) {
+    out.push({
+      language: input.otra.language,
+      name: input.otra.nombre.trim(),
+      description: input.otra.descripcion?.trim() || undefined,
+    });
+  }
+  return out;
+}
+
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
 /** Valores de género que se guardan (el backend lo exige no vacío). */
 export const GENEROS_CLIENTE = ["Femenino", "Masculino", "Otro"] as const;
@@ -334,13 +354,13 @@ export const ServiciosController = {
     duracion: number;
     precio: number;
     language: string;
+    /** Traducción al otro idioma (opcional) */
+    otra?: TraduccionServicio;
     imagenes?: File[];
   }): Promise<void> {
     const dto = {
       categoryId: input.categoryId,
-      translations: [
-        { language: input.language, name: input.nombre, description: input.descripcion },
-      ],
+      translations: traduccionesServicio(input),
       prices: [{ amount: input.precio, duration: input.duracion }],
     };
     if (input.imagenes?.length) {
@@ -362,12 +382,16 @@ export const ServiciosController = {
     duracion?: number;
     precio?: number;
     language: string;
+    /** Traducción al otro idioma. Hay que mandarla siempre que exista: el
+        backend reemplaza TODAS las traducciones por las recibidas, así que
+        editar en español borraba la del inglés. */
+    otra?: TraduccionServicio;
     imagenes?: File[];
   }): Promise<void> {
     const dto = {
       categoryId: input.categoryId,
       translations: input.nombre
-        ? [{ language: input.language, name: input.nombre, description: input.descripcion }]
+        ? traduccionesServicio({ ...input, nombre: input.nombre })
         : undefined,
       prices: input.precio != null || input.duracion != null
         ? [{ amount: input.precio ?? 0, duration: input.duracion ?? 30 }]
@@ -378,6 +402,14 @@ export const ServiciosController = {
     } else {
       await ServicesWriteApi.update(id, dto);
     }
+  },
+
+  /** Nombre y descripción de un servicio en un idioma ("" si no tiene). */
+  async traduccion(id: number, language: string): Promise<{ nombre: string; descripcion: string }> {
+    const s = await ServicesApi.findOne(id, language).catch(() => null) as
+      (ApiService & { translations?: Array<{ name: string; description?: string | null }> }) | null;
+    const tr = s?.translations?.[0];
+    return { nombre: tr?.name || "", descripcion: tr?.description || "" };
   },
 
   /** Añade una imagen — POST /services/:id/imagen. @returns galería actualizada. */
