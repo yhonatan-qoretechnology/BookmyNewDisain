@@ -678,11 +678,20 @@ export const GastosController = {
   resumen(lista: Gasto[]) {
     const total = lista.reduce((s, g) => s + g.total, 0);
     const categorias = new Set(lista.map((g) => g.categoriaId)).size;
+    /* Últimos 30 días (incluido hoy) */
+    const desde = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
+    const ultimoMes = lista.filter((g) => g.fecha >= desde).reduce((s, g) => s + g.total, 0);
+    /* Categoría en la que más se gastó */
+    const porCategoria = new Map<string, number>();
+    for (const g of lista) porCategoria.set(g.categoria, (porCategoria.get(g.categoria) || 0) + g.total);
+    const principal = Array.from(porCategoria).sort((a, b) => b[1] - a[1])[0] ?? null;
     return {
       total,
       registros: lista.length,
       promedio: lista.length ? total / lista.length : 0,
       categorias,
+      ultimoMes,
+      categoriaPrincipal: principal ? { nombre: principal[0], total: principal[1] } : null,
     };
   },
 };

@@ -88,9 +88,13 @@ export default function GastosPage() {
       message: t("gastos.eliminarMsg", { nombre: g.gasto }),
       confirmLabel: t("common.delete"),
       onConfirm: async () => {
-        await GastosController.remove(g.id);
-        await reload();
-        toast(t("gastos.eliminado"), "success");
+        try {
+          await GastosController.remove(g.id);
+          await reload();
+          toast(t("gastos.eliminado"), "success");
+        } catch (e) {
+          toast(e instanceof Error ? e.message : t("common.error"), "error");
+        }
       },
     });
   };
@@ -101,12 +105,12 @@ export default function GastosPage() {
         <StatCard
           color="coral" icon={<Icon name="wallet" />}
           label={t("gastos.statTotal")} value={fmtMoneda(resumen.total)}
-          footer={t("gastos.delPeriodo")}
+          footer={t("gastos.registrosN", { n: resumen.registros })}
         />
         <StatCard
           color="navy" icon={<Icon name="receipt" />}
-          label={t("gastos.statRegistros")} value={resumen.registros}
-          footer={t("gastos.delPeriodo")}
+          label={t("gastos.statUltimoMes")} value={fmtMoneda(resumen.ultimoMes)}
+          footer={t("gastos.ultimos30")}
         />
         <StatCard
           color="blue" icon={<Icon name="barChart" />}
@@ -115,8 +119,10 @@ export default function GastosPage() {
         />
         <StatCard
           color="purple" icon={<Icon name="tag" />}
-          label={t("gastos.statCategorias")} value={resumen.categorias}
-          footer={t("gastos.delPeriodo")}
+          label={t("gastos.statPrincipal")} value={resumen.categoriaPrincipal?.nombre || "—"}
+          footer={resumen.categoriaPrincipal
+            ? t("gastos.principalFooter", { total: fmtMoneda(resumen.categoriaPrincipal.total), n: resumen.categorias })
+            : t("gastos.delPeriodo")}
         />
       </StatGrid>
 

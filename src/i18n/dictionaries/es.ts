@@ -1337,6 +1337,11 @@ const es = {
     statRegistros: "Registros",
     statPromedio: "Gasto promedio",
     statCategorias: "Categorías en uso",
+    statUltimoMes: "Último mes",
+    ultimos30: "gastado en los últimos 30 días",
+    statPrincipal: "Categoría principal",
+    principalFooter: "{total} · {n} categoría(s) en uso",
+    registrosN: "{n} registro(s) con los filtros activos",
     delPeriodo: "según los filtros activos",
     /* Formulario */
     formTitulo: "Registrar nuevo gasto",

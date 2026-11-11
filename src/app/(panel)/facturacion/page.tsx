@@ -26,6 +26,7 @@ import Toolbar, { SearchBox, FilterDate, FilterGroup, FilterSelect, ToolbarActio
 import DataTable from "@/components/ui/DataTable";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Button, { IconButton } from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 import Icon from "@/components/ui/Icon";
 import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
@@ -243,6 +244,7 @@ export default function FacturacionPage() {
               t("facturacion.servicio"),
               t("common.date"),
               t("gastos.total"),
+              t("common.state"),
               t("common.actions"),
             ]}
           >
@@ -253,6 +255,11 @@ export default function FacturacionPage() {
                 <td>{f.servicio}</td>
                 <td>{fmtFechaLarga(f.fecha)}</td>
                 <td><b>{fmtMoneda(f.total)}</b></td>
+                <td>
+                  <Badge kind={f.estado === "pagado" ? "pagado" : f.estado === "cancelado" ? "cancelado" : "pendiente"}>
+                    {t(`factura.${f.estado}`)}
+                  </Badge>
+                </td>
                 <td>
                   <div className={styles.rowActions}>
                     <Button variant="ghost" size="sm" onClick={() => setVer(f)}>
