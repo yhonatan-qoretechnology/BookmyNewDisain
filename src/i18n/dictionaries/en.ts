@@ -1488,6 +1488,12 @@ const en: Dictionary = {
   },
 
   calendario: {
+    /* Per-specialist schedule */
+    especialista: "Specialist",
+    todosEspecialistas: "All specialists",
+    proximasN: "{nombre}: {n} upcoming booking(s)",
+    proximasTitulo: "Upcoming bookings for {nombre}",
+    proximasVacio: "No pending or confirmed bookings from today on.",
     /* Official public holidays */
     festivosSincronizar: "Sync holidays",
     festivosAnio: "Year",
@@ -1536,6 +1542,7 @@ const en: Dictionary = {
     enabled: "Team member activated",
     soloSuperActiva: "Only the superadmin can activate a team member again.",
     masAcciones: "More actions for {nombre}",
+    verAgenda: "View their schedule",
     fillApi: "The backend requires a unique phone and a branch to create a professional.",
     passwordRequired: "A password is required to create the professional.",
     createHint: "The backend generates the login email from the name; you set the password here.",

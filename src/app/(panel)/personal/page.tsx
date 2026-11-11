@@ -14,6 +14,8 @@
    correo real — no hace falta adivinarlo ni buscarlo aparte.
 ============================================================ */
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants";
 import type { Empleado } from "@/models";
 import { PersonalController } from "@/controllers/CrudControllers";
 import { NegociosController } from "@/controllers/NegociosController";
@@ -51,6 +53,7 @@ interface CredencialesVista {
 }
 
 export default function PersonalPage() {
+  const router = useRouter();
   const { toast, confirm } = useUi();
   const { t } = useI18n();
   const { session } = useSession();
@@ -312,6 +315,11 @@ export default function PersonalPage() {
                     <MenuAcciones
                       etiqueta={t("personal.masAcciones", { nombre: p.nombre })}
                       acciones={[
+                        {
+                          etiqueta: t("personal.verAgenda"),
+                          icono: "calendar",
+                          onClick: () => router.push(`${ROUTES.calendario}?empleado=${p.id}`),
+                        },
                         {
                           etiqueta: p.tieneAcceso ? t("personal.changeAccess") : t("personal.createAccess"),
                           icono: "key",

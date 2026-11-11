@@ -1549,6 +1549,12 @@ const es = {
   },
 
   calendario: {
+    /* Agenda por especialista */
+    especialista: "Especialista",
+    todosEspecialistas: "Todos los especialistas",
+    proximasN: "{nombre}: {n} reserva(s) próximas",
+    proximasTitulo: "Próximas reservas de {nombre}",
+    proximasVacio: "No tiene reservas pendientes ni confirmadas a partir de hoy.",
     /* Festivos oficiales */
     festivosSincronizar: "Sincronizar festivos",
     festivosAnio: "Año",
@@ -1600,6 +1606,7 @@ const es = {
     enabled: "Integrante activada",
     soloSuperActiva: "Solo el superadmin puede volver a activar a un integrante.",
     masAcciones: "Más acciones de {nombre}",
+    verAgenda: "Ver su agenda",
     fillApi: "El backend exige teléfono único y sede para crear un profesional.",
     passwordRequired: "La contraseña es obligatoria para dar de alta al profesional.",
     createHint: "El correo de acceso lo genera el backend a partir del nombre; la contraseña la defines aquí.",

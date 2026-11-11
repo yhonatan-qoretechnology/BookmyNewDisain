@@ -1,10 +1,16 @@
 "use client";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 /* ============================================================
    Calendario — vista mensual de todas las reservas (View)
+   Con «Especialista» se ve la agenda de uno solo: el calendario
+   filtrado y la lista de sus próximas reservas («?empleado=<id>»
+   entra ya filtrado, p. ej. desde Personal).
 ============================================================ */
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ROUTES, fmtFechaCorta } from "@/constants";
+import { zonaHoy } from "@/lib/timezone";
+import Badge from "@/components/ui/Badge";
+import styles from "./calendario.module.css";
 import { ReservasController } from "@/controllers/ReservasController";
 import { useSession } from "@/context/SessionContext";
 import { useData } from "@/hooks/useData";
@@ -19,8 +25,9 @@ import FestivosLocales from "@/components/festivos/FestivosLocales";
 import ContextoFestivos from "@/components/festivos/ContextoFestivos";
 import { mapaFestivos } from "@/components/festivos/mapaFestivos";
 
-export default function CalendarioPage() {
+function CalendarioContent() {
   const router = useRouter();
+  const params = useSearchParams();
   const { session } = useSession();
   const { t, locale } = useI18n();
   const { toast } = useUi();
@@ -81,7 +88,27 @@ export default function CalendarioPage() {
     () => ReservasController.getForSession(session, locale),
     [session?.id, session?.negocioId, locale], []
   );
-  const map = ReservasController.buildCalendarMap(lista);
+  /* Agenda por especialista */
+  const [empleadoId, setEmpleadoId] = useState(() => params.get("empleado") || "");
+  const empleados = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of lista) if (r.empleadoId && r.empleadoName) m.set(String(r.empleadoId), r.empleadoName);
+    return Array.from(m, ([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [lista]);
+  const visibles = useMemo(
+    () => (empleadoId ? lista.filter((r) => String(r.empleadoId) === empleadoId) : lista),
+    [lista, empleadoId]
+  );
+  const proximas = useMemo(() => {
+    if (!empleadoId) return [];
+    const hoy = zonaHoy();
+    return visibles
+      .filter((r) => r.fecha >= hoy && r.estado !== "cancelado" && r.estado !== "atendida" && r.estado !== "noShow")
+      .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  }, [visibles, empleadoId]);
+  const nombreEmpleado = empleados.find((e) => e.id === empleadoId)?.nombre || "";
+
+  const map = ReservasController.buildCalendarMap(visibles);
   const events = Object.fromEntries(
     Object.entries(map).map(([fecha, rs]) => [
       fecha,
@@ -137,6 +164,22 @@ export default function CalendarioPage() {
         onCambios={() => void reloadFestivos()}
       />
 
+      {/* Agenda de un especialista */}
+      <div className={styles.filtroEmpleado}>
+        <label>
+          <span>{t("calendario.especialista")}</span>
+          <select value={empleadoId} onChange={(e) => setEmpleadoId(e.target.value)}>
+            <option value="">{t("calendario.todosEspecialistas")}</option>
+            {empleados.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+          </select>
+        </label>
+        {empleadoId && (
+          <span className={styles.resumen}>
+            {t("calendario.proximasN", { n: proximas.length, nombre: nombreEmpleado })}
+          </span>
+        )}
+      </div>
+
       {/* De qué municipio son los festivos que se están pintando */}
       <ContextoFestivos
         sedeId={session?.sedeId ? Number(session.sedeId) : undefined}
@@ -151,6 +194,24 @@ export default function CalendarioPage() {
         onViewChange={(v) => toast(t("common.comingSoon", { view: v }), "default")}
       />
 
+      {empleadoId && (
+        <section className={styles.proximas} aria-label={t("calendario.proximasTitulo", { nombre: nombreEmpleado })}>
+          <h4>{t("calendario.proximasTitulo", { nombre: nombreEmpleado })}</h4>
+          {proximas.length === 0 ? (
+            <p className={styles.vacio}>{t("calendario.proximasVacio")}</p>
+          ) : (
+            proximas.map((r) => (
+              <button key={r.id} type="button" className={styles.cita} onClick={() => popup.open(r, reload)}>
+                <b>{fmtFechaCorta(r.fecha)}</b>
+                <span>{r.hora}{r.horaFin ? ` – ${r.horaFin}` : ""}</span>
+                <span className={styles.citaQue}>{r.servicio} · {r.cliente}</span>
+                <Badge kind={r.estado}>{t(`estados.${r.estado}`)}</Badge>
+              </button>
+            ))
+          )}
+        </section>
+      )}
+
       {/* Atribución exigida por los términos de uso de la fuente de festivos */}
       <p style={{ marginTop: 12, fontSize: 12, color: "var(--slate-500)" }}>
         {t("calendario.festivosCreditos")}{" "}
@@ -159,5 +220,13 @@ export default function CalendarioPage() {
         </a>
       </p>
     </Panel>
+  );
+}
+
+export default function CalendarioPage() {
+  return (
+    <Suspense fallback={null}>
+      <CalendarioContent />
+    </Suspense>
   );
 }

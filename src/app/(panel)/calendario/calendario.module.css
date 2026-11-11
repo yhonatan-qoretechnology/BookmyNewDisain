@@ -1,0 +1,42 @@
+/* Agenda por especialista: selector + resumen */
+.filtroEmpleado {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px;
+  margin: 0 0 14px;
+}
+.filtroEmpleado label { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+.filtroEmpleado label span {
+  font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--slate-500);
+}
+.filtroEmpleado select {
+  padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--navy-900);
+  font: inherit; font-size: 13.5px;
+}
+:global([data-theme="dark"]) .filtroEmpleado select { background: rgba(255,255,255,.04); }
+:global([data-theme="dark"]) .filtroEmpleado option { background: var(--surface-2); color: var(--navy-900); }
+.resumen { font-size: 13px; font-weight: 600; color: var(--slate-500); padding-bottom: 9px; }
+
+/* Próximas reservas del especialista */
+.proximas { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+.proximas h4 { font-size: 14px; font-weight: 800; color: var(--navy-900); margin: 0 0 2px; }
+.vacio { font-size: 13px; color: var(--slate-500); }
+.cita {
+  display: grid; grid-template-columns: 100px 110px 1fr auto; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--navy-900);
+  font: inherit; font-size: 13px; cursor: pointer;
+  transition: border-color .12s;
+}
+.cita:hover { border-color: var(--teal-600); }
+.cita:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 1px; }
+.cita span { color: var(--slate-500); }
+.citaQue { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 560px) {
+  .cita { grid-template-columns: 1fr auto; }
+  .citaQue { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { .cita { transition: none; } }
