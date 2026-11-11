@@ -1,0 +1,27 @@
+.lista {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 14px 0 4px;
+  max-height: 52vh; overflow-y: auto;
+}
+
+.fila {
+  display: grid; grid-template-columns: 120px 1fr auto; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.cuando, .que { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cuando b, .que b { font-size: 13.5px; color: var(--navy-900); }
+.cuando span, .que span {
+  font-size: 12.5px; color: var(--slate-500);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.nota { font-size: 13px; color: var(--slate-500); padding: 12px 2px; }
+.error { font-size: 13px; font-weight: 700; color: var(--red); padding: 12px 2px; }
+
+@media (max-width: 520px) {
+  .fila { grid-template-columns: 1fr auto; }
+  .cuando { grid-column: 1 / -1; flex-direction: row; gap: 8px; }
+}

@@ -14,8 +14,66 @@ import type {
   ApiClient, ApiProfesional, ApiResena, ApiSede, ApiService, ApiServicioAsignable, ClientUpdatePayload,
 } from "@/api/types";
 import { generarPassword } from "@/lib/password";
-import { zonaHoy } from "@/lib/timezone";
+import { zonaHHmm, zonaHoy, zonaYmd } from "@/lib/timezone";
+import { http } from "@/api/http";
+import { EP } from "@/api/endpoints";
+import { APPT_ESTADO_MAP } from "@/api/mappers";
+import type { ApiAppointmentStatus } from "@/api/types";
 import { ReservasController } from "./ReservasController";
+
+/* ── Reservas de un cliente (ficha desde Clientes) ─────────── */
+interface ApiResumenCita {
+  appointmentId: number;
+  serviceName: string | null;
+  profesionalNombre: string | null;
+  sedeNombre: string | null;
+  estado: ApiAppointmentStatus;
+  horaInicio: string | null;
+  horaFin: string | null;
+}
+
+export interface ReservaDeCliente {
+  id: number;
+  servicio: string;
+  profesional: string;
+  sede: string;
+  /** YYYY-MM-DD y HH:mm en la zona del negocio */
+  fecha: string;
+  hora: string;
+  horaFin: string;
+  estado: Reserva["estado"];
+}
+
+function mapResumenCita(c: ApiResumenCita): ReservaDeCliente {
+  const ini = c.horaInicio ? new Date(c.horaInicio) : null;
+  const fin = c.horaFin ? new Date(c.horaFin) : null;
+  return {
+    id: c.appointmentId,
+    servicio: c.serviceName || "—",
+    profesional: c.profesionalNombre || "",
+    sede: c.sedeNombre || "",
+    fecha: ini ? zonaYmd(ini) : "",
+    hora: ini ? zonaHHmm(ini) : "",
+    horaFin: fin ? zonaHHmm(fin) : "",
+    estado: APPT_ESTADO_MAP[c.estado] ?? "pendiente",
+  };
+}
+
+export const ClienteReservasController = {
+  /**
+   * Citas activas (pendientes/confirmadas, de la más próxima a la más
+   * lejana) y atendidas (de la más reciente) de un cliente.
+   */
+  async listar(userId: number): Promise<{ activas: ReservaDeCliente[]; atendidas: ReservaDeCliente[] }> {
+    const r = await http.get<{ pending: ApiResumenCita[]; completed: ApiResumenCita[] }>(
+      EP.appointmentsDeUsuario(userId)
+    );
+    return {
+      activas: (r?.pending || []).map(mapResumenCita),
+      atendidas: (r?.completed || []).map(mapResumenCita),
+    };
+  },
+};
 
 /* ── Clientes (ClientManagementModule: GET /clients) ─────── */
 /** Valores de género que se guardan (el backend lo exige no vacío). */

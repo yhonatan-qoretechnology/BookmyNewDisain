@@ -1067,6 +1067,17 @@ const en: Dictionary = {
     deleteAria: "Delete {nombre}",
     apiRegister: "In API mode, clients register from the client app (POST /auth/register).",
 
+    /* Client bookings */
+    verReservas: "View bookings",
+    verReservasAria: "View {nombre}'s bookings",
+    reservasTitle: "{nombre}'s bookings",
+    reservasSub: "Their bookings at your business: active (pending and confirmed) and completed.",
+    reservasActivas: "Active ({n})",
+    reservasAtendidas: "Completed ({n})",
+    reservasSinActivas: "No active bookings",
+    reservasSinAtendidas: "Not served yet",
+    reservasSinMsg: "When they book, it will show up here.",
+
     /* Client record */
     editAria: "Edit {nombre}",
     detailTitle: "Client record",

@@ -1111,6 +1111,17 @@ const es = {
     deleteAria: "Eliminar {nombre}",
     apiRegister: "En modo API los clientes se registran desde la app de clientes (POST /auth/register).",
 
+    /* Reservas del cliente */
+    verReservas: "Ver reservas",
+    verReservasAria: "Ver las reservas de {nombre}",
+    reservasTitle: "Reservas de {nombre}",
+    reservasSub: "Las que tiene en tu negocio: activas (pendientes y confirmadas) y ya atendidas.",
+    reservasActivas: "Activas ({n})",
+    reservasAtendidas: "Atendidas ({n})",
+    reservasSinActivas: "Sin reservas activas",
+    reservasSinAtendidas: "Aún no ha sido atendido",
+    reservasSinMsg: "Cuando reserve, aparecerá aquí.",
+
     /* Ficha del cliente */
     editAria: "Editar a {nombre}",
     detailTitle: "Ficha del cliente",

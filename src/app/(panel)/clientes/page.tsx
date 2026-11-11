@@ -19,6 +19,7 @@ import Icon from "@/components/ui/Icon";
 import { PersonRow } from "@/components/ui/People";
 import ClienteModal from "@/components/clientes/ClienteModal";
 import NuevoClienteModal from "@/components/clientes/NuevoClienteModal";
+import ClienteReservasModal from "@/components/clientes/ClienteReservasModal";
 import styles from "./clientes.module.css";
 
 export default function ClientesPage() {
@@ -28,6 +29,8 @@ export default function ClientesPage() {
   /* Ficha abierta; null con el modal cerrado */
   const [editando, setEditando] = useState<number | null>(null);
   const [creando, setCreando] = useState(false);
+  /* Cliente cuyas reservas se están viendo */
+  const [viendoReservas, setViendoReservas] = useState<{ id: number; nombre: string } | null>(null);
   const router = useRouter();
   /* La auditoría de login (/auth/accesos) es solo de superadmin */
   const veSeguimiento = session?.role === "superadmin";
@@ -88,6 +91,13 @@ export default function ClientesPage() {
                       </IconButton>
                     )}
                     <IconButton
+                      title={t("clientes.verReservas")}
+                      aria-label={t("clientes.verReservasAria", { nombre: c.nombre })}
+                      onClick={() => setViendoReservas({ id: c.id, nombre: c.nombre })}
+                    >
+                      <Icon name="calendar" />
+                    </IconButton>
+                    <IconButton
                       aria-label={t("clientes.editAria", { nombre: c.nombre })}
                       onClick={() => setEditando(c.id)}
                     >
@@ -107,6 +117,8 @@ export default function ClientesPage() {
         onClose={() => setEditando(null)}
         onGuardado={reload}
       />
+
+      <ClienteReservasModal cliente={viendoReservas} onClose={() => setViendoReservas(null)} />
 
       {/* Alta manual: para quien no se registró desde la app */}
       <NuevoClienteModal
