@@ -2087,6 +2087,10 @@ const en: Dictionary = {
   comunicacion: {
     searchUsers: "Search by name or email…",
     buscarContacto: "Name or full email…",
+    escribiendo: "Typing…",
+    enviado: "Sent",
+    leido: "Read",
+    noLeidosAria: "{n} unread message(s)",
     contactoError: "The contact couldn't be saved. You can still write to them, but they won't stay in your list.",
     buscarContactoAyuda: "With the full email you can find anyone on Bookmy: clients, specialists, branch admins and companies.",
     correoNoExiste: "There's nobody on Bookmy with the email «{correo}».",

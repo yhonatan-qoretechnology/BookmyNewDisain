@@ -8,6 +8,7 @@ import { ChatExportController, puedeExportarChats } from "@/controllers/ChatExpo
 import { useSession } from "@/context/SessionContext";
 import { useUi } from "@/context/UiContext";
 import { useData } from "@/hooks/useData";
+import { useChatSocket } from "@/hooks/useChatSocket";
 import { useI18n } from "@/i18n";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
@@ -20,6 +21,8 @@ import styles from "./comunicacion.module.css";
 /** Sondeo de la conversación activa (el backend también ofrece
     Socket.IO; esta vista usa la vía REST del ChatMessageModule). */
 const POLL_MS = 5000;
+/* Con el socket conectado, el sondeo solo es una red de seguridad */
+const POLL_MS_SOCKET = 30000;
 
 /** Restricciones del endpoint POST /ChatMessage/upload. */
 const ADJUNTO_TIPOS = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
@@ -217,11 +220,41 @@ export default function ComunicacionPage() {
     () => (canalId ? ComunicacionController.getMensajes(session, canalId) : Promise.resolve([])),
     [session?.id, canalId], []
   );
+  /* ── Tiempo real ─────────────────────────────────────────
+     Mensaje nuevo: si es de la conversación abierta se recarga (y se
+     marca leído); si es de otra, sube su contador de no leídos. */
+  const [noLeidos, setNoLeidos] = useState<Record<string, number>>({});
+  const canalIdRef = useRef(canalId);
+  useEffect(() => { canalIdRef.current = canalId; }, [canalId]);
+  const yo = Number(session?.id);
+  const { conectado, escribiendo, avisarEscribiendo, dejarDeEscribir } = useChatSocket(session?.id, {
+    onMensaje: (m) => {
+      const otro = String(m.sender_id === yo ? m.receiver_id : m.sender_id);
+      if (otro === canalIdRef.current) {
+        void reload();
+        if (m.sender_id !== yo) void ComunicacionController.marcarLeido(session, otro);
+      } else if (m.sender_id !== yo) {
+        setNoLeidos((n) => ({ ...n, [otro]: (n[otro] || 0) + 1 }));
+        /* Quien escribe por primera vez aún no está en la lista */
+        if (!canales.some((c) => c.id === otro)) void reloadCanales();
+      }
+    },
+    onLeido: () => { void reload(); },
+  });
+
   useEffect(() => {
     if (!canalId) return;
-    const timer = setInterval(() => { void reload(); }, POLL_MS);
+    const timer = setInterval(() => { void reload(); }, conectado ? POLL_MS_SOCKET : POLL_MS);
     return () => clearInterval(timer);
-  }, [canalId, reload]);
+  }, [canalId, reload, conectado]);
+
+  /* Al cambiar de chat se deja de «escribir» en el anterior */
+  const canalPrevioRef = useRef<string | null>(null);
+  useEffect(() => {
+    const previo = canalPrevioRef.current;
+    if (previo && previo !== canalId) dejarDeEscribir(Number(previo));
+    canalPrevioRef.current = canalId;
+  }, [canalId, dejarDeEscribir]);
 
   useEffect(() => {
     msgsRef.current?.scrollTo({ top: msgsRef.current.scrollHeight, behavior: "smooth" });
@@ -236,6 +269,7 @@ export default function ComunicacionPage() {
   const abrirCanal = (id: string, encontrado?: Canal) => {
     void ComunicacionController.marcarLeido(session, id);
     setCanalId(id);
+    setNoLeidos((n) => (n[id] ? { ...n, [id]: 0 } : n));
     if (canales.some((c) => c.id === id)) return;
     const nuevo = encontrado ?? (searchResults || []).find((c) => c.id === id);
     if (!nuevo) return;
@@ -390,6 +424,7 @@ export default function ComunicacionPage() {
     const cuerpo = texto.trim();
     if (!cuerpo || !canal) return;
     setTexto("");
+    dejarDeEscribir(Number(canal.id));
     await ComunicacionController.enviarMensaje(session, canal, cuerpo);
     await reload();
   };
@@ -435,7 +470,11 @@ export default function ComunicacionPage() {
               <span className={styles.comName}>{c.nombre}</span>
               <span className={styles.comSub}>{c.sub}</span>
             </span>
-            {c.unread > 0 && <span className={styles.unread}>{c.unread}</span>}
+            {(noLeidos[c.id] || c.unread) > 0 && (
+              <span className={styles.unread} aria-label={t("comunicacion.noLeidosAria", { n: noLeidos[c.id] || c.unread })}>
+                {noLeidos[c.id] || c.unread}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -446,7 +485,13 @@ export default function ComunicacionPage() {
             <ChatAvatar nombre={canal.nombre} foto={canal.fotoPerfil} online={canal.online} />
             <span className={styles.comBody}>
               <span className={styles.comName}>{canal.nombre}</span>
-              <span className={styles.comSub}>{canal.sub}</span>
+              {escribiendo[Number(canal.id)] ? (
+                <span className={`${styles.comSub} ${styles.escribiendo}`} aria-live="polite">
+                  {t("comunicacion.escribiendo")}
+                </span>
+              ) : (
+                <span className={styles.comSub}>{canal.sub}</span>
+              )}
             </span>
             {/* Descarga del histórico — solo para el dueño del negocio */}
             {puedeExportar && (
@@ -507,7 +552,18 @@ export default function ComunicacionPage() {
                   onImageClick={setImagenAmpliada}
                   onFileClick={(url, nombre) => setArchivoAmpliado({ url, nombre })}
                 />
-                <span className={styles.msgHora}>{m.hora}</span>
+                <span className={styles.msgHora}>
+                  {m.hora}
+                  {m.dir === "out" && (
+                    <span
+                      className={`${styles.check} ${m.leido ? styles.checkLeido : ""}`}
+                      title={t(m.leido ? "comunicacion.leido" : "comunicacion.enviado")}
+                      aria-label={t(m.leido ? "comunicacion.leido" : "comunicacion.enviado")}
+                    >
+                      {m.leido ? "✓✓" : "✓"}
+                    </span>
+                  )}
+                </span>
               </span>
             </div>
           ))}
@@ -588,7 +644,10 @@ export default function ComunicacionPage() {
               </button>
               <input
                 value={texto}
-                onChange={(e) => setTexto(e.target.value)}
+                onChange={(e) => {
+                  setTexto(e.target.value);
+                  if (canal && e.target.value.trim()) avisarEscribiendo(Number(canal.id));
+                }}
                 onKeyDown={(e) => { if (e.key === "Enter") enviar(); }}
                 placeholder={canal ? t("comunicacion.writeTo", { canal: canal.nombre }) : "…"}
                 aria-label={t("comunicacion.message")}

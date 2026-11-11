@@ -175,6 +175,8 @@ export const EP = {
   chatMessages: (userA: number, userB: number) => `/ChatMessage/messages/${userA}/${userB}`,
   chatSend: "/ChatMessage/messages",
   chatRead: "/ChatMessage/messages/read",
+  /** POST — marca leídos todos los mensajes recibidos de un contacto */
+  chatReadConversacion: (contactId: number) => `/ChatMessage/conversations/${contactId}/read`,
   /** POST multipart/form-data (campo "file") — imagen o PDF, máx. 10MB */
   chatUpload: "/ChatMessage/upload",
   /** POST multipart/form-data (campo "file") — nota de voz, máx. 10MB */

@@ -556,8 +556,11 @@ export const ChatApi = {
    * POST /ChatMessage/messages — envía un mensaje (SendMessageDto).
    */
   send: (dto: SendMessageDto) => http.post<ApiChatMessage>(EP.chatSend, dto),
-  /** POST /ChatMessage/messages/read — marca la conversación como leída. */
-  markRead: (data: { userId: number; contactId: number }) => http.post(EP.chatRead, data),
+  /** POST /ChatMessage/conversations/:contactId/read — marca leída la
+      conversación con ese contacto. (messages/read exige el id de cada
+      mensaje: con { userId, contactId } no marcaba nada.) */
+  markRead: (data: { userId: number; contactId: number }) =>
+    http.post<{ count: number }>(EP.chatReadConversacion(data.contactId)),
   /**
    * POST /ChatMessage/upload — sube un adjunto (imagen o PDF, máx. 10MB).
    * El servidor comprime las imágenes automáticamente.

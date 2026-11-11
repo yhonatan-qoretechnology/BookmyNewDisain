@@ -2157,6 +2157,10 @@ const es = {
   comunicacion: {
     searchUsers: "Busca por nombre o correo…",
     buscarContacto: "Nombre o correo completo…",
+    escribiendo: "Escribiendo…",
+    enviado: "Enviado",
+    leido: "Leído",
+    noLeidosAria: "{n} mensaje(s) sin leer",
     contactoError: "No se pudo guardar el contacto. Puedes escribirle igual, pero no quedará en tu lista.",
     buscarContactoAyuda: "Con el correo completo encuentras a cualquiera en Bookmy: clientes, especialistas, administradores de sede y empresas.",
     correoNoExiste: "No hay nadie en Bookmy con el correo «{correo}».",

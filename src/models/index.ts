@@ -462,6 +462,8 @@ export interface Mensaje {
   hora: string;
   messageType?: "TEXT" | "IMAGE" | "FILE" | "AUDIO";
   fileUrl?: string | null;
+  /** Solo en los enviados: el destinatario ya lo leyó (✓✓) */
+  leido?: boolean;
 }
 
 /* ── Estadísticas ────────────────────────────────────────── */

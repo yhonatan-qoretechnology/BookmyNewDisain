@@ -151,6 +151,7 @@ export const ComunicacionController = {
       ini: initials(m.sender_email.split("@")[0]),
       messageType: m.message_type || "TEXT",
       fileUrl: m.file_url || null,
+      leido: !!m.is_read,
     }));
   },
 

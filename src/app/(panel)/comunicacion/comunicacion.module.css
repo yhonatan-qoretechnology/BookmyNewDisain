@@ -752,3 +752,8 @@
   background: color-mix(in srgb, var(--red) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--red) 35%, transparent);
 }
+
+/* Tiempo real: «Escribiendo…» y confirmación de lectura */
+.escribiendo { color: var(--teal-600); font-style: italic; font-weight: 600; }
+.check { margin-left: 4px; font-size: 10.5px; letter-spacing: -2px; color: var(--slate-400, var(--slate-500)); }
+.checkLeido { color: var(--teal-600); }
