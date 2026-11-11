@@ -615,3 +615,8 @@
   display: flex; justify-content: space-between; gap: 12px;
   margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
 }
+
+/* Paso Cliente: buscador + «Crear cliente» en la misma fila */
+.clienteBusqueda { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.clienteBusqueda > :first-child { flex: 1 1 260px; }
+.clienteNoExiste { color: var(--red); font-weight: 700; }

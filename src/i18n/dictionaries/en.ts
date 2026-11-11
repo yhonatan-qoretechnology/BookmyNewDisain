@@ -697,6 +697,8 @@ const en: Dictionary = {
     clientOutsideSearch: "Search for {termino} outside my clients",
     clientOutsideNotFound: "No client matches {termino}. Check that it is complete.",
     clientOutsideFound: "This client had not booked with you yet; we brought them in by their email or phone number.",
+    clientCreate: "+ Create client",
+    clientCreateNamed: "Create client with {termino}",
     noProsTitle: "Sin profesionales",
     noProsMsg: "Esta sede no tiene profesionales registrados.",
     noServicesTitle: "Sin servicios",

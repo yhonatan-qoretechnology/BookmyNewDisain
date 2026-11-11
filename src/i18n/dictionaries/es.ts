@@ -723,6 +723,8 @@ const es = {
     clientOutsideSearch: "Buscar a {termino} fuera de mis clientes",
     clientOutsideNotFound: "No hay ningún cliente con {termino}. Comprueba que esté completo.",
     clientOutsideFound: "Este cliente todavía no había reservado contigo; lo hemos traído por su correo o su teléfono.",
+    clientCreate: "+ Crear cliente",
+    clientCreateNamed: "Crear cliente con {termino}",
     noProsTitle: "Sin profesionales",
     noProsMsg: "Esta sede no tiene profesionales registrados.",
     noServicesTitle: "Sin servicios",

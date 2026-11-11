@@ -40,6 +40,7 @@ import { ErrorBox, Loading } from "@/components/reservas/booking/Feedback";
 import { ProgressHeader } from "@/components/reservas/booking/ProgressHeader";
 import SedeSelector from "@/components/reservas/booking/SedeSelector";
 import ClienteGrid from "@/components/reservas/booking/ClienteGrid";
+import NuevoClienteModal from "@/components/clientes/NuevoClienteModal";
 import ProfesionalCarousel from "@/components/reservas/booking/ProfesionalCarousel";
 import ServicioAccordion from "@/components/reservas/booking/ServicioAccordion";
 import SlotPicker from "@/components/reservas/booking/SlotPicker";
@@ -145,6 +146,13 @@ export default function NuevaReservaPage() {
      para la reserva (si no, al borrar el buscador desaparecía la tarjeta
      del cliente seleccionado). */
   const [externo, setExterno] = useState<{ termino: string; cliente: ClienteOpcion | null } | null>(null);
+  /* Alta de un cliente que no existe, sin salir del asistente */
+  const [creandoCliente, setCreandoCliente] = useState(false);
+  const onClienteCreado = (c: ClienteOpcion) => {
+    /* Se muestra en el grid (como uno traído de fuera) y queda elegido */
+    setExterno({ termino: query.trim(), cliente: c });
+    booking.setCliente(c);
+  };
   const [buscandoFuera, setBuscandoFuera] = useState(false);
 
   const termino = query.trim();
@@ -416,7 +424,12 @@ export default function NuevaReservaPage() {
       {/* 2 · Cliente — catálogo en grid 4/3/1 (nombre y teléfono) */}
       {step === "cliente" && (
         <>
-          <SearchBox value={query} onChange={setQuery} placeholder={t("booking.clientSearch")} />
+          <div className={styles.clienteBusqueda}>
+            <SearchBox value={query} onChange={setQuery} placeholder={t("booking.clientSearch")} />
+            <Button size="sm" variant="ghost" onClick={() => setCreandoCliente(true)}>
+              {t("booking.clientCreate")}
+            </Button>
+          </div>
           {eC && <ErrorBox>{eC}</ErrorBox>}
           {lC ? <Loading label={t("booking.loading")} /> : clientesVisibles.length === 0 ? (
             <>
@@ -427,7 +440,14 @@ export default function NuevaReservaPage() {
               {sePuedeBuscarFuera && (
                 <div className={styles.contextBar}>
                   {buscadoAhora && !externo?.cliente ? (
-                    <span>{t("booking.clientOutsideNotFound", { termino })}</span>
+                    <>
+                      <span className={styles.clienteNoExiste} role="alert">
+                        {t("booking.clientOutsideNotFound", { termino })}
+                      </span>
+                      <Button size="sm" onClick={() => setCreandoCliente(true)}>
+                        {t("booking.clientCreateNamed", { termino })}
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <span>{t("booking.clientOutsideHint")}</span>
@@ -547,6 +567,14 @@ export default function NuevaReservaPage() {
           </Button>
         )}
       </div>
+
+      <NuevoClienteModal
+        open={creandoCliente}
+        textoInicial={query}
+        empresaId={session?.role === "superadmin" ? empresaId || undefined : undefined}
+        onClose={() => setCreandoCliente(false)}
+        onCreado={onClienteCreado}
+      />
     </Panel>
   );
 }
