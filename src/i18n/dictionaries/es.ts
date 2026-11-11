@@ -1308,6 +1308,12 @@ const es = {
     errTipo: "El archivo debe ser una imagen (JPG, PNG, WEBP o GIF).",
     errPeso: "La imagen supera 10 MB. Elige una más liviana.",
     errSubida: "No se pudo subir la imagen.",
+    confirmarBorrado: "¿Borrar esta imagen?",
+    descartar: "Quitar de la selección",
+    elegirVarias: "Elegir varias",
+    subirN: "Subir {n} imagen(es)",
+    limite: "Solo caben {max} imágenes: se dejaron fuera las que sobraban.",
+    limiteAlcanzado: "Límite alcanzado: {max} imágenes. Borra alguna para subir otra.",
     /* DocumentUpload — hoja de vida y otros documentos (no imágenes) */
     errTipoDoc: "El archivo debe ser PDF o Word (.doc/.docx).",
     sinDocumento: "Sin archivo",

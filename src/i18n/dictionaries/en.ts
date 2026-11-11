@@ -1258,6 +1258,12 @@ const en: Dictionary = {
     errTipo: "The file must be an image (JPG, PNG, WEBP or GIF).",
     errPeso: "The image is over 10 MB. Choose a lighter one.",
     errSubida: "The image could not be uploaded.",
+    confirmarBorrado: "Delete this image?",
+    descartar: "Remove from selection",
+    elegirVarias: "Pick several",
+    subirN: "Upload {n} image(s)",
+    limite: "Only {max} images fit: the extra ones were left out.",
+    limiteAlcanzado: "Limit reached: {max} images. Delete one to upload another.",
     /* DocumentUpload — CV and other non-image documents */
     errTipoDoc: "The file must be PDF or Word (.doc/.docx).",
     sinDocumento: "No file",

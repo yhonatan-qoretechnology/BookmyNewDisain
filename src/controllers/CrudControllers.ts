@@ -860,6 +860,12 @@ export const SedesController = {
     return actualizada?.imagenes ?? [];
   },
 
+  /** Sube varias de una vez — POST /sedes/:id/imagenes (tope MAX_ARCHIVOS_SEDE). */
+  async subirImagenes(sedeId: number, files: File[]): Promise<string[]> {
+    const actualizada = await ImagenesApi.sedeVarias(sedeId, files);
+    return actualizada?.imagenes ?? [];
+  },
+
   /** Quita una imagen — DELETE /sedes/:id/imagenes { imagenes: [ruta] }. */
   async borrarImagen(sedeId: number, ruta: string): Promise<string[]> {
     const actualizada = await ImagenesApi.borrarSedeImagenes(sedeId, [ruta]);

@@ -7,6 +7,7 @@
    SedesController.update sobre por qué no se usan las tablas
    horario_sede / dia_cerrado_sede) + imágenes, en dos pestañas.
 ============================================================ */
+import { MAX_ARCHIVOS_SEDE } from "@/api/modules";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { SedeDetalle } from "@/models";
@@ -359,7 +360,13 @@ export default function EditarSedePage() {
             label={t("imagen.imagenSede")}
             imagenes={sede.imagenes}
             onAdd={subirImagen}
+            onAddMany={async (files) => {
+              const imagenes = await SedesController.subirImagenes(sedeId, files);
+              await reload();
+              return imagenes;
+            }}
             onRemove={borrarImagen}
+            max={MAX_ARCHIVOS_SEDE}
           />
         )
       )}

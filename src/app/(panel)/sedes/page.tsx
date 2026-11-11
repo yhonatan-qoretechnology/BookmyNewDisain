@@ -2,6 +2,7 @@
 /* ============================================================
    Sedes — locales de la marca (View, solo superadmin)
 ============================================================ */
+import { MAX_ARCHIVOS_SEDE } from "@/api/modules";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SedesController } from "@/controllers/CrudControllers";
@@ -114,7 +115,9 @@ export default function SedesPage() {
                   label={t("imagen.imagenSede")}
                   imagenes={s.imagenes}
                   onAdd={(file) => SedesController.subirImagen(s.id, file)}
+                  onAddMany={(files) => SedesController.subirImagenes(s.id, files)}
                   onRemove={(ruta) => SedesController.borrarImagen(s.id, ruta)}
+                  max={MAX_ARCHIVOS_SEDE}
                 />
                 {/* Editar y Servicios a la vista; eliminar en el menú ⋯ */}
                 <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>

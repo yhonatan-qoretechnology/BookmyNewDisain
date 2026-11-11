@@ -84,3 +84,43 @@
   font-size: 12px;
   color: var(--red);
 }
+
+.contador {
+  font-size: 11.5px; font-weight: 800;
+  color: var(--navy-900);
+}
+
+/* Confirmación de borrado sobre la propia miniatura */
+.confirmar {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px;
+  background: rgba(16, 24, 40, 0.78);
+  color: #fff; text-align: center;
+  font-size: 11.5px; font-weight: 700;
+}
+.confirmar div { display: flex; gap: 6px; }
+.si, .no {
+  padding: 4px 8px; border-radius: 6px; border: none;
+  font: inherit; font-size: 11px; font-weight: 800; cursor: pointer;
+}
+.si { background: var(--red); color: #fff; }
+.no { background: rgba(255,255,255,.18); color: #fff; }
+.si:disabled { opacity: .6; cursor: wait; }
+.si:focus-visible, .no:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+
+/* Selección múltiple pendiente */
+.pendiente { outline: 2px dashed var(--teal-500); outline-offset: -2px; }
+.varias { display: flex; flex-wrap: wrap; gap: 8px; }
+.variasBtn, .variasSubir {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--r-sm);
+  font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+.variasBtn { border: 1px dashed var(--border); background: none; color: var(--navy-900); }
+.variasBtn:hover:not(:disabled) { border-color: var(--teal-600); }
+.variasSubir { border: none; background: var(--teal-600); color: #fff; }
+.variasBtn:disabled, .variasSubir:disabled { opacity: .6; cursor: wait; }
+.variasBtn:focus-visible, .variasSubir:focus-visible { outline: 2px solid var(--teal-600); outline-offset: 2px; }
+.variasBtn svg { width: 14px; height: 14px; }
+.aviso { font-size: 12px; font-weight: 600; color: var(--slate-500); }
