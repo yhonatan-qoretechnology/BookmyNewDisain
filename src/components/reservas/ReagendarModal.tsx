@@ -44,9 +44,12 @@ export default function ReagendarModal({ reserva, onClose, onReagendada }: Reage
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Motivo del cambio (opcional): queda registrado con el reagendado */
+  const [motivo, setMotivo] = useState("");
 
   /* Reinicia el estado al abrir el modal para otra reserva */
   useEffect(() => {
+    setMotivo("");
     setFecha(null);
     setSlot(null);
     setSlots([]);
@@ -106,7 +109,7 @@ export default function ReagendarModal({ reserva, onClose, onReagendada }: Reage
     setSaving(true);
     setError(null);
     try {
-      const nueva = await ReservasController.reagendar(reserva, slot);
+      const nueva = await ReservasController.reagendar(reserva, slot, motivo);
       toast(t("reservas.reagendarSuccess"), "success");
       onReagendada(nueva);
       onClose();
@@ -150,6 +153,19 @@ export default function ReagendarModal({ reserva, onClose, onReagendada }: Reage
               ) : (
                 <SlotPicker slots={slots} selected={slot?.hora} onSelect={setSlot} />
               )
+            )}
+
+            {slot && (
+              <label className={styles.motivo}>
+                <span>{t("reservas.reagendarMotivo")}</span>
+                <textarea
+                  rows={2}
+                  maxLength={300}
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  placeholder={t("reservas.reagendarMotivoPh")}
+                />
+              </label>
             )}
           </div>
 

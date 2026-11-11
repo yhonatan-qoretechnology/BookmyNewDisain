@@ -889,7 +889,7 @@ const en: Dictionary = {
   empresas: {
     panelTitle: "Registered companies",
     panelSub: "{n} business(es) on the platform",
-    searchPlaceholder: "Search by name or industry…",
+    searchPlaceholder: "Search by name, email, tax ID or phone…",
     filtroPais: "Filter by country",
     todosLosPaises: "All countries",
     new: "+ New company",
@@ -1041,6 +1041,8 @@ const en: Dictionary = {
     reagendarTitle: "Reschedule booking",
     reagendarSub: "{servicio} · {cliente}",
     reagendarConfirm: "Confirm new time",
+    reagendarMotivo: "Reason for the change (optional)",
+    reagendarMotivoPh: "E.g. the client asked to move it to the afternoon",
     reagendarSuccess: "Booking rescheduled successfully",
     reagendarError: "Couldn't reschedule the booking. Please try again.",
     reagendarLoadError: "Couldn't load availability. Please try again.",

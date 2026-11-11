@@ -10,6 +10,8 @@ import { SESSION_STORAGE_KEY } from "@/constants";
 import { isApiEnabled, setToken } from "@/api/config";
 import { AuthApi, EmpresasApi, ProfesionalesApi, SedesApi } from "@/api/modules";
 import { mapUserToSession } from "@/api/mappers";
+import { http } from "@/api/http";
+import { EP } from "@/api/endpoints";
 import { decodeJwtPayload } from "@/lib/jwt";
 
 export const AuthController = {
@@ -32,6 +34,17 @@ export const AuthController = {
   clearSession() {
     try { sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch { /* noop */ }
     setToken(null);
+  },
+
+  /**
+   * Cierra la sesión también en el servidor: POST /auth/logout borra la
+   * cookie httpOnly `access_token`, que el panel no puede tocar. Sin esto
+   * la cookie seguía viva tras «Cerrar sesión». Best-effort: si falla, la
+   * sesión local se borra igual.
+   */
+  async cerrarEnServidor(): Promise<void> {
+    if (!isApiEnabled()) return;
+    await http.post(EP.logout).catch(() => undefined);
   },
 
   /**

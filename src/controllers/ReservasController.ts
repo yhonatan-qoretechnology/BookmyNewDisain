@@ -340,7 +340,7 @@ export const ReservasController = {
    * Conserva cliente, servicio y profesional; solo cambia fecha/hora.
    * @throws ApiError si el backend rechaza la nueva franja.
    */
-  async reagendar(reserva: Reserva, slot: SlotHora): Promise<Reserva> {
+  async reagendar(reserva: Reserva, slot: SlotHora, motivo?: string): Promise<Reserva> {
     if (reserva.apiId == null) throw new Error("SIN_ID");
     /* RescheduleAppointmentDto NO admite un ISO completo: exige la fecha
        y las horas por separado (@IsDateString + @Matches HH:mm:ss). Ojo,
@@ -355,6 +355,7 @@ export const ReservasController = {
       fecha: slot.inicioISO.slice(0, 10),       // YYYY-MM-DD (UTC)
       horaInicio: slot.inicioISO.slice(11, 19), // HH:mm:ss (UTC)
       horaFin: slot.finISO.slice(11, 19),       // HH:mm:ss (UTC)
+      ...(motivo?.trim() ? { motivo: motivo.trim() } : {}),
     });
     const mapped: Reserva = {
       ...reserva,

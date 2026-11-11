@@ -5,6 +5,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import Chatbot from "./Chatbot";
 import styles from "./AppShell.module.css";
 
 export interface PageMeta {
@@ -37,6 +38,8 @@ export default function AppShell({
           onMenuToggle={() => setSidebarOpen((o) => !o)}
         />
         <main className={styles.content}>{children}</main>
+        {/* Asistente de ayuda en todas las pantallas, esquina inferior derecha */}
+        <Chatbot />
       </div>
     </div>
   );

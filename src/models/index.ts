@@ -32,6 +32,10 @@ export interface Negocio {
   nombre: string;
   /** Descripción/rubro (columna descripcion de empresas) */
   rubro: string;
+  /** Contacto e identificador fiscal (para el buscador del superadmin) */
+  email?: string | null;
+  telefono?: string | null;
+  nit?: string | null;
   activo: boolean;
   /** Logo de la empresa (columna logo_url); encabeza las facturas */
   logo?: string | null;

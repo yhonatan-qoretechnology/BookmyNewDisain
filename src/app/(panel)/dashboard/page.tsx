@@ -15,7 +15,6 @@ import { useI18n } from "@/i18n";
 import { useRegion } from "@/context/RegionContext";
 import { useReservaPopup } from "@/components/reservas/ReservaPopupContext";
 import ReagendarModal from "@/components/reservas/ReagendarModal";
-import Chatbot from "@/components/layout/Chatbot";
 import type { Reserva } from "@/models";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Panel, { PanelHead } from "@/components/ui/Panel";
@@ -266,9 +265,6 @@ export default function DashboardPage() {
         onClose={() => setReagendando(null)}
         onReagendada={onReagendada}
       />
-
-      {/* Asistente de ayuda — esquina inferior derecha */}
-      <Chatbot />
     </>
   );
 }

@@ -933,7 +933,7 @@ const es = {
   empresas: {
     panelTitle: "Empresas registradas",
     panelSub: "{n} negocio(s) en la plataforma",
-    searchPlaceholder: "Buscar por nombre o rubro…",
+    searchPlaceholder: "Buscar por nombre, correo, NIT o teléfono…",
     filtroPais: "Filtrar por país",
     todosLosPaises: "Todos los países",
     new: "+ Nueva empresa",
@@ -1085,6 +1085,8 @@ const es = {
     reagendarTitle: "Reagendar reserva",
     reagendarSub: "{servicio} · {cliente}",
     reagendarConfirm: "Confirmar nuevo horario",
+    reagendarMotivo: "Motivo del cambio (opcional)",
+    reagendarMotivoPh: "Ej.: el cliente pidió pasarla a la tarde",
     reagendarSuccess: "Reserva reagendada correctamente",
     reagendarError: "No se pudo reagendar la reserva. Intenta de nuevo.",
     reagendarLoadError: "No se pudo cargar la disponibilidad. Intenta de nuevo.",

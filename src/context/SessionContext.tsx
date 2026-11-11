@@ -38,6 +38,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    void AuthController.cerrarEnServidor();
     AuthController.clearSession();
     setSession(null);
   }, []);

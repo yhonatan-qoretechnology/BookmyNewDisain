@@ -8,6 +8,8 @@
 export const EP = {
   /* @Controller('auth') */
   login: "/auth/login",
+  /** POST — borra la cookie httpOnly de sesión (pública) */
+  logout: "/auth/logout",
   register: "/auth/register",
   users: "/auth/users",
   userById: (id: number) => `/auth/users/${id}`,

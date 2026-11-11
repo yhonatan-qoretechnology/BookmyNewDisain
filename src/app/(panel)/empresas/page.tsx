@@ -143,7 +143,7 @@ export default function EmpresasPage() {
     const q = search.toLowerCase();
     return todas
       .filter((n) => !paisFiltro || n.paisIso === paisFiltro)
-      .filter((n) => (n.nombre + n.rubro).toLowerCase().includes(q));
+      .filter((n) => [n.nombre, n.rubro, n.email, n.nit, n.telefono].filter(Boolean).join(" ").toLowerCase().includes(q));
   }, [todas, search, paisFiltro]);
 
   /* Solo se ofrecen los paises que de verdad tienen negocios: mientras no
