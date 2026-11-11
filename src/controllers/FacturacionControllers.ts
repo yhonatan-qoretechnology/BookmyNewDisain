@@ -96,6 +96,8 @@ export interface Gasto {
   ticketNombre?: string;     // derivado de la URL
   total: number;
   sedeId: string;
+  proveedor: string;
+  estado: "PAGADO" | "PENDIENTE";
 }
 
 /** Alcance compartido por Facturas y Gastos: qué sede(s) consultar según el rol */
@@ -598,6 +600,8 @@ function gastoDesdeApi(g: ApiGasto): Gasto {
     ticketNombre: g.ticketUrl ? nombreArchivoDeUrl(g.ticketUrl) : undefined,
     total: Number(g.total || 0),
     sedeId: String(g.sedeId),
+    proveedor: g.proveedor || "",
+    estado: g.estado === "PENDIENTE" ? "PENDIENTE" : "PAGADO",
   };
 }
 
@@ -628,7 +632,7 @@ export const GastosController = {
     const all = await this.list(session, f);
     return all.filter(
       (g) =>
-        match(g.gasto, f.gasto) &&
+        (match(g.gasto, f.gasto) || match(g.proveedor, f.gasto)) &&
         (!f.categoriaId || g.categoriaId === f.categoriaId) &&
         (!f.fecha || g.fecha === f.fecha)
     );
@@ -647,6 +651,8 @@ export const GastosController = {
     total: number;
     sedeId: string;
     ticket?: File | null;
+    proveedor?: string;
+    estado?: "PAGADO" | "PENDIENTE";
   }): Promise<Gasto> {
     let ticketUrl: string | undefined;
     if (input.ticket) {
@@ -660,6 +666,9 @@ export const GastosController = {
       categoriaId: Number(input.categoriaId),
       sedeId: Number(input.sedeId),
       ticketUrl,
+      /* Solo si se rellenan: un backend sin la migración rechaza campos de más */
+      ...(input.proveedor?.trim() ? { proveedor: input.proveedor.trim() } : {}),
+      ...(input.estado === "PENDIENTE" ? { estado: "PENDIENTE" as const } : {}),
     });
     return gastoDesdeApi(creado);
   },

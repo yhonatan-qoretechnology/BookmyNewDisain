@@ -757,3 +757,4 @@
 .escribiendo { color: var(--teal-600); font-style: italic; font-weight: 600; }
 .check { margin-left: 4px; font-size: 10.5px; letter-spacing: -2px; color: var(--slate-400, var(--slate-500)); }
 .checkLeido { color: var(--teal-600); }
+.enLinea { color: var(--teal-600); font-weight: 600; }

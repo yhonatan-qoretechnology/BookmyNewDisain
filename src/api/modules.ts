@@ -715,6 +715,11 @@ export const ImagenesApi = {
   /** PATCH /empresas/:id/logo — campo "logo". */
   empresaLogo: (id: number, file: File) =>
     http.patchForm<ApiEmpresa>(EP.empresaLogo(id), formData("logo", file)),
+  /** PATCH /empresas/:id/banner — campo "banner" (portada del negocio). */
+  empresaBanner: (id: number, file: File) =>
+    http.patchForm<ApiEmpresa>(EP.empresaBanner(id), formData("banner", file)),
+  /** DELETE /empresas/:id/banner — quita la portada. */
+  quitarEmpresaBanner: (id: number) => http.delete<ApiEmpresa>(EP.empresaBanner(id)),
 
   /** PATCH /categories/:id/image — campo "image". */
   categoria: (id: number, file: File) =>

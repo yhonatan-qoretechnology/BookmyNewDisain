@@ -191,7 +191,9 @@ export default function GastosPage() {
             headers={[
               t("gastos.gasto"),
               t("gastos.categoria"),
+              t("gastos.proveedor"),
               t("common.date"),
+              t("gastos.estado"),
               t("gastos.tickete"),
               t("gastos.total"),
               t("common.actions"),
@@ -201,7 +203,13 @@ export default function GastosPage() {
               <tr key={g.id}>
                 <td><b>{g.gasto}</b></td>
                 <td><Badge kind="activo">{g.categoria}</Badge></td>
+                <td>{g.proveedor || "—"}</td>
                 <td>{fmtFechaLarga(g.fecha)}</td>
+                <td>
+                  <Badge kind={g.estado === "PENDIENTE" ? "pendiente" : "pagado"}>
+                    {t(g.estado === "PENDIENTE" ? "gastos.estadoPendiente" : "gastos.estadoPagado")}
+                  </Badge>
+                </td>
                 <td>
                   {g.ticket ? (
                     <button

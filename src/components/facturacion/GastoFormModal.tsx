@@ -47,6 +47,8 @@ function Contenido({
   const [sedeId, setSedeId] = useState("");
   const [fecha, setFecha] = useState(hoy());
   const [total, setTotal] = useState("");
+  const [proveedor, setProveedor] = useState("");
+  const [estado, setEstado] = useState<"PAGADO" | "PENDIENTE">("PAGADO");
   const [ticketFile, setTicketFile] = useState<File | null>(null);
   const [ticketPreviewUrl, setTicketPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -86,6 +88,7 @@ function Contenido({
 
   const reset = () => {
     setGasto(""); setCategoriaId(""); setEmpresaId(""); setSedeId(""); setFecha(hoy());
+    setProveedor(""); setEstado("PAGADO");
     setTotal(""); setTicketFile(null);
     if (ticketPreviewUrl) URL.revokeObjectURL(ticketPreviewUrl);
     setTicketPreviewUrl(null);
@@ -131,6 +134,8 @@ function Contenido({
         fecha,
         total: monto,
         ticket: ticketFile,
+        proveedor,
+        estado,
       });
       toast(t("gastos.creado"), "success");
       onSaved(nuevo);
@@ -275,6 +280,35 @@ function Contenido({
               placeholder={t("gastos.totalPlaceholder")}
               onChange={(e) => { setTotal(e.target.value); setError(""); }}
             />
+          </div>
+
+          {/* Proveedor + estado del pago */}
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="gf-proveedor">
+              {t("gastos.proveedor")}
+              <span className={styles.hint}>{t("gastos.opcional")}</span>
+            </label>
+            <input
+              id="gf-proveedor"
+              className={styles.input}
+              maxLength={160}
+              value={proveedor}
+              placeholder={t("gastos.proveedorPh")}
+              onChange={(e) => setProveedor(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="gf-estado">{t("gastos.estado")}</label>
+            <select
+              id="gf-estado"
+              className={styles.input}
+              value={estado}
+              onChange={(e) => setEstado(e.target.value as "PAGADO" | "PENDIENTE")}
+            >
+              <option value="PAGADO">{t("gastos.estadoPagado")}</option>
+              <option value="PENDIENTE">{t("gastos.estadoPendiente")}</option>
+            </select>
           </div>
 
           {/* Fila 3 — adjunto del tickete a todo el ancho */}

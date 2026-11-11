@@ -227,7 +227,7 @@ export default function ComunicacionPage() {
   const canalIdRef = useRef(canalId);
   useEffect(() => { canalIdRef.current = canalId; }, [canalId]);
   const yo = Number(session?.id);
-  const { conectado, escribiendo, avisarEscribiendo, dejarDeEscribir } = useChatSocket(session?.id, {
+  const { conectado, escribiendo, presencia, avisarEscribiendo, dejarDeEscribir } = useChatSocket(session?.id, {
     onMensaje: (m) => {
       const otro = String(m.sender_id === yo ? m.receiver_id : m.sender_id);
       if (otro === canalIdRef.current) {
@@ -465,7 +465,7 @@ export default function ComunicacionPage() {
             className={`${styles.comItem} ${c.id === canalId ? styles.comItemActive : ""}`}
             onClick={() => abrirCanal(c.id)}
           >
-            <ChatAvatar nombre={c.nombre} foto={c.fotoPerfil} online={c.online} />
+            <ChatAvatar nombre={c.nombre} foto={c.fotoPerfil} online={presencia[Number(c.id)] ?? c.online} />
             <span className={styles.comBody}>
               <span className={styles.comName}>{c.nombre}</span>
               <span className={styles.comSub}>{c.sub}</span>
@@ -482,13 +482,15 @@ export default function ComunicacionPage() {
       <div className={styles.chat}>
         {canal && (
           <div className={styles.chatHead}>
-            <ChatAvatar nombre={canal.nombre} foto={canal.fotoPerfil} online={canal.online} />
+            <ChatAvatar nombre={canal.nombre} foto={canal.fotoPerfil} online={presencia[Number(canal.id)] ?? canal.online} />
             <span className={styles.comBody}>
               <span className={styles.comName}>{canal.nombre}</span>
               {escribiendo[Number(canal.id)] ? (
                 <span className={`${styles.comSub} ${styles.escribiendo}`} aria-live="polite">
                   {t("comunicacion.escribiendo")}
                 </span>
+              ) : (presencia[Number(canal.id)] ?? canal.online) ? (
+                <span className={`${styles.comSub} ${styles.enLinea}`}>{t("comunicacion.enLinea")}</span>
               ) : (
                 <span className={styles.comSub}>{canal.sub}</span>
               )}

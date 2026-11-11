@@ -31,6 +31,8 @@ export function useChatSocket(userId: string | null | undefined, handlers: ChatS
   const [conectado, setConectado] = useState(false);
   /** senderId → instante del último «typing» recibido */
   const [escribiendo, setEscribiendo] = useState<Record<number, number>>({});
+  /** Cambios de presencia recibidos en vivo: userId → en línea */
+  const [presencia, setPresencia] = useState<Record<number, boolean>>({});
   const ultimoTypingRef = useRef<Record<number, number>>({});
   const paradaRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
@@ -72,6 +74,8 @@ export function useChatSocket(userId: string | null | undefined, handlers: ChatS
         return resto;
       });
     });
+    socket.on("user_online", (d: { userId: number }) => setPresencia((p) => ({ ...p, [d.userId]: true })));
+    socket.on("user_offline", (d: { userId: number }) => setPresencia((p) => ({ ...p, [d.userId]: false })));
     socket.on("message_read", (d: { chatId: number; readerId: number }) => {
       handlersRef.current.onLeido?.(d);
     });
@@ -130,5 +134,5 @@ export function useChatSocket(userId: string | null | undefined, handlers: ChatS
     ultimoTypingRef.current[receiverId] = 0;
   }, [userId]);
 
-  return { conectado, escribiendo, avisarEscribiendo, dejarDeEscribir };
+  return { conectado, escribiendo, presencia, avisarEscribiendo, dejarDeEscribir };
 }

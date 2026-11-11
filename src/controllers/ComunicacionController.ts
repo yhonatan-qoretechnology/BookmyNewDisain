@@ -59,7 +59,8 @@ export const ComunicacionController = {
         id: String(u.id),
         nombre: u.email.split("@")[0],
         sub: u.email,
-        online: false,
+        /* El backend dice quién tiene ahora el chat abierto */
+        online: !!(c as { online?: boolean }).online,
         unread: 0,
         email: u.email,
       };

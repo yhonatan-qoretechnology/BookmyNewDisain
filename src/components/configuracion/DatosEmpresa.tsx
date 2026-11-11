@@ -8,10 +8,11 @@
    empresa).
 ============================================================ */
 import { useState } from "react";
-import { EmpresasApi } from "@/api/modules";
+import { EmpresasApi, ImagenesApi } from "@/api/modules";
 import { fotoUrl } from "@/constants";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/context/SessionContext";
+import { useUi } from "@/context/UiContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
@@ -24,6 +25,8 @@ export default function DatosEmpresa() {
   const { session, updateSession } = useSession();
   const empresaId = Number(session?.negocioId) || 0;
   const [editando, setEditando] = useState(false);
+  const { toast } = useUi();
+  const [subiendoBanner, setSubiendoBanner] = useState(false);
 
   const { data: empresa, reload } = useData(
     () => (empresaId ? EmpresasApi.findOne(empresaId).catch(() => null) : Promise.resolve(null)),
@@ -32,6 +35,34 @@ export default function DatosEmpresa() {
   );
 
   if (!empresaId) return null;
+
+  /* Portada: imagen ancha que encabeza el negocio en la app */
+  const cambiarBanner = async (file: File | undefined) => {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { toast(t("imagen.errTipo"), "error"); return; }
+    if (file.size > 10 * 1024 * 1024) { toast(t("imagen.errPeso"), "error"); return; }
+    setSubiendoBanner(true);
+    try {
+      await ImagenesApi.empresaBanner(empresaId, file);
+      await reload();
+      toast(t("configuracion.bannerListo"), "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("imagen.errSubida"), "error");
+    } finally {
+      setSubiendoBanner(false);
+    }
+  };
+  const quitarBanner = async () => {
+    setSubiendoBanner(true);
+    try {
+      await ImagenesApi.quitarEmpresaBanner(empresaId);
+      await reload();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+    } finally {
+      setSubiendoBanner(false);
+    }
+  };
 
   const redes = [
     { etiqueta: "Web", url: empresa?.webUrl },
@@ -51,6 +82,35 @@ export default function DatosEmpresa() {
           </Button>
         }
       />
+
+      {empresa && (
+        <div className={styles.banner}>
+          {empresa.banner ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={fotoUrl(empresa.banner) || ""} alt="" />
+          ) : (
+            <span className={styles.bannerVacio}>{t("configuracion.bannerVacio")}</span>
+          )}
+          <div className={styles.bannerAcciones}>
+            <label className={styles.bannerBtn} aria-busy={subiendoBanner}>
+              <Icon name="camera" />
+              {subiendoBanner ? t("imagen.subiendo") : t(empresa.banner ? "configuracion.bannerCambiar" : "configuracion.bannerSubir")}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                disabled={subiendoBanner}
+                onChange={(e) => { void cambiarBanner(e.target.files?.[0]); e.target.value = ""; }}
+              />
+            </label>
+            {empresa.banner && (
+              <button type="button" className={styles.bannerBtn} onClick={() => void quitarBanner()} disabled={subiendoBanner}>
+                <Icon name="trash" /> {t("configuracion.bannerQuitar")}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {empresa ? (
         <div className={styles.ficha}>

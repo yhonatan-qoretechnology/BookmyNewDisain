@@ -125,6 +125,8 @@ export interface ApiEmpresa {
   email?: string | null;
   nit?: string | null;
   logo?: string | null;
+  /** Portada (banner_url); requiere la migración 20261111120000 */
+  banner?: string | null;
   descripcion?: string | null;
   descripcionLarga?: string | null;
   webUrl?: string | null;
@@ -945,6 +947,9 @@ export interface ApiGasto {
   /** ISO completo; el panel solo usa la parte de fecha */
   fecha: string;
   ticketUrl?: string | null;
+  /** Requiere la migración 20261111120000 */
+  proveedor?: string | null;
+  estado?: "PAGADO" | "PENDIENTE";
   createdAt: string;
   updatedAt: string;
   categoriaId: number;
@@ -965,6 +970,8 @@ export interface CreateGastoDto {
   categoriaId: number;
   sedeId: number;
   ticketUrl?: string;
+  proveedor?: string;
+  estado?: "PAGADO" | "PENDIENTE";
 }
 
 /** DTO de PATCH /gastos/:id — parcial y SIN sedeId (OmitType en el backend:

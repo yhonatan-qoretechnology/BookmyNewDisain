@@ -91,6 +91,8 @@ export const EP = {
   empresaPrueba: (id: number) => `/empresas/${id}/prueba`,
   /** PATCH multipart — campo "logo". Devuelve la Empresa actualizada. */
   empresaLogo: (id: number) => `/empresas/${id}/logo`,
+  /** PATCH (multipart «banner») sube la portada; DELETE la quita */
+  empresaBanner: (id: number) => `/empresas/${id}/banner`,
   /* Verificación de identidad del negocio (KYC), revisada a mano.
      Ojo: "kyc/pendientes" va antes que /empresas/:id en el backend. */
   kycPendientes: "/empresas/kyc/pendientes",
