@@ -183,6 +183,8 @@ export const EP = {
   appointmentById: (id: number) => `/appointments/${id}`,
   appointmentsFilter: "/appointments/filter",
   appointmentsCalendar: "/appointments/calendar",
+  /** POST — envía por correo la factura en PDF (solo admins) */
+  emailSendInvoice: "/email/send-invoice",
   /** GET — citas de un cliente: { pending, completed } */
   appointmentsDeUsuario: (userId: number) => `/appointments/users/${userId}/services`,
   /** POST — mismo payload que /appointments; crea las dos partes del servicio partido */

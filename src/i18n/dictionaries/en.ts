@@ -1179,6 +1179,17 @@ const en: Dictionary = {
     emitida: "Issued",
     generando: "Generating PDF…",
     pdfListo: "Invoice downloaded",
+    /* Send and share */
+    enviarCorreo: "Send by email",
+    correoDestino: "Send the invoice to",
+    enviar: "Send",
+    enviando: "Sending…",
+    correoInvalido: "Enter a valid email.",
+    correoEnviado: "Invoice sent to {correo}",
+    correoError: "Couldn't send the invoice by email",
+    whatsapp: "WhatsApp",
+    waMensaje: "Hi {cliente}, here is your invoice {factura} from {negocio} for {total}. Thank you!",
+    waAdjunta: "PDF downloaded: attach it in the WhatsApp chat that just opened.",
     pdfError: "The PDF could not be generated",
     /* Manual create — see NuevaFacturaModal */
     nuevaFactura: "Create invoice",

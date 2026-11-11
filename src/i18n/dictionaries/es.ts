@@ -1229,6 +1229,17 @@ const es = {
     emitida: "Emitida",
     generando: "Generando PDF…",
     pdfListo: "Factura descargada",
+    /* Enviar y compartir */
+    enviarCorreo: "Enviar por correo",
+    correoDestino: "Enviar la factura a",
+    enviar: "Enviar",
+    enviando: "Enviando…",
+    correoInvalido: "Escribe un correo válido.",
+    correoEnviado: "Factura enviada a {correo}",
+    correoError: "No se pudo enviar la factura por correo",
+    whatsapp: "WhatsApp",
+    waMensaje: "Hola {cliente}, te enviamos tu factura {factura} de {negocio} por {total}. ¡Gracias!",
+    waAdjunta: "PDF descargado: adjúntalo en el chat de WhatsApp que se abrió.",
     pdfError: "No se pudo generar el PDF",
     /* Alta manual — ver NuevaFacturaModal */
     nuevaFactura: "Crear factura",

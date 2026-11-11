@@ -65,6 +65,11 @@ export interface FormatoMoneda {
   decimales: number;
 }
 
+/** Nombre de archivo de la factura: «F-0001-ana-perez.pdf» */
+export function nombreFacturaPdf(f: Factura): string {
+  return `${f.id}-${f.cliente.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+}
+
 /**
  * Construye el PDF de una factura y lo descarga.
  * @param f      Factura a imprimir.
@@ -78,6 +83,27 @@ export async function descargarFacturaPdf(
   x: TextosPdf,
   fmt: FormatoMoneda,
 ): Promise<void> {
+  const doc = await construirPdf(f, emisor, x, fmt);
+  doc.save(nombreFacturaPdf(f));
+}
+
+/** El mismo PDF como archivo, para compartirlo (WhatsApp, etc.). */
+export async function facturaPdfComoArchivo(
+  f: Factura,
+  emisor: Emisor,
+  x: TextosPdf,
+  fmt: FormatoMoneda,
+): Promise<File> {
+  const doc = await construirPdf(f, emisor, x, fmt);
+  return new File([doc.output("blob")], nombreFacturaPdf(f), { type: "application/pdf" });
+}
+
+async function construirPdf(
+  f: Factura,
+  emisor: Emisor,
+  x: TextosPdf,
+  fmt: FormatoMoneda,
+) {
   const jsPDF = (await import("jspdf")).default;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
@@ -235,5 +261,5 @@ export async function descargarFacturaPdf(
   doc.text(`${emisor.nombre} · ${x.pie}`, M, H - 14);
   doc.text(new Date().toLocaleString(), W - M, H - 14, { align: "right" });
 
-  doc.save(`${f.id}-${f.cliente.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+  return doc;
 }

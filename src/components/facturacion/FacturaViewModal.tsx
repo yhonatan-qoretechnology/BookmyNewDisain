@@ -2,7 +2,8 @@
 /* ============================================================
    FacturaViewModal — popup de la factura
    Encabeza con los datos del emisor (logo, empresa, sede y
-   contacto) y permite descargarla en PDF o imprimirla.
+   contacto) y permite descargarla en PDF, imprimirla, enviarla
+   por correo al cliente o compartirla por WhatsApp.
 ============================================================ */
 import { useState } from "react";
 import { fmtFechaLarga, fmtMoneda, initials } from "@/constants";
@@ -15,7 +16,9 @@ import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import { AnimatePresence } from "framer-motion";
 import Modal from "./Modal";
-import { descargarFacturaPdf } from "./facturaPdf";
+import { descargarFacturaPdf, facturaPdfComoArchivo, type TextosPdf } from "./facturaPdf";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 import styles from "./facturacion.module.css";
 
 function Contenido({
@@ -48,6 +51,14 @@ function Contenido({
   const [cantidad, setCantidad] = useState("1");
   const [precio, setPrecio] = useState("");
   const [guardandoItem, setGuardandoItem] = useState(false);
+
+  /* Envío por correo: el destino se puede corregir antes de mandar */
+  const [enviandoCorreo, setEnviandoCorreo] = useState(false);
+  const [pidiendoCorreo, setPidiendoCorreo] = useState(false);
+  const [correo, setCorreo] = useState(
+    factura.clienteEmail && factura.clienteEmail !== "—" ? factura.clienteEmail : ""
+  );
+  const [compartiendo, setCompartiendo] = useState(false);
 
   const f = factura;
   /* Solo los adicionales (payment_items) llevan itemId: la línea del servicio no se quita. */
@@ -110,34 +121,87 @@ function Contenido({
     }
   };
 
+  const textosPdf = (): TextosPdf => ({
+    factura: t("facturacion.panelTitle"),
+    emitida: t("facturacion.emitida"),
+    receptor: t("facturacion.receptor"),
+    concepto: t("facturacion.concepto"),
+    cantidad: t("facturacion.cantidad"),
+    precio: t("facturacion.precio"),
+    subtotal: t("facturacion.subtotal"),
+    total: t("gastos.total"),
+    estado: t("common.state"),
+    reserva: t("facturacion.reserva"),
+    sede: t("facturacion.sede"),
+    nit: etiqueta("fiscal"),
+    servicio: t("common.service"),
+    fecha: t("common.date"),
+    cliente: t("common.client"),
+    metodoPago: t("common.price"),
+    profesional: t("common.specialist"),
+    pie: t("facturacion.panelTitle"),
+  });
+  const formato = { locale: pais.locale, decimales: pais.decimalesMoneda };
+
   const descargar = async () => {
     setGenerando(true);
     try {
-      await descargarFacturaPdf(f, em, {
-        factura: t("facturacion.panelTitle"),
-        emitida: t("facturacion.emitida"),
-        receptor: t("facturacion.receptor"),
-        concepto: t("facturacion.concepto"),
-        cantidad: t("facturacion.cantidad"),
-        precio: t("facturacion.precio"),
-        subtotal: t("facturacion.subtotal"),
-        total: t("gastos.total"),
-        estado: t("common.state"),
-        reserva: t("facturacion.reserva"),
-        sede: t("facturacion.sede"),
-        nit: etiqueta("fiscal"),
-        servicio: t("common.service"),
-        fecha: t("common.date"),
-        cliente: t("common.client"),
-        metodoPago: t("common.price"),
-        profesional: t("common.specialist"),
-        pie: t("facturacion.panelTitle"),
-      }, { locale: pais.locale, decimales: pais.decimalesMoneda });
+      await descargarFacturaPdf(f, em, textosPdf(), formato);
       toast(t("facturacion.pdfListo"), "success");
     } catch {
       toast(t("facturacion.pdfError"), "error");
     } finally {
       setGenerando(false);
+    }
+  };
+
+  const enviarCorreo = async () => {
+    if (!EMAIL_RE.test(correo.trim())) {
+      toast(t("facturacion.correoInvalido"), "error");
+      return;
+    }
+    setEnviandoCorreo(true);
+    try {
+      await FacturasController.enviarPorCorreo(f, correo, em.sedeNombre || "");
+      toast(t("facturacion.correoEnviado", { correo: correo.trim() }), "success");
+      setPidiendoCorreo(false);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("facturacion.correoError"), "error");
+    } finally {
+      setEnviandoCorreo(false);
+    }
+  };
+
+  /* WhatsApp: en el móvil se comparte el PDF tal cual (hoja de compartir
+     del sistema). Donde no se puede adjuntar un archivo (escritorio), se
+     descarga el PDF y se abre el chat del cliente con el mensaje, para
+     que lo adjunte. */
+  const compartirWhatsApp = async () => {
+    setCompartiendo(true);
+    const tel = (f.clienteTelefono || "").replace(/\D/g, "");
+    const texto = t("facturacion.waMensaje", {
+      cliente: f.cliente,
+      factura: f.id,
+      total: fmtMoneda(f.total, f.moneda, pais.locale, pais.decimalesMoneda),
+      negocio: em.nombre,
+    });
+    try {
+      const archivo = await facturaPdfComoArchivo(f, em, textosPdf(), formato);
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [archivo] })) {
+        await navigator.share({ files: [archivo], text: texto, title: `${t("facturacion.panelTitle")} ${f.id}` });
+      } else {
+        const url = URL.createObjectURL(archivo);
+        const a = document.createElement("a");
+        a.href = url; a.download = archivo.name; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        window.open(`https://wa.me/${tel}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+        toast(t("facturacion.waAdjunta"), "default");
+      }
+    } catch (e) {
+      /* Cerrar la hoja de compartir no es un error */
+      if (!(e instanceof DOMException && e.name === "AbortError")) toast(t("facturacion.pdfError"), "error");
+    } finally {
+      setCompartiendo(false);
     }
   };
 
@@ -166,6 +230,12 @@ function Contenido({
           <Button variant="ghost" onClick={() => window.print()}>
             <Icon name="printer" /> {t("facturacion.imprimir")}
           </Button>
+          <Button variant="ghost" onClick={() => void compartirWhatsApp()} disabled={compartiendo}>
+            <Icon name="send" /> {compartiendo ? t("facturacion.generando") : t("facturacion.whatsapp")}
+          </Button>
+          <Button variant="ghost" onClick={() => setPidiendoCorreo((v) => !v)} disabled={enviandoCorreo}>
+            <Icon name="mail" /> {t("facturacion.enviarCorreo")}
+          </Button>
           <Button onClick={descargar} disabled={generando}>
             <Icon name="download" />
             {generando ? t("facturacion.generando") : t("facturacion.descargarPdf")}
@@ -173,6 +243,27 @@ function Contenido({
         </>
       }
     >
+      {/* ── Envío por correo: destino editable ── */}
+      {pidiendoCorreo && (
+        <div className={styles.envioCorreo} data-no-print>
+          <label htmlFor="fv-correo">{t("facturacion.correoDestino")}</label>
+          <div className={styles.envioFila}>
+            <input
+              id="fv-correo" type="email" value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              placeholder="cliente@correo.com"
+              onKeyDown={(e) => { if (e.key === "Enter") void enviarCorreo(); }}
+            />
+            <Button size="sm" onClick={() => void enviarCorreo()} disabled={enviandoCorreo}>
+              {enviandoCorreo ? t("facturacion.enviando") : t("facturacion.enviar")}
+            </Button>
+          </div>
+          {correo.trim() && !EMAIL_RE.test(correo.trim()) && (
+            <span className={styles.envioError} role="alert">{t("facturacion.correoInvalido")}</span>
+          )}
+        </div>
+      )}
+
       {/* ── Emisor: logo, empresa, sede y contacto ── */}
       <div className={styles.emisor}>
         {em.logo ? (

@@ -21,6 +21,8 @@ import {
   PaymentsApi, ProfesionalesApi, SedesApi, ServicesApi,
 } from "@/api/modules";
 import type { ApiGasto, ApiPaymentFiltered, ApiPaymentMethod, ApiPrice, ApiProfesional, ApiService } from "@/api/types";
+import { http } from "@/api/http";
+import { EP } from "@/api/endpoints";
 import { BookingController } from "./BookingController";
 
 /* ============================================================
@@ -277,6 +279,29 @@ export const EmisorController = {
    el endpoint no valida token/rol por sí mismo.
 ============================================================ */
 export const FacturasController = {
+  /**
+   * Envía la factura por correo al cliente — POST /email/send-invoice.
+   * El backend genera su propio PDF con estas líneas y lo adjunta.
+   * @param email Destino (por defecto, el correo del cliente).
+   */
+  async enviarPorCorreo(f: Factura, email: string, sede: string): Promise<void> {
+    const services = f.items.map((it) => ({
+      name: it.concepto,
+      qty: it.cantidad,
+      price: it.precio,
+      total: Number((it.precio * it.cantidad).toFixed(2)),
+    }));
+    const subtotal = Number(services.reduce((s, it) => s + it.total, 0).toFixed(2));
+    await http.post(EP.emailSendInvoice, {
+      email: email.trim(),
+      clientName: f.cliente,
+      sede: sede || f.sedeNombre || "—",
+      services,
+      subtotal,
+      total: f.total,
+    });
+  },
+
   /**
    * Añade un concepto adicional a la factura — POST /payments/:id/items.
    * El total lo recalcula SIEMPRE el backend (tarifa del servicio + adicionales),
