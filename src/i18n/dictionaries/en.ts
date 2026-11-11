@@ -1083,6 +1083,7 @@ const en: Dictionary = {
     /* Client record */
     editAria: "Edit {nombre}",
     detailTitle: "Client record",
+    cambiarFoto: "Change profile photo",
     detailSub: "Client #{id}",
     loadError: "The client record could not be loaded",
     updated: "Details updated",

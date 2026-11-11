@@ -1127,6 +1127,7 @@ const es = {
     /* Ficha del cliente */
     editAria: "Editar a {nombre}",
     detailTitle: "Ficha del cliente",
+    cambiarFoto: "Cambiar foto de perfil",
     detailSub: "Cliente #{id}",
     loadError: "No se pudo cargar la ficha del cliente",
     updated: "Datos actualizados",

@@ -14,6 +14,7 @@
 import { useEffect, useState } from "react";
 import type { ApiClient, ApiClientState } from "@/api/types";
 import { ClientesController } from "@/controllers/CrudControllers";
+import { ImagenesApi } from "@/api/modules";
 import { fotoUrl, initials } from "@/constants";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
@@ -221,14 +222,52 @@ export default function ClienteModal({
 
   const foto = fotoUrl(cliente?.fotoPerfil);
 
+  /* Foto de perfil: se cambia pulsando el avatar (PATCH /auth/users/:id/foto) */
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const cambiarFoto = async (file: File | undefined) => {
+    if (!file || !cliente) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { toast(t("imagen.errTipo"), "error"); return; }
+    if (file.size > 10 * 1024 * 1024) { toast(t("imagen.errPeso"), "error"); return; }
+    setSubiendoFoto(true);
+    try {
+      const u = await ImagenesApi.usuario(cliente.id, file);
+      setCliente((c) => (c ? { ...c, fotoPerfil: u?.fotoPerfil ?? c.fotoPerfil } : c));
+      toast(t("imagen.actualizada"), "success");
+      await onGuardado();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("imagen.errSubida"), "error");
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
+
   return (
     <Modal open={clienteId != null} onClose={onClose} maxWidth={640} contentScroll>
       <div className={styles.head}>
         <div className={styles.headTop}>
           <div className={styles.identidad}>
-            {foto
-              ? <img className={styles.avatar} src={foto} alt="" />
-              : <span className={styles.avatarFallback}>{initials(form.name || "?")}</span>}
+            <label
+              className={styles.avatarEditable}
+              title={t("clientes.cambiarFoto")}
+              aria-busy={subiendoFoto}
+            >
+              {foto
+                ? <img className={styles.avatar} src={foto} alt="" />
+                : <span className={styles.avatarFallback}>{initials(form.name || "?")}</span>}
+              {cliente && (
+                <>
+                  <span className={styles.avatarCamara} aria-hidden="true"><Icon name="camera" /></span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className={styles.avatarInput}
+                    aria-label={t("clientes.cambiarFoto")}
+                    disabled={subiendoFoto}
+                    onChange={(e) => { void cambiarFoto(e.target.files?.[0]); e.target.value = ""; }}
+                  />
+                </>
+              )}
+            </label>
             <div className={styles.headText}>
               <h3>{form.name || t("clientes.detailTitle")}</h3>
               <p>{cliente ? t("clientes.detailSub", { id: String(cliente.id) }) : " "}</p>

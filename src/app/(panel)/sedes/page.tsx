@@ -23,6 +23,8 @@ import ImageGallery from "@/components/ui/ImageGallery";
 import Icon from "@/components/ui/Icon";
 import ServiciosSedeModal from "@/components/sedes/ServiciosSedeModal";
 import MenuAcciones from "@/components/ui/MenuAcciones";
+import SedeProfesionalesModal from "@/components/empresas/SedeProfesionalesModal";
+import SedeResenasModal from "@/components/empresas/SedeResenasModal";
 
 export default function SedesPage() {
   const router = useRouter();
@@ -39,6 +41,9 @@ export default function SedesPage() {
   const [guardando, setGuardando] = useState(false);
   /* Sede cuyo catálogo de servicios se está editando */
   const [serviciosDe, setServiciosDe] = useState<{ id: number; nombre: string } | null>(null);
+  /* Equipo y reseñas de una sede (los mismos modales que el superadmin) */
+  const [profesionalesDe, setProfesionalesDe] = useState<{ id: number; nombre: string } | null>(null);
+  const [resenasDe, setResenasDe] = useState<{ id: number; nombre: string } | null>(null);
 
   /* MODO API: GET /sedes/empresa/:empresaId (multi-tenant) */
   const { data: lista, reload } = useData(
@@ -106,7 +111,9 @@ export default function SedesPage() {
               <SimpleCard key={s.id}>
                 <h3>{s.nombre}</h3>
                 <Muted>{s.direccion}</Muted>
+                {s.telefono && s.telefono !== "—" && <Muted>{s.telefono}</Muted>}
                 <TagRow>
+                  {s.provincia && s.provincia !== "—" && <Tag>{s.provincia}</Tag>}
                   <Tag>{t("sedes.team", { n: s.equipo })}</Tag>
                   <Badge kind={s.activa ? "activo" : "inactivo"}>{s.activa ? t("sedes.open") : t("sedes.closed")}</Badge>
                 </TagRow>
@@ -139,6 +146,8 @@ export default function SedesPage() {
                     <MenuAcciones
                       etiqueta={t("sedes.masAcciones", { nombre: s.nombre })}
                       acciones={[
+                        { etiqueta: t("empresaSedes.viewProfesionales"), icono: "team", onClick: () => setProfesionalesDe({ id: s.id, nombre: s.nombre }) },
+                        { etiqueta: t("empresaSedes.viewResenas"), icono: "star", onClick: () => setResenasDe({ id: s.id, nombre: s.nombre }) },
                         { etiqueta: t("common.delete"), icono: "trash", peligro: true, onClick: () => eliminar(s.id, s.nombre) },
                       ]}
                     />
@@ -149,6 +158,17 @@ export default function SedesPage() {
           </CardGrid>
         )}
       </Panel>
+
+      <SedeProfesionalesModal
+        sedeId={profesionalesDe?.id ?? null}
+        sedeNombre={profesionalesDe?.nombre ?? ""}
+        onClose={() => setProfesionalesDe(null)}
+      />
+      <SedeResenasModal
+        sedeId={resenasDe?.id ?? null}
+        sedeNombre={resenasDe?.nombre ?? ""}
+        onClose={() => setResenasDe(null)}
+      />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
         <ModalTitle>{t("sedes.modalTitle")}</ModalTitle>
