@@ -30,6 +30,7 @@ import DataTable from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
+import { SkTable } from "@/components/ui/Skeleton";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import { PersonRow } from "@/components/ui/People";
@@ -75,7 +76,7 @@ export default function PersonalPage() {
 
   const { data: sedesOpc } = useData(() => NegociosController.getSedesForSession(session), [session?.negocioId], []);
   /* MODO API: GET /profesionales (el nombre de sede se resuelve con sedesOpc) */
-  const { data: lista, reload } = useData(
+  const { data: lista, loading: cargandoLista, reload } = useData(
     () => PersonalController.search(search, sedesOpc, session),
     [search, sedesOpc, session?.id, session?.negocioId, session?.sedeId], []
   );
@@ -284,7 +285,10 @@ export default function PersonalPage() {
           </ToolbarActions>
         </Toolbar>
 
-        {lista.length === 0 ? (
+        {cargandoLista && lista.length === 0 ? (
+          /* Mientras llega el listado: skeleton, no «sin personal» */
+          <SkTable cols={7} rows={6} person={0} />
+        ) : lista.length === 0 ? (
           <EmptyState icon="team" title={t("personal.emptyTitle")} message={t("personal.emptyMsg")} />
         ) : (
           <DataTable headers={[t("common.name"), t("personal.role"), t("common.branch"), t("personal.monthBookings"), t("personal.access"), t("common.state"), t("common.actions")]}>

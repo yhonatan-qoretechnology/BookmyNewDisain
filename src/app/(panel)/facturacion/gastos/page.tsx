@@ -27,6 +27,7 @@ import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Badge from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import TicketModal, { descargarTicket } from "@/components/facturacion/TicketModal";
 import GastoFormModal from "@/components/facturacion/GastoFormModal";
@@ -64,7 +65,7 @@ export default function GastosPage() {
   const hayFiltroEmpresa = session?.role === "superadmin" && empresasOpt.length > 0;
   const hayFiltroSede = (session?.role === "superadmin" || session?.role === "owner") && sedesOpt.length > 0;
 
-  const { data: lista, reload } = useData(
+  const { data: lista, loading: cargandoLista, reload } = useData(
     () => GastosController.search(session, { gasto: fGasto, categoriaId: fCategoriaId, fecha: fFecha, empresaId: fEmpresaId, sedeId: fSedeId }),
     [session?.id, session?.negocioId, session?.sedeId, fGasto, fCategoriaId, fFecha, fEmpresaId, fSedeId],
     []
@@ -184,7 +185,9 @@ export default function GastosPage() {
           </ToolbarActions>
         </Toolbar>
 
-        {lista.length === 0 ? (
+        {cargandoLista && lista.length === 0 ? (
+          <SkTable cols={8} rows={6} person={-1} />
+        ) : lista.length === 0 ? (
           <EmptyState icon="receipt" title={t("gastos.emptyTitle")} message={t("gastos.emptyMsg")} />
         ) : (
           <DataTable
