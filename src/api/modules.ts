@@ -12,7 +12,7 @@ import type {
   ApiAutomatizacion, ApiCampanaEmail, ApiEjecucionAutomatizacion, ApiEventoAutomatizable,
   ApiReferidosAdmin, ApiReferidosMio, ApiSegmentoCampana, ApiUsoEmpresaPro, AutomatizacionDto, CampanaDto,
   ApiBancoWise, ApiDistribucionPlataforma, ApiEmpresaCuentaPago, ApiEmpresaPlanPago, ApiEmpresaPlanPagosPage, ApiEmpresaPlanPagosResumen,
-  ApiEstadoPagoPlan, ApiLiquidacionWise, ApiMetodoCobroOnline, ApiRankingPagina, ApiTelemetriaResumen, ApiTelemetriaSerie,
+  ApiEstadoPagoPlan, ApiLiquidacionWise, ApiMetodoCobroOnline, ApiPaymentEvent, ApiTransferenciaWisePendiente, ApiRankingPagina, ApiTelemetriaResumen, ApiTelemetriaSerie,
   ApiClient, ApiClientDeleteResult, ApiClientsPage, ApiDiaCerradoSede,
   ApiDisponibilidadProfesional, ApiEmpresa, ApiEstadoPlan,
   ApiGasto, ApiGastoUploadResponse, ApiHorarioSede, ApiProfesionalDetalle,
@@ -593,6 +593,12 @@ export const PaymentsApi = {
     http.get<ApiPaymentFiltered[]>(EP.paymentsFilter + qs({ userId: params.userId, sedeId: params.sedeId })),
   confirm: (id: number) => http.patch<ApiPayment>(EP.paymentConfirm(id)),
   cancel: (id: number, data?: { reason?: string }) => http.patch<ApiPayment>(EP.paymentCancel(id), data),
+  /** Historial del pago, del más antiguo al más reciente. */
+  eventos: (id: number) => http.get<ApiPaymentEvent[]>(EP.paymentEventos(id)),
+  /** Transferencias a la cuenta Wise de Bookmy que esperan confirmación (SUPER_ADMIN). */
+  wisePendientes: () => http.get<ApiTransferenciaWisePendiente[]>(EP.paymentsWisePendientes),
+  /** Bookmy vio la transferencia en Wise: el pago queda PAID y se liquida al negocio. */
+  confirmarWise: (id: number) => http.patch<ApiPayment>(EP.paymentConfirmWise(id)),
 
   /* ── Adicionales de factura ── */
   /** GET /payments/:id/items */

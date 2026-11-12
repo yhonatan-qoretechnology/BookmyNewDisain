@@ -12,7 +12,7 @@ import type { ConfigPais } from "@/config/paises";
 export type ApiRole = "SUPER_ADMIN" | "COMPANY_ADMIN" | "BRANCH_ADMIN" | "EMPLOYEE" | "CLIENT";
 export type ApiAppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
 export type ApiPaymentMethod = "CARD" | "CASH" | "WISE";
-export type ApiPaymentStatus = "PENDING" | "RESERVED" | "PAID" | "FAILED" | "CANCELLED";
+export type ApiPaymentStatus = "PENDING" | "RESERVED" | "PAID" | "FAILED" | "CANCELLED" | "REFUNDED" | "DISPUTED";
 export type ApiResenaState = "PENDIENTE" | "APROBADA" | "RECHAZADA";
 
 export interface ApiUserData {
@@ -628,6 +628,36 @@ export interface ApiLiquidacionWise {
   estado: ApiEstadoLiquidacionWise;
   createdAt: string;
   empresa?: { id: number; nombre: string };
+  /** Pago del cliente que la originó (null si se creó a mano). */
+  paymentId?: number | null;
+  /** Transferencia en Wise: se abre allí para pagarla si quedó PENDIENTE. */
+  wiseTransferId?: string | null;
+}
+
+/** GET /payments/wise/pendientes — transferencia de un cliente por confirmar. */
+export interface ApiTransferenciaWisePendiente {
+  id: number;
+  totalAmount: number;
+  createdAt: string;
+  bankResponse: ApiPayment["bankResponse"];
+  user: { id: number; email: string };
+  appointment: {
+    id: number;
+    horaInicio: string;
+    notas: string | null;
+    estado: string;
+    sede: { id: number; nombre: string; empresa: { id: number; nombre: string } | null } | null;
+  } | null;
+}
+
+/** GET /payments/:id/eventos — un paso del historial del pago. */
+export interface ApiPaymentEvent {
+  id: number;
+  paymentId: number | null;
+  tipo: string;
+  origen: "app" | "stripe" | "wise" | "sistema";
+  datos: unknown;
+  createdAt: string;
 }
 
 /* ── Telemetría del panel/web + distribución de la app ──── */

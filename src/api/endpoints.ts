@@ -220,6 +220,11 @@ export const EP = {
   paymentsFilter: "/payments/filter",
   paymentConfirm: (id: number) => `/payments/${id}/confirm`,
   paymentCancel: (id: number) => `/payments/${id}/cancel`,
+  /** Historial del pago (Stripe, Wise, reembolsos, disputas). */
+  paymentEventos: (id: number) => `/payments/${id}/eventos`,
+  /** Transferencias de clientes a la cuenta Wise de Bookmy sin confirmar — solo SUPER_ADMIN. */
+  paymentsWisePendientes: "/payments/wise/pendientes",
+  paymentConfirmWise: (id: number) => `/payments/${id}/confirm-wise-transfer`,
   /* Adicionales de una factura. El total lo recalcula el backend. */
   paymentItems: (id: number) => `/payments/${id}/items`,
   paymentItemById: (itemId: number) => `/payments/items/${itemId}`,
