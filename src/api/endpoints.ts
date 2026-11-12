@@ -191,6 +191,8 @@ export const EP = {
   appointmentsCalendar: "/appointments/calendar",
   /** POST — envía por correo la factura en PDF (solo admins) */
   emailSendInvoice: "/email/send-invoice",
+  /** Multipart: «pdf» (el PDF que genera el panel) + email, clientName, negocio, numero */
+  emailSendInvoicePdf: "/email/send-invoice-pdf",
   /** GET — citas de un cliente: { pending, completed } */
   appointmentsDeUsuario: (userId: number) => `/appointments/users/${userId}/services`,
   /** POST — mismo payload que /appointments; crea las dos partes del servicio partido */

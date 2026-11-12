@@ -21,7 +21,7 @@ import {
   PaymentsApi, ProfesionalesApi, SedesApi, ServicesApi,
 } from "@/api/modules";
 import type { ApiGasto, ApiPaymentFiltered, ApiPaymentMethod, ApiPrice, ApiProfesional, ApiService } from "@/api/types";
-import { http } from "@/api/http";
+import { ApiError, http } from "@/api/http";
 import { EP } from "@/api/endpoints";
 import { BookingController } from "./BookingController";
 
@@ -286,7 +286,28 @@ export const FacturasController = {
    * El backend genera su propio PDF con estas líneas y lo adjunta.
    * @param email Destino (por defecto, el correo del cliente).
    */
-  async enviarPorCorreo(f: Factura, email: string, sede: string): Promise<void> {
+  async enviarPorCorreo(
+    f: Factura,
+    email: string,
+    sede: string,
+    /** PDF ya generado por el panel: el backend solo lo adjunta (sin Puppeteer). */
+    pdf?: { archivo: File; negocio: string },
+  ): Promise<void> {
+    if (pdf) {
+      const form = new FormData();
+      form.append("pdf", pdf.archivo, pdf.archivo.name);
+      form.append("email", email.trim());
+      if (f.cliente) form.append("clientName", f.cliente);
+      if (pdf.negocio) form.append("negocio", pdf.negocio);
+      form.append("numero", String(f.id));
+      try {
+        await http.postForm(EP.emailSendInvoicePdf, form);
+        return;
+      } catch (e) {
+        /* Backend sin la ruta nueva todavía: se usa la de siempre */
+        if (!(e instanceof ApiError && e.status === 404)) throw e;
+      }
+    }
     const services = f.items.map((it) => ({
       name: it.concepto,
       qty: it.cantidad,

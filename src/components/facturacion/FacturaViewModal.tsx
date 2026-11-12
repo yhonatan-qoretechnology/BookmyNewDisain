@@ -162,7 +162,8 @@ function Contenido({
     }
     setEnviandoCorreo(true);
     try {
-      await FacturasController.enviarPorCorreo(f, correo, em.sedeNombre || "");
+      const archivo = await facturaPdfComoArchivo(f, em, textosPdf(), formato);
+      await FacturasController.enviarPorCorreo(f, correo, em.sedeNombre || "", { archivo, negocio: em.nombre || "" });
       toast(t("facturacion.correoEnviado", { correo: correo.trim() }), "success");
       setPidiendoCorreo(false);
     } catch (e) {
