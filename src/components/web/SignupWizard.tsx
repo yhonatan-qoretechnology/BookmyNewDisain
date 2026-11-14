@@ -106,7 +106,18 @@ export default function SignupWizard() {
     if (!codigoRef) return;
     let vigente = true;
     ReferidosApi.validar(codigoRef)
-      .then((r) => { if (vigente && r.valido) setInvitadoPor(r.empresa); })
+      .then((r) => {
+        if (!vigente || !r.valido) return;
+        setInvitadoPor(r.empresa);
+        /* Una visita por sesión del navegador, para el embudo de quien invita */
+        try {
+          const k = `bm_ref_visto_${codigoRef}`;
+          if (!sessionStorage.getItem(k)) {
+            sessionStorage.setItem(k, "1");
+            void ReferidosApi.visita(codigoRef).catch(() => undefined);
+          }
+        } catch { /* sin almacenamiento: se cuenta igual */ void ReferidosApi.visita(codigoRef).catch(() => undefined); }
+      })
       .catch(() => undefined);
     return () => { vigente = false; };
   }, [codigoRef]);

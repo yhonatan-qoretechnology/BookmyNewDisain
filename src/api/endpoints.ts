@@ -68,8 +68,20 @@ export const EP = {
   referidoValidar: (codigo: string) => `/referidos/validar/${encodeURIComponent(codigo)}`,
   referidosMio: "/referidos/mio",
   referidosAdmin: "/referidos/admin",
-  referidosMovimientos: "/referidos/movimientos",
+  referidoVisita: (codigo: string) => `/referidos/visita/${encodeURIComponent(codigo)}`,
+  referidosInvitar: "/referidos/invitar",
+  referidosAdminMeses: "/referidos/admin/meses",
   referidoAnular: (id: number) => `/referidos/${id}/anular`,
+  /* Programa de referidos de clientes de cada negocio */
+  refClientes: "/referidos-clientes",
+  refClientesPrograma: "/referidos-clientes/programa",
+  refClientesCliente: (userId: number) => `/referidos-clientes/cliente/${userId}`,
+  refClientesRegistrar: "/referidos-clientes/registrar",
+  refClientesRevisar: "/referidos-clientes/revisar",
+  refClientesAnular: (id: number) => `/referidos-clientes/${id}/anular`,
+  refClientesValidarCodigo: (codigo: string) => `/referidos-clientes/validar/${encodeURIComponent(codigo)}`,
+  refClientesValidarCupon: (codigo: string) => `/referidos-clientes/cupones/validar/${encodeURIComponent(codigo)}`,
+  refClientesCanjear: "/referidos-clientes/cupones/canjear",
 
   /* Automatizaciones y campañas — solo SUPER_ADMIN */
   automatizaciones: "/automatizaciones",

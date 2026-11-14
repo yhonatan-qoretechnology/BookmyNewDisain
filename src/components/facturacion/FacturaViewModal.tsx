@@ -8,6 +8,8 @@
 import { useState } from "react";
 import { fmtFechaLarga, fmtMoneda, initials } from "@/constants";
 import { FacturasController, type Emisor, type Factura } from "@/controllers/FacturacionControllers";
+import { ReferidosClientesApi } from "@/api/modules";
+import { useSession } from "@/context/SessionContext";
 import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import { useUi } from "@/context/UiContext";
@@ -62,9 +64,41 @@ function Contenido({
   /* Pasar a factura: confirmación en el propio aviso (no confirm()) */
   const [confirmarFactura, setConfirmarFactura] = useState(false);
   const [facturando, setFacturando] = useState(false);
+  /* Cupón de referidos: se comprueba y se aplica restando del total */
+  const { session } = useSession();
+  const puedeCupon = session?.role === "owner" || session?.role === "admin";
+  const [pidiendoCupon, setPidiendoCupon] = useState(false);
+  const [cupon, setCupon] = useState("");
+  const [aplicandoCupon, setAplicandoCupon] = useState(false);
+  const [previoCupon, setPrevioCupon] = useState<number | null>(null);
 
   const f = factura;
   const docLabel = t(f.tipo === "factura" ? "facturacion.docFactura" : "facturacion.docTicket");
+
+  const comprobarCupon = async () => {
+    if (!cupon.trim()) return;
+    try {
+      const r = await ReferidosClientesApi.validarCupon(cupon.trim().toUpperCase(), factura.total);
+      setPrevioCupon(r.descuento ?? 0);
+    } catch (e) {
+      setPrevioCupon(null);
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+    }
+  };
+  const aplicarCupon = async () => {
+    if (!factura.apiId || !cupon.trim()) return;
+    setAplicandoCupon(true);
+    try {
+      const r = await ReferidosClientesApi.canjear(cupon.trim().toUpperCase(), factura.apiId);
+      toast(t("refClientes.aplicado", { n: fmtMoneda(r.descuento, factura.moneda, pais.locale, pais.decimalesMoneda) }), "success");
+      setCupon(""); setPrevioCupon(null); setPidiendoCupon(false);
+      await onActualizada?.();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+    } finally {
+      setAplicandoCupon(false);
+    }
+  };
 
   const pasarAFactura = async () => {
     if (!f.apiId) return;
@@ -285,6 +319,39 @@ function Contenido({
                 <Icon name="invoice" /> {t("facturacion.pasarAFactura")}
               </Button>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Cupón de referidos ── */}
+      {puedeCupon && f.estado !== "cancelado" && f.apiId && (
+        <div className={styles.envioCorreo} data-no-print>
+          {!pidiendoCupon ? (
+            <div className={styles.envioFila}>
+              <Button size="sm" variant="ghost" onClick={() => setPidiendoCupon(true)}>
+                <Icon name="tag" /> {t("refClientes.aplicarCupon")}
+              </Button>
+            </div>
+          ) : (
+            <>
+              <label htmlFor="fv-cupon">{t("refClientes.aplicarTitulo")}</label>
+              <div className={styles.envioFila}>
+                <input
+                  id="fv-cupon" value={cupon} maxLength={20} placeholder="HOLA-7KX2P"
+                  onChange={(e) => { setCupon(e.target.value.toUpperCase()); setPrevioCupon(null); }}
+                  onBlur={() => void comprobarCupon()}
+                  onKeyDown={(e) => { if (e.key === "Enter") void aplicarCupon(); }}
+                />
+                <Button size="sm" onClick={() => void aplicarCupon()} disabled={aplicandoCupon || !cupon.trim()}>
+                  {aplicandoCupon ? t("facturacion.enviando") : t("refClientes.aplicar")}
+                </Button>
+              </div>
+              {previoCupon != null && (
+                <span className={styles.envioError} style={{ color: "var(--teal-700)" }}>
+                  {t("refClientes.descuentoPrevio", { n: fmtMoneda(previoCupon, factura.moneda, pais.locale, pais.decimalesMoneda) })}
+                </span>
+              )}
+            </>
           )}
         </div>
       )}

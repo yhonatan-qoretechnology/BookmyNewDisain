@@ -201,6 +201,10 @@ export interface ApiEstadoPlan {
   diasDePrueba: number;
   pruebaCaducada: boolean;
   puedeProbar: boolean;
+  /** Pro regalado por referidos */
+  proGratisHasta?: string | null;
+  diasProGratis?: number;
+  mesesProCredito?: number;
 }
 
 /** POST /empresas/registro — alta de un negocio desde la web. */
@@ -1346,38 +1350,131 @@ export interface ApiMovimientoPuntos {
   createdAt: string;
 }
 
-/** GET /referidos/mio — vista del dueño del negocio */
+/** Niveles del programa de negocios */
+export type ApiNivelReferido = "BRONCE" | "PLATA" | "ORO" | "DIAMANTE";
+export interface ApiNivelDef { id: ApiNivelReferido; min: number; bono: number }
+
+export interface ApiRecompensaReferido {
+  id: number;
+  tipo: "REFERIDO" | "BIENVENIDA" | "NIVEL" | "MANUAL";
+  meses: number;
+  motivo: string;
+  aplicadaComo: "CREDITO" | "PRO_GRATIS";
+  createdAt: string;
+}
+
+/** GET /referidos/mio — «Invita y gana» del dueño del negocio */
 export interface ApiReferidosMio {
   codigo: string;
-  saldo: number;
-  puntosPorReferido: number;
-  puntosBienvenida: number;
+  enlace: string;
+  empresa: string;
+  recompensa: { meses: number; mesesBienvenida: number };
+  niveles: ApiNivelDef[];
+  nivel: { actual: ApiNivelDef | null; siguiente: ApiNivelDef | null; faltan: number };
+  embudo: { visitas: number; registrados: number; pendientes: number; recompensados: number; anulados: number };
+  meses: { ganados: number; credito: number; proGratisHasta: string | null; pagaPro: boolean };
   referidos: {
     id: number;
     empresa: string;
+    logo: string | null;
     estado: ApiEstadoReferido;
-    puntos: number;
+    meses: number;
     createdAt: string;
     recompensadoEn: string | null;
   }[];
-  movimientos: ApiMovimientoPuntos[];
+  recompensas: ApiRecompensaReferido[];
+  invitacionesRestantesHoy: number;
 }
 
 /** GET /referidos/admin — panel del superadmin */
 export interface ApiReferidosAdmin {
-  resumen: { codigos: number; referidos: number; recompensados: number; puntosEmitidos: number; puntosCanjeados: number };
-  ranking: { empresaId: number; empresa: string; codigo: string; referidos: number; recompensados: number; saldo: number }[];
+  resumen: { codigos: number; visitas: number; referidos: number; pendientes: number; recompensados: number; mesesEntregados: number; conversion: number };
+  config: { mesesReferidor: number; mesesBienvenida: number; niveles: ApiNivelDef[] };
+  ranking: {
+    empresaId: number; empresa: string; codigo: string; visitas: number; referidos: number; recompensados: number;
+    mesesGanados: number; credito: number; proGratisHasta: string | null; nivel: ApiNivelReferido | null;
+  }[];
   referidos: {
     id: number;
     codigo: string;
     referidor: { id: number; nombre: string };
     referida: { id: number; nombre: string };
     estado: ApiEstadoReferido;
-    puntosReferidor: number;
-    puntosReferida: number;
+    mesesReferidor: number;
+    mesesReferida: number;
     createdAt: string;
     recompensadoEn: string | null;
   }[];
+}
+
+/* ── Referidos de clientes (programa de cada negocio) ── */
+export type ApiTipoDescuento = "PORCENTAJE" | "MONTO";
+export type ApiEstadoReferidoCliente = "PENDIENTE" | "COMPLETADO" | "ANULADO";
+export type ApiEstadoCupon = "DISPONIBLE" | "USADO" | "VENCIDO" | "ANULADO";
+
+export interface ApiProgramaReferidosCliente {
+  activo: boolean;
+  tipoReferidor: ApiTipoDescuento;
+  valorReferidor: number;
+  tipoInvitado: ApiTipoDescuento;
+  valorInvitado: number;
+  vigenciaDias: number;
+  maxPorCliente: number;
+  mensaje: string | null;
+}
+
+export interface ApiCuponCliente {
+  id: number;
+  codigo: string;
+  tipo: ApiTipoDescuento;
+  valor: number;
+  motivo: "BIENVENIDA" | "PREMIO";
+  estado: ApiEstadoCupon;
+  venceEn: string | null;
+  usadoEn: string | null;
+  descuento: number | null;
+  createdAt: string;
+  cliente?: { id: number; nombre: string };
+}
+
+export interface ApiReferidosClientes {
+  empresa: string;
+  programa: ApiProgramaReferidosCliente;
+  stats: {
+    referidos: number; pendientes: number; completados: number;
+    cuponesEmitidos: number; cuponesDisponibles: number; cuponesUsados: number; descuentoTotal: number;
+  };
+  top: { userId: number; nombre: string; invitados: number; completados: number }[];
+  referidos: {
+    id: number;
+    codigo: string;
+    estado: ApiEstadoReferidoCliente;
+    createdAt: string;
+    completadoEn: string | null;
+    referidor: { id: number; nombre: string; foto: string | null };
+    invitado: { id: number; nombre: string; foto: string | null };
+  }[];
+  cupones: ApiCuponCliente[];
+}
+
+export interface ApiReferidoClienteFicha {
+  codigo: string;
+  activo: boolean;
+  empresa: string;
+  regaloInvitado: { tipo: ApiTipoDescuento; valor: number };
+  premioReferidor: { tipo: ApiTipoDescuento; valor: number };
+  mensaje: string | null;
+  invitados: { id: number; nombre: string; estado: ApiEstadoReferidoCliente; createdAt: string }[];
+  cupones: ApiCuponCliente[];
+}
+
+export interface ApiValidacionCupon {
+  codigo: string;
+  tipo: ApiTipoDescuento;
+  valor: number;
+  cliente: { id: number; nombre: string };
+  venceEn: string | null;
+  descuento: number | null;
 }
 
 /* ── Automatizaciones y campañas ──────────────────────────── */

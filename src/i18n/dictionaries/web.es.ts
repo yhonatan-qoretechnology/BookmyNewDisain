@@ -485,7 +485,7 @@ const webEs = {
     point3: "Reseñas y estadísticas de tu negocio",
   },
   signup: {
-    invitadoPor: "Te invita {empresa}: al pagar tu primer mes de Pro recibirás puntos de bienvenida.",
+    invitadoPor: "🎁 Te invita {empresa}: cuando actives Bookmy CRM Pro te regalamos 1 mes gratis.",
     /* Cabecera */
     back: "← Volver",
     eyebrow: "Crea tu cuenta",

@@ -7,6 +7,7 @@ import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import { cabecerasRecaptcha } from "@/lib/recaptcha";
 import type {
+  ApiCuponCliente, ApiProgramaReferidosCliente, ApiReferidoClienteFicha, ApiReferidosClientes, ApiTipoDescuento, ApiValidacionCupon,
   ApiCampanaCliente, ApiFiltroCliente, ApiOpcionesMarketing, ApiVistaPreviaFiltro, CampanaClienteDto, CriteriosFiltro,
   ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
@@ -1019,13 +1020,42 @@ export const UsoProApi = {
 export const ReferidosApi = {
   /** Público: para el formulario de crear cuenta (?ref=). */
   validar: (codigo: string) =>
-    http.get<{ valido: true; empresa: string } | { valido: false }>(EP.referidoValidar(codigo)),
+    http.get<{ valido: true; empresa: string; mesesBienvenida?: number } | { valido: false }>(EP.referidoValidar(codigo)),
+  /** Público: cuenta una visita al enlace de invitación. */
+  visita: (codigo: string) => http.post<{ ok: boolean }>(EP.referidoVisita(codigo), {}),
   mio: () => http.get<ApiReferidosMio>(EP.referidosMio),
+  invitar: (emails: string[], mensaje?: string) =>
+    http.post<{ enviados: number; fallidos: string[] }>(EP.referidosInvitar, { emails, ...(mensaje?.trim() && { mensaje: mensaje.trim() }) }),
   admin: () => http.get<ApiReferidosAdmin>(EP.referidosAdmin),
-  /** Negativo = canje; positivo = ajuste a favor. */
-  movimiento: (empresaId: number, puntos: number, motivo: string) =>
-    http.post(EP.referidosMovimientos, { empresaId, puntos, motivo }),
+  otorgarMeses: (empresaId: number, meses: number, motivo: string) =>
+    http.post(EP.referidosAdminMeses, { empresaId, meses, motivo }),
   anular: (id: number) => http.post(EP.referidoAnular(id)),
+};
+
+/** Programa de referidos de clientes. `empresaId` solo lo usa el superadmin. */
+const qEmp = (empresaId?: number, extra = "") => {
+  const p = [empresaId ? `empresaId=${empresaId}` : "", extra].filter(Boolean).join("&");
+  return p ? `?${p}` : "";
+};
+export const ReferidosClientesApi = {
+  resumen: (empresaId?: number) => http.get<ApiReferidosClientes>(EP.refClientes + qEmp(empresaId)),
+  guardarPrograma: (p: ApiProgramaReferidosCliente, empresaId?: number) =>
+    http.put<ApiProgramaReferidosCliente>(EP.refClientesPrograma, {
+      ...p, mensaje: p.mensaje || undefined, ...(empresaId && { empresaId }),
+    }),
+  cliente: (userId: number, empresaId?: number) => http.get<ApiReferidoClienteFicha>(EP.refClientesCliente(userId) + qEmp(empresaId)),
+  registrar: (codigo: string, invitadoId: number, empresaId?: number) =>
+    http.post<{ cupon: ApiCuponCliente }>(EP.refClientesRegistrar, { codigo, invitadoId, ...(empresaId && { empresaId }) }),
+  revisar: (empresaId?: number) => http.post<{ revisados: number; completados: number }>(EP.refClientesRevisar + qEmp(empresaId), {}),
+  anular: (id: number, empresaId?: number) => http.post(EP.refClientesAnular(id) + qEmp(empresaId), {}),
+  validarCodigo: (codigo: string) =>
+    http.get<{ valido: false } | { valido: true; empresa: string; quienInvita: string | null; regalo: { tipo: ApiTipoDescuento; valor: number } }>(
+      EP.refClientesValidarCodigo(codigo)
+    ),
+  validarCupon: (codigo: string, total?: number, empresaId?: number) =>
+    http.get<ApiValidacionCupon>(EP.refClientesValidarCupon(codigo) + qEmp(empresaId, total != null ? `total=${total}` : "")),
+  canjear: (codigo: string, paymentId: number, empresaId?: number) =>
+    http.post<{ descuento: number; total: number }>(EP.refClientesCanjear, { codigo, paymentId, ...(empresaId && { empresaId }) }),
 };
 
 /* ── Automatizaciones y campañas (SUPER_ADMIN) ────────────── */

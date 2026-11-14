@@ -20,6 +20,7 @@ import { PersonRow } from "@/components/ui/People";
 import ClienteModal from "@/components/clientes/ClienteModal";
 import NuevoClienteModal from "@/components/clientes/NuevoClienteModal";
 import ClienteReservasModal from "@/components/clientes/ClienteReservasModal";
+import InvitarAmigosModal from "@/components/referidos/InvitarAmigosModal";
 import styles from "./clientes.module.css";
 
 export default function ClientesPage() {
@@ -34,6 +35,9 @@ export default function ClientesPage() {
   const router = useRouter();
   /* La auditoría de login (/auth/accesos) es solo de superadmin */
   const veSeguimiento = session?.role === "superadmin";
+  /* Referidos de clientes: el programa es de cada negocio */
+  const veReferidos = session?.role === "owner" || session?.role === "admin";
+  const [invitando, setInvitando] = useState<{ id: number; nombre: string; telefono?: string } | null>(null);
 
   /* La sesión delimita las citas con las que se calculan las visitas */
   const { data: lista, reload } = useData(
@@ -90,6 +94,15 @@ export default function ClientesPage() {
                         <Icon name="shield" />
                       </IconButton>
                     )}
+                    {veReferidos && (
+                      <IconButton
+                        title={t("refClientes.invitarAmigos")}
+                        aria-label={`${t("refClientes.invitarAmigos")} · ${c.nombre}`}
+                        onClick={() => setInvitando({ id: c.id, nombre: c.nombre, telefono: c.telefono })}
+                      >
+                        <Icon name="tag" />
+                      </IconButton>
+                    )}
                     <IconButton
                       title={t("clientes.verReservas")}
                       aria-label={t("clientes.verReservasAria", { nombre: c.nombre })}
@@ -119,6 +132,8 @@ export default function ClientesPage() {
       />
 
       <ClienteReservasModal cliente={viendoReservas} onClose={() => setViendoReservas(null)} />
+
+      <InvitarAmigosModal cliente={invitando} onClose={() => setInvitando(null)} />
 
       {/* Alta manual: para quien no se registró desde la app */}
       <NuevoClienteModal
