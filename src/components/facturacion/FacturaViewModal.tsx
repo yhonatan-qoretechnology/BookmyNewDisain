@@ -59,8 +59,27 @@ function Contenido({
     factura.clienteEmail && factura.clienteEmail !== "—" ? factura.clienteEmail : ""
   );
   const [compartiendo, setCompartiendo] = useState(false);
+  /* Pasar a factura: confirmación en el propio aviso (no confirm()) */
+  const [confirmarFactura, setConfirmarFactura] = useState(false);
+  const [facturando, setFacturando] = useState(false);
 
   const f = factura;
+  const docLabel = t(f.tipo === "factura" ? "facturacion.docFactura" : "facturacion.docTicket");
+
+  const pasarAFactura = async () => {
+    if (!f.apiId) return;
+    setFacturando(true);
+    try {
+      await FacturasController.pasarAFactura(f.apiId);
+      toast(t("facturacion.facturaCreada"), "success");
+      setConfirmarFactura(false);
+      await onActualizada?.();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("facturacion.facturaError"), "error");
+    } finally {
+      setFacturando(false);
+    }
+  };
   /* Solo los adicionales (payment_items) llevan itemId: la línea del servicio no se quita. */
   const lineas = f.items.filter((it) => it.itemId == null || !quitados.has(it.itemId));
   const hayAdicionales = lineas.some((it) => it.itemId != null);
@@ -122,7 +141,7 @@ function Contenido({
   };
 
   const textosPdf = (): TextosPdf => ({
-    factura: t("facturacion.panelTitle"),
+    factura: docLabel,
     emitida: t("facturacion.emitida"),
     receptor: t("facturacion.receptor"),
     concepto: t("facturacion.concepto"),
@@ -139,7 +158,7 @@ function Contenido({
     cliente: t("common.client"),
     metodoPago: t("common.price"),
     profesional: t("common.specialist"),
-    pie: t("facturacion.panelTitle"),
+    pie: docLabel,
   });
   const formato = { locale: pais.locale, decimales: pais.decimalesMoneda };
 
@@ -219,7 +238,7 @@ function Contenido({
 
   return (
     <Modal
-      title={`${t("facturacion.panelTitle")} ${f.id}`}
+      title={`${docLabel} ${f.id}`}
       subtitle={`${t("facturacion.receptor")}: ${f.cliente}`}
       onClose={onClose}
       size="lg"
@@ -244,6 +263,32 @@ function Contenido({
         </>
       }
     >
+      {/* ── Ticket → factura (la factura es la que va a la DIAN) ── */}
+      {f.tipo === "ticket" && f.estado !== "cancelado" && f.apiId && (
+        <div className={styles.envioCorreo} data-no-print>
+          {confirmarFactura ? (
+            <>
+              <label>{t("facturacion.pasarConfirmar")}</label>
+              <div className={styles.envioFila}>
+                <Button size="sm" onClick={() => void pasarAFactura()} disabled={facturando}>
+                  {facturando ? t("facturacion.pasando") : t("facturacion.pasarSi")}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setConfirmarFactura(false)} disabled={facturando}>
+                  {t("common.cancel")}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className={styles.envioFila}>
+              <label style={{ flex: 1 }}>{t("facturacion.ticketAviso")}</label>
+              <Button size="sm" onClick={() => setConfirmarFactura(true)}>
+                <Icon name="invoice" /> {t("facturacion.pasarAFactura")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Envío por correo: destino editable ── */}
       {pidiendoCorreo && (
         <div className={styles.envioCorreo} data-no-print>

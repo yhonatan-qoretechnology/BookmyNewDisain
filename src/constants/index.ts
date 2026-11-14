@@ -88,6 +88,7 @@ const ADMIN_ITEMS_PRO: NavItem[] = [
   { id: "sedes", label: "Sedes", href: ROUTES.sedes, icon: "mapPin" },
   { id: "stock", label: "Stock e insumos", href: ROUTES.stock, icon: "box" },
   { id: "comunicacion", label: "Comunicación", href: ROUTES.comunicacion, icon: "message" },
+  { id: "automatizaciones", label: "Campañas", href: ROUTES.automatizaciones, icon: "bot" },
   { id: "plan", label: "Plan", href: ROUTES.plan, icon: "star" },
   { id: "referidos", label: "Invita y gana", href: ROUTES.referidos, icon: "tag" },
   { id: "verificacion", label: "Verificación", href: ROUTES.verificacion, icon: "shield" },
@@ -108,6 +109,7 @@ export const RUTAS_DE_PAGO: readonly string[] = [
   ROUTES.comunicacion,
   ROUTES.facturacion,
   ROUTES.estadisticas,
+  ROUTES.automatizaciones,
 ];
 
 /** Nombre del módulo de pago al que pertenece una ruta, si es de pago. */
@@ -122,6 +124,7 @@ export function moduloDePago(pathname: string): string | null {
       [ROUTES.comunicacion]: "comunicacion",
       [ROUTES.facturacion]: "facturacion",
       [ROUTES.estadisticas]: "estadisticas",
+      [ROUTES.automatizaciones]: "campanas",
     }[ruta] ?? null
   );
 }

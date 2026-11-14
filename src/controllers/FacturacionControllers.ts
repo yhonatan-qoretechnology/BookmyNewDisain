@@ -56,7 +56,9 @@ export interface FacturaItem {
 }
 
 export interface Factura {
-  id: string;            // ID Factura (ej. F-0001)
+  id: string;            // T-123 (ticket) o F-000001 (factura)
+  /** Ticket (no va a la DIAN) o factura (consecutivo propio del negocio) */
+  tipo: "ticket" | "factura";
   /** id numérico real del pago, para añadir o quitar adicionales */
   apiId?: number;
   reservaId: string;     // reserva que la originó
@@ -155,10 +157,14 @@ function metodoPagoDesdePago(p: ApiPaymentFiltered): string | undefined {
 
 /** Pago (PaymentModule, GET /payments/filter) → Factura de la tabla */
 function facturaDesdePago(p: ApiPaymentFiltered, language: string, moneda: string): Factura {
-  const servicio = nombreServicioPago(p, language);
+  const ref = p.service || p.appointment?.service;
+  /* «Otro servicio»: lo que se cobró es el concepto escrito a mano */
+  const servicio = ref?.interno && p.appointment?.notas ? p.appointment.notas : nombreServicioPago(p, language);
   const total = Number(p.totalAmount || 0);
+  const esFactura = p.tipoDocumento === "FACTURA" && p.numeroFactura != null;
   return {
-    id: `PAY-${p.id}`,
+    id: esFactura ? `F-${String(p.numeroFactura).padStart(6, "0")}` : `T-${p.id}`,
+    tipo: esFactura ? "factura" : "ticket",
     reservaId: p.appointmentId != null ? String(p.appointmentId) : String(p.id),
     cliente: p.user?.UserData?.name || p.user?.email || `#${p.userId}`,
     clienteEmail: p.user?.email,
@@ -325,6 +331,11 @@ export const FacturasController = {
     });
   },
 
+  /** Pasa un ticket a factura — PATCH /payments/:id/facturar. */
+  async pasarAFactura(apiId: number): Promise<void> {
+    await PaymentsApi.facturar(apiId);
+  },
+
   /**
    * Añade un concepto adicional a la factura — POST /payments/:id/items.
    * El total lo recalcula SIEMPRE el backend (tarifa del servicio + adicionales),
@@ -430,7 +441,31 @@ export const FacturasController = {
     tarjeta?: { numero: string; vencimiento: string; cvv: string };
     /** Líneas libres (detalle + precio) que se suman al servicio. */
     conceptos?: { detalle: string; precio: number }[];
+    /** «Otro servicio»: concepto escrito a mano en vez de un servicio del catálogo */
+    otroConcepto?: string;
   }): Promise<{ id: number; conceptosFallidos: number }> {
+    if (input.otroConcepto) {
+      const pago = await PaymentsApi.cobroOtro({
+        sedeId: Number(input.sedeId),
+        userId: Number(input.clienteId),
+        profesionalId: Number(input.profesionalId),
+        concepto: input.otroConcepto.trim(),
+        precio: input.precio,
+        fecha: input.fecha,
+        hora: input.hora,
+        duracion: input.duracion,
+        metodo: input.metodoPago === "tarjeta" ? "CARD" : "CASH",
+      });
+      let conceptosFallidos = 0;
+      for (const c of input.conceptos ?? []) {
+        try {
+          await PaymentsApi.addItem(pago.id, { concepto: c.detalle, cantidad: 1, precioUnitario: c.precio });
+        } catch {
+          conceptosFallidos++;
+        }
+      }
+      return { id: pago.id, conceptosFallidos };
+    }
     const [hh, mm] = input.hora.split(":").map(Number);
     const finMin = hh * 60 + mm + input.duracion;
     const horaFin = `${String(Math.floor(finMin / 60)).padStart(2, "0")}:${String(finMin % 60).padStart(2, "0")}`;

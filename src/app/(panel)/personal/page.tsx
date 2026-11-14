@@ -38,6 +38,8 @@ import ImageUpload from "@/components/ui/ImageUpload";
 import DocumentUpload from "@/components/ui/DocumentUpload";
 import styles from "./personal.module.css";
 import MenuAcciones from "@/components/ui/MenuAcciones";
+import DesactivarProfesionalModal from "@/components/personal/DesactivarProfesionalModal";
+import { fotoUrl } from "@/constants";
 
 /** Correo sugerido a partir del nombre: "Ana Ruiz" → "ana.ruiz" */
 const sugerirEmail = (nombre: string, dominio: string) =>
@@ -55,7 +57,7 @@ interface CredencialesVista {
 
 export default function PersonalPage() {
   const router = useRouter();
-  const { toast, confirm } = useUi();
+  const { toast } = useUi();
   const { t } = useI18n();
   const { session } = useSession();
   const [search, setSearch] = useState("");
@@ -250,6 +252,8 @@ export default function PersonalPage() {
      activar a alguien desactivado es solo del superadmin (el backend
      también lo exige en PATCH /profesionales/:id). */
   const puedeActivar = session?.role === "superadmin";
+  /* Baja con motivo: se abre el modal en vez del confirm de siempre */
+  const [bajaDe, setBajaDe] = useState<{ p: Empleado; alTerminar?: () => void } | null>(null);
 
   /** `alTerminar` cierra el modal de edición cuando se desactiva desde ahí. */
   const cambiarEstado = (p: Empleado, alTerminar?: () => void) => {
@@ -266,12 +270,7 @@ export default function PersonalPage() {
       }
     };
     if (!inhabilitar) { void aplicar(); return; }
-    confirm({
-      title: t("personal.disableTitle"),
-      message: t("personal.disableMsg", { nombre: p.nombre }),
-      confirmLabel: t("personal.disable"),
-      onConfirm: aplicar,
-    });
+    setBajaDe({ p, alTerminar });
   };
 
   return (
@@ -303,7 +302,17 @@ export default function PersonalPage() {
                     {p.tieneAcceso ? t("personal.hasAccess") : t("personal.noAccess")}
                   </Badge>
                 </td>
-                <td><Badge kind={p.activo ? "activo" : "inactivo"}>{p.activo ? t("personal.activeF") : t("personal.inactiveF")}</Badge></td>
+                <td>
+                  <Badge kind={p.activo ? "activo" : "inactivo"}>{p.activo ? t("personal.activeF") : t("personal.inactiveF")}</Badge>
+                  {p.baja && (
+                    <span style={{ display: "block", fontSize: 11.5, color: "var(--slate-500)", marginTop: 4 }} title={p.baja.comentario}>
+                      {t(`personal.motivo_${p.baja.motivo}`)}
+                      {p.baja.soporte && (
+                        <> · <a href={fotoUrl(p.baja.soporte) || "#"} target="_blank" rel="noopener noreferrer">{t("personal.bajaVerSoporte")}</a></>
+                      )}
+                    </span>
+                  )}
+                </td>
                 <td>
                   {/* Editar a la vista; acceso y desactivar en el menú ⋯
                       (desactivar en rojo y al final, para no pulsarlo sin
@@ -404,6 +413,12 @@ export default function PersonalPage() {
           <Button onClick={() => void agregar()} disabled={guardandoAlta}>{t("common.save")}</Button>
         </ModalActions>
       </Modal>
+
+      <DesactivarProfesionalModal
+        profesional={bajaDe?.p ?? null}
+        onClose={() => setBajaDe(null)}
+        onHecho={async () => { bajaDe?.alTerminar?.(); await reload(); }}
+      />
 
       {/* Edición de integrante */}
       <Modal open={!!editando} onClose={() => setEditando(null)}>

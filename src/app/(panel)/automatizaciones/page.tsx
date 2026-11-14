@@ -1,6 +1,11 @@
 "use client";
 /* ============================================================
-   Automatizaciones y campañas — solo SUPER_ADMIN
+   Automatizaciones y campañas
+   ------------------------------------------------------------
+   Negocio (dueño / admin de sede, Pro): campañas a sus clientes
+   sobre filtros guardados (ver components/marketing).
+   Superadmin: además, lo de abajo.
+   ------------------------------------------------------------
    ------------------------------------------------------------
    · Automatizaciones: "cuando pase X, (tras N minutos) envía un
      correo o una notificación al negocio o a los superadmins". El
@@ -38,8 +43,12 @@ import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import styles from "./automatizaciones.module.css";
+import CampanasClientes from "@/components/marketing/CampanasClientes";
+import FiltrosClientes from "@/components/marketing/FiltrosClientes";
+import mk from "@/components/marketing/marketing.module.css";
+import { FiltroFacturasController, type OpcionFiltro } from "@/controllers/FacturacionControllers";
 
-type Pestana = "reglas" | "campanas" | "historial";
+type Pestana = "reglas" | "campanas" | "historial" | "clientesCampanas" | "clientesFiltros";
 
 const KIND_CAMPANA: Record<ApiEstadoCampana, "pendiente" | "confirmada" | "activo" | "cancelado" | "inactivo"> = {
   BORRADOR: "inactivo",
@@ -76,29 +85,83 @@ export default function AutomatizacionesPage() {
   const router = useRouter();
   const { session } = useSession();
   const { t } = useI18n();
-  const [pestana, setPestana] = useState<Pestana>("reglas");
+  const esSuper = session?.role === "superadmin";
+  const esNegocio = session?.role === "owner" || session?.role === "admin";
+  const [eleccion, setEleccion] = useState<Pestana | null>(null);
+  const pestana: Pestana = eleccion ?? (esSuper ? "reglas" : "clientesCampanas");
+  /* «Usar en campaña» desde un filtro abre el asistente con él elegido */
+  const [filtroParaCampana, setFiltroParaCampana] = useState<number | null>(null);
+  /* El superadmin elige de qué negocio son los clientes */
+  const [empresaSel, setEmpresaSel] = useState("");
+  const { data: empresas } = useData(
+    () => (esSuper ? FiltroFacturasController.empresas(session) : Promise.resolve([] as OpcionFiltro[])),
+    [esSuper, session?.id],
+    [] as OpcionFiltro[]
+  );
 
   useEffect(() => {
-    if (session && session.role !== "superadmin") router.replace(ROUTES.dashboard);
-  }, [session, router]);
+    if (session && !esSuper && !esNegocio) router.replace(ROUTES.dashboard);
+  }, [session, esSuper, esNegocio, router]);
 
-  if (session && session.role !== "superadmin") return null;
+  if (session && !esSuper && !esNegocio) return null;
+
+  const empresaId = esSuper ? (empresaSel ? Number(empresaSel) : undefined) : undefined;
+  const deClientes = pestana === "clientesCampanas" || pestana === "clientesFiltros";
+
+  const tabs = esSuper
+    ? [
+        { id: "reglas", label: t("automatizaciones.tabReglas") },
+        { id: "campanas", label: t("marketing.tabCampanasNegocios") },
+        { id: "historial", label: t("automatizaciones.tabHistorial") },
+        { id: "clientesCampanas", label: t("marketing.tabCampanasClientes") },
+        { id: "clientesFiltros", label: t("marketing.tabFiltrosClientes") },
+      ]
+    : [
+        { id: "clientesCampanas", label: t("automatizaciones.tabCampanas") },
+        { id: "clientesFiltros", label: t("marketing.tabFiltros") },
+      ];
 
   return (
     <>
       <Tabs
-        tabs={[
-          { id: "reglas", label: t("automatizaciones.tabReglas") },
-          { id: "campanas", label: t("automatizaciones.tabCampanas") },
-          { id: "historial", label: t("automatizaciones.tabHistorial") },
-        ]}
+        tabs={tabs}
         active={pestana}
-        onChange={(id) => setPestana(id as Pestana)}
+        onChange={(id) => { setEleccion(id as Pestana); setFiltroParaCampana(null); }}
       />
       <div className={styles.contenido}>
-        {pestana === "reglas" && <Reglas />}
-        {pestana === "campanas" && <Campanas />}
-        {pestana === "historial" && <Historial />}
+        {esSuper && deClientes && (
+          <div className={mk.empresaBar}>
+            <Icon name="building" />
+            <select value={empresaSel} onChange={(e) => setEmpresaSel(e.target.value)} aria-label={t("marketing.eligeEmpresa")}>
+              <option value="">{t("marketing.eligeEmpresa")}</option>
+              {empresas.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+            </select>
+          </div>
+        )}
+        {pestana === "reglas" && esSuper && <Reglas />}
+        {pestana === "campanas" && esSuper && <Campanas />}
+        {pestana === "historial" && esSuper && <Historial />}
+        {deClientes && esSuper && !empresaId ? (
+          <Panel><EmptyState icon="building" title={t("marketing.eligeEmpresa")} message={t("marketing.eligeEmpresaMsg")} /></Panel>
+        ) : (
+          <>
+            {pestana === "clientesCampanas" && (
+              <CampanasClientes
+                key={`${empresaId ?? "propia"}-${filtroParaCampana ?? ""}`}
+                empresaId={empresaId}
+                filtroInicial={filtroParaCampana}
+                onIrAFiltros={() => { setEleccion("clientesFiltros"); setFiltroParaCampana(null); }}
+              />
+            )}
+            {pestana === "clientesFiltros" && (
+              <FiltrosClientes
+                key={empresaId ?? "propia"}
+                empresaId={empresaId}
+                onNuevaCampana={(id) => { setFiltroParaCampana(id); setEleccion("clientesCampanas"); }}
+              />
+            )}
+          </>
+        )}
       </div>
     </>
   );

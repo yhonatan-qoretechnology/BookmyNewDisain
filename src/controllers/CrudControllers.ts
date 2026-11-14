@@ -592,6 +592,9 @@ export const PersonalController = {
         activo: p.state !== "disabled",
         tieneAcceso: p.acceso?.tieneAcceso ?? false,
         accesoEmail: p.acceso?.email ?? null,
+        baja: p.state === "disabled" && p.motivoInactivo
+          ? { motivo: p.motivoInactivo, comentario: p.comentarioInactivo || "", soporte: p.soporteInactivoUrl || null, desde: p.inactivoDesde || null }
+          : null,
       }))
       .filter((p) => (p.nombre + p.rol).toLowerCase().includes(q));
   },
@@ -719,11 +722,23 @@ export const PersonalController = {
     await ProfesionalesApi.update(id, { state: activo ? "enabled" : "disabled" });
   },
 
+  /** Desactiva con motivo, comentario y soporte opcional — PATCH /profesionales/:id/desactivar. */
+  async desactivar(id: number, motivo: MotivoBaja, comentario: string, soporte?: File | null): Promise<void> {
+    const form = new FormData();
+    form.append("motivo", motivo);
+    form.append("comentario", comentario);
+    if (soporte) form.append("soporte", soporte, soporte.name);
+    await http.patchForm(EP.profesionalDesactivar(id), form);
+  },
+
   /** Elimina un profesional — DELETE /profesionales/:id (solo superadmin). */
   async remove(id: number): Promise<void> {
     await ProfesionalesApi.remove(id);
   },
 };
+
+/** Motivo de baja de un profesional */
+export type MotivoBaja = "INCAPACIDAD" | "VACACIONES" | "RETIRO" | "OTRO";
 
 /* ── Sedes (SedeModule, multi-tenant) ────────────────────── */
 function mapSedeDetalle(s: ApiSede, equipo: number): SedeDetalle {

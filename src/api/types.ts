@@ -269,6 +269,11 @@ export interface ApiProfesional {
   imagen?: string | null;
   /** Ruta relativa del PDF/doc de la hoja de vida (fotoUrl() la resuelve igual que `imagen`). */
   hojaVidaUrl?: string | null;
+  /** Baja: INCAPACIDAD | VACACIONES | RETIRO | OTRO (migración 20261114120000) */
+  motivoInactivo?: string | null;
+  comentarioInactivo?: string | null;
+  soporteInactivoUrl?: string | null;
+  inactivoDesde?: string | null;
   phone?: string;
   state?: string;
   sedeId: number;
@@ -450,6 +455,8 @@ export interface ApiPayment {
 export interface ApiPaymentServiceRef {
   id?: number;
   name?: string;
+  /** «Otro servicio»: el concepto real va en appointment.notas */
+  interno?: boolean;
   translations?: Array<{ name: string; language?: string }>;
 }
 
@@ -469,9 +476,14 @@ export interface ApiPaymentFiltered {
   method?: ApiPaymentMethod;
   createdAt?: string;
   appointmentId?: number;
+  /** TICKET (no va a la DIAN) | FACTURA — requiere la migración 20261114120000 */
+  tipoDocumento?: "TICKET" | "FACTURA";
+  numeroFactura?: number | null;
+  facturadaEn?: string | null;
   appointment?: {
     id?: number;
     sedeId?: number;
+    notas?: string | null;
     service?: ApiPaymentServiceRef | null;
   } | null;
   service?: ApiPaymentServiceRef | null;
@@ -1443,4 +1455,89 @@ export interface CampanaDto {
   segmento?: ApiSegmentoCampana;
   /** ISO; sin fecha queda en borrador */
   programadaPara?: string | null;
+}
+
+/* ── Marketing: filtros de clientes y campañas del negocio (MarketingModule) ── */
+export interface CriteriosFiltro {
+  sedeId?: number;
+  genero?: string;
+  edadMin?: number;
+  edadMax?: number;
+  /** 1-12; 0 = el mes en curso */
+  cumpleMes?: number;
+  cumpleHoy?: boolean;
+  ciudad?: string;
+  idioma?: string;
+  reservasMin?: number;
+  sinVisitaDias?: number;
+  visitaRecienteDias?: number;
+  servicioId?: number;
+  nuevosDias?: number;
+}
+
+export interface ApiClienteFiltrado {
+  userId: number;
+  nombre: string;
+  email: string | null;
+  telefono: string | null;
+  ciudad: string | null;
+  cumpleanos: string | null;
+  reservas: number;
+  ultimaVisita: string | null;
+}
+
+export interface ApiVistaPreviaFiltro {
+  total: number;
+  conEmail: number;
+  conTelefono: number;
+  muestra: ApiClienteFiltrado[];
+}
+
+export interface ApiFiltroCliente {
+  id: number;
+  empresaId: number;
+  nombre: string;
+  criterios: CriteriosFiltro;
+  createdAt: string;
+  updatedAt: string;
+  total: number;
+  conEmail: number;
+  conTelefono: number;
+}
+
+export type ApiCanalCampana = "EMAIL" | "WHATSAPP";
+
+export interface ApiCampanaCliente {
+  id: number;
+  empresaId: number;
+  filtroId: number | null;
+  filtro?: { id: number; nombre: string } | null;
+  nombre: string;
+  canal: ApiCanalCampana;
+  asunto: string | null;
+  mensaje: string;
+  estado: ApiEstadoCampana;
+  programadaPara: string | null;
+  enviadaEn: string | null;
+  destinatarios: number;
+  enviados: number;
+  fallidos: number;
+  createdAt: string;
+}
+
+export interface ApiOpcionesMarketing {
+  ciudades: string[];
+  totalClientes: number;
+  canales: { email: boolean; whatsapp: boolean };
+}
+
+export interface CampanaClienteDto {
+  empresaId?: number;
+  filtroId: number;
+  nombre: string;
+  canal: ApiCanalCampana;
+  asunto?: string;
+  mensaje: string;
+  programadaPara?: string;
+  borrador?: boolean;
 }

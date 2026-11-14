@@ -7,6 +7,7 @@ import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import { cabecerasRecaptcha } from "@/lib/recaptcha";
 import type {
+  ApiCampanaCliente, ApiFiltroCliente, ApiOpcionesMarketing, ApiVistaPreviaFiltro, CampanaClienteDto, CriteriosFiltro,
   ApiAccesosPage, ApiAccesosResumen,
   ApiAdminCreateResponse, ApiAppointment, ApiAppointmentStatus, ApiExtendResult, ApiCategory, ApiCategoriaGasto, ApiChatContact, ApiChatMessage, ApiChatUploadResponse, ApiChatUploadAudioResponse,
   ApiAutomatizacion, ApiCampanaEmail, ApiEjecucionAutomatizacion, ApiEventoAutomatizable,
@@ -593,6 +594,13 @@ export const PaymentsApi = {
     http.get<ApiPaymentFiltered[]>(EP.paymentsFilter + qs({ userId: params.userId, sedeId: params.sedeId })),
   confirm: (id: number) => http.patch<ApiPayment>(EP.paymentConfirm(id)),
   cancel: (id: number, data?: { reason?: string }) => http.patch<ApiPayment>(EP.paymentCancel(id), data),
+  /** Pasa un ticket a factura (consecutivo del negocio). */
+  facturar: (id: number) => http.patch<ApiPayment>(EP.paymentFacturar(id)),
+  /** Cobro de algo que no está en el catálogo. */
+  cobroOtro: (data: {
+    sedeId: number; userId: number; profesionalId: number; concepto: string; precio: number;
+    fecha: string; hora: string; duracion?: number; metodo: "CASH" | "CARD";
+  }) => http.post<ApiPayment>(EP.paymentOtro, data),
   /** Historial del pago, del más antiguo al más reciente. */
   eventos: (id: number) => http.get<ApiPaymentEvent[]>(EP.paymentEventos(id)),
   /** Transferencias a la cuenta Wise de Bookmy que esperan confirmación (SUPER_ADMIN). */
@@ -1021,6 +1029,24 @@ export const ReferidosApi = {
 };
 
 /* ── Automatizaciones y campañas (SUPER_ADMIN) ────────────── */
+/** Filtros de clientes y campañas del negocio. `empresaId` solo lo usa el superadmin. */
+const qEmpresa = (empresaId?: number) => (empresaId ? `?empresaId=${empresaId}` : "");
+export const MarketingApi = {
+  opciones: (empresaId?: number) => http.get<ApiOpcionesMarketing>(EP.marketingOpciones + qEmpresa(empresaId)),
+  filtros: (empresaId?: number) => http.get<ApiFiltroCliente[]>(EP.marketingFiltros + qEmpresa(empresaId)),
+  vistaPrevia: (criterios: CriteriosFiltro, empresaId?: number) =>
+    http.post<ApiVistaPreviaFiltro>(EP.marketingVistaPrevia, { criterios, ...(empresaId && { empresaId }) }),
+  crearFiltro: (nombre: string, criterios: CriteriosFiltro, empresaId?: number) =>
+    http.post<ApiFiltroCliente>(EP.marketingFiltros, { nombre, criterios, ...(empresaId && { empresaId }) }),
+  editarFiltro: (id: number, nombre: string, criterios: CriteriosFiltro, empresaId?: number) =>
+    http.patch<ApiFiltroCliente>(EP.marketingFiltro(id), { nombre, criterios, ...(empresaId && { empresaId }) }),
+  borrarFiltro: (id: number, empresaId?: number) => http.delete<{ ok: boolean }>(EP.marketingFiltro(id) + qEmpresa(empresaId)),
+  campanas: (empresaId?: number) => http.get<ApiCampanaCliente[]>(EP.marketingCampanas + qEmpresa(empresaId)),
+  crearCampana: (dto: CampanaClienteDto) => http.post<ApiCampanaCliente>(EP.marketingCampanas, dto),
+  enviarCampana: (id: number, empresaId?: number) => http.post<{ ok: boolean }>(EP.marketingCampanaEnviar(id) + qEmpresa(empresaId), {}),
+  cancelarCampana: (id: number, empresaId?: number) => http.post<{ ok: boolean }>(EP.marketingCampanaCancelar(id) + qEmpresa(empresaId), {}),
+};
+
 export const AutomatizacionesApi = {
   eventos: () => http.get<{ eventos: ApiEventoAutomatizable[]; variables: string[] }>(EP.automatizacionesEventos),
   listar: () => http.get<ApiAutomatizacion[]>(EP.automatizaciones),

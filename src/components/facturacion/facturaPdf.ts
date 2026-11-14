@@ -150,6 +150,9 @@ async function construirPdf(
 
   /* Bloque derecho: nº de factura y fecha */
   doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(...SLATE);
+  doc.text(x.factura.toUpperCase(), W - M, y - 5, { align: "right" });
   doc.setFontSize(19);
   doc.setTextColor(...NAVY);
   doc.text(f.id, W - M, y + 2, { align: "right" });

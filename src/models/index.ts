@@ -256,6 +256,8 @@ export interface Empleado {
   tieneAcceso: boolean;
   /** Correo de acceso real, cuando `tieneAcceso` es true */
   accesoEmail: string | null;
+  /** Por qué está inactivo (si lo está) */
+  baja?: { motivo: string; comentario: string; soporte: string | null; desde: string | null } | null;
 }
 
 /** Credenciales recién generadas para que un empleado entre al panel */

@@ -49,6 +49,8 @@ export default function FacturacionPage() {
   /* --- alcance por rol: empresa (solo superadmin) y sede (superadmin/owner) --- */
   const [fEmpresaId, setFEmpresaId] = useState("");
   const [fSedeId, setFSedeId] = useState("");
+  /* Tickets (no van a la DIAN) o facturas */
+  const [fTipo, setFTipo] = useState<"" | "ticket" | "factura">("");
   const [ver, setVer] = useState<Factura | null>(null);
   const [bajando, setBajando] = useState<string | null>(null);
   const [nuevaOpen, setNuevaOpen] = useState(false);
@@ -91,7 +93,8 @@ export default function FacturacionPage() {
   /* Tras añadir o quitar un adicional la lista se recarga con el total nuevo,
      pero la factura abierta en el popup es la copia anterior: se sustituye. */
   useEffect(() => {
-    setVer((actual) => (actual ? lista.find((x) => x.id === actual.id) ?? actual : actual));
+    /* Por apiId: al pasar a factura cambia el número visible (T-12 → F-000001) */
+    setVer((actual) => (actual ? lista.find((x) => x.apiId === actual.apiId) ?? actual : actual));
   }, [lista]);
 
   /* ¿El rol puede acotar por empresa/sede? (define qué selectores salen) */
@@ -107,13 +110,14 @@ export default function FacturacionPage() {
 
   /* Los KPIs y el PDF siguen mirando la lista COMPLETA: paginar es solo
      cómo se pinta la tabla, no cuántas facturas hay. */
-  const resumen = useMemo(() => FacturasController.resumen(lista), [lista]);
+  const listaTipo = useMemo(() => (fTipo ? lista.filter((f) => f.tipo === fTipo) : lista), [lista, fTipo]);
+  const resumen = useMemo(() => FacturasController.resumen(listaTipo), [listaTipo]);
 
   /* Facturación pasaba de cien filas en una sola página: scroll sin fin y,
      con la entrada escalonada de DataTable, varios segundos hasta la última. */
-  const pagina = usePaginacion(lista, {
+  const pagina = usePaginacion(listaTipo, {
     porPagina: 15,
-    resetKey: `${fQuery}|${fFecha}|${fEmpresaId}|${fSedeId}`,
+    resetKey: `${fQuery}|${fFecha}|${fEmpresaId}|${fSedeId}|${fTipo}`,
   });
 
   const textosPdf = () => ({
@@ -141,7 +145,8 @@ export default function FacturacionPage() {
     if (!emisor) return;
     setBajando(f.id);
     try {
-      await descargarFacturaPdf(f, emisor, textosPdf(), { locale: pais.locale, decimales: pais.decimalesMoneda });
+      const doc = t(f.tipo === "factura" ? "facturacion.docFactura" : "facturacion.docTicket");
+      await descargarFacturaPdf(f, emisor, { ...textosPdf(), factura: doc, pie: doc }, { locale: pais.locale, decimales: pais.decimalesMoneda });
       toast(t("facturacion.pdfListo"), "success");
     } catch {
       toast(t("facturacion.pdfError"), "error");
@@ -221,6 +226,17 @@ export default function FacturacionPage() {
                 ]}
               />
             )}
+            <FilterSelect
+              value={fTipo}
+              onChange={(v) => setFTipo(v as "" | "ticket" | "factura")}
+              icon="invoice"
+              label={t("facturacion.filterTipo")}
+              options={[
+                { value: "", label: t("facturacion.filterTipo") },
+                { value: "ticket", label: t("facturacion.tickets") },
+                { value: "factura", label: t("facturacion.facturas") },
+              ]}
+            />
             <FilterDate value={fFecha} onChange={setFFecha} label={t("common.date")} />
           </FilterGroup>
           <ToolbarActions>
@@ -228,7 +244,7 @@ export default function FacturacionPage() {
           </ToolbarActions>
         </Toolbar>
 
-        {lista.length === 0 ? (
+        {listaTipo.length === 0 ? (
           <EmptyState
             icon="invoice"
             title={loading ? t("facturacion.panelTitle") : t("facturacion.emptyTitle")}
@@ -237,9 +253,10 @@ export default function FacturacionPage() {
         ) : (
           <DataTable
             paginacion={pagina}
-            resetKey={`${fQuery}|${fFecha}|${fEmpresaId}|${fSedeId}|${pagina.pagina}`}
+            resetKey={`${fQuery}|${fFecha}|${fEmpresaId}|${fSedeId}|${fTipo}|${pagina.pagina}`}
             headers={[
               t("facturacion.idFactura"),
+              t("facturacion.tipo"),
               t("common.client"),
               t("facturacion.servicio"),
               t("common.date"),
@@ -251,6 +268,11 @@ export default function FacturacionPage() {
             {pagina.visibles.map((f) => (
               <tr key={f.id}>
                 <td><b>{f.id}</b></td>
+                <td>
+                  <Badge kind={f.tipo === "factura" ? "activo" : "inactivo"}>
+                    {t(f.tipo === "factura" ? "facturacion.docFactura" : "facturacion.docTicket")}
+                  </Badge>
+                </td>
                 <td><PersonRow name={f.cliente} photo={f.clienteFoto} /></td>
                 <td>{f.servicio}</td>
                 <td>{fmtFechaLarga(f.fecha)}</td>

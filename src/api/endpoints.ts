@@ -73,6 +73,14 @@ export const EP = {
 
   /* Automatizaciones y campañas — solo SUPER_ADMIN */
   automatizaciones: "/automatizaciones",
+  /* Marketing del negocio: filtros de clientes guardados y campañas */
+  marketingOpciones: "/marketing/opciones",
+  marketingFiltros: "/marketing/filtros",
+  marketingFiltro: (id: number) => `/marketing/filtros/${id}`,
+  marketingVistaPrevia: "/marketing/filtros/vista-previa",
+  marketingCampanas: "/marketing/campanas",
+  marketingCampanaEnviar: (id: number) => `/marketing/campanas/${id}/enviar`,
+  marketingCampanaCancelar: (id: number) => `/marketing/campanas/${id}/cancelar`,
   automatizacionById: (id: number) => `/automatizaciones/${id}`,
   automatizacionesEventos: "/automatizaciones/eventos",
   automatizacionesEjecuciones: "/automatizaciones/ejecuciones",
@@ -140,6 +148,8 @@ export const EP = {
   profesionalImagen: (id: number) => `/profesionales/${id}/imagen`,
   /** PATCH multipart — campo "hojaVida" (PDF/Word). Devuelve el Profesional actualizado. */
   profesionalHojaVida: (id: number) => `/profesionales/${id}/hoja-vida`,
+  /** PATCH multipart: motivo, comentario y «soporte» (foto/PDF) opcional */
+  profesionalDesactivar: (id: number) => `/profesionales/${id}/desactivar`,
   /** PATCH { email, password } — da acceso al panel a un profesional
       viejo que aún no tiene login (acceso.tieneAcceso === false). */
   profesionalVincularAcceso: (id: number) => `/profesionales/${id}/vincular-acceso`,
@@ -222,6 +232,10 @@ export const EP = {
   paymentsFilter: "/payments/filter",
   paymentConfirm: (id: number) => `/payments/${id}/confirm`,
   paymentCancel: (id: number) => `/payments/${id}/cancel`,
+  /** PATCH: el ticket pasa a factura con el siguiente número del negocio */
+  paymentFacturar: (id: number) => `/payments/${id}/facturar`,
+  /** POST: cobro de «Otro servicio» (concepto y precio a mano) */
+  paymentOtro: "/payments/otro",
   /** Historial del pago (Stripe, Wise, reembolsos, disputas). */
   paymentEventos: (id: number) => `/payments/${id}/eventos`,
   /** Transferencias de clientes a la cuenta Wise de Bookmy sin confirmar — solo SUPER_ADMIN. */

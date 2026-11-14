@@ -28,6 +28,9 @@ import {
   type OpcionFiltro,
 } from "@/controllers/FacturacionControllers";
 import { useI18n } from "@/i18n";
+
+/** Valor del desplegable para «Otro servicio» (no es un id real) */
+const OTRO = "__otro__";
 import { useUi } from "@/context/UiContext";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -85,6 +88,9 @@ export default function NuevaFacturaModal({
   const [tarjeta, setTarjeta] = useState({ numero: "", vencimiento: "", cvv: "" });
   /* Líneas libres: lo que no es un servicio del catálogo */
   const [conceptos, setConceptos] = useState<{ detalle: string; precio: string }[]>([]);
+  /* «Otro servicio»: lo que no está en la lista se escribe a mano */
+  const esOtro = servicioId === OTRO;
+  const [otroConcepto, setOtroConcepto] = useState("");
 
   const [creando, setCreando] = useState(false);
 
@@ -159,11 +165,12 @@ export default function NuevaFacturaModal({
 
   const faltaAlgo = useMemo(() => {
     if (!sedeEfectiva || !cliente || !servicioId || !profesionalId || !fecha || !hora) return true;
+    if (esOtro && otroConcepto.trim().length < 2) return true;
     if (!precio || Number(precio) <= 0) return true;
     if (conceptoIncompleto) return true;
     if (metodoPago === "tarjeta" && (!tarjeta.numero || !tarjeta.vencimiento || !tarjeta.cvv)) return true;
     return false;
-  }, [sedeEfectiva, cliente, servicioId, profesionalId, fecha, hora, precio, metodoPago, tarjeta, conceptoIncompleto]);
+  }, [sedeEfectiva, cliente, servicioId, profesionalId, fecha, hora, precio, metodoPago, tarjeta, conceptoIncompleto, esOtro, otroConcepto]);
 
   const crear = async () => {
     if (faltaAlgo || !cliente) return;
@@ -181,6 +188,7 @@ export default function NuevaFacturaModal({
         metodoPago,
         tarjeta: metodoPago === "tarjeta" ? tarjeta : undefined,
         conceptos: conceptosValidos,
+        ...(esOtro && { otroConcepto: otroConcepto.trim() }),
       });
       toast(t("facturacion.nuevaCreada"), "success");
       if (conceptosFallidos > 0) toast(t("facturacion.conceptosFallidos", { n: String(conceptosFallidos) }), "error");
@@ -274,8 +282,21 @@ export default function NuevaFacturaModal({
         <select id="nf-servicio" value={servicioId} onChange={(e) => { setServicioId(e.target.value); setPrecioIdx(0); }} disabled={!sedeEfectiva}>
           <option value="">{t("facturacion.nuevaServicioPlaceholder")}</option>
           {servicios.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          <option value={OTRO}>{t("facturacion.otroServicio")}</option>
         </select>
       </Field>
+
+      {esOtro && (
+        <Field label={t("facturacion.otroConcepto")} htmlFor="nf-otro">
+          <input
+            id="nf-otro"
+            value={otroConcepto}
+            maxLength={160}
+            placeholder={t("facturacion.otroConceptoPh")}
+            onChange={(e) => setOtroConcepto(e.target.value)}
+          />
+        </Field>
+      )}
 
       {precios.length > 1 && (
         <Field label={t("facturacion.nuevaTarifa")} htmlFor="nf-tarifa">
