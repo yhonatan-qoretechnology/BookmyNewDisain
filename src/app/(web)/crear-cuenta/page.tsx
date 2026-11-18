@@ -1,41 +1,40 @@
-"use client";
 /* ============================================================
    /crear-cuenta — alta de un negocio en bookmy.es
    ------------------------------------------------------------
-   Reemplaza al modal "déjanos tus datos y te llamamos": aquí se
-   crea la cuenta de verdad y se entra al panel.
+   Aquí se crea la cuenta de verdad y se entra al panel; no es un
+   formulario de contacto. El marcado está en la pantalla cliente,
+   que es donde hace falta el idioma.
 ============================================================ */
-import { Suspense } from "react";
-import Link from "next/link";
-import Reveal from "@/components/web/Reveal";
-import SignupWizard from "@/components/web/SignupWizard";
-import { useWebT } from "@/components/web/useWebT";
+import type { Metadata } from "next";
+import PaginaWeb from "@/components/web/PaginaWeb";
+import PantallaCrearCuenta, { CtaCrearCuenta } from "./PantallaCrearCuenta";
+import crearCuentaEs from "@/i18n/dictionaries/web/crearCuenta.es";
+import { DIAS_DE_PRUEBA, SE_OFRECE_PRUEBA } from "@/lib/web/oferta";
+import { WEB } from "@/lib/web/rutas";
 
-function Cabecera() {
-  const { w } = useWebT();
-  return (
-    <>
-      <Link href="/#planes" className="plan-back-link">{w("signup.back")}</Link>
-      <Reveal as="p" className="eyebrow"><span className="eyebrow-dot" />{w("signup.eyebrow")}</Reveal>
-      <Reveal as="h1" className="plan-title">
-        <span className="t-white">{w("signup.title1")}</span>{" "}
-        <span className="t-accent">{w("signup.title2")}</span>
-      </Reveal>
-      <Reveal as="p" className="plan-hero-text">{w("signup.lead")}</Reveal>
-    </>
-  );
-}
+/* Los metadatos los lee el buscador, no el visitante, así que van en
+   el idioma de casa: el <head> no cambia con el selector de idioma.
+   El {dias} se interpola aquí porque este archivo es de servidor y no
+   puede usar el hook de traducción. */
+const dias = (s: string) => s.replace("{dias}", String(DIAS_DE_PRUEBA));
 
-export default function CrearCuentaPage() {
+export const metadata: Metadata = {
+  title: {
+    absolute: dias(SE_OFRECE_PRUEBA ? crearCuentaEs.meta.tituloConPrueba : crearCuentaEs.meta.tituloSinPrueba),
+  },
+  description: dias(
+    SE_OFRECE_PRUEBA ? crearCuentaEs.meta.descripcionConPrueba : crearCuentaEs.meta.descripcionSinPrueba,
+  ),
+  alternates: { canonical: WEB.crearCuenta },
+  /* El alta no se indexa como contenido: lo que tiene que posicionar
+     son las páginas de plan, que es de donde se llega aquí. */
+  robots: { index: true, follow: true },
+};
+
+export default function Page() {
   return (
-    <section className="plan-hero signup-section">
-      <div className="container">
-        <Cabecera />
-        {/* useSearchParams necesita un límite de Suspense en el build estático */}
-        <Suspense fallback={null}>
-          <SignupWizard />
-        </Suspense>
-      </div>
-    </section>
+    <PaginaWeb mundo="crm" pagina="crear-cuenta" cta={<CtaCrearCuenta />}>
+      <PantallaCrearCuenta />
+    </PaginaWeb>
   );
 }

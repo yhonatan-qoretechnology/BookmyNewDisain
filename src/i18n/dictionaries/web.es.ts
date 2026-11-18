@@ -23,6 +23,7 @@ import app from "./web/app.es";
 import appEmpresas from "./web/appEmpresas.es";
 import asistenteIa from "./web/asistenteIa.es";
 import comoFunciona from "./web/comoFunciona.es";
+import crearCuenta from "./web/crearCuenta.es";
 import crm from "./web/crm.es";
 import planBasic from "./web/planBasic.es";
 import planes from "./web/planes.es";
@@ -557,9 +558,13 @@ const webEs = {
     aceptaPrivacidad: "política de privacidad",
     /* Resumen del plan */
     resumenTitulo: "Lo que vas a activar",
-    planFree: "Bookmy Free",
+    /* Los nombres COMERCIALES, que son los que ve el cliente: la web
+       nueva los llama Plan Basic y Plan Pro. El backend los sigue
+       llamando FREE y PRO, y así se quedan: cambiar un enum de la base
+       de datos por un cambio de marca no compensa. */
+    planFree: "Plan Basic",
     planFreeSub: "Gratis, para siempre",
-    planPro: "Bookmy CRM Pro",
+    planPro: "Plan Pro",
     /* Dos versiones: la promesa de la prueba pasa por SE_OFRECE_PRUEBA
        (src/lib/web/oferta.ts) y los días nunca se escriben a mano. */
     planProSub: "{dias} días gratis · sin tarjeta",
@@ -593,6 +598,7 @@ const webEs = {
   appEmpresas,
   asistenteIa,
   comoFunciona,
+  crearCuenta,
   crm,
   planBasic,
   planes,

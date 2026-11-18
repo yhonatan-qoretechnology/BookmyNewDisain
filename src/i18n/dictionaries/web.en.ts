@@ -14,6 +14,7 @@ import app from "./web/app.en";
 import appEmpresas from "./web/appEmpresas.en";
 import asistenteIa from "./web/asistenteIa.en";
 import comoFunciona from "./web/comoFunciona.en";
+import crearCuenta from "./web/crearCuenta.en";
 import crm from "./web/crm.en";
 import planBasic from "./web/planBasic.en";
 import planes from "./web/planes.en";
@@ -534,9 +535,9 @@ const webEn: WebDictionary = {
     aceptaTerminos: "terms",
     aceptaPrivacidad: "privacy policy",
     resumenTitulo: "What you are activating",
-    planFree: "Bookmy Free",
+    planFree: "Plan Basic",
     planFreeSub: "Free, forever",
-    planPro: "Bookmy CRM Pro",
+    planPro: "Plan Pro",
     planProSub: "{dias} days free · no card",
     planProSubSinPrueba: "The whole system, no limits",
     planBadge: "{dias} days",
@@ -567,6 +568,7 @@ const webEn: WebDictionary = {
   appEmpresas,
   asistenteIa,
   comoFunciona,
+  crearCuenta,
   crm,
   planBasic,
   planes,
