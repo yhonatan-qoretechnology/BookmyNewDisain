@@ -279,10 +279,13 @@ export default function SignupWizard() {
     }
   };
 
+  /* Lo que trae el plan elegido. Antes salía de la sección `pricing` de
+     la web anterior; al retirarla, el alta se quedó enseñando
+     "web.pricing.pro.f1" en pantalla. Ahora vive bajo `signup`. */
   const ventajas = useMemo(
     () => (plan === "pro"
-      ? ["pricing.pro.f1", "pricing.pro.f2", "pricing.pro.f3", "pricing.pro.f4", "pricing.pro.f6", "pricing.pro.f7"]
-      : ["pricing.free.f1", "pricing.free.f2", "pricing.free.f3", "pricing.free.f4", "pricing.free.f5"]),
+      ? ["signup.proF1", "signup.proF2", "signup.proF3", "signup.proF4", "signup.proF5", "signup.proF6"]
+      : ["signup.basicF1", "signup.basicF2", "signup.basicF3", "signup.basicF4", "signup.basicF5"]),
     [plan]
   );
 

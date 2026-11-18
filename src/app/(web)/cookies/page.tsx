@@ -1,34 +1,47 @@
+/* ============================================================
+   /cookies · los metadatos
+   ------------------------------------------------------------
+   Esta pantalla era cookies.html. Su <head> traía título,
+   descripción, canónica y Open Graph propios, y eso es justo lo
+   que se exporta aquí, sin cambiar una palabra. La canónica ya
+   apunta a la ruta: el .html se quedó en la web estática.
+
+   El archivo es de SERVIDOR a propósito, aunque no pinte nada:
+   `metadata` solo lo lee Next en componentes de servidor, y el
+   cuerpo necesita el navegador (los textos salen del hook de
+   traducción y el índice lateral va con el scroll). Por eso el
+   marcado vive al lado, en PoliticaCookies.tsx, que sí es cliente.
+
+   El `title` va SIN «· Bookmy»: lo pone la plantilla del layout de
+   la web ("%s · Bookmy"), así que escribirlo aquí lo duplicaría.
+   El de Open Graph sí lo lleva, porque ese no pasa por plantilla.
+
+   La imagen social es la misma del original, que sigue estando en
+   /public/web/img (es de la web anterior, no del diseño nuevo).
+============================================================ */
 import type { Metadata } from "next";
-import LegalPage, { type BloqueLegal } from "@/components/web/LegalPage";
+import { WEB } from "@/lib/web/rutas";
+import PoliticaCookies from "./PoliticaCookies";
+
+const TITULO = "Política de cookies";
+const DESCRIPCION =
+  "Qué cookies usa Bookmy, para qué sirven, cuánto duran y cómo gestionar tus preferencias.";
 
 export const metadata: Metadata = {
-  title: "Política de cookies · Bookmy",
-  description: "Qué cookies usa Bookmy, para qué sirven y cómo gestionar tus preferencias.",
-  alternates: { canonical: "/cookies" },
+  title: TITULO,
+  description: DESCRIPCION,
+  alternates: { canonical: WEB.cookies },
+  openGraph: {
+    type: "website",
+    siteName: "Bookmy",
+    locale: "es_ES",
+    url: WEB.cookies,
+    title: `${TITULO} · Bookmy`,
+    description: DESCRIPCION,
+    images: [{ url: "/web/img/dashboard-b.png", width: 1200, height: 630, alt: "Bookmy" }],
+  },
 };
 
-const BLOQUES: BloqueLegal[] = [
-  { id: "c1", titulo: "s1Title", texto: "s1Text" },
-  {
-    id: "c2",
-    titulo: "s2Title",
-    texto: "s2Text",
-    tabla: {
-      cabeceras: ["colType", "colPurpose", "colDuration"],
-      filas: [
-        ["row1Type", "row1Purpose", "row1Duration"],
-        ["row2Type", "row2Purpose", "row2Duration"],
-        ["row3Type", "row3Purpose", "row3Duration"],
-        ["row4Type", "row4Purpose", "row4Duration"],
-      ],
-    },
-  },
-  { id: "c3", titulo: "s3Title", texto: "s3Text" },
-  { id: "c4", titulo: "s4Title", texto: "s4Text", botonCookies: "s4Btn" },
-  { id: "c5", titulo: "s5Title", texto: "s5Text" },
-  { id: "c6", titulo: "s6Title", texto: "s6Text" },
-];
-
-export default function Page() {
-  return <LegalPage seccion="cookies" bloques={BLOQUES} />;
+export default function CookiesPage() {
+  return <PoliticaCookies />;
 }
