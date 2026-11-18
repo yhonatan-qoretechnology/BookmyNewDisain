@@ -27,6 +27,8 @@ import CalendarGrid from "@/components/ui/CalendarGrid";
 import ContextoFestivos from "@/components/festivos/ContextoFestivos";
 import { mapaFestivos } from "@/components/festivos/mapaFestivos";
 import { PersonRow } from "@/components/ui/People";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations";
+import PersonalizarPanelModal from "@/components/dashboard/PersonalizarPanelModal";
 import styles from "./dashboard.module.css";
 
 /* Selectores de contexto — empresa (solo superadmin) y sede
@@ -158,6 +160,9 @@ export default function DashboardPage() {
 
   /* Reagendado: modal con calendario + horas disponibles */
   const [reagendando, setReagendando] = useState<Reserva | null>(null);
+  /* «Personaliza tu panel»: solo el dueño cambia los colores de su negocio */
+  const [personalizando, setPersonalizando] = useState(false);
+  const puedePersonalizar = session?.role === "owner";
   const onReagendada = () => {
     void reloadUltimas();
     void reloadTodas();
@@ -166,6 +171,13 @@ export default function DashboardPage() {
   return (
     <>
       <ContextSelectors />
+      {puedePersonalizar && (
+        <div className={styles.personalizarFila}>
+          <Button size="sm" variant="ghost" onClick={() => setPersonalizando(true)}>
+            <Icon name="settings" /> {t("tema.boton")}
+          </Button>
+        </div>
+      )}
       <StatGrid>
         <StatCard color="teal"  icon={<Icon name="user" />}  label={t("dashboard.totalClients")}  count={resumen.clientes} footer={t("dashboard.fromApi")} />
         <StatCard color="green" icon={<Icon name="chart" />} label={t("estadisticas.monthRevenue")} count={resumen.ingresosMes} format={fmtMoneda} footer={t("estadisticas.thisMonth")} />
@@ -173,6 +185,8 @@ export default function DashboardPage() {
         <StatCard color="amber" icon={<Icon name="chat" />}  label={t("estadisticas.rating")} value={resumen.valoracion != null ? `${resumen.valoracion.toFixed(1)} ★` : "—"} footer={t("estadisticas.fromReviews")} />
       </StatGrid>
 
+      {/* Los bloques entran escalonados detrás de las tarjetas */}
+      <FadeIn delay={0.18}>
       <Panel style={{ marginTop: 20 }}>
         <PanelHead
           title={t("dashboard.latestTitle")}
@@ -221,26 +235,31 @@ export default function DashboardPage() {
           </DataTable>
         )}
       </Panel>
+      </FadeIn>
 
       <div className={styles.bottomGrid}>
+        <FadeIn delay={0.26}>
         <Panel>
           <div className={styles.calHeaderPill}>
             <Icon name="calendar" /> {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString() : t("common.today")}
           </div>
-          <div className={styles.dayList}>
+          {/* La lista se rehace al cambiar de día: entra escalonada otra vez */}
+          <StaggerContainer key={selectedDate || "hoy"} className={styles.dayList}>
             {fechaReservas.length === 0 && <span>{t("dashboard.noToday")}</span>}
             {fechaReservas.map((r) => (
-              <div key={r.id} className={styles.dayItem} onClick={() => popup.open(r, recargarCitas)}>
+              <StaggerItem key={r.id} className={styles.dayItem} onClick={() => popup.open(r, recargarCitas)}>
                 <span className={styles.dayHour}>{r.hora}</span>
                 <span className={styles.dayBody}>
                   <b>{r.servicio}</b>
                   <span>{r.cliente}</span>
                 </span>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </Panel>
+        </FadeIn>
 
+        <FadeIn delay={0.32}>
         <Panel>
           <PanelHead title={t("dashboard.calTitle")} sub={t("dashboard.calSub")} />
           <ContextoFestivos
@@ -258,7 +277,10 @@ export default function DashboardPage() {
             onSelectDate={setSelectedDate}
           />
         </Panel>
+        </FadeIn>
       </div>
+
+      <PersonalizarPanelModal open={personalizando} onClose={() => setPersonalizando(false)} />
 
       <ReagendarModal
         reserva={reagendando}

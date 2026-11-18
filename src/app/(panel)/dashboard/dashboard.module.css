@@ -77,3 +77,6 @@
 
 /* Buscador de "Últimas reservas" */
 .latestToolbar { margin-bottom: 14px; }
+
+/* «Personaliza tu panel» */
+.personalizarFila { display: flex; justify-content: flex-end; margin: -4px 0 12px; }

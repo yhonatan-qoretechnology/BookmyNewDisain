@@ -225,7 +225,10 @@ async function resolverSedesConsulta(session: Session | null, f: AlcanceFiltro):
    EmisorController — cabecera de la factura
    GET /empresas/:id  ·  GET /sedes/:id
 ============================================================ */
-const emisorCache = new Map<string, Emisor>();
+/* Caché corta: si se cambia el logo en Configuración, se ve en minutos
+   aunque no se llame a invalidate(). */
+const emisorCache = new Map<string, { emisor: Emisor; ts: number }>();
+const EMISOR_TTL_MS = 5 * 60 * 1000;
 
 export const EmisorController = {
   /**
@@ -234,11 +237,10 @@ export const EmisorController = {
    * @param sedeId  Sede concreta de la factura; si no llega, la de la sesión.
    */
   async get(session: Session | null, sedeId?: string | null): Promise<Emisor> {
-    const empresaId = session?.negocioId || "";
     const sede = sedeId || session?.sedeId || "";
-    const key = `${empresaId}:${sede}`;
-    const hit = emisorCache.get(key);
-    if (hit) return hit;
+    const keySede = `sede:${sede}|${session?.negocioId || ""}`;
+    const hit = emisorCache.get(keySede);
+    if (hit && Date.now() - hit.ts < EMISOR_TTL_MS) return hit.emisor;
 
     /* Respaldo con lo que ya trae la sesión, por si el API no responde */
     const base: Emisor = {
@@ -253,10 +255,12 @@ export const EmisorController = {
       sedeTelefono: null,
     };
 
-    const [empresa, sedeApi] = await Promise.all([
-      empresaId ? EmpresasApi.findOne(Number(empresaId)).catch(() => null) : Promise.resolve(null),
-      sede ? SedesApi.findOne(Number(sede)).catch(() => null) : Promise.resolve(null),
-    ]);
+    /* La empresa es la DUEÑA DE LA SEDE del ticket, no la de quien mira:
+       el superadmin (o un dueño con varias empresas) veía todos los
+       tickets con los datos y el logo de su propia empresa. */
+    const sedeApi = sede ? await SedesApi.findOne(Number(sede)).catch(() => null) : null;
+    const empresaId = sedeApi?.empresaId ? String(sedeApi.empresaId) : session?.negocioId || "";
+    const empresa = empresaId ? await EmpresasApi.findOne(Number(empresaId)).catch(() => null) : null;
 
     const emisor: Emisor = {
       nombre: empresa?.nombre || base.nombre,
@@ -264,13 +268,14 @@ export const EmisorController = {
       telefono: empresa?.telefono ?? null,
       email: empresa?.email ?? null,
       web: empresa?.webUrl ?? null,
-      logo: empresa?.logo ?? null,
-      sedeNombre: sedeApi?.nombre || base.sedeNombre,
+      /* El logo que la empresa configuró, ya como URL completa */
+      logo: fotoUrl(empresa?.logo) ?? null,
+      sedeNombre: sedeApi?.nombre || (sede ? null : base.sedeNombre),
       sedeDireccion: sedeApi?.direccion ?? null,
       sedeTelefono: sedeApi?.telefono ?? null,
     };
 
-    emisorCache.set(key, emisor);
+    emisorCache.set(keySede, { emisor, ts: Date.now() });
     return emisor;
   },
 

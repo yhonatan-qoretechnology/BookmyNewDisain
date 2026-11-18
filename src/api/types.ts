@@ -121,6 +121,8 @@ export type ApiPais = ConfigPais;
 export interface ApiEmpresa {
   id: number;
   nombre: string;
+  /** Color del panel elegido por el negocio (migración 20261118120000) */
+  temaPanel?: { color?: string } | null;
   telefono?: string | null;
   email?: string | null;
   nit?: string | null;
@@ -1635,6 +1637,8 @@ export interface CampanaClienteDto {
   canal: ApiCanalCampana;
   asunto?: string;
   mensaje: string;
+  /** Hasta 2 imágenes (data URL, máx. 100 KB cada una) */
+  imagenes?: string[];
   programadaPara?: string;
   borrador?: boolean;
 }

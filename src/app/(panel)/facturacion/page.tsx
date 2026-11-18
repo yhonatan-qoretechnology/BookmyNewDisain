@@ -8,6 +8,8 @@
    Acciones: Ver (popup) · Descargar PDF
 ============================================================ */
 import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { ROUTES } from "@/constants";
 import { fmtFechaLarga } from "@/constants";
 import {
   EmisorController,
@@ -49,8 +51,11 @@ export default function FacturacionPage() {
   /* --- alcance por rol: empresa (solo superadmin) y sede (superadmin/owner) --- */
   const [fEmpresaId, setFEmpresaId] = useState("");
   const [fSedeId, setFSedeId] = useState("");
-  /* Tickets (no van a la DIAN) o facturas */
-  const [fTipo, setFTipo] = useState<"" | "ticket" | "factura">("");
+  /* Tickets (no van a la DIAN) o facturas. En /facturacion/facturas
+     (menú «Facturas») la vista queda fija en facturas. */
+  const soloFacturas = usePathname() === ROUTES.facturasDian;
+  const [fTipoElegido, setFTipo] = useState<"" | "ticket" | "factura">("");
+  const fTipo = soloFacturas ? "factura" : fTipoElegido;
   const [ver, setVer] = useState<Factura | null>(null);
   const [bajando, setBajando] = useState<string | null>(null);
   const [nuevaOpen, setNuevaOpen] = useState(false);
@@ -142,11 +147,12 @@ export default function FacturacionPage() {
   });
 
   const descargar = async (f: Factura) => {
-    if (!emisor) return;
     setBajando(f.id);
     try {
       const doc = t(f.tipo === "factura" ? "facturacion.docFactura" : "facturacion.docTicket");
-      await descargarFacturaPdf(f, emisor, { ...textosPdf(), factura: doc, pie: doc }, { locale: pais.locale, decimales: pais.decimalesMoneda });
+      /* Emisor de la sede del ticket (su empresa y su logo) */
+      const emisorTicket = await EmisorController.get(session, f.sedeId);
+      await descargarFacturaPdf(f, emisorTicket, { ...textosPdf(), factura: doc, pie: doc }, { locale: pais.locale, decimales: pais.decimalesMoneda });
       toast(t("facturacion.pdfListo"), "success");
     } catch {
       toast(t("facturacion.pdfError"), "error");
@@ -186,7 +192,7 @@ export default function FacturacionPage() {
 
       <Panel>
         <PanelHead
-          title={t("facturacion.panelTitle")}
+          title={soloFacturas ? t("facturacion.facturas") : t("facturacion.panelTitle")}
           sub={t("facturacion.panelSub")}
         />
 
@@ -226,7 +232,7 @@ export default function FacturacionPage() {
                 ]}
               />
             )}
-            <FilterSelect
+            {!soloFacturas && <FilterSelect
               value={fTipo}
               onChange={(v) => setFTipo(v as "" | "ticket" | "factura")}
               icon="invoice"
@@ -236,7 +242,7 @@ export default function FacturacionPage() {
                 { value: "ticket", label: t("facturacion.tickets") },
                 { value: "factura", label: t("facturacion.facturas") },
               ]}
-            />
+            />}
             <FilterDate value={fFecha} onChange={setFFecha} label={t("common.date")} />
           </FilterGroup>
           <ToolbarActions>
@@ -289,7 +295,7 @@ export default function FacturacionPage() {
                     </Button>
                     <IconButton
                       onClick={() => descargar(f)}
-                      disabled={!emisor || bajando === f.id}
+                      disabled={bajando === f.id}
                       title={t("facturacion.descargarPdf")}
                       aria-label={`${t("facturacion.descargarPdf")} ${f.id}`}
                     >
@@ -304,7 +310,7 @@ export default function FacturacionPage() {
       </Panel>
 
       {/* Popup: ver factura, imprimir y descargar PDF */}
-      <FacturaViewModal factura={ver} emisor={emisor} onClose={() => setVer(null)} onActualizada={() => reload()} />
+      <FacturaViewModal factura={ver} onClose={() => setVer(null)} onActualizada={() => reload()} />
 
       {/* Alta manual: para lo que no nace de una reserva por el asistente */}
       <NuevaFacturaModal

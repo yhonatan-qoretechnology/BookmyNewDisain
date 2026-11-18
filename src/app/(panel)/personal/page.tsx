@@ -414,12 +414,6 @@ export default function PersonalPage() {
         </ModalActions>
       </Modal>
 
-      <DesactivarProfesionalModal
-        profesional={bajaDe?.p ?? null}
-        onClose={() => setBajaDe(null)}
-        onHecho={async () => { bajaDe?.alTerminar?.(); await reload(); }}
-      />
-
       {/* Edición de integrante */}
       <Modal open={!!editando} onClose={() => setEditando(null)}>
         <ModalTitle>{t("personal.editTitle")}</ModalTitle>
@@ -544,6 +538,12 @@ export default function PersonalPage() {
           </>
         )}
       </Modal>
+      {/* Al final: se abre ENCIMA de la ficha del profesional */}
+      <DesactivarProfesionalModal
+        profesional={bajaDe?.p ?? null}
+        onClose={() => setBajaDe(null)}
+        onHecho={async () => { bajaDe?.alTerminar?.(); await reload(); }}
+      />
     </>
   );
 }

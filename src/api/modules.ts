@@ -251,6 +251,8 @@ export const EmpresasApi = {
 
   findAll: () => http.get<ApiEmpresa[]>(EP.empresas),
   findOne: (id: number) => http.get<ApiEmpresa>(EP.empresaById(id)),
+  /** Colores del panel del negocio (null = los de Bookmy). */
+  tema: (id: number, color: string | null) => http.patch<{ id: number; temaPanel: { color?: string } | null }>(EP.empresaTema(id), { color }),
   create: (data: { nombre: string; descripcion?: string; telefono?: string; email?: string }) =>
     http.post<ApiEmpresa>(EP.empresas, data),
   update: (id: number, data: Partial<ApiEmpresa>) => http.patch<ApiEmpresa>(EP.empresaById(id), data),

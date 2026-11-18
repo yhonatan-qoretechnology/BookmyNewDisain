@@ -9,6 +9,7 @@
 ============================================================ */
 import { useState } from "react";
 import { EmpresasApi, ImagenesApi } from "@/api/modules";
+import { EmisorController } from "@/controllers/FacturacionControllers";
 import { fotoUrl } from "@/constants";
 import { useData } from "@/hooks/useData";
 import { useSession } from "@/context/SessionContext";
@@ -44,6 +45,7 @@ export default function DatosEmpresa() {
     setSubiendoBanner(true);
     try {
       await ImagenesApi.empresaBanner(empresaId, file);
+      EmisorController.invalidate();
       await reload();
       toast(t("configuracion.bannerListo"), "success");
     } catch (e) {
@@ -56,6 +58,7 @@ export default function DatosEmpresa() {
     setSubiendoBanner(true);
     try {
       await ImagenesApi.quitarEmpresaBanner(empresaId);
+      EmisorController.invalidate();
       await reload();
     } catch (e) {
       toast(e instanceof Error ? e.message : t("common.error"), "error");
@@ -148,7 +151,8 @@ export default function DatosEmpresa() {
         empresaId={empresaId}
         onClose={() => setEditando(false)}
         onGuardada={async (e) => {
-          await reload();
+          EmisorController.invalidate();
+      await reload();
           if (e?.nombre && e.nombre !== session?.negocioName) updateSession({ negocioName: e.nombre });
         }}
       />

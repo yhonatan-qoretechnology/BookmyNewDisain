@@ -7,7 +7,8 @@
 ============================================================ */
 import { useState } from "react";
 import { fmtFechaLarga, fmtMoneda, initials } from "@/constants";
-import { FacturasController, type Emisor, type Factura } from "@/controllers/FacturacionControllers";
+import { EmisorController, FacturasController, type Emisor, type Factura } from "@/controllers/FacturacionControllers";
+import { useData } from "@/hooks/useData";
 import { ReferidosClientesApi } from "@/api/modules";
 import { useSession } from "@/context/SessionContext";
 import { useRegion } from "@/context/RegionContext";
@@ -25,12 +26,10 @@ import styles from "./facturacion.module.css";
 
 function Contenido({
   factura,
-  emisor,
   onClose,
   onActualizada,
 }: {
   factura: Factura;
-  emisor: Emisor | null;
   onClose: () => void;
   /** Se llama tras añadir o quitar un adicional, para recargar la lista y el total. */
   onActualizada?: () => Promise<void> | void;
@@ -66,6 +65,12 @@ function Contenido({
   const [facturando, setFacturando] = useState(false);
   /* Cupón de referidos: se comprueba y se aplica restando del total */
   const { session } = useSession();
+  /* Empresa y logo de la SEDE del ticket (no los de quien mira) */
+  const { data: emisor } = useData(
+    () => EmisorController.get(session, factura.sedeId),
+    [session?.id, factura.sedeId],
+    null as Emisor | null
+  );
   const puedeCupon = session?.role === "owner" || session?.role === "admin";
   const [pidiendoCupon, setPidiendoCupon] = useState(false);
   const [cupon, setCupon] = useState("");
@@ -537,19 +542,17 @@ function Contenido({
  */
 export default function FacturaViewModal({
   factura,
-  emisor,
   onClose,
   onActualizada,
 }: {
   factura: Factura | null;
-  emisor: Emisor | null;
   onClose: () => void;
   /** Recarga la lista tras añadir o quitar un adicional (el total lo recalcula el backend). */
   onActualizada?: () => Promise<void> | void;
 }) {
   return (
     <AnimatePresence>
-      {factura && <Contenido factura={factura} emisor={emisor} onClose={onClose} onActualizada={onActualizada} />}
+      {factura && <Contenido factura={factura} onClose={onClose} onActualizada={onActualizada} />}
     </AnimatePresence>
   );
 }

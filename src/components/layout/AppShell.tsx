@@ -2,7 +2,10 @@
 /* ============================================================
    AppShell — layout con sidebar sticky + topbar + contenido
 ============================================================ */
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { EmpresasApi } from "@/api/modules";
+import { useSession } from "@/context/SessionContext";
+import { aplicarTema, temaRecordado } from "@/lib/temaPanel";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import Chatbot from "./Chatbot";
@@ -24,6 +27,20 @@ export default function AppShell({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { session } = useSession();
+
+  /* Colores del negocio: primero el recordado (sin parpadeo) y luego el
+     guardado en la empresa. El superadmin ve siempre los de Bookmy. */
+  const empresaId = session?.role === "superadmin" ? null : Number(session?.negocioId) || null;
+  useEffect(() => {
+    if (!empresaId) { aplicarTema(null); return; }
+    aplicarTema(temaRecordado());
+    let vigente = true;
+    EmpresasApi.findOne(empresaId)
+      .then((e) => { if (vigente) aplicarTema(e?.temaPanel?.color ?? null); })
+      .catch(() => undefined);
+    return () => { vigente = false; };
+  }, [empresaId]);
 
   return (
     <div className={styles.appShell}>

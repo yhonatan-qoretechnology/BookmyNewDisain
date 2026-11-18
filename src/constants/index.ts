@@ -15,6 +15,8 @@ export const ROUTES = {
   clientes: "/clientes",
   facturacion: "/facturacion",
   facturas: "/facturacion",
+  /** Solo las facturas (las que van a la DIAN) */
+  facturasDian: "/facturacion/facturas",
   gastos: "/facturacion/gastos",
   estadisticas: "/estadisticas",
   servicios: "/servicios",
@@ -80,7 +82,8 @@ const ADMIN_ITEMS_PRO: NavItem[] = [
     href: ROUTES.facturacion,
     icon: "dollar",
     children: [
-      { id: "facturas", label: "Facturas", href: ROUTES.facturas, icon: "invoice" },
+      { id: "facturas", label: "Tickets", href: ROUTES.facturas, icon: "invoice" },
+      { id: "facturasDian", label: "Facturas", href: ROUTES.facturasDian, icon: "fileText" },
       { id: "gastos", label: "Gastos", href: ROUTES.gastos, icon: "receipt" },
     ],
   },
@@ -157,7 +160,8 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
       icon: "dollar",
       /* Submenú: Facturación se despliega en Facturas y Gastos */
       children: [
-        { id: "facturas", label: "Facturas", href: ROUTES.facturas, icon: "invoice" },
+        { id: "facturas", label: "Tickets", href: ROUTES.facturas, icon: "invoice" },
+        { id: "facturasDian", label: "Facturas", href: ROUTES.facturasDian, icon: "fileText" },
         { id: "gastos", label: "Gastos", href: ROUTES.gastos, icon: "receipt" },
       ],
     },

@@ -38,6 +38,18 @@ const KIND: Record<ApiEstadoCampana, "pendiente" | "confirmada" | "activo" | "ca
 type Chip = "todas" | "WHATSAPP" | "EMAIL" | "PROGRAMADA" | "ENVIADA";
 
 const VARIABLES = ["nombre", "negocio", "enlace_reserva"] as const;
+/** Imágenes adjuntas a la campaña: 2 como máximo, de 100 KB cada una */
+const MAX_IMAGENES = 2;
+const MAX_IMAGEN_KB = 100;
+const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp"];
+
+const leerDataUrl = (f: File) =>
+  new Promise<string>((ok, mal) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result));
+    r.onerror = () => mal(r.error);
+    r.readAsDataURL(f);
+  });
 const PLANTILLAS: { id: string; icono: IconName }[] = [
   { id: "promo", icono: "tag" },
   { id: "recordatorio", icono: "calendar" },
@@ -236,6 +248,7 @@ function AsistenteCampana({
   const [plantilla, setPlantilla] = useState("");
   const [asunto, setAsunto] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [imagenes, setImagenes] = useState<{ nombre: string; kb: number; url: string }[]>([]);
   const [cuando, setCuando] = useState<"ahora" | "programar">("ahora");
   const [fecha, setFecha] = useState("");
   const [nombre, setNombre] = useState("");
@@ -267,6 +280,22 @@ function AsistenteCampana({
     const nuevo = mensaje.slice(0, ini) + marca + mensaje.slice(fin);
     setMensaje(nuevo.slice(0, 1000));
     requestAnimationFrame(() => { el.focus(); el.setSelectionRange(ini + marca.length, ini + marca.length); });
+  };
+
+  const anadirImagen = async (f: File | undefined) => {
+    if (!f) return;
+    if (!TIPOS_IMAGEN.includes(f.type)) { toast(t("marketing.imagenTipo"), "error"); return; }
+    const kb = Math.ceil(f.size / 1024);
+    if (f.size > MAX_IMAGEN_KB * 1024) {
+      toast(t("marketing.imagenPesada", { kb, max: MAX_IMAGEN_KB }), "error");
+      return;
+    }
+    try {
+      const url = await leerDataUrl(f);
+      setImagenes((l) => (l.length >= MAX_IMAGENES ? l : [...l, { nombre: f.name, kb, url }]));
+    } catch {
+      toast(t("imagen.errSubida"), "error");
+    }
   };
 
   const vistaPrevia = (texto: string) =>
@@ -314,6 +343,7 @@ function AsistenteCampana({
         canal,
         ...(canal === "EMAIL" && { asunto: asunto.trim() }),
         mensaje: mensaje.trim(),
+        ...(imagenes.length && { imagenes: imagenes.map((i) => i.url) }),
         ...(cuando === "programar" && fecha && { programadaPara: new Date(fecha).toISOString() }),
         ...(borrador && { borrador: true }),
       });
@@ -446,6 +476,41 @@ function AsistenteCampana({
                   ))}
                   <span className={styles.contador}>{mensaje.length} / 1000</span>
                 </div>
+
+                {/* Hasta 2 imágenes, con el límite de peso a la vista */}
+                <div className={styles.imagenes}>
+                  <span className={styles.seccionTitulo}><Icon name="image" /> {t("marketing.imagenes")}</span>
+                  <p className={styles.aviso} style={{ marginTop: 0 }}>{t("marketing.imagenesLimite", { n: MAX_IMAGENES, kb: MAX_IMAGEN_KB })}</p>
+                  <div className={styles.imagenesFila}>
+                    {imagenes.map((img, i) => (
+                      <div key={i} className={styles.imagenItem}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.url} alt={img.nombre} />
+                        <span>{img.kb} KB</span>
+                        <button
+                          type="button"
+                          className={styles.imagenQuitar}
+                          aria-label={t("marketing.quitarImagen", { nombre: img.nombre })}
+                          onClick={() => setImagenes((l) => l.filter((_, j) => j !== i))}
+                        >
+                          <Icon name="x" />
+                        </button>
+                      </div>
+                    ))}
+                    {imagenes.length < MAX_IMAGENES && (
+                      <label className={styles.imagenAnadir}>
+                        <Icon name="plus" />
+                        <span>{t("marketing.anadirImagen")}</span>
+                        <input
+                          type="file"
+                          accept={TIPOS_IMAGEN.join(",")}
+                          hidden
+                          onChange={(e) => { void anadirImagen(e.target.files?.[0]); e.target.value = ""; }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -457,6 +522,10 @@ function AsistenteCampana({
                       {negocio}
                     </div>
                     <div className={styles.waCuerpo}>
+                      {imagenes.map((img, i) => (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img key={i} src={img.url} alt="" className={styles.waImagen} />
+                      ))}
                       <div className={styles.waBurbuja}>
                         {vistaPrevia(mensaje) || t("marketing.mensajePh")}
                         <span className={styles.waHora}>10:24 ✓✓</span>
@@ -470,6 +539,13 @@ function AsistenteCampana({
                       <b>{vistaPrevia(asunto) || t("marketing.asunto")}</b>
                     </div>
                     <div className={styles.mailCuerpo}>{vistaPrevia(mensaje) || t("marketing.mensajePh")}</div>
+                    {imagenes.length > 0 && (
+                      <div className={styles.mailAdjuntos}>
+                        {imagenes.map((img, i) => (
+                          <span key={i}><Icon name="paperclip" /> {img.nombre} · {img.kb} KB</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

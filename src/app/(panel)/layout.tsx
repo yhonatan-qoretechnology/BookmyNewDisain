@@ -27,6 +27,7 @@ const PAGE_KEY: Record<string, string> = {
   [ROUTES.clientes]: "clientes",
   [ROUTES.facturacion]: "facturacion",
   [ROUTES.gastos]: "gastos",
+  [ROUTES.facturasDian]: "facturasDian",
   [ROUTES.estadisticas]: "estadisticas",
   [ROUTES.servicios]: "servicios",
   [ROUTES.calendario]: "calendario",
