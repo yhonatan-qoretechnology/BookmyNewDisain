@@ -83,7 +83,9 @@ const comunEn: ComunWeb = {
 
     negocioTitulo: "Run a business?",
     negocioTexto:
-      "Handle bookings, clients, payments and staff with the Bookmy CRM. Try it free for 7 days.",
+      "Handle bookings, clients, payments and staff with the Bookmy CRM. Try it free for {dias} days.",
+    negocioTextoSinPrueba:
+      "Handle bookings, clients, payments and staff with the Bookmy CRM. Getting started is free.",
     negocioCta: "See the CRM",
     cambiarACrm: "Bookmy CRM for businesses",
     appTitulo: "Looking for an appointment?",

@@ -87,8 +87,13 @@ const comunEs = {
     /* Cada mundo enseña la puerta del otro, que es de lo que iba
        el portal de la portada. */
     negocioTitulo: "¿Tienes un negocio?",
+    /* Dos versiones, como en el resto de la web: la promesa de la prueba
+       pasa por SE_OFRECE_PRUEBA (src/lib/web/oferta.ts) y el número de
+       días nunca se escribe a mano. */
     negocioTexto:
-      "Gestiona reservas, clientes, cobros y equipo con el CRM Bookmy. Pruébalo 7 días gratis.",
+      "Gestiona reservas, clientes, cobros y equipo con el CRM Bookmy. Pruébalo {dias} días gratis.",
+    negocioTextoSinPrueba:
+      "Gestiona reservas, clientes, cobros y equipo con el CRM Bookmy. Empezar es gratis.",
     negocioCta: "Conoce el CRM",
     cambiarACrm: "Bookmy CRM para negocios",
     appTitulo: "¿Buscas cita?",

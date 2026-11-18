@@ -17,7 +17,7 @@ import type { ReactNode } from "react";
 import { useWebT } from "./useWebT";
 import Marca from "./Marca";
 import { FUERA, WEB, type Mundo } from "@/lib/web/rutas";
-import { CLAVE_CTA } from "@/lib/web/oferta";
+import { CLAVE_CTA, DIAS_DE_PRUEBA, SE_OFRECE_PRUEBA } from "@/lib/web/oferta";
 
 /** Las tres formas de llevarse la app, que cierran el mundo APP. */
 export function Tiendas({ centradas = false }: { centradas?: boolean }) {
@@ -121,7 +121,7 @@ export default function SiteFooter({ mundo, cta }: { mundo: Mundo; cta?: ReactNo
         {mundo === "app" ? (
           <div className="f-biz t-crm">
             <h3>{w("comun.pie.negocioTitulo")}</h3>
-            <p>{w("comun.pie.negocioTexto")}</p>
+            <p>{w(SE_OFRECE_PRUEBA ? "comun.pie.negocioTexto" : "comun.pie.negocioTextoSinPrueba", { dias: DIAS_DE_PRUEBA })}</p>
             <Link className="btn btn--primary btn--sm" href={WEB.crm}>
               {w("comun.pie.negocioCta")} <i className="i i-arrow-right" aria-hidden />
             </Link>

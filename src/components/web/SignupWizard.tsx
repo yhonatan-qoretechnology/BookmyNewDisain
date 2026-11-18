@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EmpresasApi, PaisesApi, ReferidosApi } from "@/api/modules";
+import { DIAS_DE_PRUEBA, SE_OFRECE_PRUEBA } from "@/lib/web/oferta";
 import type { ApiPais, RegistroNegocioDto } from "@/api/types";
 import { AuthController } from "@/controllers/AuthController";
 import { useSession } from "@/context/SessionContext";
@@ -505,9 +506,19 @@ export default function SignupWizard() {
           <div className={`${styles.planCard} ${plan === "pro" ? styles.planPro : ""}`}>
             <div className={styles.planHead}>
               <strong>{plan === "pro" ? w("signup.planPro") : w("signup.planFree")}</strong>
-              <span>{plan === "pro" ? w("signup.planProSub") : w("signup.planFreeSub")}</span>
+              <span>
+                {plan === "pro"
+                  ? w(SE_OFRECE_PRUEBA ? "signup.planProSub" : "signup.planProSubSinPrueba", { dias: DIAS_DE_PRUEBA })
+                  : w("signup.planFreeSub")}
+              </span>
             </div>
-            {plan === "pro" && <span className={styles.planBadge}>30 días</span>}
+            {/* La chapa de los días SOLO sale cuando la prueba se ofrece de
+                verdad. Decía "30 días" escrita a mano mientras el backend no
+                concede ninguna: era la última pantalla antes de crear la
+                cuenta, justo donde una promesa falsa duele más. */}
+            {plan === "pro" && SE_OFRECE_PRUEBA && (
+              <span className={styles.planBadge}>{w("signup.planBadge", { dias: DIAS_DE_PRUEBA })}</span>
+            )}
           </div>
 
           <p className={styles.incluye}>

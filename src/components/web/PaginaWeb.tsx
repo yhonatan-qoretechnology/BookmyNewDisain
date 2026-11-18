@@ -41,6 +41,25 @@ export default function PaginaWeb({
   const { w, locale } = useWebT();
   const raiz = useRef<HTMLDivElement>(null);
 
+  /* El acento de toda la página (verde de la app o lima del CRM) lo
+     elige `data-section` en el <html>, que es el ÚNICO sitio donde
+     bookmy.css define la paleta del CRM (`:root[data-section="crm"]`).
+     Tiene que ir ahí arriba y no en un envoltorio porque también tiñe
+     el fondo de estrellas, que vive fuera de esta página.
+
+     Va en su propio efecto, antes que el del motor: así se aplica
+     aunque el motor no llegue a cargar, y se quita al salir para que
+     la pantalla siguiente no herede el color de la anterior. */
+  useEffect(() => {
+    const html = document.documentElement;
+    const anterior = html.getAttribute("data-section");
+    html.setAttribute("data-section", mundo);
+    return () => {
+      if (anterior) html.setAttribute("data-section", anterior);
+      else html.removeAttribute("data-section");
+    };
+  }, [mundo]);
+
   useEffect(() => {
     const nodo = raiz.current;
     if (!nodo) return;

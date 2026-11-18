@@ -10,6 +10,15 @@ import type { WebDictionary } from "./web.es";
 import { porPais } from "../pais";
 import comun from "./web/comun.en";
 import portal from "./web/portal.en";
+import app from "./web/app.en";
+import appEmpresas from "./web/appEmpresas.en";
+import asistenteIa from "./web/asistenteIa.en";
+import comoFunciona from "./web/comoFunciona.en";
+import crm from "./web/crm.en";
+import planBasic from "./web/planBasic.en";
+import planes from "./web/planes.en";
+import planPro from "./web/planPro.en";
+import quienesSomos from "./web/quienesSomos.en";
 
 const webEn: WebDictionary = {
   nav: {
@@ -528,7 +537,9 @@ const webEn: WebDictionary = {
     planFree: "Bookmy Free",
     planFreeSub: "Free, forever",
     planPro: "Bookmy CRM Pro",
-    planProSub: "30 days free · no card",
+    planProSub: "{dias} days free · no card",
+    planProSubSinPrueba: "The whole system, no limits",
+    planBadge: "{dias} days",
     cambiarAFree: "I'd rather start with the free plan only",
     cambiarAPro: "Add 30 days of Pro for free",
     nudgeTitle: "Add 30 days of Pro, free",
@@ -552,6 +563,15 @@ const webEn: WebDictionary = {
   /* ── Web 2.0 ─────────────────────────────────────────── */
   comun,
   portal,
+  app,
+  appEmpresas,
+  asistenteIa,
+  comoFunciona,
+  crm,
+  planBasic,
+  planes,
+  planPro,
+  quienesSomos,
 };
 
 export default webEn;

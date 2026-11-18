@@ -19,6 +19,15 @@ import { porPais } from "../pais";
    Este índice solo los cuelga del diccionario. */
 import comun from "./web/comun.es";
 import portal from "./web/portal.es";
+import app from "./web/app.es";
+import appEmpresas from "./web/appEmpresas.es";
+import asistenteIa from "./web/asistenteIa.es";
+import comoFunciona from "./web/comoFunciona.es";
+import crm from "./web/crm.es";
+import planBasic from "./web/planBasic.es";
+import planes from "./web/planes.es";
+import planPro from "./web/planPro.es";
+import quienesSomos from "./web/quienesSomos.es";
 
 const webEs = {
   nav: {
@@ -551,7 +560,11 @@ const webEs = {
     planFree: "Bookmy Free",
     planFreeSub: "Gratis, para siempre",
     planPro: "Bookmy CRM Pro",
-    planProSub: "30 días gratis · sin tarjeta",
+    /* Dos versiones: la promesa de la prueba pasa por SE_OFRECE_PRUEBA
+       (src/lib/web/oferta.ts) y los días nunca se escriben a mano. */
+    planProSub: "{dias} días gratis · sin tarjeta",
+    planProSubSinPrueba: "Todo el sistema, sin límites",
+    planBadge: "{dias} días",
     cambiarAFree: "Prefiero empezar solo con lo gratuito",
     cambiarAPro: "Añadir 30 días de Pro gratis",
     nudgeTitle: "Añade 30 días de Pro, gratis",
@@ -576,6 +589,15 @@ const webEs = {
   /* ── Web 2.0 ─────────────────────────────────────────── */
   comun,
   portal,
+  app,
+  appEmpresas,
+  asistenteIa,
+  comoFunciona,
+  crm,
+  planBasic,
+  planes,
+  planPro,
+  quienesSomos,
 };
 
 export default webEs;
