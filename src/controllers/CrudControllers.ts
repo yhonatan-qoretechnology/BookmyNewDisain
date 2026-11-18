@@ -112,6 +112,7 @@ export interface NuevoClienteDatos {
   fechaNacimiento: string;
   hijos?: number;
   fechasEspeciales?: string[];
+  hijosDetalle?: { nombre: string; fechaNacimiento?: string; genero?: string }[];
   idioma: string;
   paisId: number;
   /** Solo superadmin: negocio al que se vincula el cliente */
@@ -228,6 +229,7 @@ export const ClientesController = {
       birthdate: datos.fechaNacimiento || undefined,
       ...(datos.hijos !== undefined && { hijos: datos.hijos }),
       ...(datos.fechasEspeciales?.length && { fechasEspeciales: datos.fechasEspeciales }),
+      ...(datos.hijosDetalle?.length && { hijosDetalle: datos.hijosDetalle }),
       empresaId: datos.empresaId,
     });
     return {

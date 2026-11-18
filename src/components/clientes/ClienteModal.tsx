@@ -23,6 +23,7 @@ import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import FechasEspeciales from "./FechasEspeciales";
+import HijosEditor, { hijosParaEnviar, type Hijo } from "./HijosEditor";
 import styles from "./ClienteModal.module.css";
 import { isStrongPassword } from "@/lib/password";
 
@@ -38,14 +39,16 @@ interface Formulario {
   idioma: string;
   direccion: string;
   state: ApiClientState;
-  hijos: string;
+  /** null = sin contestar */
+  tieneHijos: boolean | null;
+  hijosDetalle: Hijo[];
   fechasEspeciales: string[];
 }
 
 const VACIO: Formulario = {
   name: "", email: "", phone: "", gender: "",
   birthdate: "", idioma: "", direccion: "", state: "enabled",
-  hijos: "", fechasEspeciales: [],
+  tieneHijos: null, hijosDetalle: [], fechasEspeciales: [],
 };
 
 function aFormulario(c: ApiClient): Formulario {
@@ -59,7 +62,8 @@ function aFormulario(c: ApiClient): Formulario {
     idioma: c.userData?.idioma ?? "",
     direccion: c.userData?.direccion ?? "",
     state: c.state,
-    hijos: c.userData?.hijos != null ? String(c.userData.hijos) : "",
+    tieneHijos: c.userData?.hijosDetalle?.length ? true : c.userData?.hijos != null ? c.userData.hijos > 0 : null,
+    hijosDetalle: (c.userData?.hijosDetalle ?? []).map((h) => ({ ...h })),
     fechasEspeciales: c.userData?.fechasEspeciales ?? [],
   };
 }
@@ -136,8 +140,13 @@ export default function ClienteModal({
           if (a !== [...original.fechasEspeciales].sort().join(",")) cambios[k] = form.fechasEspeciales;
           return;
         }
-        if (k === "hijos") {
-          if (form.hijos !== original.hijos && form.hijos.trim() !== "") cambios.hijos = Number(form.hijos);
+        if (k === "tieneHijos") return;
+        if (k === "hijosDetalle") {
+          const nuevo = hijosParaEnviar(form.tieneHijos, form.hijosDetalle);
+          const antes = hijosParaEnviar(original.tieneHijos, original.hijosDetalle);
+          if (JSON.stringify(nuevo) !== JSON.stringify(antes) || form.tieneHijos !== original.tieneHijos) {
+            cambios.hijosDetalle = nuevo;
+          }
           return;
         }
         if (form[k] !== original[k]) cambios[k] = form[k];
@@ -332,10 +341,15 @@ export default function ClienteModal({
                   <span>{t("clientes.address")}</span>
                   <input value={form.direccion} onChange={(e) => set("direccion", e.target.value)} />
                 </label>
-                <label className={styles.campo}>
+                <div className={`${styles.campo} ${styles.ancho}`}>
                   <span>{t("clientes.hijos")}</span>
-                  <input type="number" min={0} max={20} value={form.hijos} onChange={(e) => set("hijos", e.target.value)} />
-                </label>
+                  <HijosEditor
+                    tiene={form.tieneHijos}
+                    onTiene={(v) => set("tieneHijos", v)}
+                    hijos={form.hijosDetalle}
+                    onChange={(h) => set("hijosDetalle", h)}
+                  />
+                </div>
                 <div className={`${styles.campo} ${styles.ancho}`}>
                   <span>{t("clientes.fechasEspeciales")}</span>
                   <FechasEspeciales value={form.fechasEspeciales} onChange={(v) => set("fechasEspeciales", v)} />

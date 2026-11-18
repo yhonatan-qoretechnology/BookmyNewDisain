@@ -22,6 +22,7 @@ import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/
 import Button from "@/components/ui/Button";
 import { generarPassword, isStrongPassword } from "@/lib/password";
 import FechasEspeciales from "./FechasEspeciales";
+import HijosEditor, { hijosParaEnviar, type Hijo } from "./HijosEditor";
 import styles from "./NuevoClienteModal.module.css";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,7 +53,8 @@ export default function NuevoClienteModal({
   const [telefono, setTelefono] = useState("");
   const [genero, setGenero] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [hijos, setHijos] = useState("");
+  const [tieneHijos, setTieneHijos] = useState<boolean | null>(null);
+  const [hijos, setHijos] = useState<Hijo[]>([]);
   const [fechasEspeciales, setFechasEspeciales] = useState<string[]>([]);
   const [password, setPassword] = useState("");
   const [consentimiento, setConsentimiento] = useState(false);
@@ -63,7 +65,7 @@ export default function NuevoClienteModal({
     if (!open) return;
     const inicial = textoInicial.trim();
     const esCorreo = inicial.includes("@");
-    setNombre(esCorreo ? "" : inicial); setEmail(esCorreo ? inicial : ""); setTelefono(""); setGenero(""); setFechaNacimiento(""); setHijos(""); setFechasEspeciales([]);
+    setNombre(esCorreo ? "" : inicial); setEmail(esCorreo ? inicial : ""); setTelefono(""); setGenero(""); setFechaNacimiento(""); setTieneHijos(null); setHijos([]); setFechasEspeciales([]);
     setPassword(generarPassword());
     setConsentimiento(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -79,7 +81,8 @@ export default function NuevoClienteModal({
     try {
       const cliente = await ClientesController.crear({
         nombre, email, telefono, password, genero, fechaNacimiento,
-        hijos: hijos.trim() === "" ? undefined : Number(hijos),
+        ...(tieneHijos !== null && { hijos: hijosParaEnviar(tieneHijos, hijos).length }),
+        hijosDetalle: hijosParaEnviar(tieneHijos, hijos),
         fechasEspeciales,
         idioma: locale,
         paisId: pais.id,
@@ -145,10 +148,11 @@ export default function NuevoClienteModal({
         <Field label={`${t("clientes.birthdate")} · ${t("clientes.optional")}`} htmlFor="nc-nac">
           <input id="nc-nac" type="date" value={fechaNacimiento} onChange={(e) => setFechaNacimiento(e.target.value)} />
         </Field>
-        <Field label={`${t("clientes.hijos")} · ${t("clientes.optional")}`} htmlFor="nc-hijos">
-          <input id="nc-hijos" type="number" min={0} max={20} value={hijos} onChange={(e) => setHijos(e.target.value)} />
-        </Field>
       </div>
+
+      <Field label={`${t("clientes.hijos")} · ${t("clientes.optional")}`} htmlFor="nc-hijos">
+        <HijosEditor tiene={tieneHijos} onTiene={setTieneHijos} hijos={hijos} onChange={setHijos} />
+      </Field>
 
       <Field label={`${t("clientes.fechasEspeciales")} · ${t("clientes.optional")}`} htmlFor="nc-fechas" hint={t("clientes.fechasEspecialesHint")}>
         <FechasEspeciales id="nc-fechas" value={fechasEspeciales} onChange={setFechasEspeciales} />

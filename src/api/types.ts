@@ -100,6 +100,7 @@ export interface CreateClientDto {
   /** Hijos y fechas especiales (para campañas) */
   hijos?: number;
   fechasEspeciales?: string[];
+  hijosDetalle?: { nombre: string; fechaNacimiento?: string; genero?: string }[];
   /** Solo superadmin: negocio al que se vincula */
   empresaId?: number;
 }
@@ -873,6 +874,7 @@ export interface ApiClient {
     birthdate: string | null;
     hijos?: number | null;
     fechasEspeciales?: string[];
+    hijosDetalle?: { nombre: string; fechaNacimiento?: string; genero?: string }[] | null;
     /** Está en `user_data`; `userLocation.address` es otra cosa */
     direccion?: string | null;
     countryId?: number;
@@ -918,6 +920,7 @@ export interface ClientUpdatePayload {
   state?: ApiClientState;
   hijos?: number;
   fechasEspeciales?: string[];
+  hijosDetalle?: { nombre: string; fechaNacimiento?: string; genero?: string }[];
 }
 
 /** GET /clients → { clients, pagination } */
@@ -1584,6 +1587,8 @@ export interface CriteriosFiltro {
   nuevosDias?: number;
   conHijos?: boolean;
   fechaEspecial?: string;
+  /** Algún hijo cumple años en este mes (1-12); 0 = el mes en curso */
+  cumpleHijoMes?: number;
 }
 
 export interface ApiClienteFiltrado {

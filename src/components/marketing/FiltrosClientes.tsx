@@ -51,6 +51,8 @@ export function resumenCriterios(c: CriteriosFiltro, t: T, locale: string, sedes
   if (c.servicioId) out.push(t("marketing.critServicio"));
   if (c.conHijos === true) out.push(t("marketing.critConHijos"));
   if (c.conHijos === false) out.push(t("marketing.critSinHijos"));
+  if (c.cumpleHijoMes === 0) out.push(t("marketing.critHijoEsteMes"));
+  else if (c.cumpleHijoMes) out.push(t("marketing.critHijoMes", { mes: meses[c.cumpleHijoMes - 1] }));
   if (c.fechaEspecial) out.push(t("marketing.critFecha", { fecha: t(`fechasEspeciales.${c.fechaEspecial}`) }));
   return out.length ? out : [t("marketing.critTodos")];
 }
@@ -199,11 +201,12 @@ type Form = {
   servicioId: string;
   conHijos: "" | "si" | "no";
   fechaEspecial: string;
+  cumpleHijoMes: string;
 };
 const VACIO: Form = {
   nombre: "", sedeId: "", genero: "", edadMin: "", edadMax: "", cumpleMes: "", cumpleHoy: false, ciudad: "",
   idioma: "", reservasMin: "", sinVisitaDias: "", visitaRecienteDias: "", nuevosDias: "", servicioId: "",
-  conHijos: "", fechaEspecial: "",
+  conHijos: "", fechaEspecial: "", cumpleHijoMes: "",
 };
 
 const num = (v: string) => (v.trim() === "" || !Number.isFinite(Number(v)) ? undefined : Number(v));
@@ -225,6 +228,7 @@ function aCriterios(f: Form): CriteriosFiltro {
     servicioId: num(f.servicioId),
     conHijos: f.conHijos === "si" ? true : f.conHijos === "no" ? false : undefined,
     fechaEspecial: f.fechaEspecial || undefined,
+    cumpleHijoMes: f.cumpleHijoMes === "" ? undefined : Number(f.cumpleHijoMes),
   };
   return Object.fromEntries(Object.entries(c).filter(([, v]) => v !== undefined)) as CriteriosFiltro;
 }
@@ -240,6 +244,7 @@ function desdeFiltro(f: ApiFiltroCliente | null): Form {
     nuevosDias: s(c.nuevosDias), servicioId: s(c.servicioId),
     conHijos: c.conHijos === true ? "si" : c.conHijos === false ? "no" : "",
     fechaEspecial: c.fechaEspecial || "",
+    cumpleHijoMes: s(c.cumpleHijoMes),
   };
 }
 
@@ -361,6 +366,13 @@ export function FiltroBuilder({
                   <option value="">{t("marketing.cualquiera")}</option>
                   <option value="si">{t("marketing.conHijos")}</option>
                   <option value="no">{t("marketing.sinHijos")}</option>
+                </select>
+              </Field>
+              <Field label={t("marketing.cumpleHijo")} htmlFor="fb-cumplehijo">
+                <select id="fb-cumplehijo" className={styles.select} value={form.cumpleHijoMes} onChange={(e) => set("cumpleHijoMes", e.target.value)}>
+                  <option value="">{t("marketing.cualquiera")}</option>
+                  <option value="0">{t("marketing.esteMes")}</option>
+                  {meses.map((m, i) => <option key={m} value={i + 1}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>)}
                 </select>
               </Field>
               <Field label={t("marketing.fechaEspecial")} htmlFor="fb-fecha">
