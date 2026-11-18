@@ -10,7 +10,8 @@ import { useData } from "@/hooks/useData";
 import { useUi } from "@/context/UiContext";
 import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
-import { sedeEditarPath } from "@/constants";
+import { sedeEditarPath, ROUTES } from "@/constants";
+import { MembresiaApi } from "@/api/modules";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import Badge, { Tag } from "@/components/ui/Badge";
@@ -46,6 +47,13 @@ export default function SedesPage() {
   const [resenasDe, setResenasDe] = useState<{ id: number; nombre: string } | null>(null);
 
   /* MODO API: GET /sedes/empresa/:empresaId (multi-tenant) */
+  /* Límite de sedes del plan Pro (incluidas + compradas) */
+  const { data: plazas, reload: reloadPlazas } = useData(
+    () => (session?.role === "owner" ? MembresiaApi.sedes().catch(() => null) : Promise.resolve(null)),
+    [session?.role, session?.negocioId],
+    null
+  );
+  const enLimite = !!plazas && plazas.limite != null && plazas.usadas >= plazas.limite;
   const { data: lista, reload } = useData(
     () => SedesController.search(search, session?.negocioId || ""),
     [search, session?.negocioId], []
@@ -70,6 +78,7 @@ export default function SedesPage() {
       setModalOpen(false); setNombre("");
         setDir({ direccion: "", pais: "", provincia: "", municipio: "", localidad: "" });
       await reload();
+      void reloadPlazas();
       toast(t("sedes.created"), "success");
     } catch (e) {
       toast(e instanceof Error ? e.message : "Error", "error");
@@ -99,9 +108,25 @@ export default function SedesPage() {
         <Toolbar>
           <SearchBox value={search} onChange={setSearch} placeholder={t("sedes.searchPlaceholder")} />
           <ToolbarActions>
-            <Button onClick={() => setModalOpen(true)}>{t("sedes.new")}</Button>
+            {plazas?.limite != null && (
+              <span style={{ fontSize: 12.5, color: enLimite ? "var(--red)" : "var(--slate-500)", fontWeight: 700 }}>
+                {t("sedes.plazas", { usadas: plazas.usadas, limite: plazas.limite })}
+              </span>
+            )}
+            {enLimite ? (
+              <Button onClick={() => router.push(ROUTES.planPagar)}>
+                <Icon name="plus" /> {t("sedes.ampliar")}
+              </Button>
+            ) : (
+              <Button onClick={() => setModalOpen(true)}>{t("sedes.new")}</Button>
+            )}
           </ToolbarActions>
         </Toolbar>
+        {enLimite && (
+          <div style={{ margin: "0 0 14px", padding: "10px 12px", borderRadius: 10, background: "var(--teal-50)", color: "var(--teal-700)", fontSize: 13 }}>
+            {t("sedes.limiteAviso", { limite: plazas!.limite!, incluidas: plazas!.incluidas })}
+          </div>
+        )}
 
         {lista.length === 0 ? (
           <EmptyState icon="building" title={t("sedes.emptyTitle")} message={t("sedes.emptyMsg")} />

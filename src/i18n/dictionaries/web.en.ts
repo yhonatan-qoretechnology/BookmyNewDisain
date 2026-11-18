@@ -478,6 +478,7 @@ const webEn: WebDictionary = {
     point3: "Reviews and business statistics",
   },
   signup: {
+    paisHereda: "Your business will work in {moneda}, with {impuesto} and the official holidays of {pais}.",
     invitadoPor: "🎁 Invited by {empresa}: when you activate Bookmy CRM Pro we'll give you 1 month free.",
     back: "← Back",
     eyebrow: "Create your account",

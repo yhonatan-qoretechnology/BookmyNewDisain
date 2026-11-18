@@ -22,6 +22,7 @@ import { useSession } from "@/context/SessionContext";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import FechasEspeciales from "./FechasEspeciales";
 import styles from "./ClienteModal.module.css";
 import { isStrongPassword } from "@/lib/password";
 
@@ -37,11 +38,14 @@ interface Formulario {
   idioma: string;
   direccion: string;
   state: ApiClientState;
+  hijos: string;
+  fechasEspeciales: string[];
 }
 
 const VACIO: Formulario = {
   name: "", email: "", phone: "", gender: "",
   birthdate: "", idioma: "", direccion: "", state: "enabled",
+  hijos: "", fechasEspeciales: [],
 };
 
 function aFormulario(c: ApiClient): Formulario {
@@ -55,6 +59,8 @@ function aFormulario(c: ApiClient): Formulario {
     idioma: c.userData?.idioma ?? "",
     direccion: c.userData?.direccion ?? "",
     state: c.state,
+    hijos: c.userData?.hijos != null ? String(c.userData.hijos) : "",
+    fechasEspeciales: c.userData?.fechasEspeciales ?? [],
   };
 }
 
@@ -125,6 +131,15 @@ export default function ClienteModal({
       const original = aFormulario(cliente);
       const cambios: Record<string, unknown> = {};
       (Object.keys(form) as (keyof Formulario)[]).forEach((k) => {
+        if (k === "fechasEspeciales") {
+          const a = [...form.fechasEspeciales].sort().join(",");
+          if (a !== [...original.fechasEspeciales].sort().join(",")) cambios[k] = form.fechasEspeciales;
+          return;
+        }
+        if (k === "hijos") {
+          if (form.hijos !== original.hijos && form.hijos.trim() !== "") cambios.hijos = Number(form.hijos);
+          return;
+        }
         if (form[k] !== original[k]) cambios[k] = form[k];
       });
 
@@ -317,6 +332,15 @@ export default function ClienteModal({
                   <span>{t("clientes.address")}</span>
                   <input value={form.direccion} onChange={(e) => set("direccion", e.target.value)} />
                 </label>
+                <label className={styles.campo}>
+                  <span>{t("clientes.hijos")}</span>
+                  <input type="number" min={0} max={20} value={form.hijos} onChange={(e) => set("hijos", e.target.value)} />
+                </label>
+                <div className={`${styles.campo} ${styles.ancho}`}>
+                  <span>{t("clientes.fechasEspeciales")}</span>
+                  <FechasEspeciales value={form.fechasEspeciales} onChange={(v) => set("fechasEspeciales", v)} />
+                  <small>{t("clientes.fechasEspecialesHint")}</small>
+                </div>
                 <label className={styles.campo}>
                   <span>{t("clientes.state")}</span>
                   <select

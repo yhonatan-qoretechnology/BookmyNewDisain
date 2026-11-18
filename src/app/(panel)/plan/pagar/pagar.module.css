@@ -1,0 +1,67 @@
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.aviso { margin-bottom: 14px; padding: 10px 12px; border-radius: var(--r-sm); background: rgba(245, 158, 11, .12); color: #92400e; font-size: 13px; }
+.estado { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border); font-size: 13.5px; }
+.bloque { margin: 20px 0 10px; font-size: 14px; font-weight: 800; }
+.ayuda { margin: 0 0 8px; font-size: 12.5px; color: var(--slate-500); }
+
+.ciclos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ciclo {
+  position: relative; display: flex; flex-direction: column; gap: 6px; padding: 16px; text-align: left;
+  border: 1.5px solid var(--border); border-radius: var(--r-md); background: var(--surface); color: inherit; font: inherit; cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.ciclo:hover { border-color: var(--teal-100); }
+.cicloOn { border-color: var(--teal-500); background: var(--teal-50); }
+.ciclo:focus-visible { outline: none; box-shadow: var(--ring); }
+.cicloNombre { font-weight: 800; font-size: 14px; }
+.cicloPrecio { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cicloPrecio small { font-size: 12px; font-weight: 600; color: var(--slate-500); margin-left: 4px; }
+.ahorro { align-self: flex-start; padding: 3px 9px; border-radius: 999px; background: var(--teal-600); color: #fff; font-size: 11.5px; font-weight: 700; }
+
+.sedes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.paso {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); color: inherit; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+}
+.paso:disabled { opacity: .4; cursor: not-allowed; }
+.paso:focus-visible { outline: none; box-shadow: var(--ring); }
+.sedesNum { min-width: 120px; text-align: center; font-size: 13.5px; }
+.sedesNum b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.sedesTotal { font-size: 12.5px; color: var(--teal-700); font-weight: 700; }
+
+.resumen { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: var(--r-lg); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
+.resumen h3 { margin: 0; font-size: 15px; }
+.resumen dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; margin: 0; font-size: 13px; }
+.resumen dt { color: var(--slate-500); }
+.resumen dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 10px; border-top: 1px solid var(--border); }
+.total b { font-size: 26px; font-variant-numeric: tabular-nums; }
+.ahorroLinea { margin: -6px 0 0; font-size: 12.5px; color: var(--teal-700); font-weight: 700; }
+.seguro { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: var(--slate-500); }
+.seguro svg { width: 14px; height: 14px; }
+.historial { padding-top: 10px; border-top: 1px solid var(--border); }
+.historial h4 { margin: 0 0 8px; font-size: 13px; }
+.pago { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; font-size: 12.5px; padding: 5px 0; }
+.pago span:nth-child(2) { color: var(--slate-500); }
+
+/* Vuelta de Stripe */
+.vuelta { display: grid; place-items: center; min-height: 340px; }
+.vueltaCaja { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 420px; }
+.vueltaCaja h2 { margin: 6px 0 0; font-size: 22px; }
+.vueltaCaja p { margin: 0 0 8px; color: var(--slate-500); font-size: 14px; line-height: 1.5; }
+.spinner { width: 54px; height: 54px; border-radius: 50%; border: 5px solid var(--teal-100); border-top-color: var(--teal-600); animation: girar .8s linear infinite; }
+.check { display: grid; place-items: center; width: 70px; height: 70px; border-radius: 50%; background: var(--grad-teal); color: #fff; box-shadow: var(--shadow-icon); }
+.check svg { width: 34px; height: 34px; }
+.pendiente { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%; background: rgba(245, 158, 11, .15); color: var(--amber); }
+.pendiente svg { width: 28px; height: 28px; }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+@media (max-width: 1000px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .resumen { position: static; }
+}
+@media (max-width: 520px) { .ciclos { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2.4s; }
+  .ciclo { transition: none; }
+}

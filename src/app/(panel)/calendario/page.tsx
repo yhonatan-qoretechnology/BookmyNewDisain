@@ -57,6 +57,22 @@ function CalendarioContent() {
   /** Gestor de los festivos de cada pueblo, que la API oficial no trae */
   const [locales, setLocales] = useState(false);
 
+  const sincronizarTodos = async () => {
+    setSincronizando(true);
+    try {
+      const r = await FestivosApi.sincronizarTodos(anioSync);
+      const ok = r.resultados.filter((x) => x.ok);
+      const mal = r.resultados.filter((x) => !x.ok).map((x) => x.pais);
+      toast(t("calendario.festivosTodosOk", { n: ok.length, anio: r.anio, paises: ok.map((x) => x.pais).join(", ") || "—" }), "success");
+      if (mal.length) toast(t("calendario.festivosTodosMal", { paises: mal.join(", ") }), "error");
+      await reloadFestivos();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : t("common.error"), "error");
+    } finally {
+      setSincronizando(false);
+    }
+  };
+
   const sincronizarFestivos = async () => {
     setSincronizando(true);
     try {
@@ -149,6 +165,10 @@ function CalendarioContent() {
           </label>
           <Button size="sm" disabled={sincronizando} onClick={() => void sincronizarFestivos()}>
             {sincronizando ? t("calendario.festivosSincronizando") : t("calendario.festivosSincronizar")}
+          </Button>
+          {/* Todos los países con negocios (los nuevos vía Nager.Date) */}
+          <Button size="sm" variant="ghost" disabled={sincronizando} onClick={() => void sincronizarTodos()}>
+            {t("calendario.festivosTodos")}
           </Button>
           {/* Los del municipio no vienen en la sincronización: se cargan a mano */}
           <Button size="sm" variant="ghost" onClick={() => setLocales(true)}>

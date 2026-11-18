@@ -85,6 +85,13 @@ export const EP = {
 
   /* Automatizaciones y campañas — solo SUPER_ADMIN */
   automatizaciones: "/automatizaciones",
+  /* Membresía Bookmy CRM Pro */
+  membresiaMia: "/membresia/mia",
+  membresiaSedes: "/membresia/sedes",
+  membresiaCheckout: "/membresia/checkout",
+  membresiaConfirmar: "/membresia/confirmar",
+  membresiaAdmin: "/membresia/admin",
+  membresiaPrecios: "/membresia/precios",
   /* Marketing del negocio: filtros de clientes guardados y campañas */
   marketingOpciones: "/marketing/opciones",
   marketingFiltros: "/marketing/filtros",
@@ -281,6 +288,8 @@ export const EP = {
   festivosContexto: "/festivos/contexto",
   /** POST { anio } — baja el calendario oficial del año. Solo SUPER_ADMIN. */
   festivosSincronizar: "/festivos/sincronizar",
+  /** POST { anio }: todos los países que usan los negocios */
+  festivosSincronizarTodos: "/festivos/sincronizar-todos",
   /* Festivos locales: la API externa no los trae, se cargan a mano */
   festivosLocales: "/festivos/locales",
   festivoLocal: "/festivos/local",

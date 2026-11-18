@@ -97,6 +97,9 @@ export interface CreateClientDto {
   countryId: number;
   /** YYYY-MM-DD */
   birthdate?: string;
+  /** Hijos y fechas especiales (para campañas) */
+  hijos?: number;
+  fechasEspeciales?: string[];
   /** Solo superadmin: negocio al que se vincula */
   empresaId?: number;
 }
@@ -207,6 +210,9 @@ export interface ApiEstadoPlan {
   proGratisHasta?: string | null;
   diasProGratis?: number;
   mesesProCredito?: number;
+  /** Membresía pagada online */
+  proPagadoHasta?: string | null;
+  diasProPagado?: number;
 }
 
 /** POST /empresas/registro — alta de un negocio desde la web. */
@@ -865,6 +871,8 @@ export interface ApiClient {
     idioma: string;
     gender: string;
     birthdate: string | null;
+    hijos?: number | null;
+    fechasEspeciales?: string[];
     /** Está en `user_data`; `userLocation.address` es otra cosa */
     direccion?: string | null;
     countryId?: number;
@@ -908,6 +916,8 @@ export interface ClientUpdatePayload {
   direccion?: string;
   countryId?: number;
   state?: ApiClientState;
+  hijos?: number;
+  fechasEspeciales?: string[];
 }
 
 /** GET /clients → { clients, pagination } */
@@ -1572,6 +1582,8 @@ export interface CriteriosFiltro {
   visitaRecienteDias?: number;
   servicioId?: number;
   nuevosDias?: number;
+  conHijos?: boolean;
+  fechaEspecial?: string;
 }
 
 export interface ApiClienteFiltrado {
@@ -1641,4 +1653,70 @@ export interface CampanaClienteDto {
   imagenes?: string[];
   programadaPara?: string;
   borrador?: boolean;
+}
+
+/* ── Membresía Bookmy CRM Pro (/membresia) ── */
+export type ApiCicloPro = "MENSUAL" | "ANUAL";
+
+export interface ApiPreciosMembresia {
+  moneda: string;
+  precioMensual: number;
+  precioAnual: number;
+  sedesIncluidas: number;
+  precioSedeExtra: number;
+  diasAviso: number;
+}
+
+export interface ApiSedesPlan {
+  usadas: number;
+  incluidas: number;
+  extra: number;
+  /** null = sin límite (plan gratuito) */
+  limite: number | null;
+  pro: boolean;
+}
+
+export interface ApiPagoMembresia {
+  id: number;
+  monto: number;
+  estado: "PENDIENTE" | "PAGADO" | "VENCIDO" | "CANCELADO";
+  ciclo: ApiCicloPro;
+  sedesExtra: number;
+  pagadoEn: string | null;
+  periodoHasta: string | null;
+  createdAt: string;
+  cubiertoPorReferidos: boolean;
+  stripeSessionId: string | null;
+}
+
+export interface ApiMembresiaMia {
+  empresa: string;
+  precios: ApiPreciosMembresia;
+  estado: ApiEstadoPlan;
+  contratadoManual: boolean;
+  proHasta: string | null;
+  diasRestantes: number | null;
+  porVencer: boolean;
+  ciclo: ApiCicloPro | null;
+  sedes: ApiSedesPlan;
+  pagos: ApiPagoMembresia[];
+  stripeActivo: boolean;
+}
+
+export type ApiSituacionMembresia = "AL_DIA" | "POR_VENCER" | "VENCIDA" | "MANUAL" | "PRUEBA" | "REGALO" | "FREE";
+
+export interface ApiMembresiasAdmin {
+  precios: ApiPreciosMembresia;
+  resumen: {
+    activas: number; mensuales: number; anuales: number; porVencer: number; vencidas: number; enPrueba: number;
+    ingresosMes: number; ingresosAnio: number; mrr: number;
+  };
+  empresas: {
+    empresaId: number; empresa: string; situacion: ApiSituacionMembresia; ciclo: ApiCicloPro | null;
+    proPagadoHasta: string | null; diasRestantes: number | null; sedes: number; limiteSedes: number | null; sedesExtra: number;
+  }[];
+  pagos: {
+    id: number; empresa: { id: number; nombre: string }; monto: number; ciclo: ApiCicloPro; sedesExtra: number;
+    pagadoEn: string | null; periodoHasta: string | null; online: boolean; cubiertoPorReferidos: boolean;
+  }[];
 }

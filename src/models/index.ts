@@ -128,6 +128,10 @@ export interface EstadoPlan {
   pruebaCaducada: boolean;
   /** Todavía puede pedir los 30 días. */
   puedeProbar: boolean;
+  /** Pro regalado por referidos y membresía pagada online (si los hay) */
+  proGratisHasta?: string | null;
+  proPagadoHasta?: string | null;
+  diasProPagado?: number;
 }
 
 export interface Reserva {

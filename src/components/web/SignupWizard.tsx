@@ -65,7 +65,7 @@ const VACIO: Datos = {
 type PaisOpcion = Pick<
   ApiPais,
   "isoCode" | "nombre" | "zonaHoraria" | "etiquetaRegion" | "etiquetaMunicipio"
->;
+> & Partial<Pick<ApiPais, "moneda" | "etiquetaImpuesto" | "impuestoPorDefecto">>;
 
 /* Si /paises no contesta, el alta no se queda sin país: sin esto un fallo
    de red crearía el negocio colombiano como español, y el país no se
@@ -372,9 +372,18 @@ export default function SignupWizard() {
               <span>{t("sedes.pais")}</span>
               <select value={datos.paisIso} onChange={(e) => elegirPais(e.target.value)}>
                 {paises.map((p) => (
-                  <option key={p.isoCode} value={p.isoCode}>{p.nombre}</option>
+                  <option key={p.isoCode} value={p.isoCode}>{p.nombre}{p.moneda ? ` · ${p.moneda}` : ""}</option>
                 ))}
               </select>
+              {/* Lo que el país decide por el negocio, dicho antes de crearlo */}
+              {paisElegido?.moneda && (
+                <small>
+                  {w("signup.paisHereda")
+                    .replace("{moneda}", paisElegido.moneda)
+                    .replace("{impuesto}", `${paisElegido.etiquetaImpuesto ?? ""} ${paisElegido.impuestoPorDefecto ?? ""} %`.trim())
+                    .replace("{pais}", paisElegido.nombre)}
+                </small>
+              )}
             </label>
             <label className={styles.campo}>
               <span>{w("signup.direccion")}</span>

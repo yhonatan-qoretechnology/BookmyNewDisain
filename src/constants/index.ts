@@ -43,6 +43,10 @@ export const ROUTES = {
   referidos: "/referidos",
   /** Automatizaciones y campañas de correo — solo SUPER_ADMIN */
   automatizaciones: "/automatizaciones",
+  /** Pagar o renovar Bookmy CRM Pro */
+  planPagar: "/plan/pagar",
+  /** Control de membresías (superadmin) */
+  membresias: "/membresias",
   /** Ayuda / Documentación — el botón del menú lateral, para todos los roles */
   ayuda: "/ayuda",
 } as const;
@@ -177,6 +181,7 @@ export const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { id: "planMonitoreo", label: "Monitoreo Pro", href: ROUTES.planMonitoreo, icon: "clock" },
     { id: "telemetria", label: "Telemetría", href: ROUTES.telemetria, icon: "barChart" },
     { id: "liquidaciones", label: "Liquidaciones Wise", href: ROUTES.liquidaciones, icon: "wallet" },
+    { id: "membresias", label: "Membresías", href: ROUTES.membresias, icon: "crown" },
     { id: "referidos", label: "Referidos", href: ROUTES.referidos, icon: "tag" },
     { id: "automatizaciones", label: "Automatizaciones", href: ROUTES.automatizaciones, icon: "bot" },
     { id: "configuracion", label: "Configuración", href: ROUTES.configuracion, icon: "settings" },

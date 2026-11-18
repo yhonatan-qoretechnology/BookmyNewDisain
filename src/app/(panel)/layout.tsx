@@ -11,6 +11,7 @@ import { rutaDeLogin } from "@/lib/loginOrigen";
 import AppShell from "@/components/layout/AppShell";
 import PageTransition from "@/components/animations/PageTransition";
 import PlanProLock from "@/components/plan/PlanProLock";
+import ProVenceBanner from "@/components/plan/ProVenceBanner";
 import TrialBanner from "@/components/plan/TrialBanner";
 import KycBanner from "@/components/kyc/KycBanner";
 import Icon from "@/components/ui/Icon";
@@ -28,6 +29,8 @@ const PAGE_KEY: Record<string, string> = {
   [ROUTES.facturacion]: "facturacion",
   [ROUTES.gastos]: "gastos",
   [ROUTES.facturasDian]: "facturasDian",
+  [ROUTES.planPagar]: "planPagar",
+  [ROUTES.membresias]: "membresias",
   [ROUTES.estadisticas]: "estadisticas",
   [ROUTES.servicios]: "servicios",
   [ROUTES.calendario]: "calendario",
@@ -122,6 +125,9 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
 
       {/* Verificación del negocio pendiente o rechazada (solo al dueño) */}
       <KycBanner />
+
+      {/* «Tu plan Pro vence en X días · Actualiza tu pago» (solo al dueño) */}
+      <ProVenceBanner />
 
       {/* El crossfade se ata a la ruta: al cambiar `pathname`, la vista
           saliente se desvanece antes de montar la entrante. */}

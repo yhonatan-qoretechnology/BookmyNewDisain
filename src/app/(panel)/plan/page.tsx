@@ -10,6 +10,8 @@
                     reunido y sin el resto de la ficha.
 ============================================================ */
 import { useState } from "react";
+import Link from "next/link";
+import { ROUTES } from "@/constants";
 import { EmpresasApi } from "@/api/modules";
 import { NegociosController } from "@/controllers/NegociosController";
 import { useData } from "@/hooks/useData";
@@ -120,6 +122,21 @@ export default function PlanPage() {
       <PanelHead title={t("plan.panelTitle")} sub={t("plan.panelSub")} />
 
       {/* Estado de hoy, antes que la comparativa: es lo que vienen a mirar */}
+      {/* Pagar o renovar la membresía online */}
+      {session?.role === "owner" && estado?.plan !== "PRO" && (
+        <div className={styles.estado} style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+          <p className={styles.estadoTexto} style={{ margin: 0 }}>
+            {estado?.proPagadoHasta
+              ? t("membresia.activoHastaCorto", { fecha: new Date(estado.proPagadoHasta).toLocaleDateString(locale) })
+              : t("membresia.ctaTexto")}
+          </p>
+          <Link href={ROUTES.planPagar} className={styles.ventas} style={{ textDecoration: "none" }}>
+            <Icon name="wallet" width={15} height={15} />
+            {estado?.proPagadoHasta ? t("membresia.renovar") : t("membresia.pagarPro")}
+          </Link>
+        </div>
+      )}
+
       <div className={styles.estado}>
         <span className={styles.estadoPlan}>
           <Badge kind={pro ? "activo" : "inactivo"}>{pro ? t("plan.pro") : t("plan.free")}</Badge>

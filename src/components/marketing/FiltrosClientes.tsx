@@ -22,6 +22,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import { SkTable } from "@/components/ui/Skeleton";
+import { FECHAS_ESPECIALES } from "@/components/clientes/FechasEspeciales";
 import styles from "./marketing.module.css";
 
 type T = (k: string, v?: Record<string, string | number>) => string;
@@ -48,6 +49,9 @@ export function resumenCriterios(c: CriteriosFiltro, t: T, locale: string, sedes
   if (c.visitaRecienteDias) out.push(t("marketing.critVisitaReciente", { n: c.visitaRecienteDias }));
   if (c.nuevosDias) out.push(t("marketing.critNuevos", { n: c.nuevosDias }));
   if (c.servicioId) out.push(t("marketing.critServicio"));
+  if (c.conHijos === true) out.push(t("marketing.critConHijos"));
+  if (c.conHijos === false) out.push(t("marketing.critSinHijos"));
+  if (c.fechaEspecial) out.push(t("marketing.critFecha", { fecha: t(`fechasEspeciales.${c.fechaEspecial}`) }));
   return out.length ? out : [t("marketing.critTodos")];
 }
 
@@ -193,10 +197,13 @@ type Form = {
   visitaRecienteDias: string;
   nuevosDias: string;
   servicioId: string;
+  conHijos: "" | "si" | "no";
+  fechaEspecial: string;
 };
 const VACIO: Form = {
   nombre: "", sedeId: "", genero: "", edadMin: "", edadMax: "", cumpleMes: "", cumpleHoy: false, ciudad: "",
   idioma: "", reservasMin: "", sinVisitaDias: "", visitaRecienteDias: "", nuevosDias: "", servicioId: "",
+  conHijos: "", fechaEspecial: "",
 };
 
 const num = (v: string) => (v.trim() === "" || !Number.isFinite(Number(v)) ? undefined : Number(v));
@@ -216,6 +223,8 @@ function aCriterios(f: Form): CriteriosFiltro {
     visitaRecienteDias: num(f.visitaRecienteDias),
     nuevosDias: num(f.nuevosDias),
     servicioId: num(f.servicioId),
+    conHijos: f.conHijos === "si" ? true : f.conHijos === "no" ? false : undefined,
+    fechaEspecial: f.fechaEspecial || undefined,
   };
   return Object.fromEntries(Object.entries(c).filter(([, v]) => v !== undefined)) as CriteriosFiltro;
 }
@@ -229,6 +238,8 @@ function desdeFiltro(f: ApiFiltroCliente | null): Form {
     cumpleMes: s(c.cumpleMes), cumpleHoy: !!c.cumpleHoy, ciudad: c.ciudad || "", idioma: c.idioma || "",
     reservasMin: s(c.reservasMin), sinVisitaDias: s(c.sinVisitaDias), visitaRecienteDias: s(c.visitaRecienteDias),
     nuevosDias: s(c.nuevosDias), servicioId: s(c.servicioId),
+    conHijos: c.conHijos === true ? "si" : c.conHijos === false ? "no" : "",
+    fechaEspecial: c.fechaEspecial || "",
   };
 }
 
@@ -338,6 +349,25 @@ export function FiltroBuilder({
               </Field>
               <Field label={t("marketing.edadMax")} htmlFor="fb-edadmax">
                 <input id="fb-edadmax" className={styles.input} type="number" min={0} max={120} value={form.edadMax} onChange={(e) => set("edadMax", e.target.value)} />
+              </Field>
+            </div>
+          </div>
+
+          <div className={styles.seccion}>
+            <span className={styles.seccionTitulo}><Icon name="users" /> {t("marketing.secFamilia")}</span>
+            <div className={styles.fila2}>
+              <Field label={t("marketing.hijos")} htmlFor="fb-hijos">
+                <select id="fb-hijos" className={styles.select} value={form.conHijos} onChange={(e) => set("conHijos", e.target.value as Form["conHijos"])}>
+                  <option value="">{t("marketing.cualquiera")}</option>
+                  <option value="si">{t("marketing.conHijos")}</option>
+                  <option value="no">{t("marketing.sinHijos")}</option>
+                </select>
+              </Field>
+              <Field label={t("marketing.fechaEspecial")} htmlFor="fb-fecha">
+                <select id="fb-fecha" className={styles.select} value={form.fechaEspecial} onChange={(e) => set("fechaEspecial", e.target.value)}>
+                  <option value="">{t("marketing.cualquiera")}</option>
+                  {FECHAS_ESPECIALES.map((f) => <option key={f} value={f}>{t(`fechasEspeciales.${f}`)}</option>)}
+                </select>
               </Field>
             </div>
           </div>

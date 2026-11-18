@@ -1,0 +1,24 @@
+.banner {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px 14px;
+  border-radius: var(--r-md); border: 1px solid var(--teal-100); background: var(--teal-50);
+}
+.vencido { border-color: rgba(239, 68, 68, .35); background: rgba(239, 68, 68, .08); }
+.icono { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--grad-teal); color: #fff; }
+.vencido .icono { background: var(--grad-red); }
+.icono svg { width: 17px; height: 17px; }
+.texto { flex: 1; min-width: 0; margin: 0; display: flex; flex-direction: column; font-size: 13px; }
+.texto b { font-size: 14px; }
+.texto span { color: var(--slate-500); }
+.boton {
+  flex: none; padding: 8px 14px; border-radius: var(--r-sm); background: var(--teal-600); color: #fff;
+  font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap;
+}
+.vencido .boton { background: var(--red); }
+.boton:focus-visible { outline: none; box-shadow: var(--ring); }
+.cerrar { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: none; border-radius: 8px; background: transparent; color: var(--slate-500); cursor: pointer; }
+.cerrar svg { width: 15px; height: 15px; }
+.cerrar:hover { background: rgba(0, 0, 0, .05); }
+@media (max-width: 560px) {
+  .banner { flex-wrap: wrap; }
+  .boton { order: 3; width: 100%; text-align: center; }
+}

@@ -21,6 +21,7 @@ import { useRegion } from "@/context/RegionContext";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import { generarPassword, isStrongPassword } from "@/lib/password";
+import FechasEspeciales from "./FechasEspeciales";
 import styles from "./NuevoClienteModal.module.css";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,6 +52,8 @@ export default function NuevoClienteModal({
   const [telefono, setTelefono] = useState("");
   const [genero, setGenero] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
+  const [hijos, setHijos] = useState("");
+  const [fechasEspeciales, setFechasEspeciales] = useState<string[]>([]);
   const [password, setPassword] = useState("");
   const [consentimiento, setConsentimiento] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -60,7 +63,7 @@ export default function NuevoClienteModal({
     if (!open) return;
     const inicial = textoInicial.trim();
     const esCorreo = inicial.includes("@");
-    setNombre(esCorreo ? "" : inicial); setEmail(esCorreo ? inicial : ""); setTelefono(""); setGenero(""); setFechaNacimiento("");
+    setNombre(esCorreo ? "" : inicial); setEmail(esCorreo ? inicial : ""); setTelefono(""); setGenero(""); setFechaNacimiento(""); setHijos(""); setFechasEspeciales([]);
     setPassword(generarPassword());
     setConsentimiento(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -76,6 +79,8 @@ export default function NuevoClienteModal({
     try {
       const cliente = await ClientesController.crear({
         nombre, email, telefono, password, genero, fechaNacimiento,
+        hijos: hijos.trim() === "" ? undefined : Number(hijos),
+        fechasEspeciales,
         idioma: locale,
         paisId: pais.id,
         empresaId: empresaId ? Number(empresaId) : undefined,
@@ -140,7 +145,14 @@ export default function NuevoClienteModal({
         <Field label={`${t("clientes.birthdate")} · ${t("clientes.optional")}`} htmlFor="nc-nac">
           <input id="nc-nac" type="date" value={fechaNacimiento} onChange={(e) => setFechaNacimiento(e.target.value)} />
         </Field>
+        <Field label={`${t("clientes.hijos")} · ${t("clientes.optional")}`} htmlFor="nc-hijos">
+          <input id="nc-hijos" type="number" min={0} max={20} value={hijos} onChange={(e) => setHijos(e.target.value)} />
+        </Field>
       </div>
+
+      <Field label={`${t("clientes.fechasEspeciales")} · ${t("clientes.optional")}`} htmlFor="nc-fechas" hint={t("clientes.fechasEspecialesHint")}>
+        <FechasEspeciales id="nc-fechas" value={fechasEspeciales} onChange={setFechasEspeciales} />
+      </Field>
 
       <Field label={t("clientes.accessPassword")} htmlFor="nc-pass" hint={t("clientes.accessPasswordHint")}>
         <div className={styles.passRow}>

@@ -110,6 +110,8 @@ export interface NuevoClienteDatos {
   genero: string;
   /** YYYY-MM-DD o vacío */
   fechaNacimiento: string;
+  hijos?: number;
+  fechasEspeciales?: string[];
   idioma: string;
   paisId: number;
   /** Solo superadmin: negocio al que se vincula el cliente */
@@ -224,6 +226,8 @@ export const ClientesController = {
       idioma: datos.idioma,
       countryId: datos.paisId,
       birthdate: datos.fechaNacimiento || undefined,
+      ...(datos.hijos !== undefined && { hijos: datos.hijos }),
+      ...(datos.fechasEspeciales?.length && { fechasEspeciales: datos.fechasEspeciales }),
       empresaId: datos.empresaId,
     });
     return {

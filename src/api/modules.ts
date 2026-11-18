@@ -7,6 +7,7 @@ import { http, qs } from "./http";
 import { EP } from "./endpoints";
 import { cabecerasRecaptcha } from "@/lib/recaptcha";
 import type {
+  ApiCicloPro, ApiMembresiaMia, ApiMembresiasAdmin, ApiPreciosMembresia, ApiSedesPlan,
   ApiCuponCliente, ApiProgramaReferidosCliente, ApiReferidoClienteFicha, ApiReferidosClientes, ApiTipoDescuento, ApiValidacionCupon,
   ApiCampanaCliente, ApiFiltroCliente, ApiOpcionesMarketing, ApiVistaPreviaFiltro, CampanaClienteDto, CriteriosFiltro,
   ApiAccesosPage, ApiAccesosResumen,
@@ -684,6 +685,11 @@ export const FestivosApi = {
    */
   sincronizar: (anio: number) =>
     http.post<ApiSincronizacionFestivos>(EP.festivosSincronizar, { anio }),
+  /** Todos los países que usan los negocios (España y Colombia con su API; el resto, Nager.Date). */
+  sincronizarTodos: (anio: number) =>
+    http.post<{ anio: number; resultados: { pais: string; ok: boolean; nacionales?: number; error?: string }[] }>(
+      EP.festivosSincronizarTodos, { anio }
+    ),
 
   /* ── Festivos locales (los del municipio) ──────────────────
      La sincronización solo trae nacionales y regionales; los patronos de
@@ -1077,6 +1083,18 @@ export const MarketingApi = {
   crearCampana: (dto: CampanaClienteDto) => http.post<ApiCampanaCliente>(EP.marketingCampanas, dto),
   enviarCampana: (id: number, empresaId?: number) => http.post<{ ok: boolean }>(EP.marketingCampanaEnviar(id) + qEmpresa(empresaId), {}),
   cancelarCampana: (id: number, empresaId?: number) => http.post<{ ok: boolean }>(EP.marketingCampanaCancelar(id) + qEmpresa(empresaId), {}),
+};
+
+export const MembresiaApi = {
+  mia: () => http.get<ApiMembresiaMia>(EP.membresiaMia),
+  sedes: (empresaId?: number) => http.get<ApiSedesPlan>(EP.membresiaSedes + (empresaId ? `?empresaId=${empresaId}` : "")),
+  /** Crea la sesión de Stripe Checkout; hay que ir a `url`. */
+  checkout: (ciclo: ApiCicloPro, sedesExtra: number) =>
+    http.post<{ url: string; total: number }>(EP.membresiaCheckout, { ciclo, sedesExtra }),
+  confirmar: (sessionId: string) =>
+    http.post<{ pagado: boolean; hasta?: string | null }>(EP.membresiaConfirmar, { sessionId }),
+  admin: () => http.get<ApiMembresiasAdmin>(EP.membresiaAdmin),
+  precios: (p: ApiPreciosMembresia) => http.put<ApiPreciosMembresia>(EP.membresiaPrecios, p),
 };
 
 export const AutomatizacionesApi = {

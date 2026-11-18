@@ -485,6 +485,7 @@ const webEs = {
     point3: "Reseñas y estadísticas de tu negocio",
   },
   signup: {
+    paisHereda: "Tu negocio trabajará en {moneda}, con {impuesto} y los festivos oficiales de {pais}.",
     invitadoPor: "🎁 Te invita {empresa}: cuando actives Bookmy CRM Pro te regalamos 1 mes gratis.",
     /* Cabecera */
     back: "← Volver",
