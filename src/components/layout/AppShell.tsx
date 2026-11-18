@@ -46,6 +46,9 @@ export default function AppShell({
     <div className={styles.appShell}>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className={styles.main}>
+        {/* Ventana flotante: la cabecera y el contenido viven DENTRO,
+            separados del lienzo, como en docs/motion/referencias/01. */}
+        <div className={styles.window}>
         <Topbar
           title={meta.title}
           accent={meta.accent}
@@ -55,6 +58,7 @@ export default function AppShell({
           onMenuToggle={() => setSidebarOpen((o) => !o)}
         />
         <main className={styles.content}>{children}</main>
+        </div>
         {/* Asistente de ayuda en todas las pantallas, esquina inferior derecha */}
         <Chatbot />
       </div>

@@ -5,8 +5,10 @@
   height: calc(100vh - 24px);
   width: var(--sidebar-inner);
   background: var(--surface);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow-lg);
+  /* Panel flotante: radio y sombra del material nuevo (Anexo A). */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   gap: 0;
