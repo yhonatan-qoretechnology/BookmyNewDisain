@@ -1503,13 +1503,9 @@ const es = {
     /* Banner de bienvenida (MOTION_SPEC.md §6.9). El saludo cambia
        con la hora del día; las cifras salen de las reservas reales. */
     hero: {
-      manana: "Buenos días, {nombre}",
-      tarde: "Buenas tardes, {nombre}",
-      noche: "Buenas noches, {nombre}",
       reservasHoy: "Reservas de hoy:",
       sinConfirmar: "Sin confirmar:",
       cta: "Nueva reserva",
-      chip: "Última reserva · {servicio}",
     },
   },
 

@@ -1,3 +1,31 @@
+/* Fila de hoy: las dos cifras del día a la izquierda y las acciones a
+   la derecha. Sustituye al banner hero, que pedía 294 px de alto para
+   esto mismo. */
+.resumenBar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft), var(--highlight);
+  padding: 10px 14px;
+  margin-bottom: 4px;
+}
+.resumenDatos {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--slate-500);
+  min-width: 0;
+}
+.resumenDatos b { font-size: 16px; font-weight: 800; color: var(--navy-900); }
+.resumenSep { color: var(--border); }
+.resumenAcciones { display: flex; align-items: center; gap: 8px; flex: none; }
+
+@media (max-width: 600px) {
+  .resumenBar { padding: 10px 12px; }
+  .resumenDatos { font-size: 12.5px; gap: 8px; }
+  .resumenAcciones { width: 100%; }
+}
+
 /* ============================================================
    Dashboard — rejillas y bloques propios de la pantalla
    ------------------------------------------------------------

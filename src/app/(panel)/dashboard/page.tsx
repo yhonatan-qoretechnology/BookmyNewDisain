@@ -5,13 +5,13 @@
    El orden de la pantalla y el de la animación son el mismo, y
    salen del timeline maestro de MOTION_SPEC.md §4 (referencia 05):
 
-     0,12 s  banner hero          · cardIn(0.18)
-     0,30 s  saludo → 0,37 subtítulo → 0,44 CTA
+     0,12 s  fila de hoy (cifras y acciones)
      0,27 s  primera tarjeta KPI, y una cada 65 ms hasta 0,46 s
-     0,45 s  ilustración 3D (sube con rebote)
      0,53 s  bloques de abajo, uno cada 80 ms
-     0,97 s  planta
-     ~1,3 s  todo asentado y nítido
+     ~1,1 s  todo asentado y nítido
+
+   El banner hero que abría la pantalla se quitó: ocupaba 294 px
+   para un saludo y dos cifras, que ahora van en una línea.
 
    Ese ritmo NO está repartido por el archivo: lo marca la cascada
    del contenedor (delayChildren 0,12 + 65 ms por hijo) y cada
@@ -45,7 +45,6 @@ import { mapaFestivos } from "@/components/festivos/mapaFestivos";
 import { PersonRow } from "@/components/ui/People";
 import { StaggerContainer, StaggerItem } from "@/components/animations";
 import PersonalizarPanelModal from "@/components/dashboard/PersonalizarPanelModal";
-import HeroBanner from "@/components/dashboard/HeroBanner";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { entrada, grupo } from "@/components/dashboard/motionDashboard";
 import { pathSparkline, seriesDelDashboard } from "@/components/dashboard/serieKpi";
@@ -200,19 +199,11 @@ export default function DashboardPage() {
     void reloadTodas();
   };
 
-  /* ── Banner: saludo y lo que hay hoy sobre la mesa ──────────
+  /* ── Lo que hay hoy sobre la mesa ───────────────────────────
      Dos cifras que salen de las reservas ya cargadas; nada de
      relleno. Si hoy no hay nada, dirán cero, que también es un dato. */
-  const franja = (() => {
-    const h = new Date().getHours();
-    return h < 13 ? "manana" : h < 21 ? "tarde" : "noche";
-  })();
-  const saludo = t(`dashboard.hero.${franja}`, { nombre: (session?.name || "").split(" ")[0] });
   const reservasHoy = todas.filter((r) => r.fecha === hoyISO).length;
   const sinConfirmar = todas.filter((r) => r.fecha >= hoyISO && r.estado === "pendiente").length;
-  const chipHero = ultimas.length
-    ? t("dashboard.hero.chip", { servicio: ultimas[0].servicio })
-    : null;
 
   /* ── Tendencia de las tarjetas KPI ──────────────────────────
      Sparkline y flecha salen de las reservas que ya están en
@@ -230,23 +221,27 @@ export default function DashboardPage() {
       <motion.div variants={grupo(reduce, stagger.cards, 0.12)} initial="hidden" animate="show">
         <ContextSelectors />
 
-        <HeroBanner
-          saludo={saludo}
-          datos={[
-            { etiqueta: t("dashboard.hero.reservasHoy"), valor: reservasHoy },
-            { etiqueta: t("dashboard.hero.sinConfirmar"), valor: sinConfirmar },
-          ]}
-          cta={t("dashboard.hero.cta")}
-          onCta={() => router.push(`${ROUTES.reservas}?nueva=1`)}
-          chip={chipHero}
-          extra={
-            puedePersonalizar ? (
+        {/* Lo que queda del banner que ocupaba media pantalla: las dos
+            cifras de hoy y las dos acciones que solo vivían allí -crear
+            una reserva y, para el dueño, los colores de su panel-. En
+            una línea en vez de en 294 px. */}
+        <motion.div className={styles.resumenBar} variants={entrada(reduce, blurIn)}>
+          <div className={styles.resumenDatos}>
+            <span>{t("dashboard.hero.reservasHoy")} <b>{reservasHoy}</b></span>
+            <span className={styles.resumenSep} aria-hidden>·</span>
+            <span>{t("dashboard.hero.sinConfirmar")} <b>{sinConfirmar}</b></span>
+          </div>
+          <div className={styles.resumenAcciones}>
+            {puedePersonalizar && (
               <Button size="sm" variant="ghost" onClick={() => setPersonalizando(true)}>
                 <Icon name="settings" /> {t("tema.boton")}
               </Button>
-            ) : null
-          }
-        />
+            )}
+            <Button size="sm" onClick={() => router.push(`${ROUTES.reservas}?nueva=1`)}>
+              {t("dashboard.hero.cta")}
+            </Button>
+          </div>
+        </motion.div>
 
         {/* Primera tarjeta a los 265 ms (185 de la cascada + 80), y una
             cada 65 ms: 265 · 330 · 395 · 460, como en la referencia 05. */}

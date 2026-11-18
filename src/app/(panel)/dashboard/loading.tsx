@@ -1,4 +1,4 @@
-/* Esqueleto del dashboard: banner, KPIs, últimas reservas y calendario.
+/* Esqueleto del dashboard: fila de hoy, KPIs, últimas reservas y calendario.
    Sigue el mismo orden y las MISMAS rejillas que la pantalla real, para
    que al llegar los datos nada cambie de sitio. Por eso la fila de KPIs
    no usa SkStatGrid (que es la rejilla de las pantallas con StatCard,
@@ -10,16 +10,10 @@ import kpi from "@/components/dashboard/KpiCard.module.css";
 export default function Loading() {
   return (
     <SkeletonPage>
-      {/* 294 px es el alto del hero real, medido en el navegador a 1440
-          px: 24+30 de padding más la ilustración 3D, que es la pieza más
-          alta de las dos columnas. */}
-      <SkPanel head={false} style={{ display: "flex", alignItems: "center", gap: 28, minHeight: 294 }}>
-        <Bone w={290} h={218} style={{ borderRadius: "var(--radius-card)", flex: "none" }} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Bone w={240} h={26} />
-          <Bone w={300} h={14} />
-          <Bone w={160} h={40} shape="pill" />
-        </div>
+      {/* La fila de hoy: 61 px, los mismos que mide con datos. */}
+      <SkPanel head={false} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, minHeight: 61, padding: "10px 14px" }}>
+        <Bone w={230} h={18} />
+        <Bone w={130} h={34} shape="pill" />
       </SkPanel>
 
       <div className={dash.kpiGrid}>
