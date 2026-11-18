@@ -1,0 +1,150 @@
+/* ============================================================
+   Raíl de iconos — formas del MOTION_SPEC.md §2.1–§2.3
+   ------------------------------------------------------------
+   Cero colores a mano: todo sale de los tokens del panel, que es
+   lo único que respeta a la vez el tema claro/oscuro, la marca
+   (data-marca) y el color que elige cada negocio (temaPanel.ts).
+============================================================ */
+
+.rail {
+  position: sticky;
+  top: 12px;
+  align-self: start;
+  /* El alto de la ventana menos el aire de arriba y abajo: así el pie
+     (ajustes y salir) se queda abajo del todo, como en la referencia. */
+  height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: var(--rail-w);
+  flex: none;
+}
+
+/* La pila de grupos es lo único que se desplaza: el pie no se mueve. */
+.pila {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  /* El raíl no es una zona de scroll que deba robarle la rueda a la
+     página cuando llega a su tope. */
+  overscroll-behavior: contain;
+}
+.pila::-webkit-scrollbar { display: none; }
+
+.cajaPie { margin-top: auto; }
+
+/* ── Cada cajita flotante ────────────────────────────────── */
+.caja {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft), var(--highlight);
+  padding: 7px;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Cada icono ──────────────────────────────────────────── */
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-icon);
+  color: var(--slate-500);
+  transition: color var(--t-fast) var(--ease);
+}
+
+/* Píldora translúcida de hover, por debajo del icono. */
+.item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-icon);
+  background: var(--nav-hover);
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.item:hover { color: var(--teal-600); }
+.item:hover::after { opacity: 1; }
+.itemActivo::after { display: none; }
+
+/* El contenido va por encima de las dos píldoras (la de hover y la
+   del activo), que son absolutas con z-index 0. */
+.item > :not(.fondoActivo) { position: relative; z-index: 1; }
+
+.icono { display: flex; }
+.icono svg { width: 19px; height: 19px; }
+
+.itemActivo { color: #fff; }
+.itemActivo:hover { color: #fff; }
+
+/* El nodo que viaja de un icono a otro con layoutId. */
+.fondoActivo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-icon);
+  background: var(--grad-teal);
+  box-shadow: var(--shadow-icon);
+}
+
+.salir:hover { color: var(--red); }
+.salir:hover::after { background: color-mix(in oklab, var(--red) 10%, transparent); }
+
+/* ── La burbuja con el nombre (va en portal sobre el body) ── */
+.burbuja {
+  position: fixed;
+  z-index: 60;
+  transform: translateY(-50%);
+  padding: 7px 12px;
+  border-radius: var(--radius-icon);
+  background: var(--navy-900);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, .45);
+}
+/* La puntita hacia el icono. */
+.burbuja::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  margin-top: -5px;
+  border: 5px solid transparent;
+  border-right-color: var(--navy-900);
+}
+
+:global([data-theme="dark"]) .burbuja {
+  background: var(--surface-elevated);
+  color: var(--navy-900);
+}
+:global([data-theme="dark"]) .burbuja::before { border-right-color: var(--surface-elevated); }
+
+/* ── Escritorio: lo que ya está escrito arriba, aquí sobra ─ */
+@media (min-width: 861px) {
+  .lista > [data-primaria] { display: none; }
+  .caja[data-solo-movil] { display: none; }
+}
+
+/* ── Pantallas estrechas ─────────────────────────────────── */
+@media (max-width: 860px) {
+  .rail { top: 8px; height: calc(100vh - 16px); gap: 8px; }
+  .caja { padding: 5px; border-radius: 22px; }
+  .item { width: 38px; height: 38px; }
+  .icono svg { width: 18px; height: 18px; }
+}

@@ -95,13 +95,17 @@
   border: 1px solid var(--border);
   background: var(--input-bg); color: var(--navy-900);
   font-size: 13px; font-weight: 600;
-  cursor: pointer; outline: none; min-width: 190px;
+  cursor: pointer; outline: none;
+  /* `min-width` fijo no: con el raíl ocupando su franja, en un móvil
+     de 390 px el selector sacaba una barra horizontal en toda la
+     pantalla. Pide 190 px pero cede si no los hay. */
+  flex: 1 1 190px; min-width: 0; max-width: 100%;
 }
 .empresaSelect:focus { border-color: var(--teal-500); }
 :global([data-theme="dark"]) .empresaSelect {
   background: rgba(255,255,255,.05); border-color: var(--border); color: var(--navy-900);
 }
-.selectorGroup { display: flex; align-items: center; gap: 10px; }
+.selectorGroup { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
 
 /* Buscador de "Últimas reservas" */
 .latestToolbar { margin-bottom: 14px; }

@@ -1,15 +1,27 @@
 "use client";
 /* ============================================================
-   AppShell — layout con sidebar sticky + topbar + contenido
+   AppShell — raíl de iconos + barra flotante + contenido
+   ------------------------------------------------------------
+   Las dos piezas del armazón flotan sobre el lienzo y ninguna se
+   despliega:
+
+     · El raíl de la izquierda es solo iconos. No se abre: el
+       nombre de cada sección sale en una burbuja al pasar por
+       encima (Rail.tsx).
+     · La barra de arriba es una píldora con la marca, las
+       secciones más usadas del rol y el usuario.
+
+   El contenido va directamente sobre el lienzo, sin ventana que
+   lo enmarque: lo que flota son las tarjetas de cada pantalla.
 ============================================================ */
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { EmpresasApi } from "@/api/modules";
 import { useSession } from "@/context/SessionContext";
 import { aplicarTema, temaRecordado } from "@/lib/temaPanel";
-import Sidebar from "./Sidebar";
+import Rail from "./Rail";
 import Topbar from "./Topbar";
+import PageHeader from "./PageHeader";
 import Chatbot from "./Chatbot";
-import Dock from "./Dock";
 import styles from "./AppShell.module.css";
 
 export interface PageMeta {
@@ -27,7 +39,6 @@ export default function AppShell({
   meta: PageMeta;
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { session } = useSession();
 
   /* Colores del negocio: primero el recordado (sin parpadeo) y luego el
@@ -45,25 +56,19 @@ export default function AppShell({
 
   return (
     <div className={styles.appShell}>
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Rail />
+
       <div className={styles.main}>
-        {/* Ventana flotante: la cabecera y el contenido viven DENTRO,
-            separados del lienzo, como en docs/motion/referencias/01. */}
-        <div className={styles.window}>
-        <Topbar
-          title={meta.title}
-          accent={meta.accent}
-          breadcrumb={meta.breadcrumb}
-          breadcrumbRoot={meta.breadcrumbRoot}
-          bellCount={meta.bellCount}
-          onMenuToggle={() => setSidebarOpen((o) => !o)}
-        />
-        <main className={styles.content}>{children}</main>
-        </div>
-        {/* Dock inferior: pestañas en píldora + "+" (MOTION_SPEC §6.8).
-            Va fuera de la ventana porque es fijo y flota por encima
-            del contenido, como en docs/motion/referencias/01. */}
-        <Dock />
+        <Topbar />
+        <main className={styles.content}>
+          <PageHeader
+            title={meta.title}
+            accent={meta.accent}
+            breadcrumb={meta.breadcrumb}
+            breadcrumbRoot={meta.breadcrumbRoot}
+          />
+          {children}
+        </main>
         {/* Asistente de ayuda en todas las pantallas, esquina inferior derecha */}
         <Chatbot />
       </div>

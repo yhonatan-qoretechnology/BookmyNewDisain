@@ -1,16 +1,27 @@
 "use client";
 /* ============================================================
-   Topbar — título, idioma, tema y usuario
+   Barra de arriba — marca, secciones principales y usuario
+   ------------------------------------------------------------
+   Es una píldora flotante sobre el lienzo. Lleva escritas las
+   secciones más usadas del rol; el resto vive en el raíl de la
+   izquierda, solo con iconos (ver reparto.ts).
+
+   La píldora del activo VIAJA de una sección a otra (§6.5) y lee
+   la ruta con el mismo criterio que el raíl, así que los dos
+   indicadores se mueven a la vez.
 ============================================================ */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ROUTES, fotoUrl, initials } from "@/constants";
+import { usePathname } from "next/navigation";
+import { ROUTES, fotoUrl, initials, navParaSesion } from "@/constants";
+import type { Rol } from "@/models";
 import { useSession } from "@/context/SessionContext";
 import { useTheme } from "@/context/ThemeContext";
 import { LOCALES, useI18n, type LocaleCode } from "@/i18n";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { EASE_OUT, SPRING } from "@/components/animations";
-import { ease } from "@/lib/motion";
+import { spring } from "@/lib/motion";
+import { seccionActiva, seccionesPrincipales } from "./reparto";
 import Icon from "@/components/ui/Icon";
 import NotificationBell from "./NotificationBell";
 import styles from "./Topbar.module.css";
@@ -87,72 +98,66 @@ export function LanguageToggle() {
   );
 }
 
-export default function Topbar({
-  title,
-  accent,
-  breadcrumb,
-  breadcrumbRoot,
-  onMenuToggle,
-}: {
-  title: string;
-  accent?: string;
-  breadcrumb?: string;
-  breadcrumbRoot?: string;
-  /** @deprecated la campana ya trae su propio contador real (NotificationBell). Prop ignorada, se deja para no romper a quien todavía la pase. */
-  bellCount?: number;
-  onMenuToggle: () => void;
-}) {
+export default function Topbar() {
+  const pathname = usePathname();
   const { session } = useSession();
   const { toggleTheme, theme } = useTheme();
   const { t } = useI18n();
   const reduce = useReducedMotion();
 
+  const role: Rol = session?.role || "superadmin";
+  /* El menú depende del plan del negocio: con Pro (contratado o de
+     prueba) aparecen facturación, estadísticas, stock y comunicación. */
+  const pro = session?.plan?.planEfectivo === "PRO";
+  const menu = useMemo(() => navParaSesion(role, pro), [role, pro]);
+  const principales = useMemo(() => seccionesPrincipales(role, menu), [role, menu]);
+  const idActivo = useMemo(() => seccionActiva(menu, pathname), [menu, pathname]);
+
   const name = session?.name || "—";
-  const role = session?.role || "superadmin";
+  const negocio = session?.negocioName || "BookMy";
   const roleLabel =
     role === "employee"
       ? `${session?.especialidad || t("roles.employee")} · ${session?.sedeName || ""}`
       : session?.sedeName || session?.negocioName || t(`roles.${role}`);
+  const inicio = role === "employee" ? ROUTES.employeeDashboard : ROUTES.dashboard;
 
   return (
     <header className={styles.topbar} data-app-chrome>
-      <div className={styles.left}>
-        <button className={styles.menuToggle} onClick={onMenuToggle} aria-label={t("topbar.menu")}>
-          <Icon name="menu" />
-        </button>
-        <div className={styles.leftCol}>
-          <span className={styles.breadcrumb}>
-            <Link href={role === "employee" ? ROUTES.employeeDashboard : ROUTES.dashboard}>
-              {breadcrumbRoot || t("topbar.breadcrumbRoot")}
-            </Link>{" "}
-            / <span>{breadcrumb || title}</span>
-          </span>
-          {/* El título es lo ÚNICO del armazón que se anima al navegar
-              (MOTION_SPEC §6.6): el nuevo entra desde abajo y de
-              desenfocado a nítido mientras el viejo se va. Comparten
-              sitio -`popLayout` saca al que sale del flujo- para que la
-              cabecera no dé un salto de alto. */}
-          <div className={styles.titleStack}>
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.h1
-                key={`${title}·${accent || ""}`}
-                className={styles.pageTitle}
-                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8, filter: "blur(4px)" }}
-                animate={
-                  reduce
-                    ? { opacity: 1 }
-                    : { opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }
-                }
-                exit={{ opacity: 0, transition: { duration: 0.08 } }}
-                transition={reduce ? { duration: 0.15 } : { duration: 0.3, ease: ease.out }}
+      <Link href={inicio} className={styles.brand} aria-label={negocio}>
+        <span className={styles.brandMark} aria-hidden>{negocio.charAt(0).toUpperCase()}</span>
+        {/* Solo el nombre, como en la referencia: el rol y la sede ya
+            van en el chip de usuario, a la derecha. */}
+        <span className={styles.brandName}>{negocio}</span>
+      </Link>
+
+      <LayoutGroup id="topnav">
+        <nav className={styles.nav} aria-label={t("topbar.menu")}>
+          {principales.map((item) => {
+            const activo = item.id === idActivo;
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`${styles.navItem} ${activo ? styles.navItemActivo : ""}`}
+                aria-current={activo ? "page" : undefined}
               >
-                {title}
-                {accent && <> <span className={styles.accent}>{accent}</span></>}
-              </motion.h1>
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
+                {/* Un solo nodo compartido: por eso VIAJA en vez de
+                    aparecer y desaparecer en cada sección. */}
+                {activo && (
+                  <motion.span
+                    layoutId="topnav-activo"
+                    className={styles.navFondo}
+                    transition={reduce ? { duration: 0 } : spring.indicator}
+                    aria-hidden
+                  />
+                )}
+                <span className={styles.navIcono}><Icon name={item.icon} /></span>
+                <span className={styles.navLabel}>{t(`nav.${item.id}`)}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </LayoutGroup>
 
       <div className={styles.right}>
         {/* Selector de idioma — junto al botón de tema */}
@@ -178,7 +183,7 @@ export default function Topbar({
               ? <img src={fotoUrl(session?.foto)!} alt="" />
               : initials(name)}
           </div>
-          <div>
+          <div className={styles.userText}>
             <div className={styles.userName}>{name}</div>
             <div className={styles.userRole}>{roleLabel}</div>
           </div>

@@ -117,7 +117,10 @@
   /* Sidebar vive dentro del margen de la página */
   --sidebar-w:     260px;
   --sidebar-inner: 236px;
-  --topbar-h:      80px;
+  /* Alto de la barra flotante de arriba. Bajó de 80 a 64 al pasar de
+     cabecera a ancho completo a píldora: ya no lleva el título, que
+     ahora vive en el contenido (PageHeader). */
+  --topbar-h:      64px;
 
   /* Superficies auxiliares (equivalen a los hardcodes del dark) */
   --hover-surface: #eef4f1;

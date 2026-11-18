@@ -1,62 +1,43 @@
-/* Lienzo liso. Encima flotan dos paneles separados del borde: el
-   sidebar y la ventana principal (MOTION_SPEC.md §2.1). */
+/* Lienzo liso. Encima flotan el raíl de iconos y la barra de arriba;
+   el contenido va directamente sobre el lienzo y lo que flota en él
+   son las tarjetas de cada pantalla (MOTION_SPEC.md §2.1). */
 .appShell {
-  display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr;
+  --rail-w: 56px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
   min-height: 100vh;
-  align-items: start;
   background: var(--canvas);
-  /* Franja de abajo que ocupa el dock flotante (MOTION_SPEC §6.8).
-     La heredan el contenido y el asistente para no quedar debajo. */
-  --dock-space: 92px;
 }
-/* ...y si el dock no se dibuja (ningún rol lo deja hoy sin pestañas,
-   pero la guarda existe), el hueco desaparece con él en vez de quedar
-   92 px muertos abajo. Si el navegador no entendiera `:has`, el
-   selector entero se descarta y queda el hueco reservado, que es el
-   lado seguro del fallo. */
-.main:not(:has(> [data-dock])) { --dock-space: 16px; }
+
 .main {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  /* El padding es el aire entre la ventana y el borde del lienzo; el
-     mismo que se da el sidebar con su margen. */
-  padding: 12px 12px 12px 0;
-}
-/* La "ventana": una sola superficie que contiene cabecera y contenido. */
-.window {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-panel);
-  box-shadow: var(--shadow-soft);
-  /* Recorta lo que asome por las esquinas redondeadas. */
-  overflow: hidden;
+  /* El alto mínimo deja que una pantalla corta siga ocupando la
+     ventana entera en vez de dejar el lienzo cortado a media altura. */
+  min-height: calc(100vh - 24px);
 }
-.content { flex: 1; padding: 16px 24px var(--dock-space); }
+
+.content { flex: 1; padding: 20px 12px 28px; }
 
 @media (max-width: 1024px) {
-  .appShell { --sidebar-w: 230px; --sidebar-inner: 210px; }
-  .content { padding: 12px 18px var(--dock-space); }
+  .content { padding: 16px 6px 24px; }
 }
 @media (max-width: 860px) {
-  .appShell { grid-template-columns: 1fr; }
-  .main { padding: 0; }
-  .window { border-radius: 0; border: 0; box-shadow: none; }
+  .appShell { --rail-w: 48px; gap: 8px; padding: 8px; }
+  .main { min-height: calc(100vh - 16px); }
+  .content { padding: 14px 2px 20px; }
 }
 @media (max-width: 600px) {
-  /* FIX PADDING: mínimo 14px de respiro lateral en móvil */
-  .content { padding: 10px 14px var(--dock-space); }
+  .content { padding: 12px 0 18px; }
 }
 
-/* Al imprimir, el contenido ocupa la hoja entera (sin columna de menú). */
+/* Al imprimir, el contenido ocupa la hoja entera (sin armazón). */
 @media print {
-  .appShell { grid-template-columns: 1fr !important; }
-  .main { padding: 0 !important; min-height: 0 !important; }
-  .window { border: 0 !important; box-shadow: none !important; border-radius: 0 !important; overflow: visible !important; }
-  .content { padding: 0 !important; }
+  .appShell { display: block; padding: 0; background: #fff; }
+  .main { min-height: 0; }
+  .content { padding: 0; }
 }
