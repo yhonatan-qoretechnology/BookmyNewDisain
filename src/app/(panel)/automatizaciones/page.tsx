@@ -39,6 +39,7 @@ import Toolbar, { ToolbarActions } from "@/components/ui/Toolbar";
 import DataTable from "@/components/ui/DataTable";
 import Badge, { Tag } from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
@@ -280,7 +281,9 @@ function Reglas() {
         </ToolbarActions>
       </Toolbar>
 
-      {!loading && reglas.length === 0 ? (
+      {loading && reglas.length === 0 ? (
+        <SkTable cols={6} rows={6} person={-1} />
+      ) : reglas.length === 0 ? (
         <EmptyState icon="bot" title={t("automatizaciones.vacio")} message={t("automatizaciones.vacioMsg")} />
       ) : (
         <DataTable
@@ -479,7 +482,9 @@ function Campanas() {
         </ToolbarActions>
       </Toolbar>
 
-      {!loading && campanas.length === 0 ? (
+      {loading && campanas.length === 0 ? (
+        <SkTable cols={5} rows={6} person={-1} />
+      ) : campanas.length === 0 ? (
         <EmptyState icon="mail" title={t("automatizaciones.sinCampanas")} />
       ) : (
         <DataTable
@@ -563,7 +568,9 @@ function Historial() {
   return (
     <Panel>
       <PanelHead title={t("automatizaciones.tabHistorial")} sub={t("automatizaciones.historialSub")} />
-      {!loading && ejecuciones.length === 0 ? (
+      {loading && ejecuciones.length === 0 ? (
+        <SkTable cols={5} rows={6} person={-1} />
+      ) : ejecuciones.length === 0 ? (
         <EmptyState icon="clock" title={t("automatizaciones.sinHistorial")} />
       ) : (
         <DataTable

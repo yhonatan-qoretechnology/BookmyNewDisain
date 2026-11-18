@@ -23,6 +23,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import styles from "./plan.module.css";
 
@@ -41,7 +42,7 @@ export default function PlanPage() {
   const [cambiando, setCambiando] = useState<string | null>(null);
 
   /* ── Vista del superadmin: el plan de cada negocio ───────── */
-  const { data: negocios, reload } = useData(
+  const { data: negocios, loading: cargando, reload } = useData(
     () => (session?.role === "superadmin" ? NegociosController.getAll() : Promise.resolve([])),
     [session?.role],
     [],
@@ -64,7 +65,9 @@ export default function PlanPage() {
     return (
       <Panel>
         <PanelHead title={t("plan.empresasTitulo")} sub={t("plan.empresasSub")} />
-        {negocios.length === 0 ? (
+        {cargando && negocios.length === 0 ? (
+          <SkTable cols={3} rows={6} person={-1} />
+        ) : negocios.length === 0 ? (
           <EmptyState icon="building" title={t("empresas.emptyTitle")} message={t("empresas.emptyMsg")} />
         ) : (
           <div className={styles.lista}>

@@ -20,6 +20,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import { bandera } from "@/components/accesos/formato";
 import Button from "@/components/ui/Button";
+import { SkCards } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard } from "@/components/ui/Cards";
@@ -80,7 +81,7 @@ export default function EmpresasPage() {
   if (session?.role !== "superadmin") return null;
 
   /* MODO API: GET /empresas */
-  const { data: todas, reload } = useData(() => NegociosController.getAll(), [], []);
+  const { data: todas, loading: cargando, reload } = useData(() => NegociosController.getAll(), [], []);
 
   /**
    * Marca la empresa como Pro (ha pagado) o la devuelve a Free.
@@ -278,7 +279,9 @@ export default function EmpresasPage() {
               </ToolbarActions>
             </Toolbar>
 
-            {lista.length === 0 ? (
+            {cargando && lista.length === 0 ? (
+              <SkCards count={6} avatar />
+            ) : lista.length === 0 ? (
               <EmptyState icon="shield" title={t("empresas.emptyTitle")} message={t("empresas.emptyMsg")} />
             ) : vista === "lista" ? (
               /* ── Vista de lista: una fila por empresa ── */

@@ -12,6 +12,7 @@ import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import DataTable from "@/components/ui/DataTable";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
@@ -40,7 +41,7 @@ export default function ClientesPage() {
   const [invitando, setInvitando] = useState<{ id: number; nombre: string; telefono?: string } | null>(null);
 
   /* La sesión delimita las citas con las que se calculan las visitas */
-  const { data: lista, reload } = useData(
+  const { data: lista, loading: cargando, reload } = useData(
     () => ClientesController.search(search, session),
     [search, session?.id, session?.sedeId, session?.negocioId],
     []
@@ -57,7 +58,9 @@ export default function ClientesPage() {
           </ToolbarActions>
         </Toolbar>
 
-        {lista.length === 0 ? (
+        {cargando && lista.length === 0 ? (
+          <SkTable cols={7} rows={6} person={0} />
+        ) : lista.length === 0 ? (
           <EmptyState icon="user" title={t("clientes.emptyTitle")} message={t("clientes.emptyMsg")} />
         ) : (
           <DataTable

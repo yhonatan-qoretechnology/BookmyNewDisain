@@ -22,6 +22,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox } from "@/components/ui/Toolbar";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
 import { CardGrid, SimpleCard, Muted, TagRow } from "@/components/ui/Cards";
@@ -40,7 +41,7 @@ export default function ResenasPage() {
   const { t } = useI18n();
   const { session } = useSession();
   const [search, setSearch] = useState("");
-  const { data: todas, reload } = useData(() => ResenasController.search(search), [search], []);
+  const { data: todas, loading: cargando, reload } = useData(() => ResenasController.search(search), [search], []);
 
   /* Filtros por sede y estado */
   const [fSede, setFSede] = useState("");
@@ -156,7 +157,9 @@ export default function ResenasPage() {
           </select>
         </Toolbar>
 
-        {lista.length === 0 ? (
+        {cargando && lista.length === 0 ? (
+          <SkTable cols={6} rows={6} person={0} />
+        ) : lista.length === 0 ? (
           <EmptyState icon="chat" title={t("resenas.emptyTitle")} message={t("resenas.emptyMsg")} />
         ) : (
           <CardGrid>

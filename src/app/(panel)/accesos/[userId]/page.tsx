@@ -30,6 +30,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import DataTable from "@/components/ui/DataTable";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Badge, { Tag } from "@/components/ui/Badge";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import type { PaginationProps } from "@/components/ui/Pagination";
@@ -207,7 +208,9 @@ export default function SeguimientoUsuarioPage() {
         <StatCard color="teal" icon={<Icon name="layout" />} label={t("accesos.statDispositivos")} count={dispositivos.length} footer={truncado ? t("accesos.ultimosN", { n: items.length }) : t("accesos.desdeSiempre")} />
       </StatGrid>
 
-      {!loading && items.length === 0 ? (
+      {loading && items.length === 0 ? (
+        <Panel><SkTable cols={5} rows={6} person={-1} /></Panel>
+      ) : items.length === 0 ? (
         <Panel>
           <EmptyState icon="shield" title={t("accesos.usuarioSinAccesos")} message={t("accesos.usuarioSinAccesosMsg")} />
         </Panel>

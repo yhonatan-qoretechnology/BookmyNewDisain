@@ -10,6 +10,7 @@ import { useUi } from "@/context/UiContext";
 import { useData } from "@/hooks/useData";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useI18n } from "@/i18n";
+import { Bone } from "@/components/ui/Skeleton";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
@@ -170,7 +171,7 @@ export default function ComunicacionPage() {
   const grabacionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* Contactos — GET /ChatMessage/contacts/:userId */
-  const { data: canales, reload: reloadCanales } = useData(
+  const { data: canales, loading: cargandoCanales, reload: reloadCanales } = useData(
     () => ComunicacionController.getCanales(session),
     [session?.id], []
   );
@@ -452,7 +453,21 @@ export default function ComunicacionPage() {
             <Icon name="plus" width={18} height={18} />
           </button>
         </div>
-        {displayCanales.length === 0 && (
+        {/* Mientras llegan las conversaciones: filas de esqueleto */}
+        {cargandoCanales && displayCanales.length === 0 && !searchTerm && (
+          <div aria-busy="true" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 6px" }}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <Bone w={38} h={38} shape="circle" />
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                  <Bone w="60%" h={12} />
+                  <Bone w="85%" h={10} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {!(cargandoCanales && !searchTerm) && displayCanales.length === 0 && (
           <div className={styles.canalesVacios}>
             <Icon name="chat" width={22} height={22} />
             <strong>{t("comunicacion.emptyTitle")}</strong>

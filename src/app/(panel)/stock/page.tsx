@@ -32,6 +32,7 @@ import Tabs from "@/components/ui/Tabs";
 import DataTable, { PriceCell } from "@/components/ui/DataTable";
 import Badge, { Tag } from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
@@ -179,12 +180,12 @@ export default function StockPage() {
   const [buscarStock, setBuscarStock] = useState("");
 
   const { data: sedes } = useData(() => StockController.getSedes(session), [session?.negocioId], []);
-  const { data: catalogo, reload: reloadCatalogo } = useData(
+  const { data: catalogo, loading: cargandoCatalogo, reload: reloadCatalogo } = useData(
     () => StockController.getCatalogo(session, buscarCatalogo),
     [session?.negocioId, buscarCatalogo],
     []
   );
-  const { data: solicitudes, reload: reloadSolicitudes } = useData(
+  const { data: solicitudes, loading: cargandoSolicitudes, reload: reloadSolicitudes } = useData(
     () => (esGlobal
       ? StockController.getSolicitudes(session)
       : StockController.getSolicitudesPorSede(session, session?.sedeId || "")),
@@ -434,7 +435,9 @@ export default function StockPage() {
             </ToolbarActions>
           </Toolbar>
           <Panel>
-            {catalogo.length === 0 ? (
+            {cargandoCatalogo && catalogo.length === 0 ? (
+              <SkTable cols={6} rows={6} person={-1} />
+            ) : catalogo.length === 0 ? (
               /* Vacío por buscar y vacío por no haber nada son dos cosas
                  distintas: decirle "sin resultados" a quien aún no ha
                  dado de alta su primer insumo no le explica nada. */
@@ -561,7 +564,9 @@ export default function StockPage() {
 
       {/* ══ Solicitudes recibidas (superadmin / dueño) ══ */}
       {tab === "solicitudes" && (
-        solicitudes.length === 0 ? (
+        cargandoSolicitudes && solicitudes.length === 0 ? (
+          <Panel><SkTable cols={5} rows={6} person={-1} /></Panel>
+        ) : solicitudes.length === 0 ? (
           <Panel>
             <EmptyState icon="box" title={t("stock.emptyRequestsTitle")} message={t("stock.emptyRequestsMsg")} />
           </Panel>
@@ -630,7 +635,9 @@ export default function StockPage() {
 
       {/* ══ Mis solicitudes (usuario de sede) ══ */}
       {tab === "mis-sol" && (
-        solicitudes.length === 0 ? (
+        cargandoSolicitudes && solicitudes.length === 0 ? (
+          <Panel><SkTable cols={5} rows={6} person={-1} /></Panel>
+        ) : solicitudes.length === 0 ? (
           <Panel>
             <EmptyState icon="box" title={t("stock.emptyRequestsTitle")} message={t("stock.emptyMyRequestsMsg")} />
           </Panel>

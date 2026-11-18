@@ -25,6 +25,7 @@ import { useSession } from "@/context/SessionContext";
 import { useRegion } from "@/context/RegionContext";
 import { useI18n } from "@/i18n";
 import Panel, { PanelHead } from "@/components/ui/Panel";
+import { SkChart, SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import {
@@ -176,8 +177,8 @@ export default function TelemetriaPage() {
   );
   /* Sin el endpoint de serie (backend sin desplegar) las gráficas de
      evolución quedan vacías y el resto de la página sigue funcionando. */
-  const { data: serie } = useData(() => TelemetriaApi.serie(dias).catch(() => SERIE_VACIA), [dias], SERIE_VACIA);
-  const { data: paginas } = useData(() => TelemetriaApi.paginasMasVistas(dias, 10), [dias], [] as ApiRankingPagina[]);
+  const { data: serie, loading: cargandoSerie } = useData(() => TelemetriaApi.serie(dias).catch(() => SERIE_VACIA), [dias], SERIE_VACIA);
+  const { data: paginas, loading: cargandoPaginas } = useData(() => TelemetriaApi.paginasMasVistas(dias, 10), [dias], [] as ApiRankingPagina[]);
   const { data: plataformas } = useData(() => TelemetriaApi.distribucionPlataformas(dias), [dias], [] as ApiDistribucionPlataforma[]);
 
   const nf = useMemo(() => new Intl.NumberFormat(pais.locale), [pais.locale]);
@@ -302,7 +303,7 @@ export default function TelemetriaPage() {
               </div>
             }
           />
-          {serie.dias.length === 0 ? sinDatos : (
+          {cargandoSerie && serie.dias.length === 0 ? <SkChart bars={12} /> : serie.dias.length === 0 ? sinDatos : (
             <>
               <div className={styles.leyendaLinea}>
                 <span className={styles.legItem}><span className={styles.legLinea} />{t("estadisticas.periodoActual")}</span>
@@ -330,7 +331,7 @@ export default function TelemetriaPage() {
       {/* ── Tarjetas por métrica: una por página ── */}
       <Panel className={`${styles.panel} ${propios.bloque}`}>
         <PanelHead title={t("telemetria.paginasMasVistas")} sub={t("telemetria.paginasSub", { dias })} />
-        {paginas.length === 0 ? sinDatos : (
+        {cargandoPaginas && paginas.length === 0 ? <SkTable cols={3} rows={6} person={-1} /> : paginas.length === 0 ? sinDatos : (
           <div className={propios.grid}>
             {paginas.map((p, i) => {
               const tipo = TIPOS_MINI[i % TIPOS_MINI.length];

@@ -25,6 +25,7 @@ import Toolbar, { SearchBox, FilterDate, FilterGroup, FilterSelect } from "@/com
 import DataTable from "@/components/ui/DataTable";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Badge, { Tag } from "@/components/ui/Badge";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import type { PaginationProps } from "@/components/ui/Pagination";
@@ -169,7 +170,9 @@ export default function AccesosPage() {
           </FilterGroup>
         </Toolbar>
 
-        {pagina.items.length === 0 ? (
+        {loading && pagina.items.length === 0 ? (
+          <SkTable cols={6} rows={6} person={1} />
+        ) : pagina.items.length === 0 ? (
           <EmptyState
             icon="shield"
             title={loading ? t("accesos.panelTitle") : t("accesos.emptyTitle")}

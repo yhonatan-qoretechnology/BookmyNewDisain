@@ -20,6 +20,7 @@ import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import DataTable, { PriceCell } from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { PersonRow } from "@/components/ui/People";
 import ExtensionTag from "@/components/reservas/ExtensionTag";
@@ -57,7 +58,7 @@ function ReservasContent() {
   }, [params, router]);
 
   /* Listado según el rol (aislamiento multi-tenant) */
-  const { data: base, reload } = useData(
+  const { data: base, loading: cargando, reload } = useData(
     () => ReservasController.getForSession(session, locale),
     [session?.id, session?.negocioId, session?.sedeId, locale],
     []
@@ -174,7 +175,9 @@ function ReservasContent() {
         </Button>
       </div>
 
-      {lista.length === 0 ? (
+      {cargando && lista.length === 0 ? (
+        <SkTable cols={8} rows={6} person={1} />
+      ) : lista.length === 0 ? (
         <EmptyState icon="calendar" title={t("reservas.emptyTitle")} message={t("reservas.emptyMsg")} />
       ) : (
         <DataTable

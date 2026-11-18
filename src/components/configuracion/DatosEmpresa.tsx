@@ -19,6 +19,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import EmpresaFormModal from "@/components/empresas/EmpresaFormModal";
+import { SkForm } from "@/components/ui/Skeleton";
 import styles from "./DatosEmpresa.module.css";
 
 export default function DatosEmpresa() {
@@ -143,7 +144,8 @@ export default function DatosEmpresa() {
           </div>
         </div>
       ) : (
-        <p className={styles.aviso}>{t("common.loading")}</p>
+        /* Mientras llegan los datos de la empresa */
+        <SkForm fields={4} />
       )}
 
       <EmpresaFormModal

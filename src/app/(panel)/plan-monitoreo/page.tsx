@@ -23,6 +23,7 @@ import DataTable from "@/components/ui/DataTable";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
@@ -169,7 +170,9 @@ export default function PlanMonitoreoPage() {
           </ToolbarActions>
         </Toolbar>
 
-        {pagina.items.length === 0 ? (
+        {loading && pagina.items.length === 0 ? (
+          <SkTable cols={6} rows={6} person={-1} />
+        ) : pagina.items.length === 0 ? (
           <EmptyState
             icon="clock"
             title={loading ? t("planMonitoreo.panelTitle") : t("planMonitoreo.emptyTitle")}

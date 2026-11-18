@@ -24,6 +24,7 @@ import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import DataTable from "@/components/ui/DataTable";
 import Badge, { RoleBadge } from "@/components/ui/Badge";
 import Button, { IconButton } from "@/components/ui/Button";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalText, ModalActions, Field } from "@/components/ui/Modal";
@@ -68,7 +69,7 @@ export default function AdministradoresPage() {
     return map;
   }, [negocios], new Map<string, Sede[]>());
 
-  const { data: admins, reload } = useData(
+  const { data: admins, loading: cargando, reload } = useData(
     () => (permitido ? AdministradoresController.getAll(negocios, sedesPorEmpresa) : Promise.resolve([])),
     [negocios, sedesPorEmpresa, permitido],
     [] as Administrador[]
@@ -267,7 +268,9 @@ export default function AdministradoresPage() {
           </ToolbarActions>
         </Toolbar>
 
-        {lista.length === 0 ? (
+        {cargando && lista.length === 0 ? (
+          <SkTable cols={6} rows={6} person={0} />
+        ) : lista.length === 0 ? (
           <EmptyState icon="shield" title={t("administradores.emptyTitle")}
             message={t(esDueno ? "administradores.emptyMsgDueno" : "administradores.emptyMsg")} />
         ) : (

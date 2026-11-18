@@ -28,6 +28,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import DataTable from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 
 /** Web de Wise donde se pagan las liquidaciones pendientes (sandbox en pruebas). */
@@ -62,12 +63,12 @@ export default function LiquidacionesPage() {
   }, [session, router]);
 
   const esSuper = session?.role === "superadmin";
-  const { data: liquidaciones, reload: recargarLiquidaciones } = useData(
+  const { data: liquidaciones, loading: cargandoLiq, reload: recargarLiquidaciones } = useData(
     () => (esSuper ? WiseApi.listar() : Promise.resolve([])),
     [esSuper],
     [] as ApiLiquidacionWise[],
   );
-  const { data: pendientes, reload: recargarPendientes } = useData(
+  const { data: pendientes, loading: cargandoPend, reload: recargarPendientes } = useData(
     () => (esSuper ? PaymentsApi.wisePendientes() : Promise.resolve([])),
     [esSuper],
     [] as ApiTransferenciaWisePendiente[],
@@ -103,7 +104,9 @@ export default function LiquidacionesPage() {
     <>
       <Panel>
         <PanelHead title={t("liquidaciones.pendientesTitle")} sub={t("liquidaciones.pendientesSub")} />
-        {pendientes.length === 0 ? (
+        {cargandoPend && pendientes.length === 0 ? (
+          <SkTable cols={5} rows={6} person={-1} />
+        ) : pendientes.length === 0 ? (
           <EmptyState
             icon="wallet"
             title={t("liquidaciones.pendientesEmptyTitle")}
@@ -150,7 +153,9 @@ export default function LiquidacionesPage() {
           <a href={WISE_WEB} target="_blank" rel="noreferrer">{t("liquidaciones.abrirWise")}</a>
         </p>
 
-        {liquidaciones.length === 0 ? (
+        {cargandoLiq && liquidaciones.length === 0 ? (
+          <SkTable cols={5} rows={6} person={-1} />
+        ) : liquidaciones.length === 0 ? (
           <EmptyState icon="wallet" title={t("liquidaciones.emptyTitle")} message={t("liquidaciones.emptyMsg")} />
         ) : (
           <DataTable

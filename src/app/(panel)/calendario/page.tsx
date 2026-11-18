@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES, fmtFechaCorta } from "@/constants";
 import { zonaHoy } from "@/lib/timezone";
 import Badge from "@/components/ui/Badge";
+import { SkCalendar } from "@/components/ui/Skeleton";
 import styles from "./calendario.module.css";
 import { ReservasController } from "@/controllers/ReservasController";
 import { useSession } from "@/context/SessionContext";
@@ -100,7 +101,7 @@ function CalendarioContent() {
     }
   };
 
-  const { data: lista, reload } = useData(
+  const { data: lista, loading: cargando, reload } = useData(
     () => ReservasController.getForSession(session, locale),
     [session?.id, session?.negocioId, locale], []
   );
@@ -207,12 +208,13 @@ function CalendarioContent() {
         festivos={diasFestivos || []}
       />
 
-      <CalendarGrid
+      {/* Mientras llegan las reservas, el esqueleto del calendario */}
+      {cargando && lista.length === 0 ? <SkCalendar /> : <CalendarGrid
         events={events}
         festivos={festivos}
         onEventClick={(id, data) => data ? popup.open(data, reload) : popup.open(id, reload)}
         onViewChange={(v) => toast(t("common.comingSoon", { view: v }), "default")}
-      />
+      />}
 
       {empleadoId && (
         <section className={styles.proximas} aria-label={t("calendario.proximasTitulo", { nombre: nombreEmpleado })}>

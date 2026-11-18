@@ -11,6 +11,7 @@
    ejemplo": la vista se puede enseñar entera sin que nadie confunda
    el relleno con datos reales.
 ============================================================ */
+import { SkChart, SkPanel, SkStatGrid } from "@/components/ui/Skeleton";
 import { useMemo, useState } from "react";
 import { EstadisticasApi } from "@/api/modules";
 import type { ApiRankingVistas } from "@/api/types";
@@ -226,7 +227,14 @@ export default function EstadisticasPage() {
   };
 
   if (!d) {
-    if (loading) return <p className={styles.vacio}>{t("booking.loading")}</p>;
+    /* Mientras llegan los datos: el esqueleto de la propia pantalla */
+    if (loading) return (
+      <>
+        <SkStatGrid count={4} />
+        <div style={{ height: 16 }} />
+        <SkPanel><SkChart bars={12} /></SkPanel>
+      </>
+    );
     return (
       <div className={styles.aviso} role="alert">
         <span>{error ? t("estadisticas.errorCarga") : t("estadisticas.sinDatos")}</span>

@@ -9,7 +9,24 @@
      todo su contenido (toolbars, tablas, tabs, cards) hereda margen
      al borde sin necesidad de compensarlo componente a componente. */
   padding: 22px 24px 24px;
+  /* Entrada de cada panel al cargar la página: fundido + subida corta.
+     Los paneles que van seguidos entran escalonados. */
+  animation: panelEntra .42s cubic-bezier(.2, .8, .2, 1) both;
 }
+.panel + .panel { animation-delay: .07s; }
+.panel + .panel + .panel { animation-delay: .14s; }
+.panel + .panel + .panel + .panel { animation-delay: .2s; }
+
+@keyframes panelEntra {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel { animation: panelFunde .2s ease-out both; }
+  .panel + .panel, .panel + .panel + .panel, .panel + .panel + .panel + .panel { animation-delay: 0s; }
+}
+@keyframes panelFunde { from { opacity: 0; } to { opacity: 1; } }
 .panelHead {
   display: flex; align-items: flex-start; justify-content: space-between;
   padding: 0 0 16px; gap: 8px;

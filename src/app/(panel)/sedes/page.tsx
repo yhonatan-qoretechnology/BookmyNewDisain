@@ -16,6 +16,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import Badge, { Tag } from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { SkCards } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import DireccionAutocomplete, { type DatosDireccion } from "@/components/sedes/DireccionAutocomplete";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
@@ -54,7 +55,7 @@ export default function SedesPage() {
     null
   );
   const enLimite = !!plazas && plazas.limite != null && plazas.usadas >= plazas.limite;
-  const { data: lista, reload } = useData(
+  const { data: lista, loading: cargando, reload } = useData(
     () => SedesController.search(search, session?.negocioId || ""),
     [search, session?.negocioId], []
   );
@@ -128,7 +129,9 @@ export default function SedesPage() {
           </div>
         )}
 
-        {lista.length === 0 ? (
+        {cargando && lista.length === 0 ? (
+          <SkCards count={3} image />
+        ) : lista.length === 0 ? (
           <EmptyState icon="building" title={t("sedes.emptyTitle")} message={t("sedes.emptyMsg")} />
         ) : (
           <CardGrid>

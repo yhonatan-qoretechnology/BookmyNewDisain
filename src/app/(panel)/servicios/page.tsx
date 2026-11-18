@@ -17,6 +17,7 @@ import { fotoUrl } from "@/constants";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, ToolbarActions } from "@/components/ui/Toolbar";
 import Button from "@/components/ui/Button";
+import { SkCards } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import Modal, { ModalTitle, ModalActions, Field } from "@/components/ui/Modal";
@@ -65,7 +66,7 @@ export default function ServiciosPage() {
   const { data: categorias, reload: reloadCategorias } = useData(() => ServiciosController.getCategorias(locale), [locale], []);
 
   /* En modo API: GET /services?language=<locale> (traducciones) */
-  const { data: lista, reload } = useData(() => ServiciosController.search(search, locale), [search, locale], []);
+  const { data: lista, loading: cargando, reload } = useData(() => ServiciosController.search(search, locale), [search, locale], []);
 
   /* Catálogo agrupado por categoría */
   const grupos = useMemo(() => ServiciosController.agruparPorCategoria(lista), [lista]);
@@ -215,7 +216,9 @@ export default function ServiciosPage() {
           </ToolbarActions>
         </Toolbar>
 
-        {lista.length === 0 ? (
+        {cargando && lista.length === 0 ? (
+          <SkCards count={6} image />
+        ) : lista.length === 0 ? (
           <EmptyState icon="list" title={t("servicios.emptyTitle")} message={t("servicios.emptyMsg")} />
         ) : (
           <>
