@@ -97,7 +97,15 @@ export default function SignupWizard() {
   const { login } = useSession();
   const { ready: mapsListo } = useGoogleMaps();
 
-  const [plan, setPlan] = useState<Plan>(params.get("plan") === "free" ? "free" : "pro");
+  /* El plan llega por la URL desde la web: ?plan=basic o ?plan=pro.
+     Se admiten los dos nombres del plano gratuito -"basic", que es como
+     lo llama la web desde el rediseño, y "free", que es como lo llama el
+     backend y como lo escribían los enlaces de antes- para que ninguno
+     de los dos caiga en Pro por sorpresa. */
+  const planPedido = (params.get("plan") || "").toLowerCase();
+  const [plan, setPlan] = useState<Plan>(
+    planPedido === "free" || planPedido === "basic" ? "free" : "pro",
+  );
   /* Invitación de otro negocio: bookmy.es/crear-cuenta?ref=CODIGO. Se
      comprueba para enseñar quién invita; si no es válido, se ignora. */
   const codigoRef = (params.get("ref") || "").trim().toUpperCase().slice(0, 20);

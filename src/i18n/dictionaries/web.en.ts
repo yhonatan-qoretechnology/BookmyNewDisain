@@ -8,6 +8,8 @@
 ============================================================ */
 import type { WebDictionary } from "./web.es";
 import { porPais } from "../pais";
+import comun from "./web/comun.en";
+import portal from "./web/portal.en";
 
 const webEn: WebDictionary = {
   nav: {
@@ -547,6 +549,9 @@ const webEn: WebDictionary = {
     exitoTitulo: "Your account is ready!",
     exitoTexto: "Taking you to your panel…",
   },
+  /* ── Web 2.0 ─────────────────────────────────────────── */
+  comun,
+  portal,
 };
 
 export default webEn;

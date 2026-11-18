@@ -152,6 +152,18 @@ const nextConfig = {
         destination: 'https://bookmy.es/:path*',
         statusCode: 301,
       },
+
+      /* ── Las dos paginas de plan se mudan (rediseno 2.0) ──────
+         Google tiene indexadas /bookmy-free y /bookmy-crm-pro. El
+         301 es la senal que le dice "esto se ha mudado, pasa el
+         posicionamiento a la direccion nueva"; con un 302 no lo
+         pasaria y perderiamos el trafico que ya traen.
+
+         Estas dos lineas NO se pueden borrar aunque pase el tiempo:
+         los enlaces de fuera (redes, correos, el blog) seguiran
+         apuntando a las direcciones viejas para siempre. */
+      { source: '/bookmy-free', destination: '/planes/basic', permanent: true },
+      { source: '/bookmy-crm-pro', destination: '/planes/pro', permanent: true },
     ];
   },
   

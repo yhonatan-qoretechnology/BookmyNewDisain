@@ -12,6 +12,13 @@
    hay empresa y el pais es ES, asi que la web espanola no cambia.
 ============================================================ */
 import { porPais } from "../pais";
+/* ── Web 2.0 ───────────────────────────────────────────────
+   Los textos del rediseño viven en archivos propios dentro de
+   ./web/, uno por pantalla, porque son muchos y mezclarlos aquí
+   dejaría un archivo de miles de líneas imposible de revisar.
+   Este índice solo los cuelga del diccionario. */
+import comun from "./web/comun.es";
+import portal from "./web/portal.es";
 
 const webEs = {
   nav: {
@@ -566,6 +573,9 @@ const webEs = {
     exitoTitulo: "¡Tu cuenta está lista!",
     exitoTexto: "Te llevamos a tu panel…",
   },
+  /* ── Web 2.0 ─────────────────────────────────────────── */
+  comun,
+  portal,
 };
 
 export default webEs;

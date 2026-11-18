@@ -1,57 +1,77 @@
 /* ============================================================
-   Web pública (bookmy.es)
+   Web pública (bookmy.es) · rediseño 2.0
    ------------------------------------------------------------
-   Marco común de las páginas públicas: fondo, cabecera, pie,
-   aviso de cookies, asistente y modal de solicitud.
+   Marco común de TODAS las páginas públicas: tipografía, hoja de
+   estilos, fondo de estrellas, aviso de cookies y asistente. La
+   cabecera y el pie NO están aquí: cambian según el mundo (la app
+   o el CRM) y el portal de la portada no lleva ninguno, así que
+   los pone cada pantalla con <PaginaWeb>.
 
-   La hoja de estilos se carga con un <link> propio en vez de un
-   `import` global: así vive solo mientras hay una página pública
-   montada y sus variables (que comparten nombre con las del
-   panel: --surface, --border…) no se cuelan en /login ni en el
-   panel al navegar sin recargar.
+   LA HOJA DE ESTILOS VA EN UN <link> Y NO EN UN `import`
+   Es la misma razón por la que ya se hacía antes del rediseño:
+   bookmy.css define variables con nombres que también usa el
+   panel (--panel, --line, --text…) y es de tema oscuro fijo. Con
+   un `import` global viajaría en el bundle de toda la aplicación y
+   se colaría en /login y en el panel al navegar sin recargar. Con
+   el <link> vive solo mientras hay una página pública montada.
+
+   La fuente es Google Sans, que es la del diseño. Se pide a Google
+   Fonts con preconnect para que no bloquee el primer pintado;
+   `display=swap` enseña el texto con la fuente del sistema
+   mientras llega, en vez de dejar la página en blanco.
 ============================================================ */
 import type { Metadata } from "next";
-import WebHeader from "@/components/web/WebHeader";
-import WebFooter from "@/components/web/WebFooter";
-import CursorGlow from "@/components/web/CursorGlow";
-import AiWidget from "@/components/web/AiWidget";
+import FondoWeb from "@/components/web/FondoWeb";
 import { CookieBannerProvider } from "@/components/web/CookieBanner";
-import { LeadModalProvider } from "@/components/web/LeadModal";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bookmy.es"),
-  title: "Bookmy · Reserva de citas y servicios online",
+  title: {
+    default: "Bookmy · ¿Qué quieres descubrir?",
+    template: "%s · Bookmy",
+  },
   description:
-    "Bookmy: la forma más rápida de reservar servicios y citas. Gestiona tu agenda, pagos y clientes desde una sola plataforma.",
-  icons: { icon: "/web/img/favicon.svg" },
+    "Bookmy: la app para reservar citas en segundos y el CRM con IA para gestionar y hacer crecer tu negocio de servicios.",
+  icons: {
+    icon: "/web/v2/img/favicon.png",
+    apple: "/web/v2/img/apple-touch-icon.png",
+  },
   openGraph: {
-    title: "Bookmy · Reserva de citas y servicios online",
-    description:
-      "Gestiona agenda, pagos, clientes y equipo desde una sola plataforma. Empieza gratis con Bookmy Free.",
-    url: "https://bookmy.es",
+    type: "website",
     siteName: "Bookmy",
     locale: "es_ES",
-    type: "website",
-    images: [{ url: "/web/img/dashboard-b.png", width: 1200, height: 630, alt: "Panel de Bookmy" }],
+    url: "https://bookmy.es",
+    title: "Bookmy · ¿Qué quieres descubrir?",
+    description:
+      "Bookmy: la app para reservar citas en segundos y el CRM con IA para gestionar y hacer crecer tu negocio de servicios.",
+    images: [{ url: "/web/v2/img/app-phones-oscuro.webp", width: 1200, height: 630, alt: "Bookmy" }],
   },
+  twitter: { card: "summary_large_image" },
+};
+
+/* El tema de la barra del navegador en móvil: el negro verdoso del
+   diseño, para que no aparezca una franja blanca encima de la web. */
+export const viewport = {
+  themeColor: "#030706",
+  colorScheme: "dark" as const,
 };
 
 export default function WebLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link rel="stylesheet" href="/web/style.css?v=2" />
-      <div className="bg-grid" aria-hidden />
-      <div className="bg-noise" aria-hidden />
-      <CursorGlow />
-      <CookieBannerProvider>
-        <LeadModalProvider>
-          <WebHeader />
-          <main>{children}</main>
-          <WebFooter />
-          <AiWidget />
-        </LeadModalProvider>
-      </CookieBannerProvider>
+      {/* eslint-disable @next/next/no-page-custom-font, @next/next/no-css-tags */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400..700&display=swap"
+      />
+      <link rel="stylesheet" href="/web/v2/bookmy.css" />
+      <link rel="stylesheet" href="/web/v2/icons.css" />
+      {/* eslint-enable @next/next/no-page-custom-font, @next/next/no-css-tags */}
+
+      <FondoWeb />
+      <CookieBannerProvider>{children}</CookieBannerProvider>
     </>
   );
 }
