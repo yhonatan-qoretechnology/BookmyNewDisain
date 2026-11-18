@@ -1,32 +1,68 @@
+/* ============================================================
+   Pestañas en forma de control segmentado
+   ------------------------------------------------------------
+   MOTION_SPEC.md §2.2 pone pestañas y segmented control en la misma
+   fila que botones y filtros: píldora. Así que la barra deja de ser
+   un subrayado sobre una línea y pasa a ser una pista en píldora con
+   la opción activa como píldora sólida elevada dentro, igual que los
+   filtros de `docs/motion/referencias/04` y el dock del video.
+============================================================ */
 .tabBar {
-  display: flex; gap: 0; border-bottom: 2px solid var(--border);
-  margin-bottom: 20px; overflow-x: auto;
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  margin-bottom: 20px;
+  max-width: 100%;
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-pill);
+  background: var(--hover-surface);
+  border: 1px solid var(--border);
+  /* Pista hundida: la píldora activa tiene que parecer que descansa
+     DENTRO, no encima de un rectángulo plano. */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .05);
+  /* Sin esto, en un contenedor flex la barra se estiraría a lo ancho y
+     dejaría de verse como un control. */
+  align-self: flex-start;
+  width: max-content;
+  scrollbar-width: none;
 }
+.tabBar::-webkit-scrollbar { display: none; }
+
 .tabBtn {
   position: relative;
-  padding: 11px 20px; font-size: 13.5px; font-weight: 700;
+  padding: 9px 18px; font-size: 13.5px; font-weight: 700;
   border: none; background: none; cursor: pointer; color: var(--slate-500);
-  margin-bottom: -2px; white-space: nowrap;
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
   font-family: inherit;
   transition: color .15s;
 }
 .tabBtn:hover { color: var(--navy-900); }
-.active { color: var(--teal-600); }
+.active { color: var(--teal-700); }
 .tabLabel { position: relative; z-index: 1; display: inline-flex; align-items: center; }
 
-/* Subrayado compartido: un solo nodo que se desliza entre pestañas */
+/* La MISMA píldora viaja de una pestaña a otra (§6.5): un solo nodo con
+   layoutId, no un fondo que se enciende y se apaga. */
 .indicator {
   position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 2px;
-  background: var(--teal-500);
-  border-radius: 2px 2px 0 0;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-soft), var(--highlight);
 }
 
+:global([data-theme="dark"]) .tabBar {
+  background: rgba(255, 255, 255, .04);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .25);
+}
 :global([data-theme="dark"]) .tabBtn { color: var(--slate-300); }
 :global([data-theme="dark"]) .tabBtn:hover { color: var(--slate-500); }
 :global([data-theme="dark"]) .active { color: var(--teal-500); }
-:global([data-theme="dark"]) .indicator { background: var(--teal-500); }
 
 @media (hover: none) { .tabBtn { min-height: 44px; } }
+@media (max-width: 600px) {
+  .tabBar { width: 100%; }
+  .tabBtn { padding: 9px 14px; }
+}

@@ -3,8 +3,11 @@
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow-md);
+  /* "Tarjetas, banner, columnas, paneles internos: 20-24 px"
+     (MOTION_SPEC.md 2.2). El radio y la sombra tenida salen del
+     material del Anexo A, no de los tokens genericos. */
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft), var(--highlight);
   /* FIX PADDING: el panel define el respiro interno una sola vez;
      todo su contenido (toolbars, tablas, tabs, cards) hereda margen
      al borde sin necesidad de compensarlo componente a componente. */
@@ -22,7 +25,7 @@
 .selectPill {
   display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--border); background: var(--surface);
-  border-radius: var(--r-md); padding: 9px 14px;
+  border-radius: var(--radius-pill); padding: 9px 16px;
   font-size: 13px; font-weight: 600; color: var(--slate-500); cursor: pointer;
 }
 .selectPill:hover { background: var(--hover-surface); border-color: var(--slate-300); color: var(--navy-900); }

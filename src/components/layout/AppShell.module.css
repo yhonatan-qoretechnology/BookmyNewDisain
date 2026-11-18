@@ -6,7 +6,16 @@
   min-height: 100vh;
   align-items: start;
   background: var(--canvas);
+  /* Franja de abajo que ocupa el dock flotante (MOTION_SPEC §6.8).
+     La heredan el contenido y el asistente para no quedar debajo. */
+  --dock-space: 92px;
 }
+/* ...y si el dock no se dibuja (ningún rol lo deja hoy sin pestañas,
+   pero la guarda existe), el hueco desaparece con él en vez de quedar
+   92 px muertos abajo. Si el navegador no entendiera `:has`, el
+   selector entero se descarta y queda el hueco reservado, que es el
+   lado seguro del fallo. */
+.main:not(:has(> [data-dock])) { --dock-space: 16px; }
 .main {
   display: flex;
   flex-direction: column;
@@ -28,11 +37,11 @@
   /* Recorta lo que asome por las esquinas redondeadas. */
   overflow: hidden;
 }
-.content { flex: 1; padding: 16px 24px 52px; }
+.content { flex: 1; padding: 16px 24px var(--dock-space); }
 
 @media (max-width: 1024px) {
   .appShell { --sidebar-w: 230px; --sidebar-inner: 210px; }
-  .content { padding: 12px 18px 40px; }
+  .content { padding: 12px 18px var(--dock-space); }
 }
 @media (max-width: 860px) {
   .appShell { grid-template-columns: 1fr; }
@@ -41,7 +50,7 @@
 }
 @media (max-width: 600px) {
   /* FIX PADDING: mínimo 14px de respiro lateral en móvil */
-  .content { padding: 10px 14px 32px; }
+  .content { padding: 10px 14px var(--dock-space); }
 }
 
 /* Al imprimir, el contenido ocupa la hoja entera (sin columna de menú). */

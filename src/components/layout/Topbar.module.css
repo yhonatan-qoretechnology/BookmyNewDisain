@@ -19,6 +19,14 @@
 :global([data-theme="dark"]) .breadcrumb { color: var(--slate-300); }
 :global([data-theme="dark"]) .breadcrumb span { color: var(--slate-500); }
 
+/* Celda del título: el que sale se queda superpuesto al que entra
+   (AnimatePresence `popLayout` lo pasa a `position: absolute`), así
+   que necesita un ancestro posicionado. El alto lo sigue marcando el
+   título que entra, que es el único que queda en el flujo: por eso la
+   cabecera no pega un salto durante el cruce.
+   `min-width: 0` deja que el título se recorte con puntos suspensivos
+   en móvil, igual que cuando colgaba directamente de .leftCol. */
+.titleStack { position: relative; min-width: 0; }
 .pageTitle { font-size: 19px; font-weight: 800; color: var(--navy-900); line-height: 1; }
 .accent { color: var(--teal-600); }
 :global([data-theme="dark"]) .accent { color: var(--teal-500); }

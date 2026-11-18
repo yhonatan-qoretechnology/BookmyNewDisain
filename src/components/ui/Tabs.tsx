@@ -10,10 +10,15 @@
 
    El contenido también aparece con un desvanecido corto ligado a
    la pestaña activa, así el cambio de panel no es un corte seco.
+
+   Desde la fase 2 el indicador no es un subrayado sino la píldora
+   sólida entera (MOTION_SPEC.md §2.2 y §6.5): viaja con `spring.indicator`
+   —sobrepasa un 10 % y se asienta en menos de medio segundo— y el
+   rótulo que gana o pierde el activo hace un fundido con desenfoque.
 ============================================================ */
 import { LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { useId } from "react";
-import { SPRING } from "@/components/animations";
+import { ease, spring } from "@/lib/motion";
 import styles from "./Tabs.module.css";
 
 export interface TabDef {
@@ -49,14 +54,25 @@ export default function Tabs({
               className={`${styles.tabBtn} ${esActiva ? styles.active : ""}`}
               onClick={() => onChange(t.id)}
             >
-              <span className={styles.tabLabel}>{t.label}</span>
               {esActiva && (
                 <motion.span
                   layoutId="tab-indicador"
                   className={styles.indicator}
-                  transition={reduce ? { duration: 0 } : SPRING}
+                  transition={reduce ? { duration: 0 } : spring.indicator}
                 />
               )}
+              {/* El rótulo cruza con desenfoque al cambiar de color (§6.5).
+                  La `key` fuerza el remontaje, que es lo que dispara el
+                  fundido; sin ella el color saltaría de golpe. */}
+              <motion.span
+                key={esActiva ? "on" : "off"}
+                className={styles.tabLabel}
+                initial={reduce ? false : { opacity: 0, filter: "blur(4px)" }}
+                animate={{ opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+                transition={{ duration: 0.25, ease: ease.out }}
+              >
+                {t.label}
+              </motion.span>
             </button>
           );
         })}

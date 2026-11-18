@@ -5,7 +5,7 @@
 }
 .todayLink {
   font-size: 13px; font-weight: 700; color: var(--slate-500);
-  cursor: pointer; border-radius: 8px; padding: 6px 12px;
+  cursor: pointer; border-radius: var(--radius-pill); padding: 6px 14px;
   background: none; border: none;
 }
 .todayLink:hover { background: var(--hover-surface); color: var(--navy-900); }
@@ -15,30 +15,33 @@
   display: flex; align-items: center; gap: 10px;
   font-size: 18px; font-weight: 800; color: var(--navy-900);
 }
+/* Boton de icono: circulo (MOTION_SPEC.md 2.2). */
 .navArrow {
-  width: 28px; height: 28px; border-radius: 8px;
+  width: 28px; height: 28px; border-radius: 50%;
   background: var(--hover-surface); border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center; color: var(--slate-500);
 }
 .navArrow:hover { background: var(--teal-50); color: var(--teal-600); }
 :global([data-theme="dark"]) .navArrow:hover { background: rgba(var(--marca-glow),.12); color: var(--teal-500); }
 
-.viewToggle { display: flex; background: var(--hover-surface); border-radius: var(--r-md); padding: 3px; }
+/* Control segmentado: pista en pildora con la opcion activa dentro. */
+.viewToggle { display: flex; background: var(--hover-surface); border-radius: var(--radius-pill); padding: 3px; }
 .viewToggle button {
-  border: none; background: none; padding: 6px 13px;
-  border-radius: 10px; font-size: 12.5px; font-weight: 700;
+  border: none; background: none; padding: 6px 15px;
+  border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700;
   color: var(--slate-500); cursor: pointer;
 }
 .viewToggle button.viewActive {
   background: var(--grad-teal); color: #fff;
-  box-shadow: 0 3px 8px rgba(var(--marca-glow),.35);
+  box-shadow: 0 3px 8px rgba(var(--marca-glow),.35), var(--highlight);
 }
 
 /* minmax(0,1fr) y no 1fr: con 1fr el mínimo es el contenido, así que un
    nombre de servicio largo ensancha su columna y descuadra la rejilla. */
+/* La rejilla del mes es un panel interno: radio de tarjeta (2.2). */
 .calGrid {
   display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
-  border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden;
 }
 .dow {
   background: var(--hover-surface); font-size: 11px; font-weight: 800;
@@ -59,9 +62,16 @@
 /* Se recorta a 2 líneas y parte las palabras largas: el texto nunca
    decide el ancho de la celda. El título completo va en el tooltip. */
 .calEvent {
-  border-left: 3px solid var(--teal-500);
-  background: var(--teal-50); padding: 3px 5px;
-  border-radius: 4px; font-size: 10.5px; font-weight: 700;
+  /* La franja de color va como sombra interior y no como borde: un
+     borde de 3 px solo en el lado izquierdo se afila en las esquinas
+     redondeadas; la sombra interior sigue el contorno. */
+  box-shadow: inset 3px 0 0 var(--teal-500);
+  background: var(--teal-50); padding: 3px 9px 3px 12px;
+  /* Radio de tarjeta y no pildora: con `-webkit-line-clamp: 2` la
+     curva completa se comia el primer y el ultimo caracter de cada
+     linea. En movil el clamp baja a una linea, pero el radio se
+     queda igual para que las dos vistas sean la misma pieza. */
+  border-radius: var(--radius-card); font-size: 10.5px; font-weight: 700;
   color: var(--teal-700); line-height: 1.35; margin-top: 3px;
   cursor: pointer;
   display: -webkit-box;
@@ -80,7 +90,10 @@
   .monthSwitch { font-size: 16px; }
   .calCell { min-height: 56px; padding: 4px; }
   .dayNum { font-size: 11px; }
-  .calEvent { font-size: 9px; padding: 2px 4px; -webkit-line-clamp: 1; line-clamp: 1; }
+  /* El padding izquierdo no baja de 10 px: la franja de color es una
+     sombra interior y no ocupa sitio en la caja, asi que con 4 px el
+     texto se le montaba encima. */
+  .calEvent { font-size: 9px; padding: 2px 6px 2px 10px; -webkit-line-clamp: 1; line-clamp: 1; }
   .dow { font-size: 9.5px; padding: 7px 4px; }
 }
 @media (max-width: 380px) {

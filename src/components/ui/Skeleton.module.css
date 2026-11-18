@@ -47,7 +47,9 @@
 .toolbarGroup { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .stat { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.statIcon { position: absolute; top: -20px; left: 20px; border-radius: var(--r-lg); }
+/* Mismas formas que lo que sustituyen: squircle el icono del KPI,
+   radio de tarjeta las superficies, o al cargar se ve un salto. */
+.statIcon { position: absolute; top: -20px; left: 20px; border-radius: var(--radius-icon); }
 .statFooter { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 12px; }
 
 .table { display: flex; flex-direction: column; }
@@ -65,7 +67,7 @@
 
 .calHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .calGrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
-.calCell { aspect-ratio: 1.25; width: 100%; border-radius: var(--r-md); }
+.calCell { aspect-ratio: 1.25; width: 100%; border-radius: var(--radius-card); }
 
 .chart { display: flex; align-items: flex-end; gap: 10px; height: 200px; padding-top: 8px; }
 .chart > * { flex: 1; }
@@ -84,7 +86,7 @@
   display: grid; grid-template-columns: 320px minmax(0, 1fr);
   min-height: calc(100vh - var(--topbar-h) - 80px);
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r-xl); box-shadow: var(--shadow-md); overflow: hidden;
+  border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); overflow: hidden;
 }
 .channels { border-right: 1px solid var(--border); padding: 18px; display: flex; flex-direction: column; gap: 6px; }
 .channelItem { display: flex; align-items: center; gap: 12px; padding: 10px 4px; }

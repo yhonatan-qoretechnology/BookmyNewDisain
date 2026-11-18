@@ -10,6 +10,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { LOCALES, useI18n, type LocaleCode } from "@/i18n";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { EASE_OUT, SPRING } from "@/components/animations";
+import { ease } from "@/lib/motion";
 import Icon from "@/components/ui/Icon";
 import NotificationBell from "./NotificationBell";
 import styles from "./Topbar.module.css";
@@ -104,6 +105,7 @@ export default function Topbar({
   const { session } = useSession();
   const { toggleTheme, theme } = useTheme();
   const { t } = useI18n();
+  const reduce = useReducedMotion();
 
   const name = session?.name || "—";
   const role = session?.role || "superadmin";
@@ -125,10 +127,30 @@ export default function Topbar({
             </Link>{" "}
             / <span>{breadcrumb || title}</span>
           </span>
-          <h1 className={styles.pageTitle}>
-            {title}
-            {accent && <> <span className={styles.accent}>{accent}</span></>}
-          </h1>
+          {/* El título es lo ÚNICO del armazón que se anima al navegar
+              (MOTION_SPEC §6.6): el nuevo entra desde abajo y de
+              desenfocado a nítido mientras el viejo se va. Comparten
+              sitio -`popLayout` saca al que sale del flujo- para que la
+              cabecera no dé un salto de alto. */}
+          <div className={styles.titleStack}>
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.h1
+                key={`${title}·${accent || ""}`}
+                className={styles.pageTitle}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8, filter: "blur(4px)" }}
+                animate={
+                  reduce
+                    ? { opacity: 1 }
+                    : { opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }
+                }
+                exit={{ opacity: 0, transition: { duration: 0.08 } }}
+                transition={reduce ? { duration: 0.15 } : { duration: 0.3, ease: ease.out }}
+              >
+                {title}
+                {accent && <> <span className={styles.accent}>{accent}</span></>}
+              </motion.h1>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 

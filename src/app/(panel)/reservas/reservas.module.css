@@ -1,9 +1,10 @@
 /* Selector de estado en la columna de acciones.
    Compacto a propósito: convive con una fila de tabla, no con un formulario. */
 .estadoSelect {
-  padding: 6px 10px;
+  /* Pildora, como el resto de controles del panel (MOTION_SPEC.md 2.2). */
+  padding: 6px 14px;
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
+  border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--navy-900);
   font-size: 12.5px;
@@ -45,8 +46,8 @@
   color: var(--slate-500);
 }
 .filtro input, .filtro select {
-  padding: 8px 10px;
-  border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 8px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
   background: var(--surface); color: var(--navy-900);
   font: inherit; font-size: 13px;
 }

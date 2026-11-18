@@ -1451,6 +1451,16 @@ const en: Dictionary = {
     latestSearchPlaceholder: "Search by service, client, specialist or ID…",
     duracion: "Duration",
     latestEmpty: "No bookings match your search.",
+    /* Welcome banner (MOTION_SPEC.md §6.9) */
+    hero: {
+      manana: "Good morning, {nombre}",
+      tarde: "Good afternoon, {nombre}",
+      noche: "Good evening, {nombre}",
+      reservasHoy: "Bookings today:",
+      sinConfirmar: "Unconfirmed:",
+      cta: "New booking",
+      chip: "Latest booking · {servicio}",
+    },
   },
 
   reservas: {

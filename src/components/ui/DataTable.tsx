@@ -14,13 +14,42 @@
    `resetKey` vuelve a lanzar la entrada al cambiar un filtro; sin
    él React reutiliza el tbody y los resultados nuevos aparecerían
    de golpe.
+
+   Las filas suben y se enfocan en cascada cada 40 ms
+   (MOTION_SPEC.md §6.13 y docs/motion/referencias/09).
 ============================================================ */
 import { Children, cloneElement, isValidElement, type ReactElement } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { useRegion } from "@/context/RegionContext";
-import { STAGGER, staggerChild, staggerParent } from "@/components/animations";
+import { ease, stagger } from "@/lib/motion";
 import Pagination, { type PaginationProps } from "./Pagination";
 import styles from "./DataTable.module.css";
+
+/** Filas que entran en cascada. El resto aparece ya puesto.
+ *
+ *  No es un capricho de rendimiento: estas tablas llevan datos reales
+ *  —hay 497 citas en la base de pruebas— y con 40 ms por fila una
+ *  tabla sin paginar tardaría veinte segundos en terminar de pintarse,
+ *  además de romper el tope de "~20 elementos con blur a la vez" de la
+ *  §9. Quince son, con holgura, las que caben en pantalla: la cascada
+ *  se ve completa y lo que hay más abajo ya está nítido cuando se
+ *  llega haciendo scroll. */
+const FILAS_ANIMADAS = 15;
+
+/** Fila: sube 10 px y pasa de desenfocada a nítida (§6.13). */
+const fila: Variants = {
+  hidden: { opacity: 0, y: 10, filter: "blur(8px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.4, ease: ease.out },
+    /* Obligatorio (§3.1): un filter puesto convierte la fila en
+       contenedor de sus hijos `fixed` y aplana el cristal de dentro. */
+    transitionEnd: { filter: "none" },
+  },
+  exit: { opacity: 0, filter: "blur(6px)", transition: { duration: 0.2 } },
+};
 
 export default function DataTable({
   headers,
@@ -47,9 +76,13 @@ export default function DataTable({
   const etiqueta = (i: number) =>
     typeof headers[i] === "string" ? (headers[i] as string) : undefined;
 
-  const filas = Children.map(children, (fila) => {
-    if (!isValidElement(fila) || fila.type !== "tr") return fila;
-    const { children: celdas, ...resto } = fila.props as {
+  /* Cuenta aparte de la posición en `children`: ahí puede haber nulos y
+     fragmentos, y lo que se quiere limitar son las filas de verdad. */
+  let nFila = 0;
+
+  const filas = Children.map(children, (f) => {
+    if (!isValidElement(f) || f.type !== "tr") return f;
+    const { children: celdas, ...resto } = f.props as {
       children?: React.ReactNode;
     } & Record<string, unknown>;
     const conEtiqueta = Children.map(celdas, (celda, i) => {
@@ -58,8 +91,9 @@ export default function DataTable({
       if (props["data-label"] !== undefined) return celda;
       return cloneElement(celda as ReactElement, { "data-label": etiqueta(i) });
     });
+    const enCascada = !reduce && nFila++ < FILAS_ANIMADAS;
     return (
-      <motion.tr {...resto} variants={reduce ? undefined : staggerChild}>
+      <motion.tr {...resto} variants={enCascada ? fila : undefined}>
         {conEtiqueta}
       </motion.tr>
     );
@@ -80,13 +114,14 @@ export default function DataTable({
             initial="hidden"
             animate="visible"
             variants={{
-              ...staggerParent,
+              hidden: {},
               visible: {
                 transition: {
-                  staggerChildren: reduce ? 0 : STAGGER,
-                  delayChildren: reduce ? 0 : 0.02,
+                  staggerChildren: reduce ? 0 : stagger.rows,
+                  delayChildren: reduce ? 0 : 0.1,
                 },
               },
+              exit: {},
             }}
           >
             {/* initial={false}: la entrada ya la orquesta el tbody; aquí

@@ -1,9 +1,26 @@
 "use client";
 /* ============================================================
    Dashboard — resumen general (View)
+   ------------------------------------------------------------
+   El orden de la pantalla y el de la animación son el mismo, y
+   salen del timeline maestro de MOTION_SPEC.md §4 (referencia 05):
+
+     0,12 s  banner hero          · cardIn(0.18)
+     0,30 s  saludo → 0,37 subtítulo → 0,44 CTA
+     0,27 s  primera tarjeta KPI, y una cada 65 ms hasta 0,46 s
+     0,45 s  ilustración 3D (sube con rebote)
+     0,53 s  bloques de abajo, uno cada 80 ms
+     0,97 s  planta
+     ~1,3 s  todo asentado y nítido
+
+   Ese ritmo NO está repartido por el archivo: lo marca la cascada
+   del contenedor (delayChildren 0,12 + 65 ms por hijo) y cada
+   sección solo dice cuánto espera a los suyos. Si hay que
+   afinarlo, se toca aquí y en src/lib/motion.ts, no pieza a pieza.
 ============================================================ */
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
 import { useData } from "@/hooks/useData";
 import { ROUTES, fmtFechaCorta } from "@/constants";
 import { ReservasController } from "@/controllers/ReservasController";
@@ -16,7 +33,6 @@ import { useRegion } from "@/context/RegionContext";
 import { useReservaPopup } from "@/components/reservas/ReservaPopupContext";
 import ReagendarModal from "@/components/reservas/ReagendarModal";
 import type { Reserva } from "@/models";
-import StatCard, { StatGrid } from "@/components/ui/StatCard";
 import Panel, { PanelHead } from "@/components/ui/Panel";
 import DataTable, { PriceCell } from "@/components/ui/DataTable";
 import { SearchBox } from "@/components/ui/Toolbar";
@@ -27,8 +43,13 @@ import CalendarGrid from "@/components/ui/CalendarGrid";
 import ContextoFestivos from "@/components/festivos/ContextoFestivos";
 import { mapaFestivos } from "@/components/festivos/mapaFestivos";
 import { PersonRow } from "@/components/ui/People";
-import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations";
+import { StaggerContainer, StaggerItem } from "@/components/animations";
 import PersonalizarPanelModal from "@/components/dashboard/PersonalizarPanelModal";
+import HeroBanner from "@/components/dashboard/HeroBanner";
+import KpiCard from "@/components/dashboard/KpiCard";
+import { entrada, grupo } from "@/components/dashboard/motionDashboard";
+import { pathSparkline, seriesDelDashboard } from "@/components/dashboard/serieKpi";
+import { blurIn, stagger } from "@/lib/motion";
 import styles from "./dashboard.module.css";
 
 /* Selectores de contexto — empresa (solo superadmin) y sede
@@ -38,6 +59,7 @@ import styles from "./dashboard.module.css";
 function ContextSelectors() {
   const { session, updateSession } = useSession();
   const { t } = useI18n();
+  const reduce = useReducedMotion();
   const { data: empresas } = useData(() => NegociosController.getAll(), [], []);
   const { data: sedes } = useData(
     () => NegociosController.getSedesForSession(session),
@@ -51,7 +73,16 @@ function ContextSelectors() {
   if (!showEmpresa && !showSede) return null;
 
   return (
-    <div className={styles.empresaBar}>
+    /* Entra por su cuenta (initial/animate propios) y no como un hijo
+       más de la cascada: solo la ven dos roles, y si consumiera un
+       turno el resto del dashboard llegaría tarde para unos y pronto
+       para otros. El timeline del §4 tiene que ser el mismo siempre. */
+    <motion.div
+      className={styles.empresaBar}
+      variants={entrada(reduce, blurIn)}
+      initial="hidden"
+      animate="show"
+    >
       {showEmpresa && (
         <div className={styles.selectorGroup}>
           <Icon name="shield" width={18} height={18} />
@@ -93,7 +124,7 @@ function ContextSelectors() {
           </select>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -103,6 +134,7 @@ export default function DashboardPage() {
   const { t } = useI18n();
   const { fmtMoneda } = useRegion();
   const popup = useReservaPopup();
+  const reduce = useReducedMotion();
 
   const { locale } = useI18n();
   const { data: ultimas, reload: reloadUltimas } = useData(
@@ -168,118 +200,199 @@ export default function DashboardPage() {
     void reloadTodas();
   };
 
+  /* ── Banner: saludo y lo que hay hoy sobre la mesa ──────────
+     Dos cifras que salen de las reservas ya cargadas; nada de
+     relleno. Si hoy no hay nada, dirán cero, que también es un dato. */
+  const franja = (() => {
+    const h = new Date().getHours();
+    return h < 13 ? "manana" : h < 21 ? "tarde" : "noche";
+  })();
+  const saludo = t(`dashboard.hero.${franja}`, { nombre: (session?.name || "").split(" ")[0] });
+  const reservasHoy = todas.filter((r) => r.fecha === hoyISO).length;
+  const sinConfirmar = todas.filter((r) => r.fecha >= hoyISO && r.estado === "pendiente").length;
+  const chipHero = ultimas.length
+    ? t("dashboard.hero.chip", { servicio: ultimas[0].servicio })
+    : null;
+
+  /* ── Tendencia de las tarjetas KPI ──────────────────────────
+     Sparkline y flecha salen de las reservas que ya están en
+     memoria (14 días, última semana contra la anterior). La
+     valoración media no trae fecha, así que esa tarjeta se queda
+     sin línea en vez de dibujar una inventada. */
+  const series = useMemo(() => seriesDelDashboard(todas, hoyISO), [todas, hoyISO]);
+  const pieKpi = (variacion: number | null, respaldo: string) =>
+    variacion != null ? t("dashboard.vsLastWeek") : respaldo;
+
   return (
     <>
-      <ContextSelectors />
-      {puedePersonalizar && (
-        <div className={styles.personalizarFila}>
-          <Button size="sm" variant="ghost" onClick={() => setPersonalizando(true)}>
-            <Icon name="settings" /> {t("tema.boton")}
-          </Button>
-        </div>
-      )}
-      <StatGrid>
-        <StatCard color="teal"  icon={<Icon name="user" />}  label={t("dashboard.totalClients")}  count={resumen.clientes} footer={t("dashboard.fromApi")} />
-        <StatCard color="green" icon={<Icon name="chart" />} label={t("estadisticas.monthRevenue")} count={resumen.ingresosMes} format={fmtMoneda} footer={t("estadisticas.thisMonth")} />
-        <StatCard color="coral" icon={<Icon name="clock" />} label={t("dashboard.totalBookings")} count={resumen.citas} footer={t("dashboard.fromApi")} />
-        <StatCard color="amber" icon={<Icon name="chat" />}  label={t("estadisticas.rating")} value={resumen.valoracion != null ? `${resumen.valoracion.toFixed(1)} ★` : "—"} footer={t("estadisticas.fromReviews")} />
-      </StatGrid>
+      {/* Raíz de la cascada: espera 0,12 s y suelta un hijo cada 65 ms
+          (§4). Los hijos solo tienen que decir qué son. */}
+      <motion.div variants={grupo(reduce, stagger.cards, 0.12)} initial="hidden" animate="show">
+        <ContextSelectors />
 
-      {/* Los bloques entran escalonados detrás de las tarjetas */}
-      <FadeIn delay={0.18}>
-      <Panel style={{ marginTop: 20 }}>
-        <PanelHead
-          title={t("dashboard.latestTitle")}
-          sub={t("dashboard.latestSub", { negocio: session?.negocioName || "—" })}
-          right={
-            <Button size="sm" onClick={() => router.push(`${ROUTES.reservas}?nueva=1`)}>
-              {t("dashboard.addBooking")}
-            </Button>
+        <HeroBanner
+          saludo={saludo}
+          datos={[
+            { etiqueta: t("dashboard.hero.reservasHoy"), valor: reservasHoy },
+            { etiqueta: t("dashboard.hero.sinConfirmar"), valor: sinConfirmar },
+          ]}
+          cta={t("dashboard.hero.cta")}
+          onCta={() => router.push(`${ROUTES.reservas}?nueva=1`)}
+          chip={chipHero}
+          extra={
+            puedePersonalizar ? (
+              <Button size="sm" variant="ghost" onClick={() => setPersonalizando(true)}>
+                <Icon name="settings" /> {t("tema.boton")}
+              </Button>
+            ) : null
           }
         />
-        <div className={styles.latestToolbar}>
-          <SearchBox
-            value={buscarUltimas}
-            onChange={setBuscarUltimas}
-            placeholder={t("dashboard.latestSearchPlaceholder")}
-          />
-        </div>
-        {ultimasFiltradas.length === 0 ? (
-          <p style={{ padding: "18px 4px", color: "var(--slate-500)", fontSize: 13.5 }}>
-            {t("dashboard.latestEmpty")}
-          </p>
-        ) : (
-          <DataTable headers={[t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("dashboard.duracion"), t("common.price"), t("common.state"), t("common.actions")]}>
-            {ultimasFiltradas.map((r) => (
-              <tr key={r.id} onClick={() => popup.open(r, recargarCitas)} style={{ cursor: "pointer" }}>
-                <td><b>{r.servicio}</b></td>
-                <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
-                <td>{fmtFechaCorta(r.fecha)}</td>
-                <td>{r.hora}</td>
-                <td>{r.duracion ? `${r.duracion} min` : "—"}</td>
-                <PriceCell value={r.precio} />
-                <td><Badge kind={r.estado}>{t(`estados.${r.estado}`)}</Badge></td>
-                <td>
-                  {/* Solo se reagenda lo que aún no ha pasado ni se canceló */}
-                  {(r.estado === "pendiente" || r.estado === "confirmada") && (
-                    <IconButton
-                      aria-label={t("reservas.reagendarAria", { servicio: r.servicio, cliente: r.cliente })}
-                      onClick={(e) => { e.stopPropagation(); setReagendando(r); }}
-                    >
-                      <Icon name="calendar-check" />
-                    </IconButton>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </DataTable>
-        )}
-      </Panel>
-      </FadeIn>
 
-      <div className={styles.bottomGrid}>
-        <FadeIn delay={0.26}>
-        <Panel>
-          <div className={styles.calHeaderPill}>
-            <Icon name="calendar" /> {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString() : t("common.today")}
+        {/* Primera tarjeta a los 265 ms (185 de la cascada + 80), y una
+            cada 65 ms: 265 · 330 · 395 · 460, como en la referencia 05. */}
+        <motion.section className={styles.kpiGrid} variants={grupo(reduce, stagger.cards, 0.08)}>
+          <KpiCard
+            index={0}
+            tono="marca"
+            icono={<Icon name="user" />}
+            label={t("dashboard.totalClients")}
+            valor={resumen.clientes}
+            spark={pathSparkline(series.clientes.valores)}
+            variacion={series.clientes.variacion}
+            pie={pieKpi(series.clientes.variacion, t("dashboard.fromApi"))}
+          />
+          <KpiCard
+            index={1}
+            tono="verde"
+            icono={<Icon name="chart" />}
+            label={t("estadisticas.monthRevenue")}
+            valor={resumen.ingresosMes}
+            formato={fmtMoneda}
+            spark={pathSparkline(series.ingresos.valores)}
+            variacion={series.ingresos.variacion}
+            pie={pieKpi(series.ingresos.variacion, t("estadisticas.thisMonth"))}
+          />
+          <KpiCard
+            index={2}
+            tono="coral"
+            icono={<Icon name="clock" />}
+            label={t("dashboard.totalBookings")}
+            valor={resumen.citas}
+            spark={pathSparkline(series.citas.valores)}
+            variacion={series.citas.variacion}
+            pie={pieKpi(series.citas.variacion, t("dashboard.fromApi"))}
+          />
+          <KpiCard
+            index={3}
+            tono="ambar"
+            icono={<Icon name="star" />}
+            label={t("estadisticas.rating")}
+            texto={resumen.valoracion != null ? `${resumen.valoracion.toFixed(1)} ★` : "—"}
+            pie={t("estadisticas.fromReviews")}
+          />
+        </motion.section>
+
+        {/* Bloques de abajo: arrancan a los 530 ms y entran uno cada
+            80 ms (§4, "fila de gráficas inferior"). */}
+        <motion.section className={styles.bloques} variants={grupo(reduce, 0.08, 0.28)}>
+          <motion.div variants={entrada(reduce, blurIn)}>
+            <Panel>
+              <PanelHead
+                title={t("dashboard.latestTitle")}
+                sub={t("dashboard.latestSub", { negocio: session?.negocioName || "—" })}
+                right={
+                  <Button size="sm" onClick={() => router.push(`${ROUTES.reservas}?nueva=1`)}>
+                    {t("dashboard.addBooking")}
+                  </Button>
+                }
+              />
+              <div className={styles.latestToolbar}>
+                <SearchBox
+                  value={buscarUltimas}
+                  onChange={setBuscarUltimas}
+                  placeholder={t("dashboard.latestSearchPlaceholder")}
+                />
+              </div>
+              {ultimasFiltradas.length === 0 ? (
+                <p style={{ padding: "18px 4px", color: "var(--slate-500)", fontSize: 13.5 }}>
+                  {t("dashboard.latestEmpty")}
+                </p>
+              ) : (
+                <DataTable headers={[t("common.service"), t("common.client"), t("common.date"), t("common.time"), t("dashboard.duracion"), t("common.price"), t("common.state"), t("common.actions")]}>
+                  {ultimasFiltradas.map((r) => (
+                    <tr key={r.id} onClick={() => popup.open(r, recargarCitas)} style={{ cursor: "pointer" }}>
+                      <td><b>{r.servicio}</b></td>
+                      <td><PersonRow name={r.cliente} photo={r.clienteFoto} /></td>
+                      <td>{fmtFechaCorta(r.fecha)}</td>
+                      <td>{r.hora}</td>
+                      <td>{r.duracion ? `${r.duracion} min` : "—"}</td>
+                      <PriceCell value={r.precio} />
+                      <td><Badge kind={r.estado}>{t(`estados.${r.estado}`)}</Badge></td>
+                      <td>
+                        {/* Solo se reagenda lo que aún no ha pasado ni se canceló */}
+                        {(r.estado === "pendiente" || r.estado === "confirmada") && (
+                          <IconButton
+                            aria-label={t("reservas.reagendarAria", { servicio: r.servicio, cliente: r.cliente })}
+                            onClick={(e) => { e.stopPropagation(); setReagendando(r); }}
+                          >
+                            <Icon name="calendar-check" />
+                          </IconButton>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </DataTable>
+              )}
+            </Panel>
+          </motion.div>
+
+          <div className={styles.bottomGrid}>
+            <motion.div variants={entrada(reduce, blurIn)}>
+              <Panel>
+                <div className={`pill ${styles.calHeaderPill}`}>
+                  <Icon name="calendar" /> {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString() : t("common.today")}
+                </div>
+                {/* La lista se rehace al cambiar de día: entra escalonada otra vez */}
+                <StaggerContainer key={selectedDate || "hoy"} className={styles.dayList}>
+                  {fechaReservas.length === 0 && <span>{t("dashboard.noToday")}</span>}
+                  {fechaReservas.map((r) => (
+                    <StaggerItem key={r.id} className={styles.dayItem} onClick={() => popup.open(r, recargarCitas)}>
+                      <span className={styles.dayHour}>{r.hora}</span>
+                      <span className={styles.dayBody}>
+                        <b>{r.servicio}</b>
+                        <span>{r.cliente}</span>
+                      </span>
+                    </StaggerItem>
+                  ))}
+                </StaggerContainer>
+              </Panel>
+            </motion.div>
+
+            <motion.div variants={entrada(reduce, blurIn)}>
+              <Panel>
+                <PanelHead title={t("dashboard.calTitle")} sub={t("dashboard.calSub")} />
+                <ContextoFestivos
+                  sedeId={session?.sedeId ? Number(session.sedeId) : undefined}
+                  empresaId={!session?.sedeId ? Number(session?.negocioId) || undefined : undefined}
+                  festivos={diasFestivos || []}
+                />
+                <CalendarGrid
+                  events={calEvents}
+                  festivos={festivos}
+                  maxPerCell={2}
+                  onEventClick={(id, data) => data ? popup.open(data, recargarCitas) : popup.open(id, recargarCitas)}
+                  selectable={true}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                />
+              </Panel>
+            </motion.div>
           </div>
-          {/* La lista se rehace al cambiar de día: entra escalonada otra vez */}
-          <StaggerContainer key={selectedDate || "hoy"} className={styles.dayList}>
-            {fechaReservas.length === 0 && <span>{t("dashboard.noToday")}</span>}
-            {fechaReservas.map((r) => (
-              <StaggerItem key={r.id} className={styles.dayItem} onClick={() => popup.open(r, recargarCitas)}>
-                <span className={styles.dayHour}>{r.hora}</span>
-                <span className={styles.dayBody}>
-                  <b>{r.servicio}</b>
-                  <span>{r.cliente}</span>
-                </span>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </Panel>
-        </FadeIn>
+        </motion.section>
+      </motion.div>
 
-        <FadeIn delay={0.32}>
-        <Panel>
-          <PanelHead title={t("dashboard.calTitle")} sub={t("dashboard.calSub")} />
-          <ContextoFestivos
-            sedeId={session?.sedeId ? Number(session.sedeId) : undefined}
-            empresaId={!session?.sedeId ? Number(session?.negocioId) || undefined : undefined}
-            festivos={diasFestivos || []}
-          />
-          <CalendarGrid
-            events={calEvents}
-            festivos={festivos}
-            maxPerCell={2}
-            onEventClick={(id, data) => data ? popup.open(data, recargarCitas) : popup.open(id, recargarCitas)} 
-            selectable={true}
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-          />
-        </Panel>
-        </FadeIn>
-      </div>
-
+      {/* Los modales viven fuera de la cascada: no deben heredar su
+          estado de entrada ni esperar turno para abrirse. */}
       <PersonalizarPanelModal open={personalizando} onClose={() => setPersonalizando(false)} />
 
       <ReagendarModal

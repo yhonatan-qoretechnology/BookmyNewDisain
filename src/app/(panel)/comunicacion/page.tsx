@@ -3,6 +3,9 @@
    Comunicación — chat entre sedes (View, demo)
 ============================================================ */
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { group, spring, stagger } from "@/lib/motion";
+import { ProgressFill } from "@/components/motion/ProgressFill";
 import { ComunicacionController } from "@/controllers/ComunicacionController";
 import { ChatExportController, puedeExportarChats } from "@/controllers/ChatExportController";
 import { useSession } from "@/context/SessionContext";
@@ -17,6 +20,35 @@ import { fotoUrl, initials } from "@/constants";
 import type { Canal, Mensaje } from "@/models";
 import EmojiPicker from "emoji-picker-react";
 import styles from "./comunicacion.module.css";
+
+/** Burbujas que entran en cascada (MOTION_SPEC.md §6.12, referencia 08).
+ *
+ *  Una conversación larga trae cientos de mensajes y, a 50 ms cada uno,
+ *  la cascada duraría medio minuto y rompería el tope de "~20 elementos
+ *  con blur a la vez" de la §9. Solo se anima la cola —lo que de verdad
+ *  se ve, porque el chat arranca abajo del todo—, y lo anterior aparece
+ *  ya puesto. Los mensajes nuevos que llegan después caen dentro de esta
+ *  ventana, así que entran con su burbuja igualmente. */
+const BURBUJAS_ANIMADAS = 14;
+
+/** Burbuja: crece desde su esquina con desenfoque (§6.12). */
+const burbuja: Variants = {
+  hidden: { opacity: 0, scale: 0.8, filter: "blur(8px)" },
+  show: {
+    opacity: 1,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: {
+      scale: spring.indicator,
+      opacity: { duration: 0.25 },
+      filter: { duration: 0.3 },
+    },
+    /* Obligatorio (§3.1): con un filter puesto, el visor de imagen y el
+       de PDF que se abren desde la burbuja dejarían de centrarse. */
+    transitionEnd: { filter: "none" },
+  },
+  exit: { opacity: 0, filter: "blur(6px)", transition: { duration: 0.2 } },
+};
 
 /** Sondeo de la conversación activa (el backend también ofrece
     Socket.IO; esta vista usa la vía REST del ChatMessageModule). */
@@ -162,6 +194,7 @@ export default function ComunicacionPage() {
   /** Grabación de nota de voz en curso. */
   const [grabando, setGrabando] = useState(false);
   const [tiempoGrabacion, setTiempoGrabacion] = useState(0);
+  const reduce = useReducedMotion();
   const msgsRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -523,7 +556,18 @@ export default function ComunicacionPage() {
           </div>
         )}
 
-        <div className={styles.chatMsgs} ref={msgsRef}>
+        {/* Las burbujas entran una tras otra cada 50 ms (§6.12). La `key`
+            por conversación es lo que relanza la cascada al cambiar de
+            chat; dentro de una misma conversación, los mensajes nuevos
+            entran solos conforme llegan. */}
+        <motion.div
+          key={canalId}
+          className={styles.chatMsgs}
+          ref={msgsRef}
+          variants={group(stagger.chat, 0.1)}
+          initial={reduce ? false : "hidden"}
+          animate="show"
+        >
           {/* Sin conversación elegida, el lienzo quedaba en blanco y no se
               entendía que faltaba elegir un contacto. */}
           {!canal && (
@@ -533,8 +577,19 @@ export default function ComunicacionPage() {
               <span>{t("comunicacion.pickChatMsg")}</span>
             </div>
           )}
-          {mensajes.map((m, i) => (
-            <div key={i} className={`${styles.msgRow} ${m.dir === "out" ? styles.msgOut : ""}`}>
+          {mensajes.map((m, i) => {
+            /* Solo la cola entra en cascada; el resto ya está puesto.
+               Se decide con `variants` y no cambiando de etiqueta para que
+               React no remonte la burbuja cuando el mensaje sale de la
+               ventana al llegar otro: la haría parpadear. */
+            const animada = !reduce && i >= mensajes.length - BURBUJAS_ANIMADAS;
+            const saliente = m.dir === "out";
+            return (
+            <motion.div
+              key={i}
+              variants={animada ? burbuja : undefined}
+              className={`${styles.msgRow} ${saliente ? styles.msgOut : ""} ${saliente ? styles.origenOut : styles.origenIn}`}
+            >
               {/* Los mensajes entrantes son del contacto: se usa su foto */}
               {m.dir === "in" && (
                 fotoUrl(canal?.fotoPerfil) ? (
@@ -567,10 +622,14 @@ export default function ComunicacionPage() {
                   )}
                 </span>
               </span>
-            </div>
-          ))}
+            </motion.div>
+            );
+          })}
           {subiendo && (
-            <div className={`${styles.msgRow} ${styles.msgOut}`}>
+            <motion.div
+              className={`${styles.msgRow} ${styles.msgOut} ${styles.origenOut}`}
+              variants={reduce ? undefined : burbuja}
+            >
               <span className={`${styles.bubble} ${styles.bubblePending}`}>
                 <div className={styles.uploadingBox}>
                   {subiendo.tipo === "imagen" ? (
@@ -591,9 +650,9 @@ export default function ComunicacionPage() {
                   </span>
                 </div>
               </span>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
         <div className={styles.chatInput}>
           <input
@@ -619,6 +678,12 @@ export default function ComunicacionPage() {
               <span className={styles.recordingTime}>
                 {formatoTiempo(tiempoGrabacion)} / {formatoTiempo(AUDIO_MAX_SEC)}
               </span>
+              {/* Cuánto queda del límite de la nota de voz. Va en modo
+                  `live`: es un medidor que sigue a un dato que cambia cada
+                  segundo, no una entrada que se revela una vez. */}
+              <div className={styles.recordingProgreso}>
+                <ProgressFill live value={(tiempoGrabacion / AUDIO_MAX_SEC) * 100} />
+              </div>
               <Button onClick={enviarGrabacion} aria-label="Enviar nota de voz">
                 <Icon name="send" />
               </Button>

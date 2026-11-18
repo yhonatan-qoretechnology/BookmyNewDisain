@@ -8,37 +8,41 @@
   margin-top: 32px;
   overflow: visible;
 }
+/* Material y radio los pone .glass-card (Anexo A), que StatCard.tsx
+   anade junto a esta clase; repetirlos aqui solo crearia un pulso
+   entre las dos hojas. */
 .statCard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
   padding: 14px 20px 18px;
-  box-shadow: var(--shadow-md);
   position: relative;
-  transition: box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease);
+  transition: box-shadow var(--t-med) var(--ease);
 }
-.statCard:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
+/* El levantado de 5 px lo hace framer-motion (6.14). */
+.statCard:hover { box-shadow: var(--shadow-lift), var(--highlight); }
+
+/* Squircle del icono: el radio y el volumen de plastilina vienen de la
+   clase global .squircle; aqui solo medidas y posicion. */
 .iconWrap {
   position: absolute;
   top: -20px; left: 20px;
   width: 58px; height: 58px;
-  border-radius: var(--r-lg);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-icon);
   z-index: 1;
 }
 .iconWrap svg { width: 24px; height: 24px; color: #fff; }
-.teal   { background: var(--grad-teal); }
-.amber  { background: var(--grad-amber); }
-.red    { background: var(--grad-red); }
-.blue   { background: var(--grad-blue); }
-.purple { background: var(--grad-purple); }
-.green  { background: var(--grad-green); }
-.navy   { background: var(--grad-navy); }
-.coral  { background: var(--grad-coral); }
+/* "Cada KPI proyecta un halo suave de su color" (2.3). El halo lo
+   dibuja .squircle con color-mix sobre --accent, asi que la variante
+   solo tiene que redefinir --accent para ella misma: ni un color
+   nuevo, y sigue respetando marca y tema.
+   Purpura y coral no tienen token liso en la paleta (solo el degradado),
+   asi que conservan el acento heredado antes que inventarse un valor. */
+.teal   { background: var(--grad-teal);   --accent: var(--teal-600); }
+.amber  { background: var(--grad-amber);  --accent: var(--amber); }
+.red    { background: var(--grad-red);    --accent: var(--red); }
+.blue   { background: var(--grad-blue);   --accent: var(--blue); }
+.purple { background: var(--grad-purple); --accent: var(--purple); }
+.green  { background: var(--grad-green);  --accent: var(--green); }
+.navy   { background: var(--grad-navy);   --accent: var(--navy-700); }
+.coral  { background: var(--grad-coral);  --accent: var(--coral); }
 
 .top { display: flex; justify-content: flex-end; min-height: 46px; }
 .body { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
@@ -63,7 +67,7 @@
 @media (max-width: 600px) {
   .statGrid { grid-template-columns: 1fr; padding-top: 20px; gap: 12px; }
   .value { font-size: 26px; }
-  .iconWrap { width: 50px; height: 50px; top: -16px; left: 16px; border-radius: 12px; }
+  .iconWrap { width: 50px; height: 50px; top: -16px; left: 16px; }
   .iconWrap svg { width: 20px; height: 20px; }
   .statCard { padding: 12px 16px 14px; }
 }

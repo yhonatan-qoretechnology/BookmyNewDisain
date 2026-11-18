@@ -14,9 +14,10 @@
 
 .numero, .flecha {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 32px; height: 32px; padding: 0 8px;
+  min-width: 32px; height: 32px; padding: 0 10px;
   border: 1px solid var(--border); background: var(--surface);
-  border-radius: var(--r-sm); cursor: pointer;
+  /* Pildora: una pagina suelta queda como un circulo (2.2). */
+  border-radius: var(--radius-pill); cursor: pointer;
   font-size: 13px; font-weight: 600; color: var(--slate-500);
   font-variant-numeric: tabular-nums;
   transition: background .12s, color .12s, border-color .12s;

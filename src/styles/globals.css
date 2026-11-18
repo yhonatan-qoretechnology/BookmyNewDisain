@@ -41,6 +41,12 @@
   --red:       #ef4444;
   --blue:      #2563eb;
   --green:     #12b981;
+  /* Pareja lisa de --grad-purple y --grad-coral (su tono de cierre).
+     Hacen falta porque las variantes de las tarjetas KPI tinen su
+     sombra con --accent, y sin estos dos esos dos KPI proyectaban un
+     halo verde de marca debajo de un degradado purpura o coral. */
+  --purple:    #7c3aed;
+  --coral:     #e11d48;
 
   --grad-teal:   linear-gradient(140deg, #2fd39a, #0d9d6d);
   --grad-amber:  linear-gradient(140deg, #fbbf24, #f59e0b);
@@ -91,6 +97,9 @@
   --radius-panel: 30px;
   --radius-card:  22px;
   --radius-icon:  14px;
+  /* Pildora: el 9999px que estaba escrito a mano por media docena de
+     hojas. No viene del Anexo A, pero es la misma forma repetida. */
+  --radius-pill:  9999px;
 
   /* Sombras anchas, muy suaves y TENIDAS con el acento: cada pieza
      proyecta un halo de su propio color, no un gris. */
@@ -224,6 +233,13 @@ img { max-width: 100%; }
 
 /* Superficie de cristal: semitransparente, desenfocada por detras
    y con un filo de luz arriba. */
+/* Ojo con lo que vive DENTRO de una .glass-card: `backdrop-filter`
+   —igual que `filter`, que es el motivo entero del §3.1 del
+   MOTION_SPEC— convierte la tarjeta en bloque contenedor de sus
+   descendientes `position: fixed`. Un modal, un tooltip o un menú
+   flotante escrito dentro de la tarjeta se anclaría a la tarjeta y no
+   a la ventana. Esas capas van en portal (como ya hace MenuAcciones,
+   que se monta en document.body). */
 .glass-card {
   background: color-mix(in oklab, var(--surface) var(--glass-mix), transparent);
   -webkit-backdrop-filter: blur(var(--glass-blur));

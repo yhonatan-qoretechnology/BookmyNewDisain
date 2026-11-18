@@ -64,7 +64,27 @@
 }
 :global([data-theme="dark"]) .navActiveBg { background: rgba(255,255,255,.06); }
 
-.navItem > span:not(.navActiveBg) { position: relative; z-index: 1; }
+/* Hover: píldora translúcida bajo el contenido (MOTION_SPEC §2.4).
+   Se pinta por detrás; en el ítem activo no aparece porque ahí ya
+   está la píldora sólida y una encima de otra la ensuciaría. */
+.navItem::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: var(--r-md);
+  background: var(--nav-hover);
+  opacity: 0;
+  z-index: 0;
+  transition: opacity .15s var(--ease);
+  pointer-events: none;
+}
+.navItem:hover::after { opacity: 1; }
+.navItemActive::after { display: none; }
+
+.navItem > :not(.navActiveBg) { position: relative; z-index: 1; }
+/* El selector va sin `span` a proposito: el chevron de un grupo es un
+   <svg> hijo directo, y con `span` se quedaba DEBAJO de la pildora de
+   hover y de la del activo, que son absolutas con z-index 0. En claro
+   los dos fondos son opacos, asi que el chevron desaparecia del todo. */
 
 .navIcon {
   width: 32px; height: 32px; border-radius: 9px;
@@ -101,7 +121,9 @@
 .navItemActive .navIcon svg { color: #fff; }
 
 :global([data-theme="dark"]) .navItem { color: var(--slate-300); }
-:global([data-theme="dark"]) .navItem:hover { color: var(--navy-900); background: rgba(255,255,255,.04); }
+/* El fondo del hover lo pone la píldora `::after` con --nav-hover, que
+   en oscuro ya es un blanco translúcido: aquí solo cambia el texto. */
+:global([data-theme="dark"]) .navItem:hover { color: var(--navy-900); }
 :global([data-theme="dark"]) .navItem:hover .navIcon { background: rgba(var(--marca-glow),.12); }
 :global([data-theme="dark"]) .navItem:hover .navIcon svg { color: var(--teal-500); }
 :global([data-theme="dark"]) .navItemActive { color: var(--navy-900); }
@@ -237,6 +259,11 @@
 .helpBtn:hover { background: #dcfbec; transform: translateY(-1px); }
 
 /* Responsive: sidebar flotante en móvil */
+/* El cajón se mueve con la propiedad `translate`, NO con `transform`:
+   la entrada "gelatina" del panel (MOTION_SPEC §6.7) escribe un
+   `transform: scale(...)` en línea y un `transform` aquí quedaría
+   pisado, dejando el cajón abierto en móvil. Las dos propiedades se
+   componen por separado, así que conviven. */
 @media (max-width: 860px) {
   .sidebar {
     position: fixed;
@@ -245,10 +272,10 @@
     width: 260px;
     height: 100vh;
     border-radius: 0 var(--r-xl) var(--r-xl) 0;
-    transform: translateX(-100%);
-    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    translate: -100% 0;
+    transition: translate .28s cubic-bezier(.4,0,.2,1);
   }
-  .open { transform: translateX(0); }
+  .open { translate: 0 0; }
 }
 
 .backdrop {

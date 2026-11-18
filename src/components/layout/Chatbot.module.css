@@ -241,14 +241,22 @@
 :global([data-theme="dark"]) .footer { border-color: var(--border); }
 
 /* ── Responsive ──────────────────────────────────────────── */
+/* Sin menú lateral fijo, el dock inferior (MOTION_SPEC §6.8) pasa a
+   ser la navegación principal y ocupa la franja de abajo de lado a
+   lado: el asistente se sube por encima de él en vez de taparlo.
+   `--dock-space` lo define el AppShell. */
+@media (max-width: 860px) {
+  .wrap { bottom: var(--dock-space, 24px); }
+  .window { max-height: min(560px, calc(100vh - 130px - var(--dock-space, 0px))); }
+}
 @media (max-width: 480px) {
-  .wrap { right: 14px; bottom: 14px; left: 14px; align-items: stretch; }
+  .wrap { right: 14px; left: 14px; align-items: stretch; }
   .fab { align-self: flex-end; }
   /* El saludo no ocupa todo el ancho: en un movil tapaba la pantalla
      entera hasta que se cerraba. La conversacion si, que ahi es el
      contenido principal. */
   .tooltip { width: auto; max-width: 300px; margin-left: auto; }
-  .window { width: auto; max-height: calc(100vh - 110px); }
+  .window { width: auto; max-height: calc(100vh - 110px - var(--dock-space, 0px)); }
 }
 
 /* El asistente no forma parte de ningún documento imprimible */

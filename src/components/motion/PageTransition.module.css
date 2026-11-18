@@ -1,9 +1,6 @@
-/* La pagina que sale y la que entra comparten la MISMA celda del grid,
-   asi se superponen durante el cruce en vez de empujarse y provocar un
-   salto de layout (MOTION_SPEC.md §6.1). */
+/* La vista no puede ensanchar la página: `min-width: 0` corta la cadena
+   de max-content que una tabla ancha propagaría hacia arriba y sacaría
+   una barra horizontal en todo el panel. */
 .stack {
-  display: grid;
-}
-.stack > * {
-  grid-area: 1 / 1;
+  min-width: 0;
 }

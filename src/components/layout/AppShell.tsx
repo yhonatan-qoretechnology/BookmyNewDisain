@@ -9,6 +9,7 @@ import { aplicarTema, temaRecordado } from "@/lib/temaPanel";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import Chatbot from "./Chatbot";
+import Dock from "./Dock";
 import styles from "./AppShell.module.css";
 
 export interface PageMeta {
@@ -59,6 +60,10 @@ export default function AppShell({
         />
         <main className={styles.content}>{children}</main>
         </div>
+        {/* Dock inferior: pestañas en píldora + "+" (MOTION_SPEC §6.8).
+            Va fuera de la ventana porque es fijo y flota por encima
+            del contenido, como en docs/motion/referencias/01. */}
+        <Dock />
         {/* Asistente de ayuda en todas las pantallas, esquina inferior derecha */}
         <Chatbot />
       </div>

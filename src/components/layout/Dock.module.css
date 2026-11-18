@@ -1,0 +1,153 @@
+/* ============================================================
+   Dock inferior — formas del MOTION_SPEC.md §2.1–§2.3
+   ------------------------------------------------------------
+   Cero colores a mano: todo sale de los tokens del panel, que es
+   lo único que respeta a la vez el tema claro/oscuro, la marca
+   (data-marca) y el color que elige cada negocio (temaPanel.ts).
+============================================================ */
+
+/* La franja flotante se centra sobre la VENTANA, no sobre la
+   pantalla: por eso arranca donde acaba el menú lateral, igual que
+   en la referencia 01. */
+.wrap {
+  position: fixed;
+  left: var(--sidebar-w);
+  right: 0;
+  bottom: 16px;
+  /* Por encima del contenido y por debajo del cajón del menú (40),
+     su fondo (39), el asistente (45) y los modales (50). */
+  z-index: 38;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  /* La franja ocupa todo el ancho, así que no puede tragarse los
+     clics del contenido: solo los reciben la barra y el "+". */
+  pointer-events: none;
+}
+
+/* ── Barra de pestañas ───────────────────────────────────── */
+.bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  max-width: 100%;
+  border-radius: var(--radius-pill);
+  /* El cristal se tiñe del LIENZO, no de la superficie: la barra flota
+     sobre la ventana (que es --surface) y con su mismo color no se
+     distinguiría de ella. Con el lienzo queda un punto más apagada que
+     el panel y la píldora activa, clara, resalta encima — justo la
+     relación de la referencia 07. */
+  background: color-mix(in oklab, var(--canvas) 88%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft), var(--highlight);
+}
+
+.tabWrap { display: flex; min-width: 0; }
+
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border-radius: var(--radius-pill);
+  color: var(--slate-500);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease);
+}
+.tab:hover { color: var(--navy-900); }
+
+/* Hover: píldora translúcida bajo el contenido */
+.tabHover {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background: var(--nav-hover);
+  opacity: 0;
+  transition: opacity .15s var(--ease);
+}
+.tab:hover .tabHover { opacity: 1; }
+
+/* Activo: píldora sólida elevada. Es el nodo que framer-motion
+   desliza de una pestaña a otra (layoutId="dock-active-pill"). */
+.tabPill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-soft), var(--highlight);
+}
+.tabActive { color: var(--navy-900); }
+
+/* Icono y texto, por encima de las dos píldoras */
+.tabIcon,
+.tabLabel { position: relative; z-index: 1; }
+
+.tabIcon { display: flex; flex: none; }
+.tabIcon svg { width: 17px; height: 17px; }
+.tabActive .tabIcon svg { color: var(--teal-600); }
+
+.tabLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Botón "+" ───────────────────────────────────────────── */
+.addWrap { pointer-events: auto; flex: none; }
+
+.add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--grad-teal);
+  color: #fff;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft), var(--highlight);
+}
+.add svg { width: 20px; height: 20px; }
+
+/* El anillo de foco global cuadra las esquinas (border-radius: 6px):
+   aquí se le devuelve la forma de píldora y de círculo. */
+.tab:focus-visible { border-radius: var(--radius-pill); }
+.add:focus-visible { border-radius: 50%; }
+
+/* ── Tema oscuro ─────────────────────────────────────────── */
+/* --surface-elevated ya es el tono elevado de cada tema; lo único
+   que cambia es el verde del icono activo, que en oscuro sube un
+   escalón para no apagarse sobre la píldora. */
+:global([data-theme="dark"]) .tabActive .tabIcon svg { color: var(--teal-500); }
+
+/* ── Pantallas estrechas ─────────────────────────────────── */
+/* Sin menú lateral fijo, el dock se centra en toda la pantalla y
+   pasa a ser la navegación principal. */
+@media (max-width: 860px) {
+  .wrap { left: 0; padding: 0 12px; }
+}
+
+/* Solo iconos: cinco pestañas con texto no caben en un móvil, y
+   recortarlas haría bailar la píldora al viajar. El nombre sigue
+   en `title` y en `aria-label` de cada enlace.
+
+   El corte va a 800 px y no a 720: las cinco pestañas con texto del
+   superadmin (Dashboard · Empresas · Reservas · Clientes · Facturación)
+   más el "+" piden unos 710 px, y por debajo de 860 ya no hay menú
+   lateral, así que la barra ocupa el ancho entero de la pantalla menos
+   24 px de aire. Entre 721 y 800 px los textos se recortaban. */
+@media (max-width: 800px) {
+  .tabLabel { display: none; }
+  /* 13 px por lado sobre un icono de 17 px deja una zona de toque de
+     43 px, prácticamente los 44 que pide el dedo, y las cinco pestañas
+     más el "+" siguen cabiendo en una pantalla de 320 px. */
+  .tab { padding: 13px; }
+  .add { width: 46px; height: 46px; }
+  .wrap { gap: 10px; bottom: 12px; }
+}

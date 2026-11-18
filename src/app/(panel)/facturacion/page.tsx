@@ -27,6 +27,7 @@ import Panel, { PanelHead } from "@/components/ui/Panel";
 import Toolbar, { SearchBox, FilterDate, FilterGroup, FilterSelect, ToolbarActions } from "@/components/ui/Toolbar";
 import DataTable from "@/components/ui/DataTable";
 import StatCard, { StatGrid } from "@/components/ui/StatCard";
+import StackedBar from "@/components/ui/StackedBar";
 import Button, { IconButton } from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Icon from "@/components/ui/Icon";
@@ -118,6 +119,19 @@ export default function FacturacionPage() {
   const listaTipo = useMemo(() => (fTipo ? lista.filter((f) => f.tipo === fTipo) : lista), [lista, fTipo]);
   const resumen = useMemo(() => FacturasController.resumen(listaTipo), [listaTipo]);
 
+  /* Reparto del total en una barra apilada (MOTION_SPEC.md §6.10 y
+     referencia 09), con los mismos tres estados que ya usan las filas.
+     No calcula nada nuevo: parte de `resumen`, y lo que no está cobrado
+     ni pendiente es lo anulado. Los tonos salen de tokens de la paleta. */
+  const segmentos = useMemo(() => {
+    const resto = Math.max(0, resumen.total - resumen.cobrado - resumen.pendiente);
+    return [
+      { id: "cobrado", valor: resumen.cobrado, label: t("factura.pagado"), texto: fmtMoneda(resumen.cobrado), tono: "green" as const },
+      { id: "pendiente", valor: resumen.pendiente, label: t("factura.pendiente"), texto: fmtMoneda(resumen.pendiente), tono: "amber" as const },
+      { id: "anulado", valor: resto, label: t("factura.cancelado"), texto: fmtMoneda(resto), tono: "neutral" as const },
+    ];
+  }, [resumen, t, fmtMoneda]);
+
   /* Facturación pasaba de cien filas en una sola página: scroll sin fin y,
      con la entrada escalonada de DataTable, varios segundos hasta la última. */
   const pagina = usePaginacion(listaTipo, {
@@ -194,6 +208,14 @@ export default function FacturacionPage() {
         <PanelHead
           title={soloFacturas ? t("facturacion.facturas") : t("facturacion.panelTitle")}
           sub={t("facturacion.panelSub")}
+        />
+
+        {/* Cómo se reparte lo facturado, por segmentos: se llenan de
+            izquierda a derecha, uno tras otro, como en la referencia 09. */}
+        <StackedBar
+          segmentos={segmentos}
+          total={resumen.total}
+          aria-label={t("facturacion.statFacturado")}
         />
 
         {/* Filtros en una sola fila para no gastar alto: búsqueda libre

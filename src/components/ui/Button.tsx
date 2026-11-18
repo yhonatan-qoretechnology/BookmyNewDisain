@@ -13,7 +13,7 @@
 ============================================================ */
 import type { ButtonHTMLAttributes } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { SPRING, TAP_PRESS } from "@/components/animations";
+import { spring } from "@/lib/motion";
 import styles from "./Button.module.css";
 
 /** Manejadores que React y framer-motion declaran con firmas distintas */
@@ -48,12 +48,14 @@ export default function Button({
   ].filter(Boolean).join(" ");
 
   return (
+    /* MOTION_SPEC.md 6.14, fila "botones pildora": sube 1 px al pasar
+       por encima y se hunde a 0.97 al pulsar, con spring.hover. */
     <motion.button
       className={cls}
       disabled={disabled}
-      whileTap={inerte ? undefined : TAP_PRESS}
+      whileTap={inerte ? undefined : { scale: 0.97 }}
       whileHover={inerte ? undefined : { y: -1 }}
-      transition={SPRING}
+      transition={spring.hover}
       {...rest}
     />
   );
@@ -76,12 +78,15 @@ export function IconButton({
     .filter(Boolean).join(" ");
 
   return (
+    /* 6.14, fila "botones circulares": 1.05 al pasar por encima y
+       0.92 al pulsar. Mas hundido que la pildora a proposito: un
+       circulo pequeno necesita mas recorrido para que se note. */
     <motion.button
       className={cls}
       disabled={disabled}
-      whileTap={inerte ? undefined : TAP_PRESS}
-      whileHover={inerte ? undefined : { scale: 1.06 }}
-      transition={SPRING}
+      whileTap={inerte ? undefined : { scale: 0.92 }}
+      whileHover={inerte ? undefined : { scale: 1.05 }}
+      transition={spring.hover}
       {...rest}
     />
   );

@@ -1,7 +1,8 @@
 .caja { position: relative; flex: none; }
 
+/* Boton de icono: circulo (2.2). */
 .disparador {
-  width: 34px; height: 34px; border-radius: var(--r-sm);
+  width: 34px; height: 34px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid transparent; background: transparent; color: var(--slate-500);
   cursor: pointer; transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
@@ -15,7 +16,7 @@
   min-width: 210px; padding: 6px;
   display: flex; flex-direction: column; gap: 2px;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-lift), var(--highlight);
   transform-origin: top right;
   animation: abrir .14s var(--ease) both;
 }
@@ -23,7 +24,8 @@
 
 .item {
   display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 9px 10px; border: none; border-radius: var(--r-sm);
+  /* Mismo radio que la pildora activa del menu lateral (2.4). */
+  padding: 9px 12px; border: none; border-radius: var(--radius-icon);
   background: transparent; color: var(--navy-900);
   font-family: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer;
 }

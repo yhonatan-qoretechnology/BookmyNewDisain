@@ -7,8 +7,12 @@
 
    No lleva `initial`/`animate` propios: hereda hidden/show del
    padre para entrar dentro de la cascada de la tarjeta.
+
+   Con "reducir movimiento" se pinta entera y quieta: `pathLength` no
+   es un transform, asi que el `reducedMotion="user"` de MotionConfig
+   no lo apaga y la linea se seguiria dibujando sola (§10).
 ============================================================ */
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ease } from "@/lib/motion";
 import styles from "./Sparkline.module.css";
 
@@ -19,6 +23,8 @@ type Props = {
 };
 
 export function Sparkline({ d, className }: Props) {
+  const reduce = useReducedMotion();
+
   return (
     <svg
       viewBox="0 0 64 24"
@@ -26,6 +32,15 @@ export function Sparkline({ d, className }: Props) {
       fill="none"
       aria-hidden
     >
+      {reduce ? (
+        <path
+          d={d}
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ) : (
       <motion.path
         d={d}
         stroke="currentColor"
@@ -45,6 +60,7 @@ export function Sparkline({ d, className }: Props) {
           exit: { opacity: 0, transition: { duration: 0.2 } },
         }}
       />
+      )}
     </svg>
   );
 }
