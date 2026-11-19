@@ -1,20 +1,30 @@
 /* Fila de hoy: las dos cifras del día a la izquierda y las acciones a
    la derecha. Sustituye al banner hero, que pedía 294 px de alto para
    esto mismo. */
-.resumenBar {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 10px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-soft), var(--highlight);
-  padding: 10px 14px;
-  margin-bottom: 4px;
+/* ── La barra de la cabecera ────────────────────────────────
+   Los selectores, las cifras de hoy y las acciones, todo en la FILA
+   DEL TÍTULO (se sube ahí con un portal: ver AccionesDeCabecera).
+
+   Ya NO lleva caja propia -ni fondo, ni borde, ni sombra-: eran dos
+   tarjetas apiladas bajo el título para tres datos y dos botones, y
+   ocupaban casi 100 px. Aquí es contenido de la cabecera, así que se
+   apoya en ella y no se dibuja a sí misma.
+
+   `flex-wrap` con `margin-left: auto` en las cifras: mientras quepa,
+   los selectores a la izquierda y lo demás pegado a la derecha; en
+   cuanto no, baja ordenado en vez de encogerse. */
+.barraCabecera {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  min-width: 0;
 }
 .resumenDatos {
   display: flex; align-items: center; gap: 10px;
   font-size: 13px; font-weight: 600; color: var(--slate-500);
   min-width: 0;
+  margin-left: auto;   /* pegadas a la derecha mientras quepan */
 }
 .resumenDatos b { font-size: 16px; font-weight: 800; color: var(--navy-900); }
 .resumenSep { color: var(--border); }
@@ -106,18 +116,6 @@
 @media (max-width: 1280px) { .bottomGrid { grid-template-columns: 260px minmax(0, 1fr); } }
 @media (max-width: 1024px) { .bottomGrid { grid-template-columns: minmax(0, 1fr); } }
 
-/* Barra de contexto de empresa (solo superadmin) */
-.empresaBar {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--surface);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-md);
-  padding: 12px 16px;
-  margin-bottom: 18px;
-  font-size: 13px; font-weight: 700; color: var(--navy-900);
-  flex-wrap: wrap;
-}
-:global([data-theme="dark"]) .empresaBar { color: var(--navy-900); }
 .empresaSelect {
   padding: 9px 12px; border-radius: 10px;
   border: 1px solid var(--border);
@@ -133,7 +131,9 @@
 :global([data-theme="dark"]) .empresaSelect {
   background: rgba(255,255,255,.05); border-color: var(--border); color: var(--navy-900);
 }
-.selectorGroup { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
+/* Ya no se estira: antes ocupaba su propia franja a lo ancho y
+   ahora comparte la fila del título con todo lo demás. */
+.selectorGroup { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; font-weight: 700; color: var(--navy-900); }
 
 /* Buscador de "Últimas reservas" */
 .latestToolbar { margin-bottom: 14px; }

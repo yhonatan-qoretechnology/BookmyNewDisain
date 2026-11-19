@@ -35,3 +35,41 @@
   .cabecera { margin-bottom: 14px; }
   .titulo { font-size: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* ============================================================
+   La fila del título
+   ------------------------------------------------------------
+   El título a la izquierda y, a la derecha, lo que cada pantalla
+   quiera poner ahí (el dashboard pone sus selectores, las cifras de
+   hoy y el botón de nueva reserva: antes eran DOS barras debajo,
+   tres filas en total para lo que cabe en una).
+
+   `flex-wrap` es lo que hace que esto no se rompa nunca: en un
+   portátil con el superadmin -dos selectores, dos cifras y dos
+   botones- el bloque de la derecha baja entero a una segunda línea
+   en vez de aplastar el título.
+============================================================ */
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  /* Vacío no pinta nada ni reserva sitio: `gap` no cuenta sin hijos y
+     el :empty se asegura de que tampoco cuente el flex. */
+  min-width: 0;
+}
+.acciones:empty { display: none; }
+
+@media (max-width: 860px) {
+  /* En móvil el título manda: lo de la derecha baja y ocupa el ancho. */
+  .fila { gap: 10px; }
+  .acciones { width: 100%; }
+}

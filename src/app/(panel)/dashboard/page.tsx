@@ -46,6 +46,7 @@ import { PersonRow } from "@/components/ui/People";
 import { StaggerContainer, StaggerItem } from "@/components/animations";
 import PersonalizarPanelModal from "@/components/dashboard/PersonalizarPanelModal";
 import KpiCard from "@/components/dashboard/KpiCard";
+import { AccionesDeCabecera } from "@/components/layout/PageHeader";
 import { entrada, grupo } from "@/components/dashboard/motionDashboard";
 import { pathSparkline, seriesDelDashboard } from "@/components/dashboard/serieKpi";
 import { blurIn, stagger } from "@/lib/motion";
@@ -58,7 +59,6 @@ import styles from "./dashboard.module.css";
 function ContextSelectors() {
   const { session, updateSession } = useSession();
   const { t } = useI18n();
-  const reduce = useReducedMotion();
   const { data: empresas } = useData(() => NegociosController.getAll(), [], []);
   const { data: sedes } = useData(
     () => NegociosController.getSedesForSession(session),
@@ -71,17 +71,13 @@ function ContextSelectors() {
   const showSede = (session.role === "superadmin" || session.role === "owner") && sedes.length > 0;
   if (!showEmpresa && !showSede) return null;
 
+  /* Devuelve los selectores SUELTOS, sin caja propia: ahora viven
+     dentro de la barra de la cabecera, junto a las cifras del día y el
+     botón de nueva reserva. Antes cada cosa tenía su propia franja y
+     eran tres filas (migas+título, selectores, resumen) para lo que
+     cabe en una. */
   return (
-    /* Entra por su cuenta (initial/animate propios) y no como un hijo
-       más de la cascada: solo la ven dos roles, y si consumiera un
-       turno el resto del dashboard llegaría tarde para unos y pronto
-       para otros. El timeline del §4 tiene que ser el mismo siempre. */
-    <motion.div
-      className={styles.empresaBar}
-      variants={entrada(reduce, blurIn)}
-      initial="hidden"
-      animate="show"
-    >
+    <>
       {showEmpresa && (
         <div className={styles.selectorGroup}>
           <Icon name="shield" width={18} height={18} />
@@ -123,7 +119,7 @@ function ContextSelectors() {
           </select>
         </div>
       )}
-    </motion.div>
+    </>
   );
 }
 
@@ -216,21 +212,32 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* Raíz de la cascada: espera 0,12 s y suelta un hijo cada 65 ms
-          (§4). Los hijos solo tienen que decir qué son. */}
-      <motion.div variants={grupo(reduce, stagger.cards, 0.12)} initial="hidden" animate="show">
-        <ContextSelectors />
+      {/* ── Todo el contexto del dashboard, EN LA FILA DEL TÍTULO ──
+          Eran tres filas: las migas y el título, una franja con los
+          selectores y otra con las cifras y el botón. Ahora es una
+          sola: se sube aquí con un portal (ver AccionesDeCabecera) y
+          el contenido empieza casi 100 px más arriba.
 
-        {/* Lo que queda del banner que ocupaba media pantalla: las dos
-            cifras de hoy y las dos acciones que solo vivían allí -crear
-            una reserva y, para el dueño, los colores de su panel-. En
-            una línea en vez de en 294 px. */}
-        <motion.div className={styles.resumenBar} variants={entrada(reduce, blurIn)}>
+          Entra por su cuenta y no como un hijo de la cascada: vive
+          fuera de ella, en la cabecera, y además los selectores solo
+          los ven dos roles — si consumieran un turno, el resto del
+          dashboard llegaría tarde para unos y pronto para otros, y el
+          timeline del §4 tiene que ser el mismo siempre. */}
+      <AccionesDeCabecera>
+        <motion.div
+          className={styles.barraCabecera}
+          variants={entrada(reduce, blurIn)}
+          initial="hidden"
+          animate="show"
+        >
+          <ContextSelectors />
+
           <div className={styles.resumenDatos}>
             <span>{t("dashboard.hero.reservasHoy")} <b>{reservasHoy}</b></span>
             <span className={styles.resumenSep} aria-hidden>·</span>
             <span>{t("dashboard.hero.sinConfirmar")} <b>{sinConfirmar}</b></span>
           </div>
+
           <div className={styles.resumenAcciones}>
             {puedePersonalizar && (
               <Button size="sm" variant="ghost" onClick={() => setPersonalizando(true)}>
@@ -242,7 +249,11 @@ export default function DashboardPage() {
             </Button>
           </div>
         </motion.div>
+      </AccionesDeCabecera>
 
+      {/* Raíz de la cascada: espera 0,12 s y suelta un hijo cada 65 ms
+          (§4). Los hijos solo tienen que decir qué son. */}
+      <motion.div variants={grupo(reduce, stagger.cards, 0.12)} initial="hidden" animate="show">
         {/* Primera tarjeta a los 265 ms (185 de la cascada + 80), y una
             cada 65 ms: 265 · 330 · 395 · 460, como en la referencia 05. */}
         <motion.section className={styles.kpiGrid} variants={grupo(reduce, stagger.cards, 0.08)}>

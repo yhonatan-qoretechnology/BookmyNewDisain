@@ -21,6 +21,7 @@ import { aplicarTema, temaRecordado } from "@/lib/temaPanel";
 import Rail from "./Rail";
 import Topbar from "./Topbar";
 import PageHeader from "./PageHeader";
+import SubTabs from "./SubTabs";
 import Chatbot from "./Chatbot";
 import styles from "./AppShell.module.css";
 
@@ -67,6 +68,9 @@ export default function AppShell({
             breadcrumb={meta.breadcrumb}
             breadcrumbRoot={meta.breadcrumbRoot}
           />
+          {/* Las pestañas del submenú, si la sección en la que estás
+              tiene hijos (hoy Facturación). No pinta nada si no. */}
+          <SubTabs />
           {children}
         </main>
         {/* Asistente de ayuda en todas las pantallas, esquina inferior derecha */}

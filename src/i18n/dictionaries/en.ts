@@ -78,6 +78,17 @@ const en: Dictionary = {
   solicitud: { pendiente: "Pending", aprobada: "Approved", rechazada: "Rejected" },
 
   nav: {
+    /* ── Rail group names (shown in the hover bubble) ───────── */
+    grupos: {
+      dia: "Day to day",
+      tuNegocio: "Your business",
+      negocios: "Businesses",
+      dinero: "Money",
+      crecer: "Grow",
+      plataforma: "Platform",
+      control: "Oversight",
+      cuenta: "Account",
+    },
     dashboard: "Dashboard",
     empresas: "Companies",
     administradores: "Admins",

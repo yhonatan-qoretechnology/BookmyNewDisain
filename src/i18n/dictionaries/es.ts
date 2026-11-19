@@ -101,6 +101,21 @@ const es = {
   solicitud: { pendiente: "Pendiente", aprobada: "Aprobada", rechazada: "Rechazada" },
 
   nav: {
+    /* ── Nombres de los grupos del raíl ──────────────────────
+       El raíl es solo iconos; estos nombres salen en la burbuja, al
+       pasar por encima, para que se entienda por qué cada sección
+       está donde está. Los grupos son POR ROL (ver reparto.ts): un
+       dueño y un superadmin no usan el panel para lo mismo. */
+    grupos: {
+      dia: "Día a día",
+      tuNegocio: "Tu negocio",
+      negocios: "Negocios",
+      dinero: "Dinero",
+      crecer: "Crecer",
+      plataforma: "Plataforma",
+      control: "Control",
+      cuenta: "Cuenta",
+    },
     dashboard: "Dashboard",
     empresas: "Empresas",
     administradores: "Administradores",

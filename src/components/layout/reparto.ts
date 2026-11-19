@@ -14,6 +14,15 @@
    enseña TAMBIÉN las principales (el CSS las esconde a partir de
    861 px). Por eso `seccionesDelRail` las devuelve marcadas en vez
    de quitarlas: así ninguna sección queda inalcanzable.
+
+   LOS GRUPOS SON POR ROL, Y TIENEN NOMBRE
+   Antes había una sola lista de grupos para todo el mundo, y se
+   notaba: Reseñas caía en «plataforma» junto a Telemetría, y Stock
+   en «negocio» junto a Administradores. Ahora cada rol tiene los
+   suyos, agrupados por LO QUE HACES y no por lo que es cada
+   módulo, y cada grupo lleva un nombre que se lee en la burbuja.
+   Un dueño y un superadmin no usan el panel para lo mismo, así que
+   tampoco tienen por qué agruparlo igual.
 ============================================================ */
 import type { NavItem } from "@/models";
 
@@ -32,21 +41,54 @@ const PREFERENCIA: Record<string, readonly string[]> = {
 };
 
 /**
- * Los grupos del raíl, en orden de arriba abajo. Cada uno es una
- * cajita flotante aparte, como en la referencia.
+ * Un grupo del raíl: una cajita flotante con su nombre.
+ * `id` es también la clave del diccionario (`nav.grupos.<id>`).
+ */
+type Grupo = { readonly id: string; readonly ids: readonly string[] };
+
+/**
+ * Los grupos de cada rol, en orden de arriba abajo, y lo que va al
+ * pie (separado del resto, abajo del todo).
  *
  * Un id que no esté en ninguna lista cae en el último grupo, así que
  * una sección nueva aparece sola sin tocar este archivo.
  */
-const GRUPOS: readonly { readonly id: string; readonly ids: readonly string[] }[] = [
-  { id: "dia", ids: ["dashboard", "emp-main", "reservas", "calendario", "clientes", "servicios"] },
-  { id: "negocio", ids: ["empresas", "sedes", "personal", "administradores", "stock", "membresias"] },
-  { id: "dinero", ids: ["facturacion", "liquidaciones", "estadisticas", "referidos"] },
-  { id: "plataforma", ids: ["comunicacion", "resenas", "automatizaciones", "accesos", "planMonitoreo", "telemetria", "verificacion"] },
-];
+const REPARTO_POR_ROL: Record<string, { grupos: readonly Grupo[]; pie: readonly string[] }> = {
+  /* El superadmin vigila la plataforma entera: primero el día a día,
+     luego los negocios que administra, luego el dinero y al final lo
+     que solo mira él (accesos, monitoreo, telemetría). */
+  superadmin: {
+    grupos: [
+      { id: "dia", ids: ["dashboard", "reservas", "calendario", "clientes"] },
+      { id: "negocios", ids: ["empresas", "administradores", "verificacion", "sedes", "personal", "servicios"] },
+      { id: "dinero", ids: ["facturacion", "estadisticas", "liquidaciones", "membresias", "referidos"] },
+      { id: "plataforma", ids: ["comunicacion", "automatizaciones", "resenas", "stock"] },
+      { id: "control", ids: ["accesos", "planMonitoreo", "telemetria"] },
+    ],
+    pie: ["configuracion", "logout"],
+  },
 
-/** Abajo del todo, separadas del resto, como en la referencia. */
-const PIE = ["configuracion", "logout"];
+  /* Un dueño abre el panel para ver su día, y de ahí hacia fuera:
+     lo que vende, lo que cobra y lo que le hace crecer. Plan y
+     Verificación son papeleo de su cuenta: van abajo, con ajustes. */
+  owner: {
+    grupos: [
+      { id: "dia", ids: ["dashboard", "reservas", "calendario", "clientes"] },
+      { id: "tuNegocio", ids: ["servicios", "personal", "sedes", "stock"] },
+      { id: "dinero", ids: ["facturacion", "estadisticas"] },
+      { id: "crecer", ids: ["resenas", "comunicacion", "automatizaciones", "referidos"] },
+    ],
+    pie: ["plan", "verificacion", "configuracion", "logout"],
+  },
+
+  employee: {
+    grupos: [{ id: "dia", ids: ["emp-main", "calendario"] }],
+    pie: ["configuracion", "logout"],
+  },
+};
+REPARTO_POR_ROL.admin = REPARTO_POR_ROL.owner;
+
+const repartoDe = (role: string) => REPARTO_POR_ROL[role] ?? REPARTO_POR_ROL.owner;
 
 /** Lo que va escrito en la barra de arriba. */
 export function seccionesPrincipales(role: string, menu: NavItem[]): NavItem[] {
@@ -82,16 +124,26 @@ export type GrupoRail = {
  * @param principales Las que ya lleva la barra de arriba; vienen
  *   marcadas, no quitadas (ver la cabecera del archivo).
  */
-export function seccionesDelRail(menu: NavItem[], principales: NavItem[]): { grupos: GrupoRail[]; pie: NavItem[] } {
+export function seccionesDelRail(
+  role: string,
+  menu: NavItem[],
+  principales: NavItem[],
+): { grupos: GrupoRail[]; pie: NavItem[] } {
+  const { grupos: plantilla, pie: idsPie } = repartoDe(role);
   const enBarra = new Set(principales.map((i) => i.id));
-  const pie = PIE.map((id) => menu.find((i) => i.id === id)).filter((i): i is NavItem => !!i);
+  const pie = idsPie.map((id) => menu.find((i) => i.id === id)).filter((i): i is NavItem => !!i);
   const enPie = new Set(pie.map((i) => i.id));
 
   const sueltas = menu.filter((i) => !enPie.has(i.id));
   const colocadas = new Set<string>();
 
-  const grupos: GrupoRail[] = GRUPOS.map((g) => {
-    const items = sueltas.filter((i) => g.ids.includes(i.id));
+  const grupos: GrupoRail[] = plantilla.map((g) => {
+    /* El orden lo manda el grupo, no el menú: así «Día a día» sale
+       siempre Dashboard · Reservas · Calendario · Clientes, diga lo
+       que diga el orden en el que estén declaradas. */
+    const items = g.ids
+      .map((id) => sueltas.find((i) => i.id === id))
+      .filter((i): i is NavItem => !!i);
     items.forEach((i) => colocadas.add(i.id));
     return { id: g.id, items, soloMovil: items.length > 0 && items.every((i) => enBarra.has(i.id)) };
   });
@@ -125,6 +177,35 @@ export function seccionActiva(items: NavItem[], pathname: string): string | null
     const dentro = item.children?.some((c) => pathname === c.href || pathname.startsWith(`${c.href}/`));
     const encaja = dentro || pathname === item.href || pathname.startsWith(`${item.href}/`);
     if (encaja && (!mejor || item.href.length > mejor.href.length)) mejor = item;
+  }
+  return mejor?.id ?? null;
+}
+
+/**
+ * La sección del menú en la que estás, entera (con sus hijos), para
+ * que la pantalla pueda pintar sus pestañas. Devuelve null si la
+ * sección activa no tiene submenú.
+ */
+export function seccionConHijos(menu: NavItem[], pathname: string): NavItem | null {
+  const id = seccionActiva(menu, pathname);
+  const item = menu.find((i) => i.id === id);
+  return item?.children?.length ? item : null;
+}
+
+/**
+ * Cuál de los hijos está abierto. Se mira aparte de `seccionActiva`
+ * porque ahí gana el padre: `/facturacion/gastos` marca Facturación
+ * en el raíl, y aquí marca Gastos en las pestañas.
+ *
+ * Gana el href más largo, igual que arriba: el padre y el primer
+ * hijo comparten ruta a propósito (`/facturacion` es Tickets), así
+ * que una comparación simple marcaría los dos.
+ */
+export function hijoActivo(padre: NavItem, pathname: string): string | null {
+  let mejor: NavItem | null = null;
+  for (const h of padre.children ?? []) {
+    const encaja = pathname === h.href || pathname.startsWith(`${h.href}/`);
+    if (encaja && (!mejor || h.href.length > mejor.href.length)) mejor = h;
   }
   return mejor?.id ?? null;
 }
