@@ -1,0 +1,9 @@
+/* Mini gráfico de la esquina de las tarjetas KPI (MOTION_SPEC.md §6.4).
+   Hereda el color del contenedor con currentColor, así cada tarjeta
+   dibuja su línea en su propio acento sin pasarle el color a mano. */
+.svg {
+  display: block;
+  width: 64px;
+  height: 24px;
+  overflow: visible;
+}

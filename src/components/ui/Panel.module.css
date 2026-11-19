@@ -3,8 +3,11 @@
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow-md);
+  /* "Tarjetas, banner, columnas, paneles internos: 20-24 px"
+     (MOTION_SPEC.md 2.2). El radio y la sombra tenida salen del
+     material del Anexo A, no de los tokens genericos. */
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft), var(--highlight);
   /* FIX PADDING: el panel define el respiro interno una sola vez;
      todo su contenido (toolbars, tablas, tabs, cards) hereda margen
      al borde sin necesidad de compensarlo componente a componente. */
@@ -27,6 +30,34 @@
   .panel + .panel, .panel + .panel + .panel, .panel + .panel + .panel + .panel { animation-delay: 0s; }
 }
 @keyframes panelFunde { from { opacity: 0; } to { opacity: 1; } }
+
+/* ============================================================
+   UN PANEL NO SE ANIMA DOS VECES
+   ------------------------------------------------------------
+   La entrada de aquí arriba es CSS y vale para las 31 pantallas del
+   panel, que es su virtud: la mayoría no tiene movimiento propio y
+   sin ella aparecerían de golpe.
+
+   Pero unas pocas sí lo tienen. En el dashboard cada <Panel> vive
+   dentro de un <motion.div variants={entrada(reduce, blurIn)}>, y
+   blurIn ya hace opacidad 0→1, y 12→0, escala .98→1 y blur 10→0 en
+   0,45 s. Con las dos cosas a la vez la opacidad se multiplica —el
+   panel arranca más apagado y tarda más en verse— y sube 26 px en
+   vez de 12: los dos movimientos se suman.
+
+   No se quita la animación CSS, se APAGA donde ya anima otro. Lo
+   marca quien envuelve: [data-entrada-propia] en el contenedor que
+   lleva las variants. Si mañana otra pantalla se anima con
+   framer-motion, se le pone el atributo y ya.
+
+   (El escalonado .panel + .panel de arriba tampoco llegaba a
+   aplicarse en el dashboard: al ir cada panel en su propio
+   motion.div, no hay dos .panel que sean hermanos.)
+============================================================ */
+[data-entrada-propia] .panel,
+.panel[data-entrada-propia] {
+  animation: none;
+}
 .panelHead {
   display: flex; align-items: flex-start; justify-content: space-between;
   padding: 0 0 16px; gap: 8px;
@@ -39,7 +70,7 @@
 .selectPill {
   display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--border); background: var(--surface);
-  border-radius: var(--r-md); padding: 9px 14px;
+  border-radius: var(--radius-pill); padding: 9px 16px;
   font-size: 13px; font-weight: 600; color: var(--slate-500); cursor: pointer;
 }
 .selectPill:hover { background: var(--hover-surface); border-color: var(--slate-300); color: var(--navy-900); }

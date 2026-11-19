@@ -6,9 +6,13 @@
 }
 :global([data-theme="dark"]) .overlay { background: rgba(0,0,0,.6); }
 
+/* Un modal es un panel flotante, no una tarjeta: le toca el radio
+   grande (28-32 px) de MOTION_SPEC.md 2.2, con la sombra tenida y el
+   filo de luz de arriba del Anexo A. */
 .box {
-  background: var(--surface-2); border-radius: var(--r-xl);
-  width: 100%; max-width: 460px; padding: 28px; box-shadow: var(--shadow-lg);
+  background: var(--surface-2); border-radius: var(--radius-panel);
+  width: 100%; max-width: 460px; padding: 28px;
+  box-shadow: var(--shadow-lift), var(--highlight);
   border: 1px solid var(--border);
   /* Sin este tope, cualquier modal más alto que la pantalla se salía por
      abajo en escritorio y sus botones quedaban fuera de alcance. */
@@ -33,7 +37,7 @@
 @media (max-width: 600px) {
   .overlay { padding: 0; align-items: flex-end; }
   /* FIX PADDING: en móvil el modal conserva respiro interno */
-  .box { border-radius: var(--r-xl) var(--r-xl) 0 0; max-height: 92vh; padding: 22px 18px 24px; }
+  .box { border-radius: var(--radius-panel) var(--radius-panel) 0 0; max-height: 92vh; padding: 22px 18px 24px; }
   .actions { flex-direction: column; }
 }
 
@@ -44,12 +48,18 @@
   display: block; font-size: 12.5px; font-weight: 700;
   margin-bottom: 6px; color: var(--navy-900);
 }
+/* Campos en pildora (2.2, fila "botones, inputs, chips..."), con un
+   punto mas de respiro lateral: dentro de una curva completa, 13 px
+   dejaban el texto pegado al borde. */
 .field input, .field textarea, .field select {
-  width: 100%; min-height: 44px; padding: 11px 13px; border-radius: var(--r-sm);
+  width: 100%; min-height: 44px; padding: 11px 18px; border-radius: var(--radius-pill);
   border: 1.5px solid var(--border); font-size: 13.5px;
   background: var(--input-bg); color: var(--navy-900);
   transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
 }
+/* El area de texto es la excepcion: varias lineas dentro de una pildora
+   quedan con las esquinas comidas, asi que lleva radio de tarjeta. */
+.field textarea { border-radius: var(--radius-card); padding: 12px 16px; }
 .field input::placeholder, .field textarea::placeholder { color: var(--slate-300); }
 .field input:focus, .field textarea:focus, .field select:focus {
   border-color: var(--teal-500);

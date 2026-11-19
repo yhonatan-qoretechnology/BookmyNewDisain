@@ -1,0 +1,69 @@
+/* Tarjeta KPI — el material (cristal, radio, sombra teñida) lo ponen
+   las clases globales .glass-card y .squircle del Anexo A; aquí solo
+   van medidas, tipografía y el tono de cada tarjeta. */
+.card {
+  position: relative;
+  padding: 18px 20px 16px;
+  /* currentColor de la sparkline = acento de la tarjeta */
+  color: var(--accent);
+  transition: box-shadow var(--t-med) var(--ease);
+}
+/* El levantado de 5 px lo hace framer-motion (§6.14); aquí solo la
+   sombra, que no se puede animar con transform. */
+.card:hover { box-shadow: var(--shadow-lift), var(--highlight); }
+
+/* Cada tono redefine --accent PARA SÍ MISMO: el halo de .squircle y
+   las sombras salen de ahí, así que ni un color nuevo escrito a mano.
+   Los cuatro salen de la paleta de globals.css. */
+.marca { --accent: var(--teal-600); --grad-kpi: var(--grad-teal); }
+.verde { --accent: var(--green);    --grad-kpi: var(--grad-green); }
+.ambar { --accent: var(--amber);    --grad-kpi: var(--grad-amber); }
+.coral { --accent: var(--coral);    --grad-kpi: var(--grad-coral); }
+
+.icono {
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--grad-kpi);
+}
+.icono svg { width: 20px; height: 20px; color: #fff; }
+
+.label {
+  margin-top: 14px;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--slate-500);
+}
+.valor {
+  margin-top: 2px;
+  font-size: 28px; font-weight: 800; line-height: 1.15;
+  letter-spacing: -.02em;
+  color: var(--navy-900);
+  font-variant-numeric: tabular-nums;
+}
+.pie {
+  margin-top: 8px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 11.5px; color: var(--slate-500);
+}
+.sube, .baja {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sube { color: var(--green); }
+.baja { color: var(--red); }
+.sube svg, .baja svg { width: 14px; height: 14px; }
+
+/* Sparkline en la esquina de arriba a la derecha (referencia 01) */
+.spark {
+  position: absolute;
+  top: 22px; right: 20px;
+  opacity: .9;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .card { padding: 16px 16px 14px; }
+  .valor { font-size: 24px; }
+  .icono { width: 38px; height: 38px; }
+  .spark { top: 20px; right: 16px; }
+}

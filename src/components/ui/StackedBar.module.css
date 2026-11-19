@@ -1,0 +1,72 @@
+/* ============================================================
+   Barra apilada — MOTION_SPEC.md §6.10 y referencias 04 / 09
+   ------------------------------------------------------------
+   Reparte un total en segmentos. Cada uno se revela con `clip-path`
+   de izquierda a derecha, uno tras otro, igual que ProgressFill:
+   animar `width` obligaría a recalcular el layout en cada fotograma
+   y además movería a los segmentos vecinos.
+============================================================ */
+.wrap { display: flex; flex-direction: column; gap: 10px; margin: 0 0 18px; }
+
+/* Pista en píldora, hundida: los segmentos descansan dentro. */
+.track {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+  padding: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .08);
+  overflow: hidden;
+}
+
+.segmento {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  /* El filo de luz de arriba, como en el resto de superficies llenas. */
+  box-shadow: var(--highlight);
+  min-width: 0;
+}
+
+/* Leyenda: un chip por segmento, en píldora como el resto de los chips.
+   El tono va en el punto, no en el chip: el rótulo se lee mejor en el
+   gris de siempre y el color solo marca a qué segmento pertenece. */
+.leyenda { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  font-size: 12px; font-weight: 700;
+  color: var(--slate-500);
+  white-space: nowrap;
+}
+.punto {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor; flex: none;
+}
+.valor { color: var(--navy-900); font-variant-numeric: tabular-nums; }
+
+:global([data-theme="dark"]) .chip {
+  background: rgba(255, 255, 255, .04);
+  border-color: var(--border);
+}
+
+/* Tonos: todos salen de tokens que ya existen en la paleta. Ningún
+   color nuevo y ninguno del video; `color` se hereda al punto de la
+   leyenda y al relleno del segmento, que usan `currentColor`. */
+.accent  { color: var(--teal-600); }
+.green   { color: var(--green); }
+.amber   { color: var(--amber); }
+.red     { color: var(--red); }
+.blue    { color: var(--blue); }
+.neutral { color: var(--slate-300); }
+
+:global([data-theme="dark"]) .accent { color: var(--teal-500); }
+
+@media (max-width: 600px) {
+  .chip { padding: 5px 11px; font-size: 11.5px; }
+}

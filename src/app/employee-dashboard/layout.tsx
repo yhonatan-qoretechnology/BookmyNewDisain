@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ROUTES } from "@/constants";
 import { useSession } from "@/context/SessionContext";
 import AppShell from "@/components/layout/AppShell";
+import { PageTransition } from "@/components/motion/PageTransition";
 import { useI18n } from "@/i18n";
 import { rutaDeLogin } from "@/lib/loginOrigen";
 import Icon from "@/components/ui/Icon";
@@ -60,7 +61,10 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
         bellCount: 2,
       }}
     >
-      {children}
+      {/* Mismo cruce que en el panel (MOTION_SPEC.md §5): el panel de la
+          especialista también va de una sección a otra y merece la misma
+          cascada. El armazón queda fuera y no se re-anima. */}
+      <PageTransition routeKey={pathname}>{children}</PageTransition>
     </AppShell>
   );
 }

@@ -1,7 +1,8 @@
 .toast {
   position: fixed; bottom: 22px; right: 22px;
   background: #101a24; color: #fff;
-  padding: 12px 18px; border-radius: var(--r-md);
+  /* Aviso flotante en pildora, como el resto de piezas sueltas (2.2). */
+  padding: 12px 22px; border-radius: var(--radius-pill);
   font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg);
   display: flex; align-items: center; gap: 9px;
   pointer-events: none; z-index: 100;

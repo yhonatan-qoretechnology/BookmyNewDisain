@@ -1,0 +1,6 @@
+/* Los dígitos no deben "bailar" mientras cuenta: anchura fija por cifra.
+   Es obligatorio según MOTION_SPEC.md §6.3. */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}

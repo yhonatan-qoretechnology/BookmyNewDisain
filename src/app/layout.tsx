@@ -9,6 +9,7 @@ import { ReservaPopupProvider } from "@/components/reservas/ReservaPopupContext"
 import { BookingProvider } from "@/context/BookingContext";
 import PageviewTracker from "@/components/telemetry/PageviewTracker";
 import "@/styles/globals.css";
+import { MotionRoot } from "@/components/motion/MotionRoot";
 
 /* Plus Jakarta para todo, que es la tipografia del producto.
 
@@ -68,6 +69,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
+        {/* Política de movimiento de toda la app: respeta "reducir
+            movimiento" del sistema (ver MOTION_SPEC.md §10). */}
+        <MotionRoot>
         <ThemeProvider>
           <SessionProvider>
             {/* I18nProvider vive DENTRO de SessionProvider: así puede leer
@@ -91,6 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </I18nProvider>
           </SessionProvider>
         </ThemeProvider>
+        </MotionRoot>
       </body>
     </html>
   );

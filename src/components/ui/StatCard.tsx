@@ -3,9 +3,8 @@
    al pasar el ratón; el movimiento se define en el sistema de
    animaciones para que todas las superficies compartan curva. */
 import { motion, useReducedMotion } from "framer-motion";
-import {
-  AnimatedNumber, HOVER_LIFT, SPRING, STAGGER, staggerChild, staggerParent,
-} from "@/components/animations";
+import { AnimatedNumber } from "@/components/animations";
+import { cardIn, group, spring, stagger } from "@/lib/motion";
 import styles from "./StatCard.module.css";
 
 export type StatColor = "teal" | "amber" | "red" | "blue" | "purple" | "green" | "navy" | "coral";
@@ -16,16 +15,8 @@ export function StatGrid({ children }: { children: React.ReactNode }) {
     <motion.section
       className={styles.statGrid}
       initial="hidden"
-      animate="visible"
-      variants={{
-        ...staggerParent,
-        visible: {
-          transition: {
-            staggerChildren: reduce ? 0 : STAGGER,
-            delayChildren: reduce ? 0 : 0.02,
-          },
-        },
-      }}
+      animate="show"
+      variants={group(reduce ? 0 : stagger.cards, reduce ? 0 : 0.02)}
     >
       {children}
     </motion.section>
@@ -58,13 +49,19 @@ export default function StatCard({
 }) {
   const reduce = useReducedMotion();
   return (
+    /* 6.14: la tarjeta sube 5 px al pasar por encima y se hunde al
+       pulsarla. Las clases globales ponen el material: cristal en la
+       tarjeta, plastilina en el squircle del icono. */
     <motion.div
-      className={styles.statCard}
-      variants={reduce ? undefined : staggerChild}
-      whileHover={reduce ? undefined : HOVER_LIFT}
-      transition={SPRING}
+      className={`glass-card ${styles.statCard}`}
+      variants={reduce ? undefined : cardIn()}
+      whileHover={reduce ? undefined : { y: -5 }}
+      /* Sin `whileTap`: la tarjeta KPI no recibe onClick, y dar respuesta
+         de pulsación a algo que no se pulsa engaña al dedo. El §6.14 pide
+         el hundido para un KPI pulsable; SimpleCard lo condiciona igual. */
+      transition={spring.hover}
     >
-      <div className={`${styles.iconWrap} ${styles[color]}`}>{icon}</div>
+      <div className={`squircle ${styles.iconWrap} ${styles[color]}`}>{icon}</div>
       <div className={styles.top}>
         <div className={styles.body}>
           <span className={styles.label}>{label}</span>

@@ -1505,6 +1505,13 @@ const es = {
     latestSearchPlaceholder: "Buscar por servicio, cliente, especialista o ID…",
     duracion: "Duración",
     latestEmpty: "No hay reservas que coincidan con la búsqueda.",
+    /* Banner de bienvenida (MOTION_SPEC.md §6.9). El saludo cambia
+       con la hora del día; las cifras salen de las reservas reales. */
+    hero: {
+      reservasHoy: "Reservas de hoy:",
+      sinConfirmar: "Sin confirmar:",
+      cta: "Nueva reserva",
+    },
   },
 
   reservas: {

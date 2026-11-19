@@ -41,6 +41,12 @@
   --red:       #ef4444;
   --blue:      #2563eb;
   --green:     #12b981;
+  /* Pareja lisa de --grad-purple y --grad-coral (su tono de cierre).
+     Hacen falta porque las variantes de las tarjetas KPI tinen su
+     sombra con --accent, y sin estos dos esos dos KPI proyectaban un
+     halo verde de marca debajo de un degradado purpura o coral. */
+  --purple:    #7c3aed;
+  --coral:     #e11d48;
 
   --grad-teal:   linear-gradient(140deg, #2fd39a, #0d9d6d);
   --grad-amber:  linear-gradient(140deg, #fbbf24, #f59e0b);
@@ -75,10 +81,46 @@
   --t-med:  .26s;
   --t-slow: .42s;
 
+  /* ── Material "clay + glass" (MOTION_SPEC.md Anexo A) ───────
+     Todo cuelga de --accent, que a su vez es el token de marca.
+     Por eso lo heredan solos los tres ejes que ya existen:
+     el tema claro/oscuro, la marca QoreTech (data-marca) y el
+     color que cada negocio elige (lib/temaPanel.ts, que pisa
+     --teal-* en <html>). Ningun color de aqui va a mano. */
+  --accent:           var(--teal-600);
+  --surface-elevated: #ffffff;
+  --canvas:           #eef3f1;            /* lienzo liso bajo los paneles */
+  --nav-hover:        var(--teal-50);
+  --row-hover:        rgba(13, 157, 109, .05);
+  --track:            var(--border);
+
+  --radius-panel: 30px;
+  --radius-card:  22px;
+  --radius-icon:  14px;
+  /* Pildora: el 9999px que estaba escrito a mano por media docena de
+     hojas. No viene del Anexo A, pero es la misma forma repetida. */
+  --radius-pill:  9999px;
+
+  /* Sombras anchas, muy suaves y TENIDAS con el acento: cada pieza
+     proyecta un halo de su propio color, no un gris. */
+  --shadow-soft: 0 12px 32px -14px color-mix(in oklab, var(--accent) 40%, transparent),
+                 0 2px 6px -2px rgba(0, 0, 0, .06);
+  --shadow-lift: 0 20px 44px -16px color-mix(in oklab, var(--accent) 50%, transparent),
+                 0 4px 10px -4px rgba(0, 0, 0, .08);
+  --highlight:   inset 0 1px 0 rgba(255, 255, 255, .6);
+  --clay:        inset 0 -3px 6px rgba(0, 0, 0, .12),
+                 inset 0 2px 3px rgba(255, 255, 255, .5);
+  --glass-blur:  20px;
+  --glass-border: rgba(255, 255, 255, .5);
+  --glass-mix:   72%;
+
   /* Sidebar vive dentro del margen de la página */
   --sidebar-w:     260px;
   --sidebar-inner: 236px;
-  --topbar-h:      80px;
+  /* Alto de la barra flotante de arriba. Bajó de 80 a 64 al pasar de
+     cabecera a ancho completo a píldora: ya no lleva el título, que
+     ahora vive en el contenido (PageHeader). */
+  --topbar-h:      64px;
 
   /* Superficies auxiliares (equivalen a los hardcodes del dark) */
   --hover-surface: #eef4f1;
@@ -116,6 +158,25 @@
   --hover-surface: rgba(255, 255, 255, .06);
   --input-bg:      rgba(255, 255, 255, .04);
   --muted-cell:    rgba(255, 255, 255, .025);
+
+  /* Material en oscuro: el lienzo se hunde, el brillo interior casi
+     desaparece y el borde del cristal baja de .5 a .12, que si no
+     parece un marco pintado encima. */
+  --surface-elevated: #1a2621;
+  --canvas:           #080f0d;
+  --nav-hover:        rgba(255, 255, 255, .06);
+  --row-hover:        rgba(255, 255, 255, .035);
+  --track:            rgba(255, 255, 255, .10);
+
+  --shadow-soft: 0 12px 32px -14px color-mix(in oklab, var(--accent) 28%, transparent),
+                 0 2px 10px -2px rgba(0, 0, 0, .45);
+  --shadow-lift: 0 20px 44px -16px color-mix(in oklab, var(--accent) 36%, transparent),
+                 0 6px 16px -4px rgba(0, 0, 0, .5);
+  --highlight:   inset 0 1px 0 rgba(255, 255, 255, .08);
+  --clay:        inset 0 -3px 6px rgba(0, 0, 0, .4),
+                 inset 0 2px 3px rgba(255, 255, 255, .06);
+  --glass-border: rgba(255, 255, 255, .12);
+  --glass-mix:   66%;
 }
 
 /* ── Reset ──────────────────────────────────────────── */
@@ -165,6 +226,71 @@ img { max-width: 100%; }
    [data-theme="dark"], asi que con la misma especificidad gana, y lo
    que no toca lo sigue poniendo el tema.
 ============================================================ */
+/* ============================================================
+   Material "clay + glass" — clases reutilizables
+   ------------------------------------------------------------
+   MOTION_SPEC.md §2.3 y Anexo A. Son globales a proposito: las
+   usan las 31 pantallas del panel y no tendria sentido
+   repetirlas en 82 hojas de modulo.
+============================================================ */
+
+/* Superficie de cristal: semitransparente, desenfocada por detras
+   y con un filo de luz arriba. */
+/* Ojo con lo que vive DENTRO de una .glass-card: `backdrop-filter`
+   —igual que `filter`, que es el motivo entero del §3.1 del
+   MOTION_SPEC— convierte la tarjeta en bloque contenedor de sus
+   descendientes `position: fixed`. Un modal, un tooltip o un menú
+   flotante escrito dentro de la tarjeta se anclaría a la tarjeta y no
+   a la ventana. Esas capas van en portal (como ya hace MenuAcciones,
+   que se monta en document.body). */
+.glass-card {
+  background: color-mix(in oklab, var(--surface) var(--glass-mix), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft), var(--highlight);
+}
+
+/* Contenedor de icono con volumen de plastilina: hundido abajo,
+   iluminado arriba y con un halo de su propio color. */
+.squircle {
+  border-radius: var(--radius-icon);
+  box-shadow: var(--clay),
+              0 6px 14px -6px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+/* Base 3D del banner: una franja inferior mas oscura que lo hace
+   parecer una plataforma apoyada, no un rectangulo plano. */
+.hero-3d {
+  border-radius: var(--radius-card);
+  box-shadow: inset 0 -8px 0 color-mix(in oklab, var(--accent) 18%, transparent),
+              var(--shadow-soft);
+}
+
+/* Panel flotante grande (sidebar y ventana principal). */
+.floating-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Pildora: botones, chips, filtros, tabs, buscadores. */
+.pill { border-radius: 9999px; }
+
+/* Se levanta al pasar por encima y se hunde al pulsar (§2.3, §6.14).
+   Solo transform y box-shadow: nada que obligue a recalcular layout. */
+.liftable {
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.liftable:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); }
+.liftable:active { transform: translateY(-1px) scale(.995); }
+
+@media (prefers-reduced-motion: reduce) {
+  .liftable, .liftable:hover, .liftable:active { transform: none; transition: none; }
+}
+
 [data-marca="qore"] {
   --marca-glow: 110, 94, 255;
   --teal-50:   #efecff;

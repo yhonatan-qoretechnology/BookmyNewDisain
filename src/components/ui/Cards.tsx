@@ -7,9 +7,7 @@
    como algo pulsable y añade el hundido al hacer clic.
 ============================================================ */
 import { motion, useReducedMotion } from "framer-motion";
-import {
-  HOVER_LIFT, SPRING, STAGGER, TAP_PRESS, staggerChild, staggerParent,
-} from "@/components/animations";
+import { cardIn, group, spring, stagger } from "@/lib/motion";
 import styles from "./Cards.module.css";
 
 export function CardGrid({
@@ -28,16 +26,8 @@ export function CardGrid({
       className={`${styles.cardGrid} ${className}`}
       key={resetKey}
       initial="hidden"
-      animate="visible"
-      variants={{
-        ...staggerParent,
-        visible: {
-          transition: {
-            staggerChildren: reduce ? 0 : STAGGER,
-            delayChildren: reduce ? 0 : 0.02,
-          },
-        },
-      }}
+      animate="show"
+      variants={group(reduce ? 0 : stagger.cards, reduce ? 0 : 0.02)}
     >
       {children}
     </motion.div>
@@ -56,13 +46,17 @@ export function SimpleCard({
 }) {
   const reduce = useReducedMotion();
   return (
+    /* "glass-card" es la clase global del Anexo A: material, radio de
+       tarjeta (20-24 px) y sombra tenida con el acento. Va primero para
+       que lo propio del modulo pueda matizarla. */
     <motion.div
-      className={`${styles.simpleCard} ${className}`}
+      className={`glass-card ${styles.simpleCard} ${className}`}
       onClick={onClick}
-      variants={reduce ? undefined : staggerChild}
-      whileHover={reduce ? undefined : HOVER_LIFT}
-      whileTap={reduce || !onClick ? undefined : TAP_PRESS}
-      transition={SPRING}
+      variants={reduce ? undefined : cardIn()}
+      /* 6.14: la tarjeta se levanta 5 px y se hunde al pulsarla. */
+      whileHover={reduce ? undefined : { y: -5 }}
+      whileTap={reduce || !onClick ? undefined : { scale: 0.98 }}
+      transition={spring.hover}
       style={onClick ? { cursor: "pointer" } : undefined}
     >
       {children}

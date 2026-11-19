@@ -6,7 +6,7 @@
 
 .archivo {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 13px; border-radius: var(--r-sm);
+  padding: 9px 15px; border-radius: var(--radius-pill);
   border: 1px solid var(--border); background: var(--input-bg);
   color: var(--teal-700); font-size: 13px; font-weight: 600;
   text-decoration: none; max-width: 260px;
@@ -18,14 +18,14 @@
 
 .vacio {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 13px; border-radius: var(--r-sm);
+  padding: 9px 15px; border-radius: var(--radius-pill);
   border: 1px dashed var(--border); color: var(--slate-500);
   font-size: 13px; font-weight: 500;
 }
 .vacio svg { width: 16px; height: 16px; color: var(--slate-300); }
 
 .boton {
-  padding: 9px 14px; border-radius: var(--r-sm);
+  padding: 9px 16px; border-radius: var(--radius-pill);
   border: 1.5px solid var(--border); background: var(--surface);
   color: var(--navy-900); font-size: 13px; font-weight: 700;
   cursor: pointer; transition: all .15s ease;

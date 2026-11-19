@@ -31,3 +31,6 @@ out/
 .webpack/
 *.hot-update.js
 *.hot-update.json
+# El paquete del rediseno 2.0: material de origen, vive en ~/Descargas.
+# Se colo en un commit de la rama del motion y no debe volver al repo.
+booky-2.0.zip

@@ -4,18 +4,21 @@
   gap: 18px;
   align-items: stretch;
 }
+/* El fondo, el borde, el radio y la sombra los pone la clase global
+   .glass-card (Anexo A), que Cards.tsx anade junto a esta: aqui solo
+   va lo que es propio de la tarjeta. Si se repitieran esas cuatro
+   propiedades, ganaria la que estuviera mas abajo en la hoja y el
+   cristal dejaria de seguir al tema. */
 .simpleCard {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
   padding: 20px;
-  box-shadow: var(--shadow-md);
-  transition: box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease);
+  transition: box-shadow var(--t-med) var(--ease);
 }
-.simpleCard:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+/* El levantado de 5 px lo hace framer-motion en Cards.tsx (6.14); aqui
+   solo la sombra, que con transform en linea se pisarian. */
+.simpleCard:hover { box-shadow: var(--shadow-lift), var(--highlight); }
 /* La última fila (los botones) se pega abajo: con tarjetas de distinta
    altura, las acciones quedaban a alturas distintas en cada una. */
 .simpleCard > :last-child { margin-top: auto; }

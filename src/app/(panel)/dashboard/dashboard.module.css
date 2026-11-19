@@ -1,17 +1,73 @@
+/* Fila de hoy: las dos cifras del día a la izquierda y las acciones a
+   la derecha. Sustituye al banner hero, que pedía 294 px de alto para
+   esto mismo. */
+.resumenBar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft), var(--highlight);
+  padding: 10px 14px;
+  margin-bottom: 4px;
+}
+.resumenDatos {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--slate-500);
+  min-width: 0;
+}
+.resumenDatos b { font-size: 16px; font-weight: 800; color: var(--navy-900); }
+.resumenSep { color: var(--border); }
+.resumenAcciones { display: flex; align-items: center; gap: 8px; flex: none; }
+
+@media (max-width: 600px) {
+  .resumenBar { padding: 10px 12px; }
+  .resumenDatos { font-size: 12.5px; gap: 8px; }
+  .resumenAcciones { width: 100%; }
+}
+
+/* ============================================================
+   Dashboard — rejillas y bloques propios de la pantalla
+   ------------------------------------------------------------
+   El material (cristal, radios, sombras teñidas) vive en las
+   clases globales del Anexo A; aquí solo van las medidas.
+============================================================ */
+
+/* Fila de tarjetas KPI (MOTION_SPEC.md §6.2, referencia 01).
+   Las cuatro caben en una línea y bajan a dos y a una según el
+   ancho, igual que el resto de rejillas del panel. */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+@media (max-width: 1280px) { .kpiGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1024px) { .kpiGrid { gap: 16px; } }
+@media (max-width: 600px)  { .kpiGrid { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
+
+/* Bloques de abajo: el separador lo pone el gap, no un margen por
+   bloque, para que el orden de entrada y el visual coincidan. */
+.bloques {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
 /* minmax(0,…) en ambas columnas: si no, el contenido del calendario
    marca el ancho mínimo y empuja la fila fuera de la pantalla. */
 .bottomGrid {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   gap: 20px;
-  margin-top: 20px;
   align-items: start;
 }
 .calHeaderPill {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--teal-50); color: var(--teal-600);
   font-size: 12px; font-weight: 800;
-  padding: 6px 12px; border-radius: 999px;
+  padding: 6px 12px;
   margin-bottom: 14px;
 }
 :global([data-theme="dark"]) .calHeaderPill { background: rgba(var(--marca-glow),.12); color: var(--teal-500); }
@@ -67,16 +123,17 @@
   border: 1px solid var(--border);
   background: var(--input-bg); color: var(--navy-900);
   font-size: 13px; font-weight: 600;
-  cursor: pointer; outline: none; min-width: 190px;
+  cursor: pointer; outline: none;
+  /* `min-width` fijo no: con el raíl ocupando su franja, en un móvil
+     de 390 px el selector sacaba una barra horizontal en toda la
+     pantalla. Pide 190 px pero cede si no los hay. */
+  flex: 1 1 190px; min-width: 0; max-width: 100%;
 }
 .empresaSelect:focus { border-color: var(--teal-500); }
 :global([data-theme="dark"]) .empresaSelect {
   background: rgba(255,255,255,.05); border-color: var(--border); color: var(--navy-900);
 }
-.selectorGroup { display: flex; align-items: center; gap: 10px; }
+.selectorGroup { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
 
 /* Buscador de "Últimas reservas" */
 .latestToolbar { margin-bottom: 14px; }
-
-/* «Personaliza tu panel» */
-.personalizarFila { display: flex; justify-content: flex-end; margin: -4px 0 12px; }

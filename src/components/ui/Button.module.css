@@ -3,8 +3,10 @@
    táctiles ni con el ratón. */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
-  gap: 7px; padding: 11px 20px;
-  border-radius: var(--r-sm); font-size: 13.5px; font-weight: 700;
+  gap: 7px; padding: 11px 22px;
+  /* Pildora (MOTION_SPEC.md 2.2): los botones son el elemento que mas
+     se repite, asi que son los que marcan el lenguaje de formas. */
+  border-radius: var(--radius-pill); font-size: 13.5px; font-weight: 700;
   letter-spacing: -.005em;
   border: none; cursor: pointer;
   transition: box-shadow var(--t-fast) var(--ease),
@@ -17,7 +19,9 @@
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .btn svg { width: 15px; height: 15px; }
 
-.primary { background: var(--grad-teal); color: #fff; box-shadow: var(--shadow-icon); }
+/* El filo de luz de arriba es lo que convierte el relleno plano en
+   plastilina (2.3). Va en todas las variantes llenas. */
+.primary { background: var(--grad-teal); color: #fff; box-shadow: var(--shadow-icon), var(--highlight); }
 .primary:hover:not(:disabled) { box-shadow: 0 10px 24px rgba(13, 157, 109, .38); }
 /* La del reposo es exactamente --shadow-icon, que ya sigue a la marca. La
    del hover no tiene token y --teal-600 cambia en oscuro, asi que se
@@ -29,7 +33,7 @@
 .ghost { background: var(--surface); color: var(--slate-500); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 .ghost:hover:not(:disabled) { background: var(--hover-surface); color: var(--navy-900); border-color: var(--slate-300); }
 
-.danger { background: var(--grad-red); color: #fff; box-shadow: 0 6px 16px rgba(220, 38, 38, .25); }
+.danger { background: var(--grad-red); color: #fff; box-shadow: 0 6px 16px rgba(220, 38, 38, .25), var(--highlight); }
 .danger:hover:not(:disabled) { box-shadow: 0 10px 24px rgba(220, 38, 38, .34); }
 
 /* Borrado secundario: el rojo lleno pesaba demasiado cuando la accion
@@ -46,7 +50,7 @@
 }
 
 .block { width: 100%; }
-.sm { padding: 7px 13px; font-size: 12.5px; }
+.sm { padding: 7px 15px; font-size: 12.5px; }
 
 :global([data-theme="dark"]) .ghost {
   background: rgba(255,255,255,.06);
@@ -56,14 +60,15 @@
 :global([data-theme="dark"]) .ghost:hover { background: rgba(255,255,255,.1); }
 
 @media (max-width: 600px) {
-  .btn { padding: 10px 16px; font-size: 13px; }
+  .btn { padding: 10px 18px; font-size: 13px; }
   .block { min-height: 46px; }
 }
 @media (hover: none) { .btn { min-height: 44px; } }
 
 /* Botón de ícono (acciones en tablas) */
+/* Boton de icono: circulo (2.2, fila "avatares y botones de icono"). */
 .iconBtn {
-  width: 33px; height: 33px; border-radius: var(--r-sm);
+  width: 33px; height: 33px; border-radius: 50%;
   border: 1px solid var(--border); background: var(--surface);
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all .14s ease;

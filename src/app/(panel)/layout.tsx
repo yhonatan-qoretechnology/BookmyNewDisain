@@ -9,7 +9,7 @@ import { useSession } from "@/context/SessionContext";
 import { useI18n } from "@/i18n";
 import { rutaDeLogin } from "@/lib/loginOrigen";
 import AppShell from "@/components/layout/AppShell";
-import PageTransition from "@/components/animations/PageTransition";
+import { PageTransition } from "@/components/motion/PageTransition";
 import PlanProLock from "@/components/plan/PlanProLock";
 import ProVenceBanner from "@/components/plan/ProVenceBanner";
 import TrialBanner from "@/components/plan/TrialBanner";
@@ -129,8 +129,14 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
       {/* «Tu plan Pro vence en X días · Actualiza tu pago» (solo al dueño) */}
       <ProVenceBanner />
 
-      {/* El crossfade se ata a la ruta: al cambiar `pathname`, la vista
-          saliente se desvanece antes de montar la entrante. */}
+      {/* El cruce se ata a la ruta (MOTION_SPEC.md §5): al cambiar
+          `pathname`, la vista saliente se difumina escalonada mientras
+          la entrante ya está cayendo en cascada encima. Las dos
+          comparten la misma celda, así que no hay salto de altura.
+
+          Va aquí dentro y no envolviendo al AppShell a propósito: el
+          armazón (sidebar, topbar, avisos de plan) NO se re-anima al
+          navegar, solo cambia el contenido. */}
       <PageTransition routeKey={pathname}>
         {bloqueado ? <PlanProLock modulo={modulo!} /> : children}
       </PageTransition>

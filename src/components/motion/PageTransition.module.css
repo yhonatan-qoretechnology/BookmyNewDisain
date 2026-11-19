@@ -1,0 +1,6 @@
+/* La vista no puede ensanchar la página: `min-width: 0` corta la cadena
+   de max-content que una tabla ancha propagaría hacia arriba y sacaría
+   una barra horizontal en todo el panel. */
+.stack {
+  min-width: 0;
+}
