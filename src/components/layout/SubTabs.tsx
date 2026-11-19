@@ -18,9 +18,15 @@
    No pinta nada si la sección en la que estás no tiene hijos, así
    que puede vivir en el armazón sin que cada pantalla se entere.
 
-   El subrayado del activo es un solo nodo con `layoutId`, igual que
-   el de la barra de arriba: VIAJA de una pestaña a otra en vez de
-   aparecer y desaparecer (MOTION_SPEC §6.5).
+   Son BOTONES, no rótulos: con su borde y su fondo, para que se lean
+   como pulsables aunque no estén activos. La primera versión eran
+   pestañas discretas —texto y una línea fina debajo— y no se notaban,
+   que es lo último que puede pasarle a la única forma de llegar a
+   Facturas y Gastos.
+
+   El relleno del activo es un solo nodo con `layoutId`, igual que la
+   píldora del raíl y la de la barra de arriba: VIAJA de un botón a
+   otro en vez de aparecer y desaparecer (MOTION_SPEC §6.5).
 ============================================================ */
 import { useMemo } from "react";
 import Link from "next/link";
@@ -66,7 +72,7 @@ export default function SubTabs() {
               {esActivo && (
                 <motion.span
                   layoutId="subtab-activo"
-                  className={styles.subrayado}
+                  className={styles.pastilla}
                   transition={reduce ? { duration: 0 } : spring.indicator}
                   aria-hidden
                 />

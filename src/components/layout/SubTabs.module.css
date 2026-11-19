@@ -1,46 +1,71 @@
 /* ============================================================
-   Pestañas de la sección
+   Pestañas de la sección — botones, no rótulos
    ------------------------------------------------------------
-   Van pegadas bajo el título, con una línea fina debajo que las ata
-   a la pantalla. Deliberadamente discretas: son navegación DENTRO
-   de una sección, no otra barra compitiendo con la de arriba.
+   La primera versión eran pestañas discretas: texto suelto y una
+   línea fina debajo del activo. No se notaban, que es justo lo que
+   no puede pasarle a la ÚNICA forma de llegar a Facturas y Gastos.
+
+   Ahora son botones: cada uno con su borde y su fondo, para que se
+   lean como pulsables aunque no estén activos, y el activo relleno
+   con el degradado de la marca y texto blanco. Es el mismo lenguaje
+   que ya usan el raíl (.fondoActivo) y la barra de arriba
+   (.navFondo), no un estilo nuevo: en la marca QoreTech el degradado
+   se vuelve violeta solo, sin tocar nada de aquí.
 ============================================================ */
 .tabs {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px;
-  margin: -4px 0 18px;
-  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  margin: 0 0 20px;
 }
 
 .tab {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 14px 11px;
+  gap: 8px;
+  padding: 9px 17px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
   font-size: 13.5px;
   font-weight: 650;
   letter-spacing: -0.01em;
   color: var(--slate-500);
   white-space: nowrap;
-  transition: color 0.2s;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
 }
 
-.tab:hover { color: var(--navy-900); }
+.tab:hover {
+  color: var(--navy-900);
+  border-color: var(--slate-300);
+}
 
-.tabActivo { color: var(--navy-900); }
+.tab:active { transform: translateY(1px); }
 
-/* El subrayado es un solo nodo compartido (layoutId): viaja. */
-.subrayado {
+/* El activo: el borde desaparece bajo la píldora y el texto va en
+   blanco, como el icono activo del raíl. */
+.tabActivo,
+.tabActivo:hover {
+  color: #fff;
+  font-weight: 700;
+  border-color: transparent;
+}
+
+/* El contenido va por encima de la píldora, que es absoluta. */
+.tab > :not(.pastilla) { position: relative; z-index: 1; }
+
+/* El nodo que VIAJA de un botón a otro con layoutId (§6.5). */
+.pastilla {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: -1px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--mint-600);
+  inset: -1px;              /* tapa también el borde */
+  z-index: 0;
+  border-radius: var(--radius-pill);
+  background: var(--grad-teal);
+  box-shadow: var(--shadow-icon);
 }
 
 @media (max-width: 560px) {
@@ -49,7 +74,10 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
+    /* Sitio para que la sombra del botón no se recorte al deslizar. */
+    padding-bottom: 4px;
+    margin-bottom: 16px;
   }
   .tabs::-webkit-scrollbar { display: none; }
-  .tab { padding-inline: 11px; }
+  .tab { padding-inline: 14px; }
 }
