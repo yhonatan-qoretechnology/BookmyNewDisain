@@ -30,7 +30,9 @@ export const metadata: Metadata = {
     url: WEB.app,
     title: TITULO,
     description: DESCRIPCION,
-    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640, alt: "Bookmy" }],
+    /* La tarjeta social de 1200x630 (scripts/tarjeta-social.py). Antes
+       apuntaba a dashboard-b.png, que mide 640x640. */
+    images: [{ url: "/web/v2/img/tarjeta-social.png", width: 1200, height: 630, alt: "Bookmy" }],
   },
 };
 

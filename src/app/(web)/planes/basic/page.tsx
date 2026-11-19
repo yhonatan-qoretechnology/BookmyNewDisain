@@ -37,7 +37,9 @@ export const metadata: Metadata = {
     url: WEB.planBasic,
     title: planBasicEs.meta.titulo,
     description: DESCRIPCION,
-    images: ["/web/img/dashboard-b.png"],
+    /* La tarjeta social de 1200x630 (scripts/tarjeta-social.py). Con las
+       medidas declaradas: sin ellas, cada plataforma se la inventa. */
+    images: [{ url: "/web/v2/img/tarjeta-social.png", width: 1200, height: 630, alt: "Bookmy" }],
   },
   twitter: { card: "summary_large_image" },
 };

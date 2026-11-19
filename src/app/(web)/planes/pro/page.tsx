@@ -38,7 +38,9 @@ export const metadata: Metadata = {
     url: WEB.planPro,
     title: META.titulo,
     description: DESCRIPCION,
-    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640 }],
+    /* La tarjeta social de 1200x630 (scripts/tarjeta-social.py). Antes
+       apuntaba a dashboard-b.png, que mide 640x640. */
+    images: [{ url: "/web/v2/img/tarjeta-social.png", width: 1200, height: 630 }],
   },
   twitter: { card: "summary_large_image" },
 };

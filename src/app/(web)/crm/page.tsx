@@ -37,7 +37,9 @@ export const metadata: Metadata = {
     description: descripcion,
     /* La captura del panel que ya usaba la web: es la imagen que
        sale al compartir el enlace del CRM. */
-    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640, alt: crmEs.panel.alt }],
+    /* La tarjeta social de 1200x630 (scripts/tarjeta-social.py). Antes
+       apuntaba a dashboard-b.png, que mide 640x640. */
+    images: [{ url: "/web/v2/img/tarjeta-social.png", width: 1200, height: 630, alt: crmEs.panel.alt }],
   },
   twitter: { card: "summary_large_image" },
 };

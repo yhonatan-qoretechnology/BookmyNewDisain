@@ -45,18 +45,19 @@ export const metadata: Metadata = {
     title: "Bookmy · ¿Qué quieres descubrir?",
     description:
       "Bookmy: la app para reservar citas en segundos y el CRM con IA para gestionar y hacer crecer tu negocio de servicios.",
-    /* LAS MEDIDAS SON LAS DEL FICHERO, NO LAS QUE GUSTARÍA TENER.
-       Aquí decía 1200×630 —la tarjeta horizontal de toda la vida— y el
-       fichero es 433×712: una captura de móvil, vertical. Declarar unas
-       medidas que no son hace que Facebook, LinkedIn y WhatsApp reserven
-       un hueco horizontal y metan dentro una imagen vertical recortada
-       por el centro, que es peor que no declarar nada.
-       Para una tarjeta en condiciones hace falta un 1200×630 de verdad;
-       mientras no exista, se dice la verdad y se usa la tarjeta pequeña
-       (`summary`), que recorta cuadrado y aguanta un vertical. */
-    images: [{ url: "/web/v2/img/app-phones-oscuro.webp", width: 433, height: 712, alt: "Bookmy" }],
+    /* LA TARJETA SOCIAL, 1200×630 DE VERDAD.
+       Es lo que se ve al pegar un enlace de bookmy.es en WhatsApp,
+       LinkedIn, Facebook o Slack. Antes aquí se declaraba ese tamaño
+       pero el fichero era una captura de móvil de 433×712: las
+       plataformas reservaban un hueco horizontal y metían dentro una
+       imagen vertical recortada por el centro.
+       La imagen la genera scripts/tarjeta-social.py, que reconstruye el
+       logo desde las mismas máscaras que usa bookmy.css —el PNG del
+       logo está hecho para fondo claro y aquí el fondo es casi negro—.
+       Si se cambia la imagen, hay que cambiar estas medidas con ella. */
+    images: [{ url: "/web/v2/img/tarjeta-social.png", width: 1200, height: 630, alt: "Bookmy" }],
   },
-  twitter: { card: "summary" },
+  twitter: { card: "summary_large_image" },
 };
 
 /* El tema de la barra del navegador en móvil: el negro verdoso del

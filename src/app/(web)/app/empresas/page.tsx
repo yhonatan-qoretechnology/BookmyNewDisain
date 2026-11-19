@@ -29,7 +29,9 @@ export const metadata: Metadata = {
     url: "/app/empresas",
     /* La misma imagen que compartía el original. Es la única de la
        pantalla: todo lo demás lo dibuja el CSS. */
-    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640 }],
+    /* La tarjeta social de 1200x630 (scripts/tarjeta-social.py). Antes
+       apuntaba a dashboard-b.png, que mide 640x640. */
+    images: [{ url: "/web/v2/img/tarjeta-social.png", width: 1200, height: 630 }],
   },
 };
 

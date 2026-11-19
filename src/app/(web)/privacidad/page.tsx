@@ -40,7 +40,9 @@ export const metadata: Metadata = {
     description: privacidad.meta.descripcion,
     /* La misma imagen que compartía la web estática. Vive en
        /public/web/img, que es la carpeta de la web anterior. */
-    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640, alt: privacidad.meta.imagenAlt }],
+    /* La tarjeta social de 1200x630 (scripts/tarjeta-social.py). Antes
+       apuntaba a dashboard-b.png, que mide 640x640. */
+    images: [{ url: "/web/v2/img/tarjeta-social.png", width: 1200, height: 630, alt: privacidad.meta.imagenAlt }],
   },
 };
 
