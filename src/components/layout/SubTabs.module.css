@@ -55,8 +55,14 @@
   border-color: transparent;
 }
 
-/* El contenido va por encima de la píldora, que es absoluta. */
+/* El contenido va por encima de la píldora, que es absoluta.
+   OJO: esto es un selector de HIJO y solo alcanza a elementos, nunca a
+   un texto suelto. Por eso el icono y la etiqueta van cada uno en su
+   <span>: con la etiqueta suelta, el relleno del activo la tapaba y el
+   botón abierto salía con icono y sin letra. */
 .tab > :not(.pastilla) { position: relative; z-index: 1; }
+
+.tabIcono { display: flex; }
 
 /* El nodo que VIAJA de un botón a otro con layoutId (§6.5). */
 .pastilla {

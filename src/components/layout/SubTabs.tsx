@@ -67,8 +67,15 @@ export default function SubTabs() {
               className={`${styles.tab} ${esActivo ? styles.tabActivo : ""}`}
               aria-current={esActivo ? "page" : undefined}
             >
-              <Icon name={h.icon} width={15} height={15} />
-              {t(`nav.${h.id}`)}
+              {/* El icono y la etiqueta van CADA UNO en su elemento, y no
+                  la etiqueta suelta como texto: la regla que los sube por
+                  encima de la píldora es `.tab > :not(.pastilla)`, y un
+                  selector de hijo solo alcanza a elementos. Con el texto
+                  suelto, el icono subía y la etiqueta se quedaba debajo
+                  del relleno del activo: el botón abierto salía sin letra.
+                  La barra de arriba ya lo hace así (.navLabel). */}
+              <span className={styles.tabIcono}><Icon name={h.icon} width={15} height={15} /></span>
+              <span className={styles.tabLabel}>{t(`nav.${h.id}`)}</span>
               {esActivo && (
                 <motion.span
                   layoutId="subtab-activo"
