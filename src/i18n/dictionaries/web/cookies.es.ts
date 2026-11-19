@@ -134,6 +134,36 @@ const cookiesEs = {
     "Protege los formularios de contacto, alta e inicio de sesión de la plataforma frente a bots.",
   cookie5Duracion: "6 meses",
   cookie5Categoria: "Técnica",
+  /* ── Filas 8, 9 y 10 · lo que faltaba ─────────────────────
+     La tabla se titula «Lista de cookies Y ALMACENAMIENTO» y no
+     declaraba tres claves que el sitio SÍ usa en estas mismas
+     páginas: el tema, el idioma y la puerta de acceso. Las dos
+     primeras las lee el script del layout raíz en CADA carga, antes
+     de pintar; la tercera la lee ese mismo script y la escribe
+     /login y el alta de un negocio, que es web pública.
+
+     Están exentas de pedir consentimiento (son técnicas: guardan una
+     elección del propio visitante), pero el deber de INFORMAR de la
+     AEPD alcanza también a las exentas, y una tabla que dice cubrir
+     el almacenamiento y se deja tres claves fuera no informa. */
+  cookie8Nombre: "bookmy-theme",
+  cookie8Titular: "Bookmy",
+  cookie8Finalidad:
+    "Recuerda si prefieres el tema claro u oscuro, para no cambiártelo en cada visita (almacenamiento local).",
+  cookie8Duracion: "Hasta que la borres",
+  cookie8Categoria: "Técnica",
+  cookie9Nombre: "bm_lang",
+  cookie9Titular: "Bookmy",
+  cookie9Finalidad:
+    "Recuerda el idioma que has elegido, español o inglés (almacenamiento local).",
+  cookie9Duracion: "Hasta que la borres",
+  cookie9Categoria: "Técnica",
+  cookie10Nombre: "bm_login_origen",
+  cookie10Titular: "Bookmy",
+  cookie10Finalidad:
+    "Recuerda por qué pantalla de acceso has entrado, para devolverte a la misma al cerrar sesión (almacenamiento de sesión).",
+  cookie10Duracion: "Sesión",
+  cookie10Categoria: "Técnica",
   /* Fila 6 · hueco: analítica, si algún día se activa */
   cookie6Nombre: "[Cookies de analítica, si se activan]",
   cookie6Titular: "[Proveedor]",

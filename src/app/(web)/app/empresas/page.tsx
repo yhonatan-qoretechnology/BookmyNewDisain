@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     url: "/app/empresas",
     /* La misma imagen que compartía el original. Es la única de la
        pantalla: todo lo demás lo dibuja el CSS. */
-    images: [{ url: "/web/img/dashboard-b.png" }],
+    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640 }],
   },
 };
 

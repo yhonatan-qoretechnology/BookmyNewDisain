@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     title: TITULO,
     description: DESCRIPCION,
     url: WEB.asistenteIa,
-    images: [{ url: "/web/img/dashboard-b.png" }],
+    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640 }],
   },
   twitter: { card: "summary_large_image" },
 };

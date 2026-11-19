@@ -98,6 +98,10 @@ export default function PaginaWeb({
             newsletterFallo: w("comun.motor.newsletterFallo"),
             newsletterPorCorreo: w("comun.motor.newsletterPorCorreo"),
             newsletterAsunto: w("comun.motor.newsletterAsunto"),
+            /* El cuerpo del mailto. Si no se pasa, el motor usa su texto
+               de respaldo, que está en español: quien navegara en inglés
+               recibía un correo escrito en español. */
+            newsletterCuerpo: (correo: string) => w("comun.motor.newsletterCuerpo", { correo }),
           },
         });
       })

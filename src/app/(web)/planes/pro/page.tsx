@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     url: WEB.planPro,
     title: META.titulo,
     description: DESCRIPCION,
-    images: [{ url: "/web/img/dashboard-b.png" }],
+    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640 }],
   },
   twitter: { card: "summary_large_image" },
 };

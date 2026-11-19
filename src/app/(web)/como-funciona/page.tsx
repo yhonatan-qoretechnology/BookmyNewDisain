@@ -37,7 +37,11 @@ export const metadata: Metadata = {
     url: WEB.comoFunciona,
     title: TITULO,
     description: DESCRIPCION,
-    images: [{ url: "/web/img/dashboard-b.png", width: 1200, height: 630, alt: "Bookmy" }],
+    /* 640x640, que es lo que mide el fichero de verdad. Decia 1200x630,
+       la tarjeta horizontal de siempre, y eso hace que las redes
+       reserven un hueco ancho y metan dentro una imagen cuadrada
+       recortada. Mas vale decir la medida real. */
+    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640, alt: "Bookmy" }],
   },
 };
 

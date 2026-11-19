@@ -13,6 +13,7 @@
    no necesita conocer a ninguno de los dos.
 ============================================================ */
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useWebT } from "./useWebT";
 import Marca from "./Marca";
@@ -42,6 +43,14 @@ export function Tiendas({ centradas = false }: { centradas?: boolean }) {
 
 export default function SiteFooter({ mundo, cta }: { mundo: Mundo; cta?: ReactNode }) {
   const { w } = useWebT();
+  const ruta = usePathname();
+
+  /* Los dos anclas del mundo APP existen en LAS DOS páginas (/app y
+     /app/empresas tienen cada una su #pasos y su #faq), así que el menú
+     tiene que llevar a los de la página en la que estás. Estaban fijos
+     a /app, de modo que desde /app/empresas te mandaban a la página de
+     personas a mitad de lectura. */
+  const baseApp = ruta.startsWith(WEB.appEmpresas) ? WEB.appEmpresas : WEB.app;
   /* El año se pinta aquí y no lo escribe el motor: en el servidor y en
      el cliente es el mismo número, así que no hay desajuste al hidratar
      y la página no enseña un hueco mientras arranca el JavaScript. */
@@ -69,8 +78,8 @@ export default function SiteFooter({ mundo, cta }: { mundo: Mundo; cta?: ReactNo
               <ul>
                 <li><Link href={WEB.app}>{w("comun.nav.personas")}</Link></li>
                 <li><Link href={WEB.appEmpresas}>{w("comun.nav.empresas")}</Link></li>
-                <li><Link href={`${WEB.app}#pasos`}>{w("comun.nav.comoReservar")}</Link></li>
-                <li><Link href={`${WEB.app}#faq`}>{w("comun.nav.preguntas")}</Link></li>
+                <li><Link href={`${baseApp}#pasos`}>{w("comun.nav.comoReservar")}</Link></li>
+                <li><Link href={`${baseApp}#faq`}>{w("comun.nav.preguntas")}</Link></li>
               </ul>
             </div>
             <div className="f-col">
@@ -114,6 +123,51 @@ export default function SiteFooter({ mundo, cta }: { mundo: Mundo; cta?: ReactNo
             <li><Link href={WEB.cookies}>{w("comun.pie.cookies")}</Link></li>
             <li><button type="button" data-cookie-settings>{w("comun.pie.configurarCookies")}</button></li>
           </ul>
+        </div>
+
+        {/* ── Newsletter ──────────────────────────────────────────
+            Faltaba por portar: el motor ya traía escuchado el submit de
+            [data-newsletter] (motor.ts) y el formulario nunca se pintó,
+            así que el listener estaba ahí sin nada que escuchar.
+
+            NO LLEVA data-endpoint, Y ES A PROPÓSITO. El zip lo trae
+            igual de vacío. Con endpoint, el motor haría POST; sin él,
+            abre el correo del visitante con el alta ya escrita. No se
+            puede mandar a POST /contacto del backend: su DTO exige
+            nombre y correo y solo admite origen 'contacto'|'solicitud',
+            y aquí solo se pide el correo.
+
+            Va en la quinta columna, que es la ancha que bookmy.css
+            reserva al último hijo de .f-grid; la tarjeta de invitación
+            de abajo pasa a la fila siguiente. */}
+        <div className="f-news">
+          <h3>{w("comun.pie.newsletterTitulo")}</h3>
+          <p>{w("comun.pie.newsletterTexto")}</p>
+          <form className="news" data-newsletter>
+            <div className="news__row">
+              <label className="sr-only" htmlFor="news-email">
+                {w("comun.pie.newsletterEtiqueta")}
+              </label>
+              <input
+                className="input"
+                id="news-email"
+                name="email"
+                type="email"
+                required
+                placeholder={w("comun.pie.newsletterPlaceholder")}
+                autoComplete="email"
+              />
+              <button className="btn btn--light btn--sm" type="submit">
+                {w("comun.pie.newsletterBoton")}
+              </button>
+            </div>
+            <small>
+              {w("comun.pie.newsletterLegal")}
+              <Link href={WEB.privacidad}>{w("comun.pie.newsletterLegalEnlace")}</Link>.
+            </small>
+            {/* Aquí escribe el motor el «¡Hecho!» o el aviso de error. */}
+            <p className="news__msg" aria-live="polite" />
+          </form>
         </div>
 
         {/* El mundo app invita al CRM y el CRM invita a la app: cada uno

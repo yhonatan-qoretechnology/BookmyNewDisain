@@ -67,6 +67,15 @@ const comunEn: ComunWeb = {
     crmDescripcion:
       "The system a service business uses to run its calendar, its payments, its team and its clients from one place.",
     columnaApp: "The app",
+    /* ── Newsletter ─────────────────────────────────────────── */
+    newsletterTitulo: "Newsletter",
+    newsletterTexto: "Tips and news to run your business better. No spam.",
+    newsletterEtiqueta: "Your email address",
+    newsletterPlaceholder: "you@email.com",
+    newsletterBoton: "Subscribe",
+    newsletterLegal:
+      "By subscribing you agree to receive communications from Bookmy. You can unsubscribe whenever you like. More in the ",
+    newsletterLegalEnlace: "privacy policy",
     columnaDescargar: "Download",
     columnaCrm: "The CRM",
     columnaEmpresa: "Company",
@@ -103,6 +112,7 @@ const comunEn: ComunWeb = {
     newsletterFallo: "That didn't go through. Please try again.",
     newsletterPorCorreo: "Opening your email…",
     newsletterAsunto: "I'd like to know more about Bookmy",
+    newsletterCuerpo: "Hi, I'd like to receive the Bookmy newsletter at this address: {correo}",
   },
 
   tiendas: {

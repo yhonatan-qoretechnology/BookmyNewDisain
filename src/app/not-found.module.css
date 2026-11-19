@@ -1,0 +1,89 @@
+/* ============================================================
+   Estilos del 404
+   ------------------------------------------------------------
+   Esta pantalla NO puede apoyarse en public/web/v2/bookmy.css: esa
+   hoja la pone el layout de (web) con un <link>, y el not-found de
+   la raíz se pinta fuera de ese grupo, con el layout raíz a secas.
+   Así que se viste sola, con los tokens del panel (--surface,
+   --border…), que sí están siempre, y aguanta el tema claro y el
+   oscuro sin preguntar cuál hay puesto.
+============================================================ */
+.marco {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  /* 16 px de aire a los lados en el móvil, como el resto del sitio. */
+  padding: 48px 16px;
+  background: var(--bg, #f6f8f8);
+  color: var(--navy-900, #0d1b1a);
+}
+
+.caja {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+
+.numero {
+  font-size: clamp(64px, 18vw, 112px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  /* Grande pero callado: el protagonista es la salida, no el error. */
+  color: var(--slate-300, #9fb0ae);
+  margin: 0;
+}
+
+.titulo {
+  margin: 12px 0 0;
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.texto {
+  margin: 10px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--slate-500, #5c706e);
+}
+
+.salidas {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.boton,
+.secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 650;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.boton {
+  background: var(--mint-600, #0f9b8e);
+  color: #fff;
+}
+.boton:hover { background: var(--mint-700, #0b7d73); }
+
+.secundario {
+  border: 1px solid var(--border, #d7e0df);
+  color: var(--navy-900, #0d1b1a);
+}
+.secundario:hover { border-color: var(--slate-300, #9fb0ae); }
+
+@media (prefers-color-scheme: dark) {
+  /* Solo si el tema no lo ha fijado ya el script del layout raíz. */
+  :root:not([data-theme="light"]) .marco { background: var(--bg, #0a1413); color: var(--navy-900, #eaf2f1); }
+  :root:not([data-theme="light"]) .numero { color: var(--slate-300, #46615e); }
+  :root:not([data-theme="light"]) .secundario { color: var(--navy-900, #eaf2f1); }
+}

@@ -161,9 +161,18 @@ const nextConfig = {
 
          Estas dos lineas NO se pueden borrar aunque pase el tiempo:
          los enlaces de fuera (redes, correos, el blog) seguiran
-         apuntando a las direcciones viejas para siempre. */
-      { source: '/bookmy-free', destination: '/planes/basic', permanent: true },
-      { source: '/bookmy-crm-pro', destination: '/planes/pro', permanent: true },
+         apuntando a las direcciones viejas para siempre.
+
+         Y van con statusCode: 301, no con permanent: true. Parece lo
+         mismo y no lo es: `permanent: true` hace que Next responda un
+         308, que es el permanente moderno. Para Google da igual, pero
+         el parrafo de arriba pide 301 a proposito —"el que entienden
+         todos los crawlers, proxies y clientes HTTP viejos"— y la
+         redireccion de www de unas lineas mas arriba ya lo hace asi.
+         Estaban en 308 y el comentario decia 301: ahora dicen lo
+         mismo las dos. */
+      { source: '/bookmy-free', destination: '/planes/basic', statusCode: 301 },
+      { source: '/bookmy-crm-pro', destination: '/planes/pro', statusCode: 301 },
     ];
   },
   

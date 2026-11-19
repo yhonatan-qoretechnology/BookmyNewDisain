@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     description: descripcion,
     /* La captura del panel que ya usaba la web: es la imagen que
        sale al compartir el enlace del CRM. */
-    images: [{ url: "/web/img/dashboard-b.png", alt: crmEs.panel.alt }],
+    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640, alt: crmEs.panel.alt }],
   },
   twitter: { card: "summary_large_image" },
 };

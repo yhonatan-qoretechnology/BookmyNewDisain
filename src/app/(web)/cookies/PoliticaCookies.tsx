@@ -96,6 +96,12 @@ const COOKIES: { n: number; hueco?: true }[] = [
   { n: 3 },
   { n: 4 },
   { n: 5 },
+  /* El tema, el idioma y la puerta de acceso: se leen en cada carga de
+     esta misma página y no estaban declaradas. Van antes de los dos
+     huecos para que lo que existe de verdad quede junto. */
+  { n: 8 },
+  { n: 9 },
+  { n: 10 },
   { n: 6, hueco: true },
   { n: 7, hueco: true },
 ];

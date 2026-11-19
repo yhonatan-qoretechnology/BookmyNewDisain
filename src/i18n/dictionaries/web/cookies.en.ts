@@ -133,6 +133,24 @@ const cookiesEn: CookiesWeb = {
   cookie5Duracion: "6 months",
   cookie5Categoria: "Technical",
   /* Row 6 · gap: analytics, if they are ever switched on */
+  /* ── Rows 8, 9 and 10 ─────────────────────────────────────── */
+  cookie8Nombre: "bookmy-theme",
+  cookie8Titular: "Bookmy",
+  cookie8Finalidad:
+    "Remembers whether you prefer the light or dark theme, so it isn't reset on every visit (local storage).",
+  cookie8Duracion: "Until you delete it",
+  cookie8Categoria: "Technical",
+  cookie9Nombre: "bm_lang",
+  cookie9Titular: "Bookmy",
+  cookie9Finalidad: "Remembers the language you chose, Spanish or English (local storage).",
+  cookie9Duracion: "Until you delete it",
+  cookie9Categoria: "Technical",
+  cookie10Nombre: "bm_login_origen",
+  cookie10Titular: "Bookmy",
+  cookie10Finalidad:
+    "Remembers which sign-in screen you came through, so you are returned to the same one when you log out (session storage).",
+  cookie10Duracion: "Session",
+  cookie10Categoria: "Technical",
   cookie6Nombre: "[Analytics cookies, if they are switched on]",
   cookie6Titular: "[Provider]",
   cookie6Finalidad: "Aggregate measurement of how the site is used.",

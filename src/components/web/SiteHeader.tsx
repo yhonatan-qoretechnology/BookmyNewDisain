@@ -47,6 +47,13 @@ export default function SiteHeader({ mundo }: { mundo: Mundo }) {
   const { w } = useWebT();
   const ruta = usePathname();
 
+  /* Los dos anclas del mundo APP existen en LAS DOS páginas (/app y
+     /app/empresas tienen cada una su #pasos y su #faq), así que el menú
+     tiene que llevar a los de la página en la que estás. Estaban fijos
+     a /app, de modo que desde /app/empresas te mandaban a la página de
+     personas a mitad de lectura. */
+  const baseApp = ruta.startsWith(WEB.appEmpresas) ? WEB.appEmpresas : WEB.app;
+
   return (
     <>
       <header className={`site-header site-header--${mundo}`}>
@@ -82,8 +89,8 @@ export default function SiteHeader({ mundo }: { mundo: Mundo }) {
                     </div>
                   </div>
                 </div>
-                <Link className="nav__item" href={`${WEB.app}#pasos`}>{w("comun.nav.comoReservar")}</Link>
-                <Link className="nav__item" href={`${WEB.app}#faq`}>{w("comun.nav.preguntas")}</Link>
+                <Link className="nav__item" href={`${baseApp}#pasos`}>{w("comun.nav.comoReservar")}</Link>
+                <Link className="nav__item" href={`${baseApp}#faq`}>{w("comun.nav.preguntas")}</Link>
                 <Link className="nav__item" href={WEB.contacto}>{w("comun.nav.contacto")}</Link>
               </>
             ) : (
@@ -169,8 +176,8 @@ export default function SiteHeader({ mundo }: { mundo: Mundo }) {
               <Link href={WEB.appEmpresas} aria-current={esActiva(WEB.appEmpresas, ruta) ? "page" : undefined}>
                 {w("comun.nav.empresas")} <i className="i i-arrow-right" aria-hidden />
               </Link>
-              <Link href={`${WEB.app}#pasos`}>{w("comun.nav.comoReservar")} <i className="i i-arrow-right" aria-hidden /></Link>
-              <Link href={`${WEB.app}#faq`}>{w("comun.nav.preguntas")} <i className="i i-arrow-right" aria-hidden /></Link>
+              <Link href={`${baseApp}#pasos`}>{w("comun.nav.comoReservar")} <i className="i i-arrow-right" aria-hidden /></Link>
+              <Link href={`${baseApp}#faq`}>{w("comun.nav.preguntas")} <i className="i i-arrow-right" aria-hidden /></Link>
               <Link href={WEB.contacto}>{w("comun.nav.contacto")} <i className="i i-arrow-right" aria-hidden /></Link>
               <div className="mobile-menu__cta">
                 <a className="btn btn--primary" href="#descargar">

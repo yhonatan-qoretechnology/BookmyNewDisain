@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     url: WEB.app,
     title: TITULO,
     description: DESCRIPCION,
-    images: [{ url: "/web/img/dashboard-b.png", alt: "Bookmy" }],
+    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640, alt: "Bookmy" }],
   },
 };
 

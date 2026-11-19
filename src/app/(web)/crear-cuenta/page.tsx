@@ -18,14 +18,30 @@ import { WEB } from "@/lib/web/rutas";
    puede usar el hook de traducción. */
 const dias = (s: string) => s.replace("{dias}", String(DIAS_DE_PRUEBA));
 
+const TITULO = dias(
+  SE_OFRECE_PRUEBA ? crearCuentaEs.meta.tituloConPrueba : crearCuentaEs.meta.tituloSinPrueba,
+);
+const DESCRIPCION = dias(
+  SE_OFRECE_PRUEBA ? crearCuentaEs.meta.descripcionConPrueba : crearCuentaEs.meta.descripcionSinPrueba,
+);
+
 export const metadata: Metadata = {
-  title: {
-    absolute: dias(SE_OFRECE_PRUEBA ? crearCuentaEs.meta.tituloConPrueba : crearCuentaEs.meta.tituloSinPrueba),
-  },
-  description: dias(
-    SE_OFRECE_PRUEBA ? crearCuentaEs.meta.descripcionConPrueba : crearCuentaEs.meta.descripcionSinPrueba,
-  ),
+  title: { absolute: TITULO },
+  description: DESCRIPCION,
   alternates: { canonical: WEB.crearCuenta },
+  /* Igual que en /contacto: sin `openGraph` propio, Next NO fusiona y
+     esta página salía compartida con la tarjeta y el og:url de la
+     portada. En el alta importa más que en ninguna otra, porque es la
+     que se manda por WhatsApp para que alguien se registre. */
+  openGraph: {
+    type: "website",
+    siteName: "Bookmy",
+    locale: "es_ES",
+    url: WEB.crearCuenta,
+    title: TITULO,
+    description: DESCRIPCION,
+    images: [{ url: "/web/img/dashboard-b.png", width: 640, height: 640, alt: "Bookmy" }],
+  },
   /* El alta no se indexa como contenido: lo que tiene que posicionar
      son las páginas de plan, que es de donde se llega aquí. */
   robots: { index: true, follow: true },

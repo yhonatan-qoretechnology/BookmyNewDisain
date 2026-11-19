@@ -70,6 +70,18 @@ const comunEs = {
     crmDescripcion:
       "El sistema con el que un negocio de servicios lleva su agenda, sus cobros, su equipo y sus clientes desde un solo sitio.",
     columnaApp: "La app",
+    /* ── Newsletter ───────────────────────────────────────────
+       El bloque del pie que faltaba por portar. El formulario lo
+       escucha el motor ([data-newsletter], motor.ts) y, como no
+       lleva data-endpoint, el alta se cierra por correo. */
+    newsletterTitulo: "Newsletter",
+    newsletterTexto: "Consejos y novedades para gestionar mejor tu negocio. Sin spam.",
+    newsletterEtiqueta: "Tu correo electrónico",
+    newsletterPlaceholder: "tu@email.com",
+    newsletterBoton: "Suscribirme",
+    newsletterLegal:
+      "Al suscribirte aceptas recibir comunicaciones de Bookmy. Puedes darte de baja cuando quieras. Más info en la ",
+    newsletterLegalEnlace: "política de privacidad",
     columnaDescargar: "Descargar",
     columnaCrm: "El CRM",
     columnaEmpresa: "Empresa",
@@ -118,6 +130,11 @@ const comunEs = {
     newsletterFallo: "No se ha podido enviar. Inténtalo de nuevo.",
     newsletterPorCorreo: "Abriendo tu correo…",
     newsletterAsunto: "Quiero saber más de Bookmy",
+    /* El recado del mailto cuando el formulario no tiene endpoint.
+       El {correo} lo sustituye PaginaWeb al arrancar el motor: sin
+       esta clave el motor usaba su texto de respaldo, en español,
+       también para quien navega en inglés. */
+    newsletterCuerpo: "Hola, quiero recibir la newsletter de Bookmy en este correo: {correo}",
   },
 
   tiendas: {

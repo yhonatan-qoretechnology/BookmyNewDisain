@@ -22,6 +22,7 @@
 ============================================================ */
 import type { Metadata } from "next";
 import FondoWeb from "@/components/web/FondoWeb";
+import AsistenteWeb from "@/components/web/AsistenteWeb";
 import { CookieBannerProvider } from "@/components/web/CookieBanner";
 
 export const metadata: Metadata = {
@@ -44,9 +45,18 @@ export const metadata: Metadata = {
     title: "Bookmy · ¿Qué quieres descubrir?",
     description:
       "Bookmy: la app para reservar citas en segundos y el CRM con IA para gestionar y hacer crecer tu negocio de servicios.",
-    images: [{ url: "/web/v2/img/app-phones-oscuro.webp", width: 1200, height: 630, alt: "Bookmy" }],
+    /* LAS MEDIDAS SON LAS DEL FICHERO, NO LAS QUE GUSTARÍA TENER.
+       Aquí decía 1200×630 —la tarjeta horizontal de toda la vida— y el
+       fichero es 433×712: una captura de móvil, vertical. Declarar unas
+       medidas que no son hace que Facebook, LinkedIn y WhatsApp reserven
+       un hueco horizontal y metan dentro una imagen vertical recortada
+       por el centro, que es peor que no declarar nada.
+       Para una tarjeta en condiciones hace falta un 1200×630 de verdad;
+       mientras no exista, se dice la verdad y se usa la tarjeta pequeña
+       (`summary`), que recorta cuadrado y aguanta un vertical. */
+    images: [{ url: "/web/v2/img/app-phones-oscuro.webp", width: 433, height: 712, alt: "Bookmy" }],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary" },
 };
 
 /* El tema de la barra del navegador en móvil: el negro verdoso del
@@ -71,7 +81,14 @@ export default function WebLayout({ children }: { children: React.ReactNode }) {
       {/* eslint-enable @next/next/no-page-custom-font, @next/next/no-css-tags */}
 
       <FondoWeb />
-      <CookieBannerProvider>{children}</CookieBannerProvider>
+      <CookieBannerProvider>
+        {children}
+        {/* El asistente vendedor, en el marco y no en cada página: así la
+            conversación no se corta al navegar. Va DENTRO del proveedor de
+            cookies porque solo recuerda el hilo entre visitas si se han
+            aceptado las funcionales. No sale en la portada. */}
+        <AsistenteWeb />
+      </CookieBannerProvider>
     </>
   );
 }

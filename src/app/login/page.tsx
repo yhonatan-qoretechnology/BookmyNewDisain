@@ -253,7 +253,11 @@ function Login() {
           </button>
 
           <p className={styles.alt}>
-            {t("login.noAccount")} <Link href="/#planes">{t("login.seePlans")}</Link>
+            {/* Apuntaba a /#planes, un ancla que la portada no tiene: la
+                portada es el portal de dos puertas y los planes viven en
+                su propia página desde el rediseño. Quien no tiene cuenta
+                acababa en el portal, no en los planes. */}
+            {t("login.noAccount")} <Link href="/planes">{t("login.seePlans")}</Link>
           </p>
         </form>
       </main>
