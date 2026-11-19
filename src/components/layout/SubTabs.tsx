@@ -75,7 +75,7 @@ export default function SubTabs() {
                   del relleno del activo: el botón abierto salía sin letra.
                   La barra de arriba ya lo hace así (.navLabel). */}
               <span className={styles.tabIcono}><Icon name={h.icon} width={15} height={15} /></span>
-              <span className={styles.tabLabel}>{t(`nav.${h.id}`)}</span>
+              <span>{t(`nav.${h.id}`)}</span>
               {esActivo && (
                 <motion.span
                   layoutId="subtab-activo"
