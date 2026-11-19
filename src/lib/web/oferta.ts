@@ -17,15 +17,37 @@
                        prueba (registro-negocio.service.ts).
      DIAS_DE_PRUEBA  · cuántos días dura cuando sí se concede.
 
-   A 18/11/2026 el backend tiene PRO_SE_OFRECE = false y
-   DIAS_DE_PRUEBA = 7. Es decir: la web puede prometer siete días
-   y el backend NO los dará mientras ese interruptor siga apagado.
+   ⚠️ OJO CON LOS DÍAS: EL BACKEND DESPLEGADO DICE 30, NO 7
+   A 19/11/2026, en la rama que se despliega
+   (origin/feacture/developApi2026) el backend tiene
+   PRO_SE_OFRECE = false y DIAS_DE_PRUEBA = **30**. El cambio a 7
+   está hecho pero SIN DESPLEGAR, en la rama feat/prueba-7-dias
+   (c63d097). Mientras siga sin subir, el único sitio donde la
+   prueba dura siete días es este archivo.
+
+   Hoy eso no se nota en ninguna pantalla porque PRO_SE_OFRECE = false
+   hace que `puedeProbar` sea siempre false y las tres pantallas de
+   venta del panel (PlanProLock, TrialBanner y /plan) no se pinten.
+   Pero si alguien enciende PRO_SE_OFRECE sin desplegar los 7 días,
+   el panel dirá siete y el backend regalará treinta.
+
+   ESTE NÚMERO LO USA TAMBIÉN EL PANEL
+   No es solo de la web pública: lo importan los textos de /plan,
+   /ayuda y las pantallas de venta de Pro, para que el número no
+   esté escrito a mano en ningún sitio. Hubo que hacerlo porque el
+   panel y el alta anunciaban "30 días" clavado en el diccionario
+   mientras la web decía siete.
+
+   El estado del plan que manda la API trae `diasDePrueba`, pero NO
+   sirve para esto: son los días que QUEDAN de una prueba en marcha
+   (0 si no hay ninguna), y estos textos salen justo antes de
+   empezarla. La duración solo vive aquí.
+
    Ese interruptor no se toca sin decidirlo: encenderlo significa
    volver a ofrecer Pro, y los cobros todavía no se efectúan.
 
-   Mientras tanto, aquí está la palanca de la web: poner
-   `SE_OFRECE_PRUEBA` en false cambia de golpe toda la promesa de
-   las trece páginas, sin tocar ni un texto.
+   Mientras tanto, aquí está la palanca: poner `SE_OFRECE_PRUEBA`
+   en false cambia de golpe toda la promesa, sin tocar ni un texto.
 ============================================================ */
 
 /**
@@ -47,7 +69,13 @@
  */
 export const SE_OFRECE_PRUEBA = false;
 
-/** Días de prueba que anuncia la web. Igual que DIAS_DE_PRUEBA del backend. */
+/**
+ * Días que dura la prueba. Tiene que valer lo mismo que DIAS_DE_PRUEBA en
+ * el backend, y HOY NO LO VALE: el desplegado dice 30 (ver la cabecera).
+ *
+ * Lo usan la web pública Y el panel. Ningún texto debe llevar el número
+ * escrito: se interpola con {dias}.
+ */
 export const DIAS_DE_PRUEBA = 7;
 
 /**

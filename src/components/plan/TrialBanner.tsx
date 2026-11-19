@@ -5,7 +5,7 @@
    Tres estados y ninguno más, para no cansar:
    · en prueba  → cuántos días quedan y cómo seguir
    · caducada   → qué se ha perdido y con quién hablar
-   · gratuito   → la invitación a probar Pro 30 días
+   · gratuito   → la invitación a Pro (con prueba, si está activa)
 ============================================================ */
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -14,6 +14,7 @@ import { useUi } from "@/context/UiContext";
 import { usePlan } from "./usePlan";
 import Icon from "@/components/ui/Icon";
 import styles from "./TrialBanner.module.css";
+import { DIAS_DE_PRUEBA } from "@/lib/web/oferta";
 
 const OCULTO_KEY = "bm_plan_aviso_oculto";
 const VENTAS = "https://wa.me/34651026700?text=Hola%2C%20quiero%20Bookmy%20CRM%20Pro";
@@ -45,7 +46,7 @@ export default function TrialBanner() {
     setActivando(true);
     try {
       await activarPrueba();
-      toast(t("plan.tryDone"), "success");
+      toast(t("plan.tryDone", { dias: DIAS_DE_PRUEBA }), "success");
     } catch (e) {
       toast(e instanceof Error ? e.message : "Error", "error");
     } finally {
@@ -95,7 +96,7 @@ export default function TrialBanner() {
       <div className={`${styles.banner} ${styles.oferta}`} role="status">
         <span className={styles.icono}><Icon name="star" /></span>
         <p className={styles.texto}>
-          <b>{t("plan.offerTitle")}</b>
+          <b>{t("plan.offerTitle", { dias: DIAS_DE_PRUEBA })}</b>
           <span>{t("plan.offerText")}</span>
         </p>
         <button type="button" className={styles.cta} onClick={probar} disabled={activando}>

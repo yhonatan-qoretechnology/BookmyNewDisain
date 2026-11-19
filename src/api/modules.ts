@@ -243,7 +243,9 @@ export const EmpresasApi = {
   /** GET /empresas/:id/plan — plan del negocio y estado de su prueba. */
   plan: (id: number) => http.get<ApiEstadoPlan>(EP.empresaPlan(id)),
 
-  /** POST /empresas/:id/prueba — regala los 30 días de Pro (una sola vez). */
+  /** POST /empresas/:id/prueba — regala la prueba de Pro (una sola vez).
+   *  Cuántos días dura lo decide DIAS_DE_PRUEBA del backend, y hoy el
+   *  backend la rechaza entera porque PRO_SE_OFRECE está en false. */
   activarPrueba: (id: number) => http.post<ApiEstadoPlan>(EP.empresaPrueba(id)),
 
   /** PATCH /empresas/:id/plan — lo cambia el superadmin cuando cobra. */

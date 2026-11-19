@@ -7,7 +7,7 @@
    sede y usuario) y se entra al panel sin pasar por nadie.
 
    Tres pasos, con el resumen del plan siempre a la vista: es
-   donde se vende la prueba de 30 días de Pro, incluso a quien
+   donde se vende el plan Pro (y su prueba, si está activa), incluso a quien
    llegó buscando el plan gratuito.
 ============================================================ */
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -538,13 +538,24 @@ export default function SignupWizard() {
             ))}
           </ul>
 
-          {/* El empujón: a quien eligió Free se le ofrece la prueba; a quien
-              ya eligió Pro se le deja salida para no perderlo. */}
+          {/* El empujón: a quien eligió Free se le invita a Pro; a quien ya
+              eligió Pro se le deja salida para no perderlo.
+
+              AQUÍ SE PROMETÍA UNA PRUEBA QUE NO EXISTE. Este bloque decía
+              "Añade 30 días de Pro, gratis" y "durante un mes", y lo seguía
+              diciendo con la promesa ya apagada: vive en el diccionario
+              viejo (web.es.ts) y se quedó fuera del interruptor cuando se
+              revisó el resto de la web. Con SE_OFRECE_PRUEBA en false el
+              backend no concede ni un día (PRO_SE_OFRECE), así que ahora
+              invita al plan Pro sin regalar nada. Y el número, cuando se
+              promete, sale de DIAS_DE_PRUEBA: no se escribe a mano. */}
           {plan === "free" ? (
             <div className={styles.nudge}>
-              <strong>{w("signup.nudgeTitle")}</strong>
-              <p>{w("signup.nudgeText")}</p>
-              <button type="button" onClick={() => setPlan("pro")}>{w("signup.nudgeCta")}</button>
+              <strong>{w(SE_OFRECE_PRUEBA ? "signup.nudgeTitle" : "signup.nudgeTitleSinPrueba", { dias: DIAS_DE_PRUEBA })}</strong>
+              <p>{w(SE_OFRECE_PRUEBA ? "signup.nudgeText" : "signup.nudgeTextSinPrueba", { dias: DIAS_DE_PRUEBA })}</p>
+              <button type="button" onClick={() => setPlan("pro")}>
+                {w(SE_OFRECE_PRUEBA ? "signup.nudgeCta" : "signup.nudgeCtaSinPrueba")}
+              </button>
             </div>
           ) : (
             <button type="button" className={styles.cambiar} onClick={() => setPlan("free")}>

@@ -139,7 +139,7 @@ export interface ApiEmpresa {
   facebookUrl?: string | null;
   instagramUrl?: string | null;
   tiktokUrl?: string | null;
-  /** Plan contratado (FREE/PRO) y prueba de 30 días. */
+  /** Plan contratado (FREE/PRO) y estado de la prueba. */
   plan?: "FREE" | "PRO";
   trialEndsAt?: string | null;
   trialUsed?: boolean;

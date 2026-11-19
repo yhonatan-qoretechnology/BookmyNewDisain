@@ -218,10 +218,18 @@ const webEs = {
     planProSubSinPrueba: "Todo el sistema, sin límites",
     planBadge: "{dias} días",
     cambiarAFree: "Prefiero empezar solo con lo gratuito",
-    cambiarAPro: "Añadir 30 días de Pro gratis",
-    nudgeTitle: "Añade 30 días de Pro, gratis",
-    nudgeText: "Facturación, estadísticas, stock y comunicación durante un mes. No pedimos tarjeta y al acabar vuelves a Free sin perder nada.",
+    cambiarAPro: "Añadir {dias} días de Pro gratis",
+    /* DOS VERSIONES, Y LAS ELIGE SE_OFRECE_PRUEBA (lib/web/oferta.ts).
+       Este bloque se quedó fuera del interruptor cuando se apagó la
+       promesa, y /crear-cuenta siguió ofreciendo "30 días de Pro,
+       gratis" a quien elegía Free: una prueba que el backend no
+       concede a nadie, con el número de antes. */
+    nudgeTitle: "Añade {dias} días de Pro, gratis",
+    nudgeText: "Facturación, estadísticas, stock y comunicación durante {dias} días. No pedimos tarjeta y al acabar vuelves a Free sin perder nada.",
     nudgeCta: "Sí, quiero probarlo",
+    nudgeTitleSinPrueba: "¿Te interesa el plan Pro?",
+    nudgeTextSinPrueba: "Añade facturación, estadísticas, stock y comunicación. Elígelo ahora y lo vemos contigo al terminar el alta.",
+    nudgeCtaSinPrueba: "Quiero el plan Pro",
     incluyeFree: "Incluye",
     incluyePro: "Incluye, además de todo lo gratuito",
     garantia: "Sin tarjeta · Sin permanencia · Tus datos siempre son tuyos",

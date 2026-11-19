@@ -7,6 +7,24 @@
 ============================================================ */
 import { ROUTES } from "@/constants";
 import type { Rol } from "@/models";
+import { DIAS_DE_PRUEBA, SE_OFRECE_PRUEBA } from "@/lib/web/oferta";
+
+/* ------------------------------------------------------------
+   Lo que la ayuda cuenta de la prueba de Pro
+   ------------------------------------------------------------
+   Estas dos frases decían "30 días" clavado, y a diferencia de las
+   pantallas de venta (PlanProLock, TrialBanner, /plan) NO las gatea
+   nada: son texto fijo y se ven siempre. Así que con la prueba
+   apagada seguían anunciando treinta días gratis que nadie recibe.
+   Ahora salen del mismo interruptor que todo lo demás.
+------------------------------------------------------------ */
+const PRUEBA_EN_GUIA = SE_OFRECE_PRUEBA
+  ? `Puedes activar ${DIAS_DE_PRUEBA} días de prueba gratis una sola vez.`
+  : "Hoy Pro no tiene prueba gratuita: escríbenos y lo vemos contigo.";
+
+const PRUEBA_EN_FAQ = SE_OFRECE_PRUEBA
+  ? `Es un módulo de Bookmy CRM Pro. Desde Plan puedes activar la prueba de ${DIAS_DE_PRUEBA} días.`
+  : "Es un módulo de Bookmy CRM Pro. Desde Plan ves qué incluye y cómo contratarlo.";
 
 export interface Guia {
   id: string;
@@ -125,7 +143,7 @@ const ES: { guias: Guia[]; preguntas: Pregunta[] } = {
       resumen: "Qué incluye Bookmy CRM Pro y cómo probarlo.",
       pasos: [
         "En Plan ves qué módulos incluye Pro (facturación, estadísticas, stock, comunicación…).",
-        "Puedes activar 30 días de prueba gratis una sola vez.",
+        PRUEBA_EN_GUIA,
       ],
     },
     {
@@ -192,7 +210,7 @@ const ES: { guias: Guia[]; preguntas: Pregunta[] } = {
     { roles: NEGOCIO, p: "Un cliente no aparece al crear una reserva", r: "Búscalo por correo o teléfono completos: si existe en otra empresa, se puede traer. Si no tiene cuenta, créalo con «+ Nuevo cliente»." },
     { roles: NEGOCIO, p: "No me deja elegir un día", r: "Ese día es festivo, ya pasó, está fuera de la ventana de reservas o el profesional no tiene huecos libres para ese servicio." },
     { roles: NEGOCIO, p: "Un servicio no sale al reservar", r: "Revisa en Sedes → Servicios que tenga al menos un profesional asignado en esa sede." },
-    { roles: ["owner", "admin"], p: "Veo un módulo bloqueado", r: "Es un módulo de Bookmy CRM Pro. Desde Plan puedes activar la prueba de 30 días." },
+    { roles: ["owner", "admin"], p: "Veo un módulo bloqueado", r: PRUEBA_EN_FAQ },
   ],
 };
 

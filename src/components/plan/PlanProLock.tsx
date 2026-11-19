@@ -4,7 +4,7 @@
    ------------------------------------------------------------
    En vez de devolverlo al dashboard sin explicación —que era lo
    que hacía antes— se le enseña qué se está perdiendo y se le
-   ofrecen los 30 días. Es la pantalla que más tiene que vender
+   ofrece la prueba, si la hay. Es la pantalla que más tiene que vender
    de todo el panel.
 ============================================================ */
 import { useState } from "react";
@@ -15,6 +15,7 @@ import { useUi } from "@/context/UiContext";
 import { usePlan } from "./usePlan";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import styles from "./PlanProLock.module.css";
+import { DIAS_DE_PRUEBA } from "@/lib/web/oferta";
 
 const ICONO: Record<string, IconName> = {
   facturacion: "dollar",
@@ -41,7 +42,7 @@ export default function PlanProLock({ modulo }: { modulo: string }) {
     setActivando(true);
     try {
       await activarPrueba();
-      toast(t("plan.tryDone"), "success");
+      toast(t("plan.tryDone", { dias: DIAS_DE_PRUEBA }), "success");
       router.refresh();
     } catch (e) {
       toast(e instanceof Error ? e.message : "Error", "error");
@@ -75,7 +76,7 @@ export default function PlanProLock({ modulo }: { modulo: string }) {
           {puedeProbar ? (
             <>
               <div className={styles.oferta}>
-                <strong>{t("plan.tryTitle")}</strong>
+                <strong>{t("plan.tryTitle", { dias: DIAS_DE_PRUEBA })}</strong>
                 <p>{t("plan.tryLead")}</p>
               </div>
               <div className={styles.acciones}>
@@ -83,7 +84,7 @@ export default function PlanProLock({ modulo }: { modulo: string }) {
                   {activando ? (
                     <><span className={styles.spinner} aria-hidden />{t("plan.trying")}</>
                   ) : (
-                    <><Icon name="star" />{t("plan.tryCta")}</>
+                    <><Icon name="star" />{t("plan.tryCta", { dias: DIAS_DE_PRUEBA })}</>
                   )}
                 </button>
                 <button type="button" className={styles.secundario} onClick={() => router.push(ROUTES.dashboard)}>

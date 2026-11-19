@@ -27,7 +27,7 @@ export const ROUTES = {
   stock: "/stock",
   comunicacion: "/comunicacion",
   configuracion: "/configuracion",
-  /** Plan del negocio: qué incluye, prueba de 30 días y contratación */
+  /** Plan del negocio: qué incluye, la prueba (si está activa) y contratación */
   plan: "/plan",
   /** Verificación de identidad del negocio (KYC) */
   verificacion: "/verificacion",

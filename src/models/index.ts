@@ -42,7 +42,7 @@ export interface Negocio {
   /** Plan contratado y fecha de fin de prueba (GET /empresas) */
   plan?: "FREE" | "PRO";
   trialEndsAt?: string | null;
-  /** true mientras la prueba de 30 días siga viva */
+  /** true mientras la prueba siga viva */
   enPrueba?: boolean;
   /** Verificación de identidad: "PENDIENTE" si nunca envió documentación */
   kycEstado?: "PENDIENTE" | "EN_REVISION" | "APROBADA" | "RECHAZADA";
@@ -126,7 +126,8 @@ export interface EstadoPlan {
   diasDePrueba: number;
   /** La prueba existió y se acabó: es el momento de vender. */
   pruebaCaducada: boolean;
-  /** Todavía puede pedir los 30 días. */
+  /** Todavía puede pedir la prueba. false también cuando el backend
+   *  la tiene apagada entera (PRO_SE_OFRECE). */
   puedeProbar: boolean;
   /** Pro regalado por referidos y membresía pagada online (si los hay) */
   proGratisHasta?: string | null;

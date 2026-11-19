@@ -192,11 +192,11 @@ const es = {
     badge: "Bookmy CRM Pro",
     lockTitle: "Desbloquea {modulo} con Bookmy CRM Pro",
     lockLead: "Tu plan gratuito cubre la agenda del día a día. Este módulo entra en Pro, junto con todo lo que hace que el negocio se administre solo.",
-    tryTitle: "Pruébalo 30 días gratis",
+    tryTitle: "Pruébalo {dias} días gratis",
     tryLead: "Se activa al instante, sin tarjeta y sin compromiso. Cuando termine, tu cuenta vuelve al plan gratuito y no pierdes ningún dato.",
-    tryCta: "Empezar mis 30 días gratis",
+    tryCta: "Empezar mis {dias} días gratis",
     trying: "Activando…",
-    tryDone: "¡Listo! Ya tienes Bookmy CRM Pro durante 30 días.",
+    tryDone: "¡Listo! Ya tienes Bookmy CRM Pro durante {dias} días.",
     salesCta: "Hablar con ventas",
     backCta: "Volver al panel",
     modules: {
@@ -231,7 +231,7 @@ const es = {
     trialBannerCta: "Quiero seguir con Pro",
     trialOverTitle: "Tu prueba de Bookmy CRM Pro ha terminado",
     trialOverText: "Sigues teniendo todo el plan gratuito y tus datos intactos. Para recuperar facturación, estadísticas, stock y comunicación, habla con nosotros.",
-    offerTitle: "Prueba Bookmy CRM Pro 30 días gratis",
+    offerTitle: "Prueba Bookmy CRM Pro {dias} días gratis",
     offerText: "Facturación, estadísticas, stock y comunicación. Sin tarjeta.",
     offerCta: "Probar gratis",
     /* Estado del plan en Configuración y en Empresas */

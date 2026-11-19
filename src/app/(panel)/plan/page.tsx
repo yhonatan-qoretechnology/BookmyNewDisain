@@ -26,6 +26,7 @@ import Icon from "@/components/ui/Icon";
 import { SkTable } from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import styles from "./plan.module.css";
+import { DIAS_DE_PRUEBA } from "@/lib/web/oferta";
 
 const VENTAS = "https://wa.me/34651026700?text=Hola%2C%20quiero%20Bookmy%20CRM%20Pro";
 /** Lo que entra en el plan gratuito, con el nombre que usa el menú. */
@@ -112,7 +113,7 @@ export default function PlanPage() {
     setActivando(true);
     try {
       await activarPrueba();
-      toast(t("plan.tryDone"), "success");
+      toast(t("plan.tryDone", { dias: DIAS_DE_PRUEBA }), "success");
     } catch (e) {
       toast(e instanceof Error ? e.message : "Error", "error");
     } finally {
@@ -196,7 +197,7 @@ export default function PlanPage() {
               {puedeProbar ? (
                 <>
                   <Button onClick={() => void probar()} disabled={activando}>
-                    {activando ? t("plan.trying") : t("plan.tryCta")}
+                    {activando ? t("plan.trying") : t("plan.tryCta", { dias: DIAS_DE_PRUEBA })}
                   </Button>
                   <small>{t("plan.tryLead")}</small>
                 </>
