@@ -6,10 +6,12 @@
    agenda de hoy»: a la izquierda un anillo 3D con las reservas
    del día (LoginSky) y a la derecha la tarjeta de cristal.
    La lógica es la de siempre: AuthController.login, sesión,
-   redirección por rol, aviso de sesión caducada y recuperar
-   contraseña con RecuperarPasswordModal. Solo cambia el aspecto.
+   redirección por rol y aviso de sesión caducada. Recuperar la
+   contraseña va dentro de la tarjeta (como en el diseño) con los
+   mismos 3 pasos del servidor: correo → código → contraseña nueva.
 ============================================================ */
 import { Suspense, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants";
@@ -18,13 +20,21 @@ import { useSession } from "@/context/SessionContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useI18n } from "@/i18n";
 import { recordarOrigenLogin } from "@/lib/loginOrigen";
-import RecuperarPasswordModal from "@/components/auth/RecuperarPasswordModal";
+import { PasswordRecoveryApi } from "@/api/modules";
+import { isStrongPassword } from "@/lib/password";
 import LoginSky, { type LoginSkyHandle } from "@/components/auth/LoginSky";
 import styles from "./login.module.css";
 import { usePrecargaRecaptcha } from "@/lib/recaptcha";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const espera = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Vigencia del código de recuperación en el backend (otp.service.ts) */
+const VIGENCIA_SEGUNDOS = 5 * 60;
+type Vista = "login" | "recEmail" | "recCodigo" | "recPass" | "exito";
+const ORDEN: Vista[] = ["login", "recEmail", "recCodigo", "recPass", "exito"];
+
+/* View Transitions (Chrome/Edge/Safari 18): sin ellas, cambio directo */
+type DocVT = Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> } };
 
 export default function LoginPage() {
   /* useSearchParams obliga a un límite de Suspense en el build estático */
@@ -50,7 +60,16 @@ function Login() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [hecho, setHecho] = useState(false);
-  const [recuperarOpen, setRecuperarOpen] = useState(false);
+  /* Qué vista de la tarjeta se ve (entrar, recuperar en 3 pasos, éxito) */
+  const [vista, setVista] = useState<Vista>("login");
+  const [recEmail, setRecEmail] = useState("");
+  const [recCodigo, setRecCodigo] = useState("");
+  const [recNueva, setRecNueva] = useState("");
+  const [recRepetir, setRecRepetir] = useState("");
+  const [recError, setRecError] = useState("");
+  const [recAviso, setRecAviso] = useState("");
+  const [recCargando, setRecCargando] = useState(false);
+  const [restante, setRestante] = useState(0);
   const [exito, setExito] = useState("");
   /* Validación en el propio campo */
   const [errEmail, setErrEmail] = useState<"" | "vacio" | "malo">("");
@@ -82,6 +101,116 @@ function Login() {
   }, [session, router]);
 
   const emailValido = EMAIL_RE.test(email.trim());
+
+  /* Cuenta atrás de la vigencia del código */
+  useEffect(() => {
+    if (restante <= 0) return;
+    const id = setInterval(() => setRestante((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [restante]);
+
+  /* Clase de cada vista: la actual en el centro, las anteriores a la
+     izquierda y las siguientes a la derecha (como en el diseño) */
+  const claseVista = (v: Vista) =>
+    v === vista ? styles.viewOn : ORDEN.indexOf(v) < ORDEN.indexOf(vista) ? styles.viewOff : styles.viewNext;
+  const irA = (v: Vista, foco?: string) => {
+    setVista(v);
+    setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(foco || `[data-vista="${v}"] h1`);
+      el?.focus({ preventScroll: true });
+    }, 180);
+  };
+
+  /* ── Recuperar contraseña (PasswordRecoveryApi, igual que antes) ── */
+  const errorRecuperar = (e: unknown) => (e instanceof Error && e.message ? e.message : t("recuperar.errGenerico"));
+  const abrirRecuperar = () => {
+    setError(""); setExito(""); setRecError(""); setRecAviso("");
+    if (!recEmail) setRecEmail(email.trim());
+    irA("recEmail", "#rec-email");
+  };
+  const volverAlLogin = () => {
+    if (!email.trim() && recEmail.trim()) setEmail(recEmail.trim());
+    setRecError(""); setRecAviso("");
+    irA("login", email.trim() || recEmail.trim() ? "#lg-pass" : "#lg-email");
+  };
+  const pedirCodigo = async (esReenvio = false) => {
+    const correo = recEmail.trim();
+    if (!EMAIL_RE.test(correo)) { setRecError(t("recuperar.errEmail")); setSacudir((n) => n + 1); return; }
+    setRecError(""); setRecAviso(""); setRecCargando(true);
+    try {
+      await PasswordRecoveryApi.solicitar(correo);
+      setRestante(VIGENCIA_SEGUNDOS);
+      if (esReenvio) setRecAviso(t("recuperar.reenviado"));
+      else irA("recCodigo", "#rec-codigo");
+    } catch (e) {
+      setRecError(errorRecuperar(e));
+    } finally {
+      setRecCargando(false);
+    }
+  };
+  const verificarCodigo = async () => {
+    if (!/^\d{6}$/.test(recCodigo.trim())) { setRecError(t("recuperar.errCodigo")); setSacudir((n) => n + 1); return; }
+    setRecError(""); setRecAviso(""); setRecCargando(true);
+    try {
+      await PasswordRecoveryApi.validar(recEmail.trim(), recCodigo.trim());
+      irA("recPass", "#rec-nueva");
+    } catch (e) {
+      setRecError(errorRecuperar(e));
+    } finally {
+      setRecCargando(false);
+    }
+  };
+  const guardarPassword = async () => {
+    if (!isStrongPassword(recNueva)) { setRecError(t("recuperar.errCorta")); setSacudir((n) => n + 1); return; }
+    if (recNueva !== recRepetir) { setRecError(t("recuperar.errDistintas")); setSacudir((n) => n + 1); return; }
+    setRecError(""); setRecCargando(true);
+    try {
+      await PasswordRecoveryApi.cambiar(recEmail.trim(), recCodigo.trim(), recNueva);
+      /* Vuelve al login con el correo puesto y el aviso de éxito */
+      setEmail(recEmail.trim());
+      setPassword("");
+      setRecCodigo(""); setRecNueva(""); setRecRepetir(""); setRestante(0);
+      setExito(t("recuperar.exito"));
+      irA("login", "#lg-pass");
+    } catch (e) {
+      setRecError(errorRecuperar(e));
+    } finally {
+      setRecCargando(false);
+    }
+  };
+  const mmss = `${String(Math.floor(restante / 60)).padStart(2, "0")}:${String(restante % 60).padStart(2, "0")}`;
+
+  /* ── Tema: el nuevo se abre en círculo desde el botón ── */
+  const cambiarTema = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const doc = document as DocVT;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!doc.startViewTransition || reduce) { toggleTheme(); return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const fin = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    const raiz = document.documentElement;
+    raiz.classList.add("bm-vt-tema");
+    const vt = doc.startViewTransition(() => { flushSync(() => toggleTheme()); });
+    vt.ready.then(() => {
+      raiz.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${fin}px at ${x}px ${y}px)`] },
+        { duration: 720, easing: "cubic-bezier(.7,0,.2,1)", pseudoElement: "::view-transition-new(root)" }
+      );
+    }).catch(() => undefined);
+    vt.finished.finally(() => raiz.classList.remove("bm-vt-tema"));
+  };
+
+  /* ── Idioma: fundido corto ── */
+  const cambiarIdioma = (l: "es" | "en") => {
+    if (l === locale) return;
+    const doc = document as DocVT;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!doc.startViewTransition || reduce) { setLocale(l); return; }
+    const raiz = document.documentElement;
+    raiz.classList.add("bm-vt-idioma");
+    const vt = doc.startViewTransition(() => { flushSync(() => setLocale(l)); });
+    vt.finished.finally(() => raiz.classList.remove("bm-vt-idioma"));
+  };
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -129,6 +258,7 @@ function Login() {
       skyRef.current?.celebrate();
       await espera(650);
       setEntrando({ nombre: (s.name || "").trim().split(/\s+/)[0] || "" });
+      setVista("exito");
       requestAnimationFrame(() => setProgreso(true));
       await espera(1500);
       login(s);
@@ -184,7 +314,7 @@ function Login() {
               <span className={styles.langThumb} aria-hidden="true" />
               {(["es", "en"] as const).map((l) => (
                 <button key={l} type="button" lang={l} className={styles.langBtn} aria-pressed={locale === l}
-                  aria-label={l === "es" ? "Español" : "English"} onClick={() => setLocale(l)}>
+                  aria-label={l === "es" ? "Español" : "English"} onClick={() => cambiarIdioma(l)}>
                   {l.toUpperCase()}
                 </button>
               ))}
@@ -192,7 +322,7 @@ function Login() {
             <button
               type="button"
               className={`${styles.theme} ${styles.glass}`}
-              onClick={toggleTheme}
+              onClick={cambiarTema}
               aria-label={theme === "dark" ? t("topbar.lightMode") : t("topbar.darkMode")}
               title={theme === "dark" ? t("topbar.lightMode") : t("topbar.darkMode")}
             >
@@ -243,15 +373,16 @@ function Login() {
             <div className={styles.views}>
               {/* ── Iniciar sesión ── */}
               <form
-                className={`${styles.view} ${entrando ? styles.viewOff : ""}`}
+                className={`${styles.view} ${claseVista("login")}`}
+                data-vista="login"
                 onSubmit={submit}
                 noValidate
                 aria-labelledby="lgTitulo"
-                aria-hidden={entrando ? true : undefined}
+                aria-hidden={vista !== "login" ? true : undefined}
               >
                 <div className={styles.in} style={{ ["--d" as string]: 0 } as React.CSSProperties}>
                   <span className={styles.badge}>{t("login.badge")}</span>
-                  <h1 id="lgTitulo">{t("login.welcome")}</h1>
+                  <h1 id="lgTitulo" tabIndex={-1}>{t("login.welcome")}</h1>
                   <p className={styles.lead}>{t("login.lede")}</p>
                 </div>
 
@@ -361,7 +492,7 @@ function Login() {
                   <button
                     type="button"
                     className={styles.link}
-                    onClick={() => { setError(""); setExito(""); setRecuperarOpen(true); }}
+                    onClick={abrirRecuperar}
                   >
                     {t("login.forgot")}
                   </button>
@@ -386,10 +517,129 @@ function Login() {
                 </p>
               </form>
 
+              {/* ── Recuperar 1/3: correo ── */}
+              <form
+                className={`${styles.view} ${claseVista("recEmail")}`}
+                data-vista="recEmail"
+                noValidate
+                aria-hidden={vista !== "recEmail" ? true : undefined}
+                onSubmit={(e) => { e.preventDefault(); void pedirCodigo(); }}
+              >
+                <button type="button" className={styles.back} onClick={volverAlLogin}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" /></svg>
+                  {t("recuperar.volver")}
+                </button>
+                <h1 tabIndex={-1}>{t("login.recTitulo")}</h1>
+                <p className={styles.lead}>{t("recuperar.subEmail")}</p>
+                <RecAviso error={vista === "recEmail" ? recError : ""} aviso="" estilos={styles} />
+                <div className={`${styles.field} ${EMAIL_RE.test(recEmail.trim()) ? styles.isValid : ""} ${vista === "recEmail" && sacudir && recError ? styles.shake : ""}`} key={`re-${sacudir}`}>
+                  <label className={styles.fieldLabel} htmlFor="rec-email">{t("login.email")}</label>
+                  <div className={styles.fieldBox}>
+                    <input id="rec-email" type="email" inputMode="email" autoCapitalize="none" spellCheck={false}
+                      autoComplete="email" placeholder={t("login.emailPlaceholder")} value={recEmail}
+                      onChange={(e) => { setRecEmail(e.target.value); setRecError(""); }} />
+                    <svg className={styles.fieldIcon} viewBox="0 0 24 24" aria-hidden="true"><path className={styles.d} pathLength={1} d="M6 5h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z" /><path className={styles.d} pathLength={1} d="m4 7.5 8 5.5 8-5.5" /></svg>
+                    <span className={styles.fieldOk} aria-hidden="true"><svg viewBox="0 0 24 24"><path className={styles.d} pathLength={1} d="M6 12.5l4 4L18 8" /></svg></span>
+                  </div>
+                </div>
+                <div className={styles.actions}>
+                  <button type="submit" className={`${styles.submit} ${recCargando && vista === "recEmail" ? styles.isBusy : ""}`} onPointerMove={onBtnMove} aria-busy={recCargando}>
+                    <span className={styles.submitLabel}>{t("recuperar.enviar")}</span>
+                    <span className={styles.submitSpinner} aria-hidden="true" />
+                  </button>
+                </div>
+              </form>
+
+              {/* ── Recuperar 2/3: código ── */}
+              <form
+                className={`${styles.view} ${claseVista("recCodigo")}`}
+                data-vista="recCodigo"
+                noValidate
+                aria-hidden={vista !== "recCodigo" ? true : undefined}
+                onSubmit={(e) => { e.preventDefault(); void verificarCodigo(); }}
+              >
+                <button type="button" className={styles.back} onClick={() => { setRecError(""); setRecCodigo(""); irA("recEmail", "#rec-email"); }}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" /></svg>
+                  {t("recuperar.cambiarCorreo")}
+                </button>
+                <div className={`${styles.mark} ${styles.markSoft} ${styles.markLeft}`} aria-hidden="true"><svg viewBox="0 0 24 24"><path className={styles.d} pathLength={1} d="M21 3l-6.5 18-4-7.5L3 9.5 21 3z" /><path className={styles.d} pathLength={1} d="M21 3L10.5 13.5" /></svg></div>
+                <h1 tabIndex={-1}>{t("login.recRevisa")}</h1>
+                <p className={styles.lead}>{t("login.recCodigoLead")} <b>{recEmail.trim()}</b></p>
+                <RecAviso error={vista === "recCodigo" ? recError : ""} aviso={vista === "recCodigo" ? recAviso : ""} estilos={styles} />
+                <div className={`${styles.field} ${/^\d{6}$/.test(recCodigo) ? styles.isValid : ""} ${vista === "recCodigo" && sacudir && recError ? styles.shake : ""}`} key={`rc-${sacudir}`}>
+                  <label className={styles.fieldLabel} htmlFor="rec-codigo">{t("recuperar.codigo")}</label>
+                  <div className={styles.fieldBox}>
+                    <input id="rec-codigo" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000"
+                      className={styles.codigo} value={recCodigo}
+                      onChange={(e) => { setRecCodigo(e.target.value.replace(/\D/g, "").slice(0, 6)); setRecError(""); }} />
+                    <svg className={styles.fieldIcon} viewBox="0 0 24 24" aria-hidden="true"><path className={styles.d} pathLength={1} d="M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" /><path className={styles.d} pathLength={1} d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3" /></svg>
+                    <span className={styles.fieldOk} aria-hidden="true"><svg viewBox="0 0 24 24"><path className={styles.d} pathLength={1} d="M6 12.5l4 4L18 8" /></svg></span>
+                  </div>
+                  <p className={styles.ayuda}>
+                    {restante > 0 ? t("login.recCaduca", { tiempo: mmss }) : t("login.recCaducado")}
+                    {" · "}
+                    <button type="button" className={styles.link} disabled={recCargando} onClick={() => void pedirCodigo(true)}>
+                      {t("recuperar.reenviar")}
+                    </button>
+                  </p>
+                </div>
+                <div className={styles.actions}>
+                  <button type="submit" className={`${styles.submit} ${recCargando && vista === "recCodigo" ? styles.isBusy : ""}`} onPointerMove={onBtnMove} aria-busy={recCargando}>
+                    <span className={styles.submitLabel}>{t("recuperar.verificar")}</span>
+                    <span className={styles.submitSpinner} aria-hidden="true" />
+                  </button>
+                </div>
+              </form>
+
+              {/* ── Recuperar 3/3: contraseña nueva ── */}
+              <form
+                className={`${styles.view} ${claseVista("recPass")}`}
+                data-vista="recPass"
+                noValidate
+                aria-hidden={vista !== "recPass" ? true : undefined}
+                onSubmit={(e) => { e.preventDefault(); void guardarPassword(); }}
+              >
+                <button type="button" className={styles.back} onClick={volverAlLogin}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" /></svg>
+                  {t("recuperar.volver")}
+                </button>
+                <h1 tabIndex={-1}>{t("login.recNueva")}</h1>
+                <p className={styles.lead}>{t("recuperar.subPassword")}</p>
+                <RecAviso error={vista === "recPass" ? recError : ""} aviso="" estilos={styles} />
+                <div className={`${styles.fields} ${vista === "recPass" && sacudir && recError ? styles.shake : ""}`} key={`rp-${sacudir}`}>
+                  {([
+                    ["rec-nueva", t("recuperar.nueva"), recNueva, setRecNueva],
+                    ["rec-repetir", t("recuperar.repetir"), recRepetir, setRecRepetir],
+                  ] as const).map(([id, etiqueta, valor, fijar]) => (
+                    <div key={id} className={`${styles.field} ${verPassword ? styles.isRevealed : ""}`}>
+                      <label className={styles.fieldLabel} htmlFor={id}>{etiqueta}</label>
+                      <div className={styles.fieldBox}>
+                        <input id={id} type={verPassword ? "text" : "password"} autoComplete="new-password" value={valor}
+                          onChange={(e) => { fijar(e.target.value); setRecError(""); }} />
+                        <svg className={styles.fieldIcon} viewBox="0 0 24 24" aria-hidden="true"><path className={styles.d} pathLength={1} d="M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z" /><path className={`${styles.d} ${styles.shackle}`} pathLength={1} d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3" /></svg>
+                        <button type="button" className={styles.eye} onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => setVerPassword((v) => !v)}
+                          aria-label={verPassword ? t("login.hidePassword") : t("login.showPassword")} aria-pressed={verPassword}>
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle className={styles.pupil} cx="12" cy="12" r="3" /><path className={styles.slash} pathLength={1} d="M4.5 4.5l15 15" /></svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <p className={styles.ayuda}>{t("login.recRequisitos")}</p>
+                </div>
+                <div className={styles.actions}>
+                  <button type="submit" className={`${styles.submit} ${recCargando && vista === "recPass" ? styles.isBusy : ""}`} onPointerMove={onBtnMove} aria-busy={recCargando}>
+                    <span className={styles.submitLabel}>{t("recuperar.guardar")}</span>
+                    <span className={styles.submitSpinner} aria-hidden="true" />
+                  </button>
+                </div>
+              </form>
+
               {/* ── Sesión iniciada ── */}
               <section
-                className={`${styles.view} ${styles.result} ${entrando ? styles.viewOn : styles.viewNext}`}
-                aria-hidden={entrando ? undefined : true}
+                className={`${styles.view} ${styles.result} ${claseVista("exito")}`}
+                data-vista="exito"
+                aria-hidden={vista === "exito" ? undefined : true}
                 aria-live="polite"
               >
                 <div className={styles.mark} aria-hidden="true"><svg viewBox="0 0 24 24"><path className={styles.d} pathLength={1} d="M5.5 12.5l4.5 4.5L18.5 8" /></svg></div>
@@ -403,12 +653,27 @@ function Login() {
         </main>
       </div>
 
-      <RecuperarPasswordModal
-        open={recuperarOpen}
-        emailInicial={email}
-        onClose={() => setRecuperarOpen(false)}
-        onExito={(mensaje) => { setExito(mensaje); setError(""); }}
-      />
+      {/* Letra del diseño (Google Sans) */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400..700&display=swap" />
+    </div>
+  );
+}
+
+/** Aviso de las vistas de recuperar: error en rojo o aviso en verde. */
+function RecAviso({ error, aviso, estilos }: { error: string; aviso: string; estilos: Record<string, string> }) {
+  const texto = error || aviso;
+  return (
+    <div className={`${estilos.alert} ${error ? estilos.alertError : estilos.alertInfo} ${texto ? estilos.alertOn : ""}`} role={error ? "alert" : "status"}>
+      <div><p>
+        {error ? (
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7.5v5" /><path d="M12 16.3v.1" /></svg>
+        ) : (
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 8" /></svg>
+        )}
+        <span>{texto}</span>
+      </p></div>
     </div>
   );
 }

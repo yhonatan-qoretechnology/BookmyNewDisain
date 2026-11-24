@@ -402,3 +402,11 @@ input:focus-visible, select:focus-visible, textarea:focus-visible,
   }
   .print-msg .when { display: block; font-size: 10px; color: #8392ab; margin-top: 4px; }
 }
+
+/* Login: el tema nuevo se abre en círculo desde el botón y el idioma
+   cambia con un fundido corto (View Transitions; ver app/login). */
+html.bm-vt-tema::view-transition-old(root),
+html.bm-vt-tema::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+html.bm-vt-tema::view-transition-new(root) { z-index: 2; }
+html.bm-vt-idioma::view-transition-old(root),
+html.bm-vt-idioma::view-transition-new(root) { animation-duration: .32s; }
