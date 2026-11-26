@@ -63,7 +63,7 @@ const appEs = {
     },
 
     entrar: {
-      alt: "Pantalla para entrar en la app con email, Google, Apple o Facebook",
+      alt: "Pantalla para entrar en la app con correo y contraseña o con Face ID",
       titulo: "Entra en un minuto",
       texto:
         "Regístrate con tu email o entra con Google, Apple o Facebook. Tus datos y tus reservas quedan guardados.",
@@ -74,7 +74,7 @@ const appEs = {
     },
 
     elegir: {
-      alt: "Pantalla para elegir especialista, día y hora",
+      alt: "Pantalla para elegir el día y la hora de la reserva",
       titulo: "Elige día, hora y especialista",
       texto:
         "Busca tu servicio, mira solo los huecos libres de verdad y elige a la profesional que prefieres.",
@@ -145,8 +145,8 @@ const appEs = {
     check1: "Modo claro y modo oscuro",
     check2: "Fotos del centro y de cada servicio",
     check3: "Precio, duración y valoraciones a la vista",
-    altClaro: "App Bookmy en modo claro: elegir método de pago y elegir día y hora",
-    altOscuro: "App Bookmy en modo oscuro: elegir método de pago y elegir día y hora",
+    altClaro: "App Bookmy en modo claro: la pantalla de inicio con los negocios cercanos y la ficha de un negocio con sus especialistas y servicios",
+    altOscuro: "App Bookmy en modo oscuro: la pantalla de inicio y la lista de tus reservas, con reagendar y cancelar",
   },
 
   /* ── El puente a las empresas ────────────────────────────── */

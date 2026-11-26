@@ -34,3 +34,7 @@ out/
 # El paquete del rediseno 2.0: material de origen, vive en ~/Descargas.
 # Se colo en un commit de la rama del motion y no debe volver al repo.
 booky-2.0.zip
+
+# Capturas que manda diseno: material de origen, como booky-2.0.zip.
+# Se copian a public/web/v2/img con sus nombres; la carpeta no se sube.
+znuevasimagenes/

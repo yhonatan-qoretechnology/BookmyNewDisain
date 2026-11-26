@@ -142,8 +142,8 @@ export default function PlanBasic() {
                       className="is-on"
                       src="/web/v2/img/app-reserva.webp"
                       alt=""
-                      width={600}
-                      height={1395}
+                      width={740}
+                      height={1600}
                       fetchPriority="high"
                       decoding="async"
                     />

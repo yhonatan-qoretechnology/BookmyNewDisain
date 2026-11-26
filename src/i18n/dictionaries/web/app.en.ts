@@ -48,7 +48,7 @@ const appEn: TextosApp = {
     },
 
     entrar: {
-      alt: "Sign-in screen with email, Google, Apple or Facebook",
+      alt: "Sign-in screen with email and password, or Face ID",
       titulo: "Sign in in a minute",
       texto:
         "Sign up with your email or log in with Google, Apple or Facebook. Your details and your bookings stay saved.",
@@ -59,7 +59,7 @@ const appEn: TextosApp = {
     },
 
     elegir: {
-      alt: "Screen for choosing a specialist, a day and a time",
+      alt: "Screen for choosing the day and time of the booking",
       titulo: "Pick the day, the time and the specialist",
       texto:
         "Search for your service, see only the slots that are genuinely free, and choose the professional you like best.",
@@ -129,8 +129,8 @@ const appEn: TextosApp = {
     check1: "Light mode and dark mode",
     check2: "Photos of the place and of every service",
     check3: "Price, duration and ratings right there",
-    altClaro: "The Bookmy app in light mode: choosing a payment method, and choosing a day and a time",
-    altOscuro: "The Bookmy app in dark mode: choosing a payment method, and choosing a day and a time",
+    altClaro: "The Bookmy app in light mode: the home screen with nearby businesses, and a business page with its specialists and services",
+    altOscuro: "The Bookmy app in dark mode: the home screen and your bookings list, with reschedule and cancel",
   },
 
   /* ── The bridge to businesses ────────────────────────────── */

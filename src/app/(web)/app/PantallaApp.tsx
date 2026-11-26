@@ -106,8 +106,8 @@ function Hero() {
                   className="is-on"
                   src={`${IMG}/app-reserva.webp`}
                   alt=""
-                  width={600}
-                  height={1395}
+                  width={740}
+                  height={1600}
                   fetchPriority="high"
                   decoding="async"
                 />
@@ -149,12 +149,19 @@ function Hero() {
        pantalla. El `data-step` de cada pieza es lo que empareja
        el texto, la captura y el aviso; lo enciende el motor.
 ============================================================ */
+/* `ancho` y `alto` son las medidas REALES del fichero, y van una por
+   paso porque no todas coinciden. Sirven para que el navegador reserve
+   el hueco antes de descargar la imagen y la página no pegue un salto;
+   si no cuadran con el fichero, el salto vuelve. Al cambiar una captura
+   hay que cambiarlas con ella.
+
+   Las cinco son de la versión nueva de la app y miden 740x1600. */
 const PASOS = [
-  { clave: "descarga", img: "app-bienvenida.webp", alto: 1299, icono: "i-download", ib: "ib", x: "-210px", y: "120px", z: "120px" },
-  { clave: "entrar", img: "app-login.webp", alto: 1299, icono: "i-user-check", ib: "ib ib--cyan", x: "170px", y: "200px", z: "140px" },
-  { clave: "elegir", img: "app-reserva.webp", alto: 1395, icono: "i-calendar-clock", ib: "ib", x: "-230px", y: "300px", z: "160px" },
-  { clave: "pagar", img: "app-pago.webp", alto: 1395, icono: "i-credit-card", ib: "ib ib--lime", x: "160px", y: "380px", z: "150px" },
-  { clave: "confirmar", img: "app-confirmada.webp", alto: 1395, icono: "i-check", ib: "ib ib--solid", x: "-200px", y: "440px", z: "170px" },
+  { clave: "descarga", img: "app-bienvenida.webp", ancho: 740, alto: 1600, icono: "i-download", ib: "ib", x: "-210px", y: "120px", z: "120px" },
+  { clave: "entrar", img: "app-login.webp", ancho: 740, alto: 1600, icono: "i-user-check", ib: "ib ib--cyan", x: "170px", y: "200px", z: "140px" },
+  { clave: "elegir", img: "app-reserva.webp", ancho: 740, alto: 1600, icono: "i-calendar-clock", ib: "ib", x: "-230px", y: "300px", z: "160px" },
+  { clave: "pagar", img: "app-pago.webp", ancho: 740, alto: 1600, icono: "i-credit-card", ib: "ib ib--lime", x: "160px", y: "380px", z: "150px" },
+  { clave: "confirmar", img: "app-confirmada.webp", ancho: 740, alto: 1600, icono: "i-check", ib: "ib ib--solid", x: "-200px", y: "440px", z: "170px" },
 ] as const;
 
 function Pasos({ precio }: { precio: string }) {
@@ -176,7 +183,7 @@ function Pasos({ precio }: { precio: string }) {
                     className="ap-step__img"
                     src={`${IMG}/${p.img}`}
                     alt={w(`app.pasos.${p.clave}.alt`)}
-                    width={600}
+                    width={p.ancho}
                     height={p.alto}
                     loading="lazy"
                     decoding="async"
@@ -215,7 +222,7 @@ function Pasos({ precio }: { precio: string }) {
                         className={i === 0 ? "is-on" : undefined}
                         src={`${IMG}/${p.img}`}
                         alt=""
-                        width={600}
+                        width={p.ancho}
                         height={p.alto}
                         loading="lazy"
                         decoding="async"
@@ -346,8 +353,8 @@ function DiaYNoche() {
             className="ap-theme__img ap-theme__img--light"
             src={`${IMG}/app-phones-claro.webp`}
             alt={w("app.tema.altClaro")}
-            width={731}
-            height={836}
+            width={840}
+            height={1114}
             loading="lazy"
             decoding="async"
           />
@@ -355,8 +362,8 @@ function DiaYNoche() {
             className="ap-theme__img ap-theme__img--dark"
             src={`${IMG}/app-phones-oscuro.webp`}
             alt={w("app.tema.altOscuro")}
-            width={433}
-            height={712}
+            width={840}
+            height={1114}
             loading="lazy"
             decoding="async"
           />
