@@ -51,11 +51,11 @@ const appEn: TextosApp = {
       alt: "Sign-in screen with email and password, or Face ID",
       titulo: "Sign in in a minute",
       texto:
-        "Sign up with your email or log in with Google, Apple or Facebook. Your details and your bookings stay saved.",
-      check1: "Social login",
+        "Create your account with your email, then get back in with one tap using Face ID. Your details and your bookings stay saved.",
+      check1: "Face ID sign-in",
       check2: "Stay signed in",
       chip: "You're in",
-      chipSub: "One tap with Google",
+      chipSub: "One tap with Face ID",
     },
 
     elegir: {
@@ -184,8 +184,8 @@ const appEn: TextosApp = {
     cambiarQ: "What if I need to change or cancel my booking?",
     cambiarA:
       "You can change or cancel an appointment from your profile at no extra cost, as long as you do it in good time.",
-    socialQ: "Can I sign in with Google or Apple?",
-    socialA: "Yes. You can sign up with your email or log in with Google, Apple or Facebook.",
+    socialQ: "How do I sign in?",
+    socialA: "You create your account with your email and a password. After that you can get back in with Face ID, without typing anything.",
 
     apkQ: "Can I install it without Google Play?",
     apkA1: "Yes. On Android you can",

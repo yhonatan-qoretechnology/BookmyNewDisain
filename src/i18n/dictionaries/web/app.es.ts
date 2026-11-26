@@ -65,12 +65,16 @@ const appEs = {
     entrar: {
       alt: "Pantalla para entrar en la app con correo y contraseña o con Face ID",
       titulo: "Entra en un minuto",
+      /* La app dejó de tener acceso con Google, Apple y Facebook: ahora
+         es correo y contraseña, y Face ID para volver a entrar. Este
+         texto seguía prometiendo los botones sociales al lado de una
+         captura que ya no los tiene. */
       texto:
-        "Regístrate con tu email o entra con Google, Apple o Facebook. Tus datos y tus reservas quedan guardados.",
-      check1: "Inicio de sesión social",
+        "Crea tu cuenta con tu correo y vuelve a entrar en un toque con Face ID. Tus datos y tus reservas quedan guardados.",
+      check1: "Entrada con Face ID",
       check2: "Recordar mi sesión",
       chip: "Sesión iniciada",
-      chipSub: "Con Google en un toque",
+      chipSub: "Con Face ID en un toque",
     },
 
     elegir: {
@@ -202,8 +206,10 @@ const appEs = {
     cambiarQ: "¿Qué pasa si necesito cambiar o cancelar mi reserva?",
     cambiarA:
       "Desde tu perfil puedes modificar o cancelar una cita sin coste adicional, siempre que lo hagas con antelación.",
-    socialQ: "¿Puedo entrar con Google o Apple?",
-    socialA: "Sí. Puedes registrarte con tu email o iniciar sesión con Google, Apple o Facebook.",
+    /* Decía que sí a Google, Apple y Facebook, y la app ya no los
+       tiene. Es una pregunta del FAQ: la gente la lee para decidir. */
+    socialQ: "¿Cómo entro en la app?",
+    socialA: "Creas tu cuenta con tu correo y una contraseña. Después puedes volver a entrar con Face ID, sin escribir nada.",
 
     /* La última respuesta lleva un enlace dentro, así que va en tres
        trozos: lo de antes, el texto del enlace y lo de después. El
